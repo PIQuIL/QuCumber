@@ -163,10 +163,14 @@ class RBM(nn.Module):
             # change hneg_prob to hneg still works, but more wiggling
             self.deltav = (self.vpos - self.vneg).data.mean(0)
             # mean averages over all batches
-
-            self.W_update.data      += (lr * self.deltaW).cuda()
-            self.h_bias_update.data += (lr * self.deltah).cuda()
-            self.v_bias_update.data += (lr * self.deltav).cuda()
+            if self.gpu:
+                self.W_update.data      += (lr * self.deltaW).cuda()
+                self.h_bias_update.data += (lr * self.deltah).cuda()
+                self.v_bias_update.data += (lr * self.deltav).cuda()
+            else:
+                self.W_update.data      += (lr * self.deltaW)
+                self.h_bias_update.data += (lr * self.deltah)
+                self.v_bias_update.data += (lr * self.deltav)
             # Update rule is W <- W + lr*(h_0 x_0 - h_k x_k)
             # But generally it is defined as W = W - v
             # Therefore v = -lr deltaW --> v in our case is W_update
