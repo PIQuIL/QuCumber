@@ -6,28 +6,15 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 
-# ------------------------------------------------------------------------------
-# GPU and CPU tested on
-# python 2.7.15
-# torch 0.4.0
-# numpy 1.14.2
-# ------------------------------------------------------------------------------
-# CPU tested on
-# python 3.6.4
-# torch 0.3.1.post2
-# numpy 1.13.3
-#
-
-
 def spin_config(number, n_vis): # generates a binary list from a number
-	spins = list(map(int, list(format(number, 'b').zfill(n_vis))))
-	spins.reverse()
-	return spins
-	
+    spins = list(map(int, list(format(number, 'b').zfill(n_vis))))
+    spins.reverse()
+    return spins
+
 def spin_list(n_vis): # returns a list of all possible spin configurations for n_vis spins
-	spins = [spin_config(number, n_vis) for number in range(2**n_vis)  ]
-	spins = Variable(torch.FloatTensor(spins))
-	return spins
+    spins = [spin_config(number, n_vis) for number in range(2**n_vis)  ]
+    spins = Variable(torch.FloatTensor(spins))
+    return spins
 
 def overlapp_fct(all_spins, data, psi):
     a = 0
@@ -70,19 +57,12 @@ class RBM(nn.Module):
         self.n_vis = n_vis
         self.continuous_v = continuous_visible
         self.continuous_h = continuous_hidden
-
-#        self.W_update = self.W.clone()
-#        self.h_bias_update = self.h_bias.clone()
-#        self.v_bias_update = self.v_bias.clone()
+        
         self.W_update = self.W.clone()
         self.h_bias_update = self.h_bias.clone()
         self.v_bias_update = self.v_bias.clone()
-
+        
         if self.gpu:
-#            self.W = self.W.cuda()
-#            self.v_bias = self.v_bias.cuda()
-#            self.h_bias = self.h_bias.cuda()
-
             self.W_update = self.W_update.cuda()
             self.v_bias_update = self.v_bias_update.cuda()
             self.h_bias_update = self.h_bias_update.cuda()
@@ -94,7 +74,7 @@ class RBM(nn.Module):
         # p (h_j | v ) = sigma(b_j + sum_i v_i w_ij)
         sample_h = p_h.bernoulli()
         return p_h if self.continuous_h else sample_h
-
+    
     def h_to_v(self,h): # sample v given h
         if (self.gpu and not h.is_cuda):
             h = h.cuda()
@@ -112,7 +92,7 @@ class RBM(nn.Module):
             v_ = self.h_to_v(h_)
             h_ = self.v_to_h(v_)
         return v,v_
-
+        
     def free_energy(self,v): # exp( v_bias^transp*v + sum(log(1+exp(h_bias + W*v))))
         if (self.gpu and not v.is_cuda):
             v = v.cuda()
@@ -124,14 +104,14 @@ class RBM(nn.Module):
         hidden_term = wx_b.exp().add(1).log().sum(1) # sum indicates over which tensor index we sum
         # hidden_term has dim batch_size
         return (-hidden_term - vbias_term) # returns the free energies of all the input spins in a vector
-
+    
     def draw_sample(self, sample_length):
         v_ = F.relu(torch.sign(Variable(torch.randn(self.n_vis))))
         for _ in range(sample_length):
             h_ = self.v_to_h(v_)
             v_ = self.h_to_v(h_)
         return v_
-
+    
     # -------------------------------------------------------------------------
     # TO DO (for n_hidden > 150 does not work)
     # Calculate exp( log( p(v))) to avoid exploding exponentials
@@ -143,11 +123,11 @@ class RBM(nn.Module):
         epsilon = (-self.free_energy(v)).exp().sum()
         Z = self.partition_fct(all_spins)
         return epsilon/Z
-
+    
     def train(self, train_loader, lr= 0.01, weight_decay=0, momentum=0.9, epoch=0):
         loss_ = []
         for _, data in enumerate(train_loader):
-            self.data = Variable(data.view(-1,vis))
+            self.data = Variable(data.view(-1,self.n_vis))
             
             if self.gpu:
                 self.data = self.data.cuda()
@@ -164,11 +144,11 @@ class RBM(nn.Module):
                 self.continuous_h = False
             else:
                 self.hneg_probability = self.v_to_h(self.vneg)
-
+        
             self.W_update.data      *= momentum
             self.h_bias_update.data *= momentum
             self.v_bias_update.data *= momentum
-
+            
             self.deltaW = (outer_product(self.hpos, self.vpos)- outer_product(self.hneg_probability, self.vneg)).data.mean(0)
             self.deltah = (self.hpos - self.hneg_probability).data.mean(0)
             # change hneg_prob to hneg still works, but more wiggling
@@ -182,85 +162,14 @@ class RBM(nn.Module):
                 self.W_update.data      += (lr * self.deltaW)
                 self.h_bias_update.data += (lr * self.deltah)
                 self.v_bias_update.data += (lr * self.deltav)
-            # Update rule is W <- W + lr*(h_0 x_0 - h_k x_k)
-            # But generally it is defined as W = W - v
-            # Therefore v = -lr deltaW --> v in our case is W_update
-            # With momentum we get v_t+1 = m*v_t + lr deltaW
+                # Update rule is W <- W + lr*(h_0 x_0 - h_k x_k)
+                # But generally it is defined as W = W - v
+                # Therefore v = -lr deltaW --> v in our case is W_update
+                # With momentum we get v_t+1 = m*v_t + lr deltaW
+                    
+                self.W.data      += self.W_update.data
+                self.h_bias.data += self.h_bias_update.data
+                self.v_bias.data += self.v_bias_update.data
+                
+                loss_.append(F.mse_loss(self.vneg, self.vpos).data[0])
 
-            self.W.data      += self.W_update.data
-            self.h_bias.data += self.h_bias_update.data
-            self.v_bias.data += self.v_bias_update.data
-
-            loss_.append(F.mse_loss(self.vneg, self.vpos).data[0])
-
-			  
-batch_size = 500
-
-filename = 'training_data.txt'
-with open(filename, 'r') as fobj:
-	data = torch.FloatTensor([[int(num) for num in line.split()] for line in fobj])
-
-filename = 'target_psi.txt'
-with open(filename, 'r') as fobj:
-	psi = torch.FloatTensor([float(line.split()[0]) for line in fobj])
-
-vis = len(data[0]) #input dimension
-all_spins = spin_list(10)
-gpu = False
-rbm = RBM(n_vis = vis, n_hin = 10, k=10, gpu = gpu)
-if gpu:
-    rbm = rbm.cuda()
-    all_spins = all_spins.cuda()
-    psi = psi.cuda()
-train_op = optim.SGD(rbm.parameters(), lr = 0.1, momentum = 0.95)
-# rbm.parameters gives a generator object with the weights and the biases
-
-#Example SGD:
-#	 >>> optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
-#	 >>> optimizer.zero_grad()
-#	 >>> loss_fn(model(input), target).backward()
-#	 >>> optimizer.step()
-
-
-
-# ------------------------------------------------------------------------------
-#define a simple training set and check if rbm.draw() returns this after training.
-dummy_training = False
-if dummy_training:
-    data = torch.FloatTensor([[0]*10]*1000) #torch.FloatTensor([[1,0,1,0,1,0,1,0,1,0], [0]*10, [1]*10]*1000)
-    test = Variable(torch.FloatTensor([1,1,1,1,1,0,0,0,0,0]))
-    psi = Variable(torch.FloatTensor([1/np.sqrt(1)]))
-# ------------------------------------------------------------------------------
-
-train_loader = torch.utils.data.DataLoader(data, batch_size=batch_size,
-                                           shuffle=True)
-
-#for epoch in range(1000):
-#    loss_ = []
-#    for _, data in enumerate(train_loader):
-#        data = Variable(data.view(-1,vis)) # convert tensor to node in computational graph
-##        sample_data = data.bernoulli()
-#        v,v1 = rbm(data) # returns batch before and after Gibbs sampling steps
-#        loss = (rbm.free_energy(v).mean() - rbm.free_energy(v1).mean()) # calc difference in free energy before and after Gibbs sampling
-#        # .mean() for averaging over whole batch
-#        # KLL =~ F(spins) - log (Z), by looking at the difference between F before and after the iteration, one gets rid of Z
-#        loss_.append(loss.data[0])
-#        train_op.zero_grad() # reset gradient to zero (pytorch normally accumulates them to use it e.g. for RNN)
-#        loss.backward() # calc gradient
-#        train_op.step() # make one step of SGD
-#    print('OVERLAPP:', overlapp_fct(all_spins, all_spins, psi))
-#    print( np.mean(loss_))
-
-epochs = 1000
-for epoch in range(epochs):
-    train_loader = torch.utils.data.DataLoader(data, batch_size=64,
-                                               shuffle=True)
-    print(epoch)
-    momentum = 1 - 0.1*(epochs-epoch)/epochs #starts at 0.9 and goes up to 1
-    lr = (0.1*np.exp(-epoch/100))+0.001
-    rbm.train(train_loader, weight_decay = 1e-4, momentum = momentum, lr = lr)
-    if epoch%1 == 0:
-        a = 0
-        for i in range(len(psi)):
-            a += psi[i]*torch.sqrt(rbm.probability_of_v(all_spins, all_spins[i]))
-        print('OVERLAPP:', a.data[0], 'next')
