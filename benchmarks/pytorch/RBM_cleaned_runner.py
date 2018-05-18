@@ -23,6 +23,8 @@ epochs = 20
 all_spins = spin_list(10)
 gpu = False
 
+dummy_training = False
+
 filename = 'training_data.txt'
 with open(filename, 'r') as fobj:
 	data = torch.FloatTensor([[int(num) for num in line.split()] for line in fobj])
@@ -42,7 +44,6 @@ if gpu:
 #DUMMY TRAINING SET
 # ------------------------------------------------------------------------------
 #define a simple training set and check if rbm.draw() returns this after training.
-dummy_training = False
 if dummy_training:
     data = torch.FloatTensor([[0]*10]*1000) #torch.FloatTensor([[1,0,1,0,1,0,1,0,1,0], [0]*10, [1]*10]*1000)
     test = Variable(torch.FloatTensor([1,1,1,1,1,0,0,0,0,0]))
