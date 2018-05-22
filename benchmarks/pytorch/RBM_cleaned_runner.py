@@ -6,9 +6,11 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 from RBM_helper import spin_config, spin_list, overlapp_fct, RBM
+import gzip
+import pickle
 
 # ------------------------------------------------------------------------------
-# GPU and CPU tested on
+# GPU and CPU tested on/Users/phuembeli/Dropbox/Perimeter_Institute/RBM_project/NNQuST/benchmarks/pytorch/RBM_cleaned_runner.py
 # python 2.7.15
 # torch 0.4.0
 # numpy 1.14.2
@@ -25,21 +27,26 @@ gpu = False
 
 dummy_training = False
 
-filename = 'training_data.txt'
-with open(filename, 'r') as fobj:
-	data = torch.FloatTensor([[int(num) for num in line.split()] for line in fobj])
+#filename = 'training_data.txt'
+#with open(filename, 'r') as fobj:
+#    data = torch.FloatTensor([[int(num) for num in line.split()] for line in fobj])
+#
+#filename = 'target_psi.txt'
+#with open(filename, 'r') as fobj:
+#    psi = torch.FloatTensor([float(line.split()[0]) for line in fobj])
 
-filename = 'target_psi.txt'
-with open(filename, 'r') as fobj:
-	psi = torch.FloatTensor([float(line.split()[0]) for line in fobj])
+filename = '../data/Ising2d_L12.pkl.gz'
+with gzip.open(filename, 'rb') as f:
+    data = pickle.load(f, encoding = 'latin1')
+
 
 vis = len(data[0]) #input dimension
 
-rbm = RBM(n_vis = vis, n_hin = 10, k=10, gpu = gpu)
+rbm = RBM(n_vis = vis, n_hin = vis, k=10, gpu = gpu)
 if gpu:
     rbm = rbm.cuda()
     all_spins = all_spins.cuda()
-    psi = psi.cuda()
+#    psi = psi.cuda()
 
 #DUMMY TRAINING SET
 # ------------------------------------------------------------------------------
@@ -60,11 +67,11 @@ for epoch in range(epochs):
     momentum = 1 - 0.1*(epochs-epoch)/epochs #starts at 0.9 and goes up to 1
     lr = (0.1*np.exp(-epoch/epochs*10))+0.0001
     rbm.train(train_loader, lr = lr, momentum = momentum)
-    if epoch%1 == 0:
-        a = 0
-        for i in range(len(psi)):
-            a += psi[i]*torch.sqrt(rbm.probability_of_v(all_spins, all_spins[i]))
-        print('OVERLAPP:', a.data[0], 'next')
+#    if epoch%1 == 0:
+#        a = 0
+#        for i in range(len(psi)):
+#            a += psi[i]*torch.sqrt(rbm.probability_of_v(all_spins, all_spins[i]))
+#        print('OVERLAPP:', a.data[0], 'next')
 
 
 #TRAINING WITH BUILT IN SGD WORKS VIA FREE ENERGY GAP
