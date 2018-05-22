@@ -1,5 +1,3 @@
-import numpy as np
-
 
 def constant(x):
     def fn(ep):

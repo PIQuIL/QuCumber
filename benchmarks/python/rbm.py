@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import stats, special
-from scipy.special import expit as sigmoid
+from scipy.special import expit
 from tqdm import tqdm_notebook, tqdm
 import rbm_grad_updaters as rgu
 import schedulers
@@ -34,6 +34,18 @@ class RBM:
         else:
             self.rand_state = np.random.RandomState(seed)
 
+        self.cache = {}
+        try:
+            # Should move this somewhere else once we start dealing
+            # with bigger datasets
+            self.cache["visible_space"] = \
+                self.get_visible_space(self.num_visible)
+        except (MemoryError, ValueError):
+            self.cache["visible_space"] = None
+            # a visible space large enough to cause a MemoryError
+            # will be too large/slow to deal with later on;
+            # make sure log_every is set to 0
+
         if weights is not None:
             self.weights = weights
         else:
@@ -58,19 +70,6 @@ class RBM:
         else:
             self.hidden_bias = np.zeros(self.num_hidden)
 
-        try:
-            # Should move this somewhere else once we start dealing
-            # with bigger datasets
-            self.cache = {}
-            self.cache["visible_space"] = \
-                self.get_visible_space(self.num_visible)
-        except MemoryError:
-            self.cache = {}
-            raise
-            # a visible space large enough to cause a MemoryError
-            # will be too large/slow to deal with later on;
-            # better to just give up now
-
     def __repr__(self):
         return ("RBM(num_visible={}, num_hidden={})"
                 .format(self.num_visible, self.num_hidden))
@@ -88,14 +87,14 @@ class RBM:
                             has_gauss=has_gauss,
                             cached_gaussian=cached_gaussian)
 
-    @staticmethod
-    def load(location):
+    @classmethod
+    def load(cls, location):
         rbm_params = np.load(location)
         rand_state = (rbm_params["rng_name"], rbm_params["keys"],
                       rbm_params["pos"], rbm_params["has_gauss"],
                       rbm_params["cached_gaussian"])
 
-        return RBM(rand_state=rand_state,
+        return cls(rand_state=rand_state,
                    weights=rbm_params["weights"],
                    visible_bias=rbm_params["visible_bias"],
                    hidden_bias=rbm_params["hidden_bias"])
@@ -109,7 +108,9 @@ class RBM:
             del self.cache["visible_space"]
 
     @staticmethod
-    @np.vectorize
+    def sigmoid(x): return expit(x)
+
+    @staticmethod
     def ln1pexp(x):
         """Compute ln(1+exp(x)) quickly by using an approximation
         when x > 30: ln(1 + exp(x)) ~ ln(exp(x)) = x.
@@ -120,12 +121,9 @@ class RBM:
         64 and 128 bit floats; precision loss of 32 bit floats
         overwhelms this systematic error.
         """
-        if x > 30:
-            # maximum absolute error on order of 1e-13;
-            # error -> 0 as x -> \infty
-            return x
-        else:
-            return np.log1p(np.exp(x))
+        a = x.copy()
+        a[a <= 30] = np.log1p(np.exp(a[a <= 30]))
+        return a
 
     def free_energy(self, v):
         if len(v.shape) == 2:
@@ -143,18 +141,18 @@ class RBM:
 
     def prob_h_given_v(self, v):
         if len(v.shape) == 2:
-            p = sigmoid(np.dot(self.weights, v.T)
-                        + self.hidden_bias.reshape(-1, 1)).T
+            p = self.sigmoid(np.dot(self.weights, v.T)
+                             + self.hidden_bias.reshape(-1, 1)).T
         else:
-            p = sigmoid(np.dot(self.weights, v) + self.hidden_bias)
+            p = self.sigmoid(np.dot(self.weights, v) + self.hidden_bias)
         return p
 
     def prob_v_given_h(self, h):
         if len(h.shape) == 2:
-            p = sigmoid(np.dot(self.weights.T, h.T)
-                        + self.visible_bias.reshape(-1, 1)).T
+            p = self.sigmoid(np.dot(self.weights.T, h.T)
+                             + self.visible_bias.reshape(-1, 1)).T
         else:
-            p = sigmoid(np.dot(self.weights.T, h) + self.visible_bias)
+            p = self.sigmoid(np.dot(self.weights.T, h) + self.visible_bias)
         return p
 
     def sample_h_given_v(self, v, rs=None):
@@ -211,7 +209,7 @@ class RBM:
             v0, h0, vk, hk, phk = self.gibbs_sampling(k, pbatch)
         else:
             # Positive phase comes from training data
-            v0, h0, _, _, _ = self.gibbs_sampling(1, batch)
+            v0, h0, _, _, _ = self.gibbs_sampling(0, batch)
             # Negative phase comes from persistent Markov chain
             _, _, vk, hk, phk = self.gibbs_sampling(k, pbatch)
             pbatch = vk
@@ -306,16 +304,23 @@ class RBM:
             self.clear_cache()
 
             if log_every > 0 and ep % log_every == 0:
-                overlap = self.overlap(target)
-                overlap_list.append(overlap)
+                if target is not None:
+                    # don't compute overlap if target wavefunction
+                    # data isn't provided
+                    overlap = self.overlap(target)
+                    overlap_list.append(overlap)
                 nll = self.negative_log_likelihood(data)
                 nll_list.append(nll)
-                tqdm.write(("Epoch = {}; "
-                            "NLL per training example = {: 12.8f}; "
-                            "Overlap = {: 12.8f}")
-                           .format(str(ep).rjust(
-                                            int(np.ceil(np.log10(epochs)+1))),
-                                   nll / len(data), overlap))
+                info_str = ("Epoch = {}".format(
+                                str(ep).rjust(
+                                        int(np.ceil(np.log10(epochs)+1)))))
+                info_str += ("; NLL per training example = {: 12.8f}"
+                             .format(nll / len(data)))
+
+                if target is not None:
+                    info_str += ("; Overlap = {: 12.8f}".format(overlap))
+
+                tqdm.write(info_str)
 
             if ep == epochs:  # just wanted to log metrics one last time
                 break
@@ -342,7 +347,10 @@ class RBM:
 
                 updater_data = updater(self, ep, grads, updater_data)
 
-        return nll_list, overlap_list
+        if target is not None:
+            return nll_list, overlap_list
+        else:
+            return nll_list
 
     @staticmethod
     def get_visible_space(n: int):
@@ -358,13 +366,32 @@ class RBM:
 
         return space
 
-    def apply_to_visible_space(self, fn):
+    @staticmethod
+    def generate_visible_space(n):
+        for i in range(1 << n):
+            d = i
+            arr = np.zeros((n,))
+            for j in range(n):
+                d, r = divmod(d, 2)
+                arr[n - j - 1] = int(r)
+            yield arr
+
+    def apply_to_visible_space(self, fn, direct=False):
         """Applies a function to every element of the visible space
 
         fn -- function to apply; must be able to take as input a
               single vector of the visible space
+        direct -- if True, passes the visible space matrix (if available)
+                  directly to fn
         """
-        return np.apply_along_axis(fn, 1, self.cache["visible_space"])
+        if self.cache["visible_space"] is not None:
+            return np.apply_along_axis(fn, 1, self.cache["visible_space"])
+        else:
+            output = np.zeros((1 << self.num_visible, 1))
+            visible_space = self.generate_visible_space(self.num_visible)
+            for i, v in enumerate(visible_space):
+                output[i] = fn(v)
+            return output
 
     @alias("Z")
     def partition(self):
@@ -378,7 +405,8 @@ class RBM:
         if "log_partition" in self.cache:
             return self.cache["log_partition"]
 
-        free_energies = self.free_energy(self.cache["visible_space"])
+        free_energies = self.apply_to_visible_space(self.free_energy,
+                                                    direct=True)
         logZ = special.logsumexp(free_energies)
 
         self.cache["log_partition"] = logZ
@@ -400,6 +428,9 @@ class RBM:
 
     @alias("nll")
     def negative_log_likelihood(self, data):
+        """Computes the Negative Log Likelihood of the RBM
+        over the given data
+        """
         if "nll" in self.cache:
             return self.cache["nll"]
 
@@ -412,12 +443,13 @@ class RBM:
     def overlap(self, target):
         if target is None:
             return None
-        prob_vect = self.probability(self.cache["visible_space"])
+        prob_vect = self.apply_to_visible_space(self.probability, direct=True)
         return np.dot(target, np.sqrt(prob_vect))
 
     def compute_numerical_kl(self, target):
         KL = stats.entropy(np.power(target, 2),
-                           self.probability(self.cache["visible_space"]))
+                           self.apply_to_visible_space(self.probability,
+                                                       direct=True))
         return KL
 
     def test_gradient(self, target, param, alg_grad, eps=1e-8):
