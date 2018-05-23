@@ -124,7 +124,7 @@ class RBM(nn.Module):
         Z = self.partition_fct(all_spins)
         return epsilon/Z
     
-    def train(self, train_loader, lr= 0.01, weight_decay=0, momentum=0.9, epoch=0):
+    def train(self, train_loader, lr= 0.01, weight_decay=0, momentum=0.9):
         loss_ = []
         for _, data in enumerate(train_loader):
             self.data = Variable(data.view(-1,self.n_vis))
