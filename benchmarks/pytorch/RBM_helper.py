@@ -47,8 +47,8 @@ class RBM(nn.Module):
         self.gpu = gpu
         if saved_weights is None:
             self.W = nn.Parameter(torch.randn(n_hin,n_vis)*1e-2, requires_grad = True) # randomly initialize weights
-            self.v_bias = nn.Parameter(torch.randn(n_vis)*1e-2, requires_grad=True)
-            self.h_bias = nn.Parameter(torch.randn(n_hin)*1e-2, requires_grad=True)
+            self.v_bias = nn.Parameter(torch.zeros(n_vis), requires_grad=True)
+            self.h_bias = nn.Parameter(torch.zeros(n_hin), requires_grad=True)
         else:
             self.W = saved_weights[0]
             self.v_bias = saved_weights[1]
@@ -101,7 +101,7 @@ class RBM(nn.Module):
         vbias_term = v.mv(self.v_bias) # v_bias^transp*v; should give a scalar for every element of batch
         wx_b = F.linear(v,self.W,self.h_bias) # v*W^transp + h_bias
         # wx_b has dimension batch_size x v_dim
-        hidden_term = wx_b.exp().add(1).log().sum(1) # sum indicates over which tensor index we sum
+        hidden_term = wx_b.exp().log1p().sum(1) # sum indicates over which tensor index we sum
         # hidden_term has dim batch_size
         return (-hidden_term - vbias_term) # returns the free energies of all the input spins in a vector
     
@@ -126,12 +126,11 @@ class RBM(nn.Module):
     
     def train(self, train_loader, lr= 0.01, weight_decay=0, momentum=0.9):
         loss_ = []
-        for _, data in enumerate(train_loader):
-            self.data = Variable(data.view(-1,self.n_vis))
-            
+        for _, data in enumerate(train_loader):            
             if self.gpu:
-                self.data = self.data.cuda()
-            
+                self.data = data
+            else:
+                self.data = Variable(data.view(-1,self.n_vis))
             # Get positive phase from the data
             self.vpos = self.data
             self.hpos = self.v_to_h(self.vpos)

@@ -10,6 +10,7 @@ from RBM_helper import spin_config, spin_list, overlapp_fct, RBM
 import gzip
 import pickle
 
+
 """
 To run this file call it like that:
 
@@ -35,6 +36,8 @@ filename    data/path   batch_size  epochs  hidden_units    learning_rate   mome
 # torch 0.3.1.post2
 # numpy 1.13.3
 
+seed = 1111
+
 if len(sys.argv) != 9:
     sys.exit('arguments missing! 1. filname, 2. batch_size, 3. epochs, 4. hidden_units, 5. k, 6. learning rate, 7. momentum, 8. gpu (0 / 1)')
 filename = sys.argv[1]
@@ -46,6 +49,9 @@ lr = float(sys.argv[6])
 momentum = float(sys.argv[7])
 gpu = int(sys.argv[8])
 
+torch.manual_seed(seed)
+if gpu:
+    torch.cuda.manual_seed(seed)
 
 #filename = 'data/Ising2d_L4.pkl.gz'
 with gzip.open(filename, 'rb') as f:
@@ -60,7 +66,6 @@ vis = len(data[0]) #input dimension
 rbm = RBM(n_vis = vis, n_hin = hidden_units, k=k, gpu = gpu)
 if gpu:
     rbm = rbm.cuda()
-    all_spins = all_spins.cuda()
 
 train_loader = torch.utils.data.DataLoader(data, batch_size=batch_size,
                                            shuffle=True)

@@ -20,8 +20,8 @@ import pickle
 # torch 0.3.1.post2
 # numpy 1.13.3
 
-batch_size = 64
-epochs = 20
+batch_size = 1000
+epochs = 200
 all_spins = spin_list(10)
 gpu = False
 
@@ -35,9 +35,10 @@ dummy_training = False
 #with open(filename, 'r') as fobj:
 #    psi = torch.FloatTensor([float(line.split()[0]) for line in fobj])
 
-filename = '../data/Ising2d_L12.pkl.gz'
+filename = 'data/Ising2d_L16.pkl.gz'
 with gzip.open(filename, 'rb') as f:
-    data = pickle.load(f, encoding = 'latin1')
+    data = pickle.load(f, encoding = 'latin1') 
+# python3 pickle.load(f, encoding = 'latin1')    
 
 
 vis = len(data[0]) #input dimension
@@ -45,7 +46,9 @@ vis = len(data[0]) #input dimension
 rbm = RBM(n_vis = vis, n_hin = vis, k=10, gpu = gpu)
 if gpu:
     rbm = rbm.cuda()
-    all_spins = all_spins.cuda()
+    data = torch.FloatTensor(data)
+    data = Variable(data)
+    data = data.cuda()
 #    psi = psi.cuda()
 
 #DUMMY TRAINING SET
@@ -58,11 +61,10 @@ if dummy_training:
 # ------------------------------------------------------------------------------
 
 train_loader = torch.utils.data.DataLoader(data, batch_size=batch_size,
-                                           shuffle=True)
+                                           shuffle=True, pin_memory = False)
+
 
 for epoch in range(epochs):
-    train_loader = torch.utils.data.DataLoader(data, batch_size=batch_size,
-                                               shuffle=True)
     print(epoch)
     momentum = 1 - 0.1*(epochs-epoch)/epochs #starts at 0.9 and goes up to 1
     lr = (0.1*np.exp(-epoch/epochs*10))+0.0001
