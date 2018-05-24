@@ -17,7 +17,7 @@ EXAMPLE HOW To run this file:
 
 In Ipython
 
-%run RBM_pytorch_benchmark_runner_with_click.py run_training -e 10 -n 10 -b 32 -k 10 -lr 0.1 -m 0.9 --seed 1111 --gpu False --train-path data/Ising2d_L16.pkl.gz
+%run Pytorch_final_with_click.py run_training -e 10 -n 10 -b 32 -k 10 -lr 0.1 -m 0.9 --seed 1111 --gpu False --train-path data/Ising2d_L16.pkl.gz
 
 Parameters:
 
