@@ -2,15 +2,13 @@
 # coding: utf-8
 
 # In[19]:
-
-
+import pickle
+import gzip
 import tensorflow as tf
 import numpy as np
 import click
 import itertools as it
 
-
-# In[2]:
 
 
 class RBM:
@@ -95,7 +93,7 @@ class RBM:
         return w_grad, vb_grad, hb_grad
 
     # for training function in main block of code. 
-    # Just gets a batch from the training data
+    #9lJust gets a batch from the training data
     def get_batch(self, index):
         batch_start = index*self.batch_size
         batch_end   = batch_start + self.batch_size 
@@ -147,6 +145,12 @@ def load_training_pickle(file_path):
         data = pickle.load(f)
     return data
 
+def load_train(L):
+    test = np.load("/home/mbeach/configs%s.npy" %(L))
+    test = test.reshape(test.shape[0], L*L)
+    return test.astype('float32')
+
+# def load_train_pickle(train_path):
 placeholders = Placeholders()
 
 @click.group(context_settings={"help_option_names": ['-h', '--help']})
@@ -156,8 +160,9 @@ def cli():
 
 @cli.command('train')
 
-@click.option('--training-data-path', default='data/Ising2d_L4.pkl.gz', show_default=True, type=click.Path(exists=True), 
-              help='Path to the training data file.')
+@click.option('-L', '--system-size', default=1000, show_default=True, type=int)
+# @click.option('--training-data-path', default='data/Ising2d_L4.pkl.gz', show_default=True, type=click.Path(exists=True), 
+              # help='Path to the training data file.')
 
 @click.option('-n', '--num_hidden', default=10, type=int,
               help=('Number of hidden units. Default = number of visible units.'))
@@ -179,9 +184,10 @@ def cli():
 
 
 # main training function that will call the learn function in the rbm class
-def train(training_data_path, num_hidden, num_epochs, batch_size, k, learning_rate, momentum, seed):
+def train(system_size, num_hidden, num_epochs, batch_size, k, learning_rate, momentum, seed):
     
-    training_data = load_training_pickle(training_data_path)
+    # training_data = load_training_pickle(training_data_path)
+    training_data = load_train(system_size)
     num_visible = len(training_data[0])
         
     # hard coded parameters
@@ -194,7 +200,7 @@ def train(training_data_path, num_hidden, num_epochs, batch_size, k, learning_ra
               num_gibbs_iters = k, _seed = seed)
     
     # placeholders for the visible samples (batches), the whole visible space, and the target psi
-    placeholders.visible_samples = tf.placeholder(tf.float32, shape=(batch_size, num_visible))
+    visible_samples = tf.placeholder(tf.float32, shape=(batch_size, num_visible))
     
     # a learning step to be ran once the session begins
     step = rbm.learn(visible_samples)
@@ -216,8 +222,8 @@ def train(training_data_path, num_hidden, num_epochs, batch_size, k, learning_ra
             if batch_size*batch_count + batch_size >= training_data.shape[0]:
                 epoch_list.append(epoch)
 
-                if epoch%20 == 0:
-                    print 'Epoch: %d' % (epoch)
+                # if epoch%20 == 0:
+                    # print 'Epoch: %d' % (epoch)
 
                 epoch += 1
                 
@@ -227,7 +233,7 @@ def train(training_data_path, num_hidden, num_epochs, batch_size, k, learning_ra
             
             batch_count += 1
             new_batch = rbm.get_batch(batch_count)  
-            sess.run(step, feed_dict = {placeholders.visible_samples: new_batch})
+            sess.run(step, feed_dict = {visible_samples: new_batch})
     
     print 'Done training.'
 
