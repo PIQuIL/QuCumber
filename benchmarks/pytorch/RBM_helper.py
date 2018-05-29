@@ -24,9 +24,9 @@ def overlapp_fct(all_spins, data, psi):
 
 def outer_product(vecs1, vecs2):
     '''Computes the outer product of batches of vectors
-        
+
         Arguments:
-        
+
         :param vecs1: b 1-D tensors of length m
         :type vecs1: list of torch.Tensor or torch.autograd.Variable
         :param vecs2: b 1-D tensors of length n
@@ -57,11 +57,11 @@ class RBM(nn.Module):
         self.n_vis = n_vis
         self.continuous_v = continuous_visible
         self.continuous_h = continuous_hidden
-        
+
         self.W_update = self.W.clone()
         self.h_bias_update = self.h_bias.clone()
         self.v_bias_update = self.v_bias.clone()
-        
+
         if self.gpu:
             self.W_update = self.W_update.cuda()
             self.v_bias_update = self.v_bias_update.cuda()
@@ -74,7 +74,7 @@ class RBM(nn.Module):
         # p (h_j | v ) = sigma(b_j + sum_i v_i w_ij)
         sample_h = p_h.bernoulli()
         return p_h if self.continuous_h else sample_h
-    
+
     def h_to_v(self,h): # sample v given h
         if (self.gpu and not h.is_cuda):
             h = h.cuda()
@@ -82,7 +82,7 @@ class RBM(nn.Module):
         # p (v_i | h ) = sigma(a_i + sum_j h_j w_ij)
         sample_v = p_v.bernoulli()
         return p_v if self.continuous_v else sample_v
-    
+
     def forward(self,v): # forward is pytorch standard fct that defines what happens with input data
         if (self.gpu and not v.is_cuda):
             v = v.cuda()
@@ -92,7 +92,7 @@ class RBM(nn.Module):
             v_ = self.h_to_v(h_)
             h_ = self.v_to_h(v_)
         return v,v_
-        
+
     def free_energy(self,v): # exp( v_bias^transp*v + sum(log(1+exp(h_bias + W*v))))
         if (self.gpu and not v.is_cuda):
             v = v.cuda()
@@ -104,14 +104,14 @@ class RBM(nn.Module):
         hidden_term = wx_b.exp().log1p().sum(1) # sum indicates over which tensor index we sum
         # hidden_term has dim batch_size
         return (-hidden_term - vbias_term) # returns the free energies of all the input spins in a vector
-    
+
     def draw_sample(self, sample_length):
         v_ = F.relu(torch.sign(Variable(torch.randn(self.n_vis))))
         for _ in range(sample_length):
             h_ = self.v_to_h(v_)
             v_ = self.h_to_v(h_)
         return v_
-    
+
     # -------------------------------------------------------------------------
     # TO DO (for n_hidden > 150 does not work)
     # Calculate exp( log( p(v))) to avoid exploding exponentials
@@ -123,10 +123,10 @@ class RBM(nn.Module):
         epsilon = (-self.free_energy(v)).exp().sum()
         Z = self.partition_fct(all_spins)
         return epsilon/Z
-    
+
     def train(self, train_loader, lr= 0.01, weight_decay=0, momentum=0.9):
         loss_ = []
-        for _, data in enumerate(train_loader):            
+        for _, data in enumerate(train_loader):
             if self.gpu:
                 self.data = data
             else:
@@ -137,17 +137,17 @@ class RBM(nn.Module):
             # Get negative phase from the chains
             _, self.vneg = self.forward(self.vpos) # make actual k-step sampling
             self.hneg = self.v_to_h(self.vneg)
-            if self.continuous_h == False:
+            if self.continuous_h is False:
                 self.continuous_h = True
                 self.hneg_probability = self.v_to_h(self.vneg)
                 self.continuous_h = False
             else:
                 self.hneg_probability = self.v_to_h(self.vneg)
-        
+
             self.W_update.data      *= momentum
             self.h_bias_update.data *= momentum
             self.v_bias_update.data *= momentum
-            
+
             self.deltaW = (outer_product(self.hpos, self.vpos)- outer_product(self.hneg_probability, self.vneg)).data.mean(0)
             self.deltah = (self.hpos - self.hneg_probability).data.mean(0)
             # change hneg_prob to hneg still works, but more wiggling
@@ -165,10 +165,10 @@ class RBM(nn.Module):
                 # But generally it is defined as W = W - v
                 # Therefore v = -lr deltaW --> v in our case is W_update
                 # With momentum we get v_t+1 = m*v_t + lr deltaW
-                    
-                self.W.data      += self.W_update.data
-                self.h_bias.data += self.h_bias_update.data
-                self.v_bias.data += self.v_bias_update.data
-                
-                loss_.append(F.mse_loss(self.vneg, self.vpos).data[0])
+
+            self.W.data      += self.W_update.data
+            self.h_bias.data += self.h_bias_update.data
+            self.v_bias.data += self.v_bias_update.data
+
+            loss_.append(F.mse_loss(self.vneg, self.vpos).data[0])
 
