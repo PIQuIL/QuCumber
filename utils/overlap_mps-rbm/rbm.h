@@ -5,8 +5,6 @@
 #include <random>
 #include <fstream>
 
-namespace qst{
-
 // RBM class
 class Rbm{
 
@@ -67,7 +65,6 @@ public:
     inline void SetVisibleLayer(Eigen::MatrixXd v){
         v_=v;
     }
-   
     // Initialize the network parameters
     void InitRandomPars(int seed,double sigma){
         std::default_random_engine generator(seed);
@@ -230,6 +227,5 @@ public:
     }
 
  };
-}
 
 #endif
