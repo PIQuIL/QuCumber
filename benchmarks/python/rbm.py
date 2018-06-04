@@ -196,7 +196,7 @@ class RBM:
         k -- number of Contrastive Divergence steps to perform
         persistent -- whether to use Persistent Contrastive Divergence
                       (default False)
-        pbatch -- the "batch" of persistent (default None)
+        pbatch -- the "batch" of persistent Markov chains (default None)
         """
         if len(batch) == 0:
             return (np.zeros_like(self.weights),
