@@ -1,5 +1,15 @@
 import torch
 
+def make_cplx(x,y):
+	'''A function that takes two tensors (a real (x) and imaginary part (y)) and returns the combined complex tensor.'''
+	if x.size()[0] != y.size()[0] or x.size()[1] != y.size()[1]:
+		raise ValueError('Input tensors do not have the same dimension.')
+	z = torch.zeros(2, x.size()[0], x.size()[1])
+	z[0] = x
+	z[1] = y
+
+	return z
+
 def cplx_SS(x, y):
 	'''A function that does complex scalar multiplication.'''
 	if list(x.size())[0] < 2 or list(y.size())[0] < 2:
