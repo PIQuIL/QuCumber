@@ -4,14 +4,18 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torch.nn import functional as F
 from tqdm import tqdm, tqdm_notebook
+import warnings
 
 
 class RBM(nn.Module):
-    def __init__(self, num_visible, num_hidden, gpu=True, seed=1234,
-                 weights=None, visible_bias=None, hidden_bias=None):
+    def __init__(self, num_visible, num_hidden, gpu=True, seed=1234):
         super(RBM, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
+
+        if gpu and not torch.cuda.is_available():
+            warnings.warn("Could not find GPU: will continue with CPU.",
+                          ResourceWarning)
 
         self.gpu = gpu and torch.cuda.is_available()
         if self.gpu:
@@ -61,12 +65,19 @@ class RBM(nn.Module):
             ph, h = self.sample_h_given_v(v)
         return v0, h0, v, h, ph
 
+    def sample(self, k, num_samples):
+        dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
+        v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
+                  .to(device=self.device, dtype=torch.double))
+        _, _, v, _, _ = self.gibbs_sampling(k, v0)
+        return v
+
     def regularize_weight_gradients(self, w_grad, l1_reg, l2_reg):
         return (w_grad
                 + (l2_reg * self.weights)
                 + (l1_reg * self.weights.sign()))
 
-    def compute_batch_gradients(self, k, batch, l1_reg, l2_reg):
+    def compute_batch_gradients(self, k, batch, l1_reg, l2_reg, stddev=0):
         if len(batch) == 0:
             return (torch.zeros_like(self.weights,
                                      device=self.device,
@@ -93,18 +104,22 @@ class RBM(nn.Module):
         hb_grad /= float(len(batch))
 
         w_grad = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
-
+        w_grad += (stddev * torch.randn_like(w_grad, device=self.device))
         # Return negative gradients to match up nicely with the usual
         # parameter update rules, which *subtract* the gradient from
         # the parameters. This is in contrast with the RBM update
         # rules which ADD the gradients (scaled by the learning rate)
         # to the parameters.
-        return -w_grad, -vb_grad, -hb_grad
+        return {"weights": -w_grad,
+                "visible_bias": -vb_grad,
+                "hidden_bias": -hb_grad}
 
     def train(self, data, epochs, batch_size,
               k=10, lr=1e-3, momentum=0.0,
               method='sgd', l1_reg=0.0, l2_reg=0.0,
+              initial_gaussian_noise=0.01, gamma=0.55,
               callbacks=[], progbar=False,
+              log_every=50,
               **kwargs):
         # callback_outputs = []
         disable_progbar = (progbar is False)
@@ -116,35 +131,36 @@ class RBM(nn.Module):
                                       self.hidden_bias],
                                      lr=lr)
 
-        if "target" in kwargs:
-            target_psi = torch.tensor(kwargs["target"]).to(device=self.device)
-        else:
-            target_psi = None
-
         vis = self.generate_visible_space()
         for ep in progress_bar(range(epochs + 1), desc="Epochs ",
                                total=epochs, disable=disable_progbar):
             batches = DataLoader(data, batch_size=batch_size, shuffle=True)
 
-            if ep % 50 == 0:
+            if ep % log_every == 0:
                 logZ = self.log_partition(vis)
                 nll = self.nll(data, logZ)
-                ol = self.overlap(logZ, target_psi, vis)
-                tqdm.write("{}: {}; {}".format(ep, ol,
-                                               nll.item() / len(data)))
+                tqdm.write("{}: {}".format(ep, nll.item() / len(data)))
+
+            if ep == epochs:
+                break
+
+            stddev = torch.tensor(
+                [initial_gaussian_noise / ((1 + ep) ** gamma)],
+                dtype=torch.double, device=self.device).sqrt()
 
             for batch in progress_bar(batches, desc="Batches",
                                       leave=False, disable=True):
-                w_grad, v_b_grad, h_b_grad = \
-                    self.compute_batch_gradients(k, batch, l1_reg, l2_reg)
+                grads = self.compute_batch_gradients(k, batch,
+                                                     l1_reg, l2_reg,
+                                                     stddev=stddev)
 
-                optimizer.zero_grad()
+                optimizer.zero_grad()  # clear any cached gradients
 
-                self.weights.grad = w_grad
-                self.visible_bias.grad = v_b_grad
-                self.hidden_bias.grad = h_b_grad
+                # assign all available gradients to the corresponding parameter
+                for name in grads.keys():
+                    getattr(self, name).grad = grads[name]
 
-                optimizer.step()
+                optimizer.step()  # tell the optimizer to apply the gradients
             # TODO: run callbacks
 
     def free_energy(self, v):
@@ -187,10 +203,3 @@ class RBM(nn.Module):
         total_free_energy = self.free_energy(data).sum()
 
         return (len(data)*logZ) - total_free_energy
-
-    def overlap(self, logZ, target, visible_space):
-        if target is None:
-            return None
-        probs = self.unnormalized_probability(visible_space)
-        Z = logZ.exp()
-        return torch.dot(target, (probs/Z).sqrt())
