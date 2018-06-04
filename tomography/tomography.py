@@ -12,8 +12,8 @@ class Tomography:
                        gpu=gpu,
                        seed=seed)
 
-    def train(self, **kwargs):
-        return self.rbm.train(**kwargs)
+    def train(self, epochs, batch_size, **kwargs):
+        return self.rbm.train(self.data, epochs, batch_size, **kwargs)
 
     def overlap(self, target):
         target_psi = torch.tensor(target).to(device=self.rbm.device)

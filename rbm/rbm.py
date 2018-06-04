@@ -136,7 +136,7 @@ class RBM(nn.Module):
                                total=epochs, disable=disable_progbar):
             batches = DataLoader(data, batch_size=batch_size, shuffle=True)
 
-            if ep % log_every == 0:
+            if log_every > 0 and ep % log_every == 0:
                 logZ = self.log_partition(vis)
                 nll = self.nll(data, logZ)
                 tqdm.write("{}: {}".format(ep, nll.item() / len(data)))
