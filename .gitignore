@@ -1,6 +1,12 @@
 
 # Created by https://www.gitignore.io/api/python
 
+*.DS_Store
+*Makefile
+*.x
+
+
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
