@@ -3,6 +3,7 @@ import numpy as np
 import click
 import pickle
 import gzip
+import csv
 
 
 def momentum_update(momentum, lr, old, new):
@@ -43,10 +44,10 @@ class RBM:
         self.param_updaters = None
         self.grad_updaters = None
 
-        self.visible_space = None
-        self.logZ = None
-        self.nll_val = None
-        self.data_len = None
+        # self.visible_space = None
+        # self.logZ = None
+        # self.nll_val = None
+        # self.data_len = None
 
         self._init_vars()
         init = tf.global_variables_initializer()
@@ -124,10 +125,10 @@ class RBM:
                               vb_grad_updater,
                               hb_grad_updater]
 
-        self.data_len = tf.convert_to_tensor(-float('inf'), dtype=tf.float32)
-        self.visible_space = self.generate_visible_space()
-        self.logZ = self.log_partition()
-        self.nll_val = self.nll()
+        # self.data_len = tf.convert_to_tensor(-float('inf'), dtype=tf.float32)
+        # self.visible_space = self.generate_visible_space()
+        # self.logZ = self.log_partition()
+        # self.nll_val = self.nll()
 
     def train(self, data, epochs, batch_size):
         for ep in range(epochs+1):
@@ -191,8 +192,63 @@ def cli():
     """Simple tool for training an RBM"""
     pass
 
-# @click.option('--target-path', type=click.Path(exists=True),
-#               help="path to the wavefunction data")
+
+def load_train(L):
+    data = np.load("/home/data/critical-2d-ising/L={}/q=2/configs.npy"
+                   .format(L))
+    data = data.reshape(data.shape[0], L*L)
+    return data.astype('float32')
+
+
+@cli.command("benchmark")
+@click.option('-n', '--num-hidden', default=None, type=int,
+              help=("number of hidden units in the RBM; defaults to "
+                    "number of visible units"))
+@click.option('-e', '--epochs', default=250, show_default=True, type=int)
+@click.option('-b', '--batch-size', default=32, show_default=True, type=int)
+@click.option('-k', multiple=True, type=int,
+              help="number of Contrastive Divergence steps")
+@click.option('-l', '--learning-rate', default=1e-3,
+              show_default=True, type=float)
+@click.option('-m', '--momentum', default=0.0, show_default=True, type=float,
+              help=("value of the momentum parameter; ignored if "
+                    "using SGD or Adam optimization"))
+@click.option('-o', '--output-file', type=click.Path(),
+              help="where to save the benchmarks csv file.")
+def benchmark(num_hidden, epochs, batch_size,
+              k, learning_rate, momentum, output_file):
+    """Trains RBM on several datasets and measures the training time"""
+    from os import listdir
+    from os.path import isdir, join
+    import time
+
+    dataset_sizes = [int(f.split('=')[-1])
+                     for f in listdir('/home/data/critical-2d-ising/')
+                     if isdir(join('/home/data/critical-2d-ising/', f))]
+
+    with open(output_file, 'w') as f:
+        writer = csv.DictWriter(f, ['L', 'k', 'time'])
+        for L in sorted(dataset_sizes):
+            for k_ in k:
+                print("L = {}; k = {}".format(L, k_))
+                train_set = load_train(L)
+
+                num_hidden = (train_set.shape[-1]
+                              if num_hidden is None
+                              else num_hidden)
+
+                rbm = RBM(num_visible=train_set.shape[-1],
+                          num_hidden=num_hidden,
+                          k=k_, lr=learning_rate,
+                          momentum=momentum)
+
+                time_elapsed = -time.perf_counter()
+                rbm.train(train_set, epochs, batch_size)
+                time_elapsed += time.perf_counter()
+
+                writer.writerow({'L': L,
+                                 'k': k_,
+                                 'time': time_elapsed})
 
 
 @cli.command("train")
