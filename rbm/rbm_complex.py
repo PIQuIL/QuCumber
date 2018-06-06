@@ -204,16 +204,16 @@ class RBM(nn.Module):
                                    self.basis_state_generator(s[index]) ) 
 
             '''Gradients for phase and amp.'''
-            w_grad_amp  = torch.matmul(F.sigmoid(F.linear(self.hidden_bias_amp, self.weights_amp.t(), constructed_state)), 
+            w_grad_amp  = torch.matmul(F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp)), 
                                        constructed_state) 
             vb_grad_amp = constructed_state
-            hb_grad_amp = F.sigmoid(F.linear(self.hidden_bias_amp, self.weights_amp.t(), constructed_state))
+            hb_grad_amp = F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp))
 
             
-            w_grad_phase  = torch.matmul(F.sigmoid(F.linear(self.hidden_bias_phase, self.weights_phase.t(), constructed_state)), 
+            w_grad_phase  = torch.matmul(F.sigmoid(F.linear(constructed_state, self.weights_phase.t(), self.hidden_bias_phase)), 
                                        constructed_state) 
             vb_grad_phase = constructed_state
-            hb_grad_phase = F.sigmoid(F.linear(self.hidden_bias_phase, self.weights_phase.t(), constructed_state))
+            hb_grad_phase = F.sigmoid(F.linear(constructed_state, self.weights_phase.t(), self.hidden_bias_phase))
 
             
             w_grad_amp  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
