@@ -11,8 +11,8 @@ class RBM(nn.Module):
         super(RBM, self).__init__()
         self.num_visible      = int(num_visible)
         self.num_hidden_amp   = int(num_hidden_amp)
-		self.num_hidden_phase = int(num_hidden_phase)
-		self.unitary_name     = unitary_name
+        self.num_hidden_phase = int(num_hidden_phase)
+        self.unitary_name     = unitary_name
 
         if gpu and not torch.cuda.is_available():
             warnings.warn("Could not find GPU: will continue with CPU.",
@@ -56,13 +56,13 @@ class RBM(nn.Module):
         self.hidden_bias_phase  = nn.Parameter(torch.zeros(self.num_hidden_phase,
                                                     device=self.device,
                                                     dtype=torch.double),
-                                        requires_grad=True
+                                        requires_grad=True)
 
     def prob_v_given_h_amp(self, h):
         p = F.sigmoid(F.linear(h, self.weights_amp.t(), self.visible_bias_amp))
         return p
-	
-	 def prob_v_given_h_phase(self, h):
+
+    def prob_v_given_h_phase(self, h):
         p = F.sigmoid(F.linear(h, self.weights_phase.t(), self.visible_bias_phase))
         return 
 
@@ -70,7 +70,7 @@ class RBM(nn.Module):
         p = F.sigmoid(F.linear(v, self.weights_amp, self.hidden_bias_amp))
         return p
 
-	def prob_h_given_v_phase(self, v):
+    def prob_h_given_v_phase(self, v):
         p = F.sigmoid(F.linear(v, self.weights_phase, self.hidden_bias_phase))
         return p
 
@@ -117,7 +117,7 @@ class RBM(nn.Module):
         _, _, v, _, _ = self.gibbs_sampling_amp(k, v0)
         return v
 
-	def sample_phase(self, k, num_samples):
+    def sample_phase(self, k, num_samples):
         dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
         v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
                   .to(device=self.device, dtype=torch.double))
@@ -130,7 +130,7 @@ class RBM(nn.Module):
                 + (l1_reg * self.weights.sign()))
 
     def compute_batch_gradients(self, k, batch, chars_batch, l1_reg, l2_reg, stddev=0):
-		'''This function will compute the gradients of a batch of the training data (data_file) given the basis measurements (chars_file).'''
+        '''This function will compute the gradients of a batch of the training data (data_file) given the basis measurements (chars_file).'''
         '''
         if len(batch) == 0:
             return (torch.zeros_like(self.weights_amp,
@@ -142,7 +142,7 @@ class RBM(nn.Module):
                     torch.zeros_like(self.hidden_bias_amp,
                                      device=self.device,
                                      dtype=torch.double),
-					torch.zeros_like(self.weights_phase,
+                    torch.zeros_like(self.weights_phase,
                                      device=self.device,
                                      dtype=torch.double),
                     torch.zeros_like(self.visible_bias_phase,
@@ -152,18 +152,18 @@ class RBM(nn.Module):
                                      device=self.device,
                                      dtype=torch.double))
         '''
-		'''For the gradient update.'''
+        '''For the gradient update.'''
         # TODO: must make these complex...
-		A_weights_amp = torch.zeros(2, self.weights_amp.size()[0], self.weights_amp.size()[1], device=self.device)
-		A_vb_amp      = torch.zeros(2, self.visible_biases_amp.size()[0], device=self.device)
-		A_hb_amp      = torch.zeros(2, self.hidden_biases_amp.size()[0], device=self.device)
-		
+        A_weights_amp = torch.zeros(2, self.weights_amp.size()[0], self.weights_amp.size()[1], device=self.device)
+        A_vb_amp      = torch.zeros(2, self.visible_biases_amp.size()[0], device=self.device)
+        A_hb_amp      = torch.zeros(2, self.hidden_biases_amp.size()[0], device=self.device)
+        
         A_weights_phase = torch.zeros(2, self.weights_phase.size()[0], self.weights_phase.size()[1], device=self.device)
         A_vb_phase      = torch.zeros(2, self.visible_biases_phase.size()[0], device=self.device)
         A_hb_phase      = torch.zeros(2, self.hidden_biases_phase.size()[0], device=self.device)
 
- 		B = 0.
-	
+        B = 0.
+    
         grad_weights_amp = torch.zeros_like(A_weights_amp)
         grad_vb_amp      = torch.zeros_like(A_vb_amp)
         grad_hb_amp      = torch.zeros_like(A_hb_amp)
@@ -172,7 +172,7 @@ class RBM(nn.Module):
         grad_vb_phase      = torch.zeros_like(A_vb_phase)
         grad_hb_phase      = torch.zeros_like(A_hb_phase)
 
-		for v0 in batch:
+        for v0 in batch:
 
             '''Giacomo stuff: (alg 4.2 and 4.3 in pseudo code)'''
             num_non_trivial_unitaries = 0
@@ -203,11 +203,11 @@ class RBM(nn.Module):
                     U *= cplx_DOT( cplx_MV(self.unitary(self.unitary_name), self.basis_state_generator(data[i][tau_indices[index]])), 
                                    self.basis_state_generator(s[index]) ) 
 
-			'''Gradients for phase and amp.'''
-			w_grad_amp  = torch.matmul(F.sigmoid(F.linear(self.hidden_bias_amp, self.weights_amp.t(), constructed_state)), 
+            '''Gradients for phase and amp.'''
+            w_grad_amp  = torch.matmul(F.sigmoid(F.linear(self.hidden_bias_amp, self.weights_amp.t(), constructed_state)), 
                                        constructed_state) 
-    	    vb_grad_amp = constructed_state
-	        hb_grad_amp = F.sigmoid(F.linear(self.hidden_bias_amp, self.weights_amp.t(), constructed_state))
+            vb_grad_amp = constructed_state
+            hb_grad_amp = F.sigmoid(F.linear(self.hidden_bias_amp, self.weights_amp.t(), constructed_state))
 
             
             w_grad_phase  = torch.matmul(F.sigmoid(F.linear(self.hidden_bias_phase, self.weights_phase.t(), constructed_state)), 
@@ -215,12 +215,12 @@ class RBM(nn.Module):
             vb_grad_phase = constructed_state
             hb_grad_phase = F.sigmoid(F.linear(self.hidden_bias_phase, self.weights_phase.t(), constructed_state))
 
-	        
+            
             w_grad_amp  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
-	        w_grad_amp += (stddev * torch.randn_like(w_grad, device=self.device))
+            w_grad_amp += (stddev * torch.randn_like(w_grad, device=self.device))
 
-	        w_grad_phase  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
-			w_grad_phase += (stddev * torch.randn_like(w_grad, device=self.device))
+            w_grad_phase  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
+            w_grad_phase += (stddev * torch.randn_like(w_grad, device=self.device))
 
             w_grad_amp  /= self.unnormalized_probability_amp(constructed_state)
             vb_grad_amp /= self.unnormalized_probability_amp(constructed_state)
@@ -229,16 +229,16 @@ class RBM(nn.Module):
             w_grad_phase  /= self.unnormalized_probability_phase(constructed_state)
             vb_grad_phase /= self.unnormalized_probability_phase(constructed_state)
             hb_grad_phase /= self.unnormalized_probability_phase(constructed_state)
-			
+            
             A_weights_amp += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), weight_grad_amp)
-			A_vb_amp      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), vb_grad_amp)
-			A_hb_amp      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), hb_grad_amp)
+            A_vb_amp      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), vb_grad_amp)
+            A_hb_amp      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), hb_grad_amp)
 
-			A_weights_phase += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), weight_grad_phase)
-			A_vb_phase      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), vb_grad_phase)
-			A_hb_phase      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), hb_grad_phase)
-			
-			B += cplx_SS(U, self.unnormalized_wavefunction(constructed_state))
+            A_weights_phase += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), weight_grad_phase)
+            A_vb_phase      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), vb_grad_phase)
+            A_hb_phase      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), hb_grad_phase)
+            
+            B += cplx_SS(U, self.unnormalized_wavefunction(constructed_state))
 
             L_weights_amp = cplx_divideVS(B, A_weights_amp)
             L_vb_amp      = cplx_divideVS(B, A_vb_amp)
@@ -255,7 +255,7 @@ class RBM(nn.Module):
             grad_weights_phase += L_weights_phase[1]/batch_size
             grad_vb_phase      += L_vb_phase[1]/batch_size
             grad_hb_phase      += L_hb_phase[1]/batch_size
-		
+        
         ''' Mc = batch size for now... should fix this '''
         for v0 in batch:
             v0_amp, h0_amp, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
@@ -378,14 +378,14 @@ class RBM(nn.Module):
     def unnormalized_probability_phase(self, v):
         return self.free_energy_phase(v).exp()
 
-	def unnormalized_wavefunction(self, v):
-		temp1     = self.unnormalized_probability_amp(v).sqrt()
-		temp2     = (self.unnormalized_probability_phase(v).log())*0.5
-		cos_angle = temp2.cos()
-		sin_angle = temp2.sin()
-		psi[0]    = temp1*cos_angle
-		psi[1]    = temp2*sin_angle
-		return psi
+    def unnormalized_wavefunction(self, v):
+        temp1     = self.unnormalized_probability_amp(v).sqrt()
+        temp2     = (self.unnormalized_probability_phase(v).log())*0.5
+        cos_angle = temp2.cos()
+        sin_angle = temp2.sin()
+        psi[0]    = temp1*cos_angle
+        psi[1]    = temp2*sin_angle
+        return psi
 
     def generate_visible_space(self):
         space = torch.zeros((1 << self.num_visible, self.num_visible),
@@ -415,37 +415,37 @@ class RBM(nn.Module):
 
         return (len(data)*logZ) - total_free_energy
 
-	def f_length(self, path):i
-		'''A function that returns the number of rows in a text file.'''
-		f = open('{!s}'.format(path))
-		num_rows = len(f.readlines())
-		f.close()
-		return num_rows
+    def f_length(self, path):i
+        '''A function that returns the number of rows in a text file.'''
+        f = open('{!s}'.format(path))
+        num_rows = len(f.readlines())
+        f.close()
+        return num_rows
 
-	def unitary(self):
-		'''A function that pytrochifies the unitary matrix given its name. It must be in the unitary_library!'''
-		num_rows = self.f_length('unitary_library.txt')
-		with open('unitary_library.txt') as f:
-			for i, line in enumerate(f):
-				if self.unitary_name in line:
-					a = torch.from_numpy(np.genfromtxt('unitary_library.txt', delimiter='\t', skip_header = i+1, skip_footer = num_rows - i - 3))
-					b = torch.from_numpy(np.genfromtxt('unitary_library.txt', delimiter='\t', skip_header = i+3, skip_footer = num_rows - i - 5))
-			f.close()
-		return make_cplx(a,b)
+    def unitary(self):
+        '''A function that pytrochifies the unitary matrix given its name. It must be in the unitary_library!'''
+        num_rows = self.f_length('unitary_library.txt')
+        with open('unitary_library.txt') as f:
+            for i, line in enumerate(f):
+                if self.unitary_name in line:
+                    a = torch.from_numpy(np.genfromtxt('unitary_library.txt', delimiter='\t', skip_header = i+1, skip_footer = num_rows - i - 3))
+                    b = torch.from_numpy(np.genfromtxt('unitary_library.txt', delimiter='\t', skip_header = i+3, skip_footer = num_rows - i - 5))
+            f.close()
+        return make_cplx(a,b)
 
-	def state_generator(self, num_non_trivial_unitaries):
-		'''A function that returns all possible configurations of 'num_non_trivial_unitaries' spins.'''
-		states = torch.zeros(2**num_non_trivial_unitaries, num_non_trivial_unitaries)
-		for i in range(2**num_non_trivial_unitaries):
-			temp = i
-			for j in range(num_non_trivial_unitaries): 
-				temp, remainder = divmod(temp, 2)
-				states[i][j] = remainder
-		return states
+    def state_generator(self, num_non_trivial_unitaries):
+        '''A function that returns all possible configurations of 'num_non_trivial_unitaries' spins.'''
+        states = torch.zeros(2**num_non_trivial_unitaries, num_non_trivial_unitaries)
+        for i in range(2**num_non_trivial_unitaries):
+            temp = i
+            for j in range(num_non_trivial_unitaries): 
+                temp, remainder = divmod(temp, 2)
+                states[i][j] = remainder
+        return states
 
-	def basis_state_generator(self, s):
-		'''If s = 0, this is the (1,0) state in the basis of the measurement. If s = 1, this is the (0,1) state in the basis of the measurement.'''
-		if s == 0.:
-			return torch.tensor([[1., 0.],[0., 0.]])
-		if s == 1.:
-			return torch.tensor([[0., 1.],[0., 0.]]) 
+    def basis_state_generator(self, s):
+        '''If s = 0, this is the (1,0) state in the basis of the measurement. If s = 1, this is the (0,1) state in the basis of the measurement.'''
+        if s == 0.:
+            return torch.tensor([[1., 0.],[0., 0.]])
+        if s == 1.:
+            return torch.tensor([[0., 1.],[0., 0.]]) 
