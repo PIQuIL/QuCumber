@@ -1,1 +1,2 @@
-from .rbm import RBM
+from .rbm import RBM  # noqa
+import callbacks  # noqa

@@ -2,12 +2,76 @@ from rbm import RBM
 import click
 import gzip
 import pickle
+import csv
+import numpy as np
 
 
 @click.group(context_settings={"help_option_names": ['-h', '--help']})
 def cli():
     """Simple tool for training an RBM"""
     pass
+
+
+def load_train(L):
+    data = np.load("/home/data/critical-2d-ising/L={}/q=2/configs.npy"
+                   .format(L))
+    data = data.reshape(data.shape[0], L*L)
+    return data.astype('float32')
+
+
+@cli.command("benchmark")
+@click.option('-n', '--num-hidden', default=None, type=int,
+              help=("number of hidden units in the RBM; defaults to "
+                    "number of visible units"))
+@click.option('-e', '--epochs', default=250, show_default=True, type=int)
+@click.option('-b', '--batch-size', default=32, show_default=True, type=int)
+@click.option('-k', multiple=True, type=int,
+              help="number of Contrastive Divergence steps")
+@click.option('-l', '--learning-rate', default=1e-3,
+              show_default=True, type=float)
+@click.option('-m', '--momentum', default=0.0, show_default=True, type=float,
+              help=("value of the momentum parameter; ignored if "
+                    "using SGD or Adam optimization"))
+@click.option('-o', '--output-file', type=click.Path(),
+              help="where to save the benchmarks csv file.")
+def benchmark(num_hidden, epochs, batch_size,
+              k, learning_rate, momentum, output_file):
+    """Trains RBM on several datasets and measures the training time"""
+    from os import listdir
+    from os.path import isdir, join
+    import time
+
+    dataset_sizes = [int(f.split('=')[-1])
+                     for f in listdir('/home/data/critical-2d-ising/')
+                     if isdir(join('/home/data/critical-2d-ising/', f))]
+
+    with open(output_file, 'a') as f:
+        writer = csv.DictWriter(f, ['L', 'k', 'time'])
+        for L in sorted(dataset_sizes):
+            for k_ in k:
+                print("L = {}; k = {}".format(L, k_))
+                train_set = load_train(L)
+
+                num_hidden = (train_set.shape[-1]
+                              if num_hidden is None
+                              else num_hidden)
+
+                rbm = RBM(num_visible=train_set.shape[-1],
+                          num_hidden=num_hidden)
+
+                time_elapsed = -time.perf_counter()
+                rbm.train(train_set, epochs,
+                          batch_size, k=k_,
+                          lr=learning_rate,
+                          momentum=momentum,
+                          initial_gaussian_noise=0,
+                          log_every=0,
+                          progbar=False)
+                time_elapsed += time.perf_counter()
+
+                writer.writerow({'L': L,
+                                 'k': k_,
+                                 'time': time_elapsed})
 
 
 @cli.command("train")
@@ -49,7 +113,7 @@ def train(train_path, save, num_hidden, epochs, batch_size,
               num_hidden=num_hidden,
               seed=seed)
 
-    rbm.train(train_set, None, epochs,
+    rbm.train(train_set, epochs,
               batch_size, k=k,
               lr=learning_rate,
               momentum=momentum,
