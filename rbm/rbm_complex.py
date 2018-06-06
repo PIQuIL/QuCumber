@@ -173,68 +173,62 @@ class RBM(nn.Module):
         grad_hb_phase      = torch.zeros_like(A_hb_phase)
 
 		for v0 in batch:
-			'''Gibbs sampling for phase and amp.'''
-			v0_amp,   h0_amp,   vk_amp,   hk_amp,   phk_amp   = self.gibbs_sampling_amp(k, v0)
-			v0_phase, h0_phase, vk_phase, hk_phase, phk_phase = self.gibbs_sampling_phase(k, v0)
-			
+
+            '''Giacomo stuff: (alg 4.2 and 4.3 in pseudo code)'''
+            num_non_trivial_unitaries = 0
+            
+            '''tau_indices will contain the index numbers of spins not in the computational basis (Z). z_indices will contain the index numbers of spins in the computational basis.'''
+            tau_indices = []
+            z_indices   = []
+
+            for j in range(chars_batch.shape[1]):
+                if chars_batch[i][j] != 'z':
+                    num_non_trivial_unitaries += 1
+                    tau_indices.append(j)
+
+                else:
+                    z_indices.append(j)
+
+            constructed_state = torch.zeros(self.num_visible)
+
+            for j in range(2**num_non_trivial_unitaries):
+                s                 = self.state_generator(num_non_trivial_unitaries)[j]
+                U = 1.
+
+                for index in range(len(z_indices)):
+                    constructed_state[z_indices[index]] = data[i][z_indices[index]]
+
+                for index in range(len(tau_indices)):
+                    constructed_state[tau_indices[index]] = s[index]
+                    U *= cplx_DOT( cplx_MV(self.unitary(self.unitary_name), self.basis_state_generator(data[i][tau_indices[index]])), 
+                                   self.basis_state_generator(s[index]) ) 
+
 			'''Gradients for phase and amp.'''
-			w_grad_amp  = torch.einsum("j,k->jk", (h0_amp, v0_amp))
-    	    vb_grad_amp = v0_phase
-	        hb_grad_amp = h0_phase        
+			w_grad_amp  = torch.matmul(F.sigmoid(F.linear(self.hidden_bias_amp, self.weights_amp.t(), constructed_state)), 
+                                       constructed_state) 
+    	    vb_grad_amp = constructed_state
+	        hb_grad_amp = F.sigmoid(F.linear(self.hidden_bias_amp, self.weights_amp.t(), constructed_state))
 
-			w_grad_phase  = torch.einsum("j,k->jk", (h0_phase, v0_phase))
-    	    vb_grad_phase = v0_phase
-	        hb_grad_phase = h0_phase
-	
-	        w_grad_amp  -= torch.einsum("j,k->jk", (phk_amp, vk_amp))
-	        vb_grad_amp -= vk_amp
-	        hb_grad_amp -= phk_amp
+            
+            w_grad_phase  = torch.matmul(F.sigmoid(F.linear(self.hidden_bias_phase, self.weights_phase.t(), constructed_state)), 
+                                       constructed_state) 
+            vb_grad_phase = constructed_state
+            hb_grad_phase = F.sigmoid(F.linear(self.hidden_bias_phase, self.weights_phase.t(), constructed_state))
 
-	        w_grad_phase  -= torch.einsum("j,k->jk", (phk_phase, vk_phase))
-	        vb_grad_phase -= vk_phase
-	        hb_grad_phase -= phk_phase
-
-	        w_grad_amp  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
+	        
+            w_grad_amp  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
 	        w_grad_amp += (stddev * torch.randn_like(w_grad, device=self.device))
 
 	        w_grad_phase  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
 			w_grad_phase += (stddev * torch.randn_like(w_grad, device=self.device))
 
-            w_grad_amp  /= self.unnormalized_probability_amp(v0)
-            vb_grad_amp /= self.unnormalized_probability_amp(v0)
-            hb_grad_amp /= self.unnormalized_probability_amp(v0)
+            w_grad_amp  /= self.unnormalized_probability_amp(constructed_state)
+            vb_grad_amp /= self.unnormalized_probability_amp(constructed_state)
+            hb_grad_amp /= self.unnormalized_probability_amp(constructed_state)
 
-            w_grad_phase  /= self.unnormalized_probability_phase(v0)
-            vb_grad_phase /= self.unnormalized_probability_phase(v0)
-            hb_grad_phase /= self.unnormalized_probability_phase(v0)
-
-			'''Giacomo stuff: (alg 4.2 and 4.3 in pseudo code)'''
-			num_non_trivial_unitaries = 0
-			
-			'''tau_indices will contain the index numbers of spins not in the computational basis (Z). z_indices will contain the index numbers of spins in the computational basis.'''
-			tau_indices = []
-			z_indices   = []
-
-			for j in range(chars.shape[1]):
-				if chars[i][j] != 'z':
-					num_non_trivial_unitaries += 1
-					tau_indices.append(j)
-
-				else:
-					z_indices.append(j)
-
-			for j in range(2**num_non_trivial_unitaries):
-				s                 = self.state_generator(num_non_trivial_unitaries)[j]
-				constructed_state = torch.zeros(self.num_visible)
-				U = 1.
-
-				for index in range(len(z_indices)):
-					constructed_state[z_indices[index]] = data[i][z_indices[index]]
-
-				for index in range(len(tau_indices)):
-					constructed_state[tau_indices[index]] = s[index]
-					U *= cplx_DOT( cplx_MV(self.unitary(self.unitary_name), self.basis_state_generator(data[i][tau_indices[index]])), 
-                                   self.basis_state_generator(s[index]) ) 
+            w_grad_phase  /= self.unnormalized_probability_phase(constructed_state)
+            vb_grad_phase /= self.unnormalized_probability_phase(constructed_state)
+            hb_grad_phase /= self.unnormalized_probability_phase(constructed_state)
 			
             A_weights_amp += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), weight_grad_amp)
 			A_vb_amp      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), vb_grad_amp)
@@ -246,36 +240,53 @@ class RBM(nn.Module):
 			
 			B += cplx_SS(U, self.unnormalized_wavefunction(constructed_state))
 
-            L_weights_amp = A_weights_amp/B
-            L_vb_amp      = A_vb_amp/B
-            L_hb_amp      = A_hb_amp/B
+            L_weights_amp = cplx_divideVS(B, A_weights_amp)
+            L_vb_amp      = cplx_divideVS(B, A_vb_amp)
+            L_hb_amp      = cplx_divideVS(B, A_hb_amp)
 
-            L_weights_phase = A_weights_phase/B
-            L_vb_phase      = A_vb_phase/B
-            L_hb_phase      = A_hb_phase/B
+            L_weights_phase = cplx_divideVS(B, A_weights_phase)
+            L_vb_phase      = cplx_divideVS(B, A_vb_phase)
+            L_hb_phase      = cplx_divideVS(B, A_hb_phase)
 
             grad_weights_amp -= L_weights_amp[0]/batch_size
             grad_vb_amp      -= L_vb_amp[0]/batch_size
             grad_hb_amp      -= L_hb_amp[0]/batch_size
     
-            grad_weights_amp += L_weights_phase[1]/batch_size
-            grad_vb_amp      += L_vb_phase[1]/batch_size
-            grad_hb_amp      += L_hb_phase[1]/batch_size
+            grad_weights_phase += L_weights_phase[1]/batch_size
+            grad_vb_phase      += L_vb_phase[1]/batch_size
+            grad_hb_phase      += L_hb_phase[1]/batch_size
 		
+        ''' Mc = batch size for now... should fix this '''
+        for v0 in batch:
+            v0_amp, h0_amp, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
 
+            w_grad_amp  = torch.einsum("j,k->jk", (h0_amp, v0_amp))
+            vb_grad_amp = v0_phase
+            hb_grad_amp = h0_phase
+    
+            w_grad_amp  -= torch.einsum("j,k->jk", (phk_amp, vk_amp))
+            vb_grad_amp -= vk_amp
+            hb_grad_amp -= phk_amp
 
+            w_grad_amp  /= self.unnormalized_probability_amp(vk_amp)
+            vb_grad_amp /= self.unnormalized_probability_amp(vk_amp)
+            hb_grad_amp /= self.unnormalized_probability_amp(vk_amp)
+
+            grad_weights_amp += w_grad_amp/batch_size
+            grad_vb_amp      += vb_grad_amp/batch_size
+            grad_hb_amp      += hb_grad_amp/batch_size
 
         # Return negative gradients to match up nicely with the usual
         # parameter update rules, which *subtract* the gradient from
         # the parameters. This is in contrast with the RBM update
         # rules which ADD the gradients (scaled by the learning rate)
         # to the parameters.
-        return {"L_weights_amp": -L_weights_amp,
-                "L_visible_bias_amp": -L_vb_amp,
-                "L_hidden_bias_amp": -L_hb_amp,
-                "L_weights_phase": -L_weights_phase,
-                "L_visible_bias_phase": -L_vb_phase,
-                "L_hidden_bias_phase": -L_hb_phase
+        return {"weight_amp": -grad_weights_amp,
+                "visible_bias_amp": -grad_vb_amp,
+                "hidden_bias_amp": -grad_hb_amp,
+                "weights_phase": -grad_weights_phase,
+                "visible_bias_phase": -grad_vb_phase,
+                "hidden_bias_phase": -grad_hb_phase
                 }
 
     def train(self, data, character_data epochs, batch_size,
