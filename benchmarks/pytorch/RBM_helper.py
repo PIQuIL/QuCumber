@@ -6,12 +6,23 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 
-def spin_config(number, n_vis): # generates a binary list from a number
+def spin_config(number, n_vis):
+    '''Generates a binary list from a number
+    
+    Arguments:
+    
+    :param number: any number that should be converted in a binary string
+    :type vecs1: integer
+    :param vecs2: maximum length of the bit string
+    :type vecs2: integer
+    :returns: list of bits
+    '''
     spins = list(map(int, list(format(number, 'b').zfill(n_vis))))
     spins.reverse()
     return spins
 
-def spin_list(n_vis): # returns a list of all possible spin configurations for n_vis spins
+def spin_list(n_vis):
+    '''returns a list of all possible spin configurations for n_vis spins'''
     spins = [spin_config(number, n_vis) for number in range(2**n_vis)  ]
     spins = Variable(torch.FloatTensor(spins))
     return spins
@@ -39,6 +50,7 @@ def outer_product(vecs1, vecs2):
 # x = [1,2,3,4], x.unsqueeze(0) has shape (1,4). x.unsqueeze(1) has shape (4,1)
 
 class RBM(nn.Module):
+    '''Test test'''
     def __init__(self,
                  n_vis=10,
                  n_hin=50,
