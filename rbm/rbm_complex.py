@@ -17,7 +17,7 @@ class RBM(nn.Module):
         if gpu and not torch.cuda.is_available():
             warnings.warn("Could not find GPU: will continue with CPU.",
                           ResourceWarning)
-
+            
         self.gpu = gpu and torch.cuda.is_available()
         if self.gpu:
             torch.cuda.manual_seed(seed)
