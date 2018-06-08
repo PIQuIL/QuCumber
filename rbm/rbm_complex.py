@@ -152,25 +152,33 @@ class RBM(nn.Module):
                                      device=self.device,
                                      dtype=torch.double))
         '''
+
         '''For the gradient update.'''
-        # TODO: must make these complex...
         A_weights_amp = torch.zeros(2, self.weights_amp.size()[0], self.weights_amp.size()[1], device=self.device)
-        A_vb_amp      = torch.zeros(2, self.visible_biases_amp.size()[0], device=self.device)
-        A_hb_amp      = torch.zeros(2, self.hidden_biases_amp.size()[0], device=self.device)
+        A_vb_amp      = torch.zeros(2, self.visible_bias_amp.size()[0], device=self.device)
+        A_hb_amp      = torch.zeros(2, self.hidden_bias_amp.size()[0], device=self.device)
         
         A_weights_phase = torch.zeros(2, self.weights_phase.size()[0], self.weights_phase.size()[1], device=self.device)
-        A_vb_phase      = torch.zeros(2, self.visible_biases_phase.size()[0], device=self.device)
-        A_hb_phase      = torch.zeros(2, self.hidden_biases_phase.size()[0], device=self.device)
+        A_vb_phase      = torch.zeros(2, self.visible_bias_phase.size()[0], device=self.device)
+        A_hb_phase      = torch.zeros(2, self.hidden_bias_phase.size()[0], device=self.device)
 
         B = 0.
     
-        grad_weights_amp = torch.zeros_like(A_weights_amp)
-        grad_vb_amp      = torch.zeros_like(A_vb_amp)
-        grad_hb_amp      = torch.zeros_like(A_hb_amp)
+        w_grad_amp  = torch.zeros_like(self.weights_amp)
+        vb_grad_amp = torch.zeros_like(self.visible_bias_amp)
+        hb_grad_amp = torch.zeros_like(self.hidden_bias_amp)
     
-        grad_weights_phase = torch.zeros_like(A_weights_phase)
-        grad_vb_phase      = torch.zeros_like(A_vb_phase)
-        grad_hb_phase      = torch.zeros_like(A_hb_phase)
+        w_grad_phase  = torch.zeros_like(self.weights_phase)
+        vb_grad_phase = torch.zeros_like(self.visible_bias_phase)
+        hb_grad_phase = torch.zeros_like(self.hidden_bias_phase)
+
+        g_weights_amp = torch.zeros_like(self.weights_amp)
+        g_vb_amp      = torch.zeros_like(self.visible_bias_amp)
+        g_hb_amp     = torch.zeros_like(self.hidden_bias_amp)
+
+        g_weights_phase = torch.zeros_like(self.weights_phase)
+        g_vb_phase      = torch.zeros_like(self.visible_bias_phase)
+        g_hb_phase      = torch.zeros_like(self.hidden_bias_phase)
 
         for v0 in batch:
 
@@ -189,104 +197,117 @@ class RBM(nn.Module):
                 else:
                     z_indices.append(j)
 
-            constructed_state = torch.zeros(self.num_visible)
+				
+			if num_non_trivial_unitaries == 0:
+                v0, h0, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
+	
+                '''Positive phase of gradient.'''
+				g_weights_amp = torch.einsum("j,k->jk", (h0, v0)) #Outer product.
+            	g_vb_amp      = v0_phase
+            	g_hb_grad     = h0_phase
 
-            for j in range(2**num_non_trivial_unitaries):
-                s                 = self.state_generator(num_non_trivial_unitaries)[j]
-                U = 1.
+                '''Negative phase of gradient.'''
+                g_weights_amp -= torch.einsum("j,k->jk", (phk_amp, vk_amp)) #Outer product.
+                g_vb_amp      -= vk_amp
+                g_hb_grad     -= phk_amp
 
-                for index in range(len(z_indices)):
-                    constructed_state[z_indices[index]] = data[i][z_indices[index]]
+                '''Divide by unnormalized prob because we took gradient of log(unnormalized prob).'''
+                g_weights_amp /= batch_size*self.unnormalized_probability_amp(vk_amp)
+                g_vb_amp      /= batch_size*self.unnormalized_probability_amp(vk_amp)
+                g_hb_grad     /= batch_size*self.unnormalized_probability_amp(vk_amp)
 
-                for index in range(len(tau_indices)):
-                    constructed_state[tau_indices[index]] = s[index]
-                    U *= cplx_DOT( cplx_MV(self.unitary(self.unitary_name), self.basis_state_generator(data[i][tau_indices[index]])), 
-                                   self.basis_state_generator(s[index]) ) 
+                continue
 
-            '''Gradients for phase and amp.'''
-            w_grad_amp  = torch.matmul(F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp)), 
-                                       constructed_state) 
-            vb_grad_amp = constructed_state
-            hb_grad_amp = F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp))
+                # TODO: CODE EXACTLY WHAT NEEDS TO BE DONE HERE. (PUT NEG PHASE HERE.)
 
-            
-            w_grad_phase  = torch.matmul(F.sigmoid(F.linear(constructed_state, self.weights_phase.t(), self.hidden_bias_phase)), 
-                                       constructed_state) 
-            vb_grad_phase = constructed_state
-            hb_grad_phase = F.sigmoid(F.linear(constructed_state, self.weights_phase.t(), self.hidden_bias_phase))
+            if num_non_trivial_unitaries > 0:
+                _, _, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
 
-            
-            w_grad_amp  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
-            w_grad_amp += (stddev * torch.randn_like(w_grad, device=self.device))
+                for j in range(2**num_non_trivial_unitaries):
+                    s                 = self.state_generator(num_non_trivial_unitaries)[j]
+                    constructed_state = torch.zeros(self.num_visible)
+                    U = 1.
 
-            w_grad_phase  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
-            w_grad_phase += (stddev * torch.randn_like(w_grad, device=self.device))
+                    for index in range(len(z_indices)):
+                        constructed_state[z_indices[index]] = data[i][z_indices[index]]
 
-            w_grad_amp  /= self.unnormalized_probability_amp(constructed_state)
-            vb_grad_amp /= self.unnormalized_probability_amp(constructed_state)
-            hb_grad_amp /= self.unnormalized_probability_amp(constructed_state)
+                    for index in range(len(tau_indices)):
+                        constructed_state[tau_indices[index]] = s[index]
+                        U *= cplx_DOT( cplx_MV(self.unitary(self.unitary_name), self.basis_state_generator(data[i][tau_indices[index]])), 
+                                       self.basis_state_generator(s[index]) ) 
 
-            w_grad_phase  /= self.unnormalized_probability_phase(constructed_state)
-            vb_grad_phase /= self.unnormalized_probability_phase(constructed_state)
-            hb_grad_phase /= self.unnormalized_probability_phase(constructed_state)
-            
-            A_weights_amp += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), weight_grad_amp)
-            A_vb_amp      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), vb_grad_amp)
-            A_hb_amp      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), hb_grad_amp)
+                    '''Gradients for phase and amp.'''
+                    w_grad_amp  = torch.matmul(F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp)), 
+                                               constructed_state) 
+                    vb_grad_amp = constructed_state
+                    hb_grad_amp = F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp))
 
-            A_weights_phase += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), weight_grad_phase)
-            A_vb_phase      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), vb_grad_phase)
-            A_hb_phase      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), hb_grad_phase)
-            
-            B += cplx_SS(U, self.unnormalized_wavefunction(constructed_state))
+                    
+                    w_grad_phase  = torch.matmul(F.sigmoid(F.linear(constructed_state, self.weights_phase.t(), self.hidden_bias_phase)), 
+                                               constructed_state) 
+                    vb_grad_phase = constructed_state
+                    hb_grad_phase = F.sigmoid(F.linear(constructed_state, self.weights_phase.t(), self.hidden_bias_phase))
 
-            L_weights_amp = cplx_divideVS(B, A_weights_amp)
-            L_vb_amp      = cplx_divideVS(B, A_vb_amp)
-            L_hb_amp      = cplx_divideVS(B, A_hb_amp)
 
-            L_weights_phase = cplx_divideVS(B, A_weights_phase)
-            L_vb_phase      = cplx_divideVS(B, A_vb_phase)
-            L_hb_phase      = cplx_divideVS(B, A_hb_phase)
+                    w_grad_amp  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
+                    w_grad_amp += (stddev * torch.randn_like(w_grad, device=self.device))
 
-            grad_weights_amp -= L_weights_amp[0]/batch_size
-            grad_vb_amp      -= L_vb_amp[0]/batch_size
-            grad_hb_amp      -= L_hb_amp[0]/batch_size
-    
-            grad_weights_phase += L_weights_phase[1]/batch_size
-            grad_vb_phase      += L_vb_phase[1]/batch_size
-            grad_hb_phase      += L_hb_phase[1]/batch_size
+                    w_grad_phase  = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
+                    w_grad_phase += (stddev * torch.randn_like(w_grad, device=self.device))
+
+                    w_grad_amp  /= self.unnormalized_probability_amp(constructed_state)
+                    vb_grad_amp /= self.unnormalized_probability_amp(constructed_state)
+                    hb_grad_amp /= self.unnormalized_probability_amp(constructed_state)
+
+                    w_grad_phase  /= self.unnormalized_probability_phase(constructed_state)
+                    vb_grad_phase /= self.unnormalized_probability_phase(constructed_state)
+                    hb_grad_phase /= self.unnormalized_probability_phase(constructed_state)
+                    
+                    A_weights_amp += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), weight_grad_amp)
+                    A_vb_amp      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), vb_grad_amp)
+                    A_hb_amp      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), hb_grad_amp)
+
+                    A_weights_phase += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), weight_grad_phase)
+                    A_vb_phase      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), vb_grad_phase)
+                    A_hb_phase      += cplx_VS(cplx_SS(U, self.unnormalized_wavefunction(constructed_state)), hb_grad_phase)
+                    
+                    B += cplx_SS(U, self.unnormalized_wavefunction(constructed_state))
+
+                L_weights_amp = cplx_divideVS(B, A_weights_amp)
+                L_vb_amp      = cplx_divideVS(B, A_vb_amp)
+                L_hb_amp      = cplx_divideVS(B, A_hb_amp)
+
+                L_weights_phase = cplx_divideVS(B, A_weights_phase)
+                L_vb_phase      = cplx_divideVS(B, A_vb_phase)
+                L_hb_phase      = cplx_divideVS(B, A_hb_phase)
+
+                '''Gradents of amplitude parameters take the real part of the L gradients.'''
+                g_weights_amp -= L_weights_amp[0]/batch_size
+                g_vb_amp      -= L_vb_amp[0]/batch_size
+                g_hb_amp      -= L_hb_amp[0]/batch_size
         
-        ''' Mc = batch size for now... should fix this '''
-        for v0 in batch:
-            v0_amp, h0_amp, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
+                '''Negative phase of amp gradient.'''
+                g_weights_amp -= torch.einsum("j,k->jk", (phk_amp, vk_amp)) / (self.unnormalized_probability_amp(vk_amp)*batch_size)
+                g_vb_amp      -= vk_amp / (self.unnormalized_probability_amp(vk_amp)*batch_size)
+                g_hb_amp      -= phk_amp / (self.unnormalized_probability_amp(vk_amp)*batch_size)
 
-            w_grad_amp  = torch.einsum("j,k->jk", (h0_amp, v0_amp))
-            vb_grad_amp = v0_phase
-            hb_grad_amp = h0_phase
-    
-            w_grad_amp  -= torch.einsum("j,k->jk", (phk_amp, vk_amp))
-            vb_grad_amp -= vk_amp
-            hb_grad_amp -= phk_amp
-
-            w_grad_amp  /= self.unnormalized_probability_amp(vk_amp)
-            vb_grad_amp /= self.unnormalized_probability_amp(vk_amp)
-            hb_grad_amp /= self.unnormalized_probability_amp(vk_amp)
-
-            grad_weights_amp += w_grad_amp/batch_size
-            grad_vb_amp      += vb_grad_amp/batch_size
-            grad_hb_amp      += hb_grad_amp/batch_size
+                '''Gradents of phase parameters take the real part of the L gradients. Phase gradients have no neg phase.'''
+                g_weights_phase += L_weights_phase[1]/batch_size
+                g_vb_phase      += L_vb_phase[1]/batch_size
+                g_hb_phase      += L_hb_phase[1]/batch_size
+        
 
         # Return negative gradients to match up nicely with the usual
         # parameter update rules, which *subtract* the gradient from
         # the parameters. This is in contrast with the RBM update
         # rules which ADD the gradients (scaled by the learning rate)
         # to the parameters.
-        return {"weight_amp": -grad_weights_amp,
-                "visible_bias_amp": -grad_vb_amp,
-                "hidden_bias_amp": -grad_hb_amp,
-                "weights_phase": -grad_weights_phase,
-                "visible_bias_phase": -grad_vb_phase,
-                "hidden_bias_phase": -grad_hb_phase
+        return {"weight_amp": -g_weights_amp,
+                "visible_bias_amp": -g_vb_amp,
+                "hidden_bias_amp": -g_hb_amp,
+                "weights_phase": -g_weights_phase,
+                "visible_bias_phase": -g_vb_phase,
+                "hidden_bias_phase": -g_hb_phase
                 }
 
     def train(self, data, character_data epochs, batch_size,
