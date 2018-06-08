@@ -49,7 +49,7 @@ def cplx_divideVS(x, y):
 
 
 def cplx_MS(x, y):
-	'''A function that takes a given input complex matrix (y) and multiplies it by a complex scalar (x).'''i
+	'''A function that takes a given input complex matrix (y) and multiplies it by a complex scalar (x).'''
 	if len(list(y.size())) < 3:
 		raise ValueError('An input is not of the right dimension.')
 	
@@ -124,3 +124,29 @@ def cplx_TRANSPOSE(x):
 	z[1] = -torch.transpose(x[1], 0, 1) 
 
 	return z
+
+def cplx_kron(x,y):
+	'''A function that returns the tensor / kronecker product of 2 comlex tensors, x and y.'''
+	if len(list(x.size())) < 3 or len(list(y.size())) < 3:
+		raise ValueError('An input is not of the right dimension.')
+
+	z = torch.zeros(2, x.size()[1]*y.size()[1], x.size()[2]*y.size()[2])
+
+	row_count = 0
+
+	for i in range(x.size()[1]):
+		for k in range(y.size()[1]):
+			column_count = 0	
+			for j in range(x.size()[2]):
+				for l in range(y.size()[2]):
+
+					print ('element of x: ',i,', ',j,'.\nelement of y: ',k,', ',l,'.\nelement of z being filled is: ',row_count,', ',column_count,'.')
+					z[0][row_count][column_count] = x[0][i][j]*y[0][k][l] - x[1][i][j]*y[1][k][l]
+					z[1][row_count][column_count] = x[0][i][j]*y[1][k][l] + x[1][i][j]*y[0][k][l]
+
+					column_count += 1
+
+			row_count += 1
+
+	return z
+ 
