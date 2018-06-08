@@ -197,14 +197,14 @@ class RBM(nn.Module):
                 else:
                     z_indices.append(j)
 
-				
-			if num_non_trivial_unitaries == 0:
+                
+            if num_non_trivial_unitaries == 0:
                 v0, h0, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
-	
+    
                 '''Positive phase of gradient.'''
-				g_weights_amp = torch.einsum("j,k->jk", (h0, v0)) #Outer product.
-            	g_vb_amp      = v0_phase
-            	g_hb_grad     = h0_phase
+                g_weights_amp = torch.einsum("j,k->jk", (h0, v0)) #Outer product.
+                g_vb_amp      = v0_phase
+                g_hb_grad     = h0_phase
 
                 '''Negative phase of gradient.'''
                 g_weights_amp -= torch.einsum("j,k->jk", (phk_amp, vk_amp)) #Outer product.
