@@ -7,12 +7,11 @@ from tqdm import tqdm, tqdm_notebook
 import warnings
 
 class RBM(nn.Module):
-    def __init__(self, num_visible, num_hidden_amp, num_hidden_phase, gpu=True, unitary_name, seed=1234):
+    def __init__(self, num_visible, num_hidden_amp, num_hidden_phase, gpu=True, seed=1234):
         super(RBM, self).__init__()
         self.num_visible      = int(num_visible)
         self.num_hidden_amp   = int(num_hidden_amp)
         self.num_hidden_phase = int(num_hidden_phase)
-        self.unitary_name     = unitary_name
 
         if gpu and not torch.cuda.is_available():
             warnings.warn("Could not find GPU: will continue with CPU.",
@@ -131,7 +130,7 @@ class RBM(nn.Module):
 
     def compute_batch_gradients(self, k, batch, chars_batch, l1_reg, l2_reg, stddev=0):
         '''This function will compute the gradients of a batch of the training data (data_file) given the basis measurements (chars_file).'''
-        '''
+        
         if len(batch) == 0:
             return (torch.zeros_like(self.weights_amp,
                                      device=self.device,
@@ -151,7 +150,6 @@ class RBM(nn.Module):
                     torch.zeros_like(self.hidden_bias_phase,
                                      device=self.device,
                                      dtype=torch.double))
-        '''
 
         '''For the gradient update.'''
         A_weights_amp = torch.zeros(2, self.weights_amp.size()[0], self.weights_amp.size()[1], device=self.device)
@@ -180,6 +178,7 @@ class RBM(nn.Module):
         g_vb_phase      = torch.zeros_like(self.visible_bias_phase)
         g_hb_phase      = torch.zeros_like(self.hidden_bias_phase)
 
+        row_count = 0
         for v0 in batch:
 
             '''Giacomo stuff: (alg 4.2 and 4.3 in pseudo code)'''
@@ -190,14 +189,14 @@ class RBM(nn.Module):
             z_indices   = []
 
             for j in range(chars_batch.shape[1]):
-                if chars_batch[i][j] != 'z':
+                if chars_batch[row_count][j] != 'z':
                     num_non_trivial_unitaries += 1
                     tau_indices.append(j)
 
                 else:
                     z_indices.append(j)
 
-                
+            '''Condition if data point is in the comptational basis.'''
             if num_non_trivial_unitaries == 0:
                 v0, h0, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
     
@@ -216,15 +215,13 @@ class RBM(nn.Module):
                 g_vb_amp      /= batch_size*self.unnormalized_probability_amp(vk_amp)
                 g_hb_grad     /= batch_size*self.unnormalized_probability_amp(vk_amp)
 
-                continue
-
-                # TODO: CODE EXACTLY WHAT NEEDS TO BE DONE HERE. (PUT NEG PHASE HERE.)
-
             if num_non_trivial_unitaries > 0:
                 _, _, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
 
                 for j in range(2**num_non_trivial_unitaries):
-                    s                 = self.state_generator(num_non_trivial_unitaries)[j]
+                    s = self.state_generator(num_non_trivial_unitaries)[j]
+
+                    '''This is the "sigma" state in Giacomo's pseudo code.'''
                     constructed_state = torch.zeros(self.num_visible)
                     U = 1.
 
@@ -233,7 +230,9 @@ class RBM(nn.Module):
 
                     for index in range(len(tau_indices)):
                         constructed_state[tau_indices[index]] = s[index]
-                        U *= cplx_DOT( cplx_MV(self.unitary(self.unitary_name), self.basis_state_generator(data[i][tau_indices[index]])), 
+                        # TODO: right now this will only work for one unitary...
+                        U *= cplx_DOT( cplx_MV(self.unitary(str(character_data[row_count][tau_indices[index]])), 
+                                               self.basis_state_generator(data[row_count][tau_indices[index]])), 
                                        self.basis_state_generator(s[index]) ) 
 
                     '''Gradients for phase and amp.'''
@@ -296,21 +295,22 @@ class RBM(nn.Module):
                 g_vb_phase      += L_vb_phase[1]/batch_size
                 g_hb_phase      += L_hb_phase[1]/batch_size
         
-
         # Return negative gradients to match up nicely with the usual
         # parameter update rules, which *subtract* the gradient from
         # the parameters. This is in contrast with the RBM update
         # rules which ADD the gradients (scaled by the learning rate)
         # to the parameters.
+            row_count += 1
+
         return {"weight_amp": -g_weights_amp,
                 "visible_bias_amp": -g_vb_amp,
                 "hidden_bias_amp": -g_hb_amp,
                 "weights_phase": -g_weights_phase,
                 "visible_bias_phase": -g_vb_phase,
                 "hidden_bias_phase": -g_hb_phase
-                }
+                }   
 
-    def train(self, data, character_data epochs, batch_size,
+    def train(self, data, character_data, epochs, batch_size,
               k=10, lr=1e-3, momentum=0.0,
               method='sgd', l1_reg=0.0, l2_reg=0.0,
               initial_gaussian_noise=0.01, gamma=0.55,
@@ -443,12 +443,12 @@ class RBM(nn.Module):
         f.close()
         return num_rows
 
-    def unitary(self):
+    def unitary(self, character):
         '''A function that pytrochifies the unitary matrix given its name. It must be in the unitary_library!'''
         num_rows = self.f_length('unitary_library.txt')
         with open('unitary_library.txt') as f:
             for i, line in enumerate(f):
-                if self.unitary_name in line:
+                if character in line:
                     a = torch.from_numpy(np.genfromtxt('unitary_library.txt', delimiter='\t', skip_header = i+1, skip_footer = num_rows - i - 3))
                     b = torch.from_numpy(np.genfromtxt('unitary_library.txt', delimiter='\t', skip_header = i+3, skip_footer = num_rows - i - 5))
             f.close()
@@ -465,7 +465,7 @@ class RBM(nn.Module):
         return states
 
     def basis_state_generator(self, s):
-        '''If s = 0, this is the (1,0) state in the basis of the measurement. If s = 1, this is the (0,1) state in the basis of the measurement.'''
+        '''Only works for binary at the moment. If s = 0, this is the (1,0) state in the basis of the measurement. If s = 1, this is the (0,1) state in the basis of the measurement.'''
         if s == 0.:
             return torch.tensor([[1., 0.],[0., 0.]])
         if s == 1.:
