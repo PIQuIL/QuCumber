@@ -140,7 +140,6 @@ def cplx_kron(x,y):
 			for j in range(x.size()[2]):
 				for l in range(y.size()[2]):
 
-					print ('element of x: ',i,', ',j,'.\nelement of y: ',k,', ',l,'.\nelement of z being filled is: ',row_count,', ',column_count,'.')
 					z[0][row_count][column_count] = x[0][i][j]*y[0][k][l] - x[1][i][j]*y[1][k][l]
 					z[1][row_count][column_count] = x[0][i][j]*y[1][k][l] + x[1][i][j]*y[0][k][l]
 
