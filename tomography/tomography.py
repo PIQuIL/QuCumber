@@ -23,31 +23,47 @@ class Tomography:
         return torch.dot(target_psi, (probs/Z).sqrt())
 
     @staticmethod
-    def _flip_spin(i, spin_config):
-        s = spin_config.clone()
+    def _flip_spin(i, s):
         s[:, i] *= -1.0
-        return s
 
     @staticmethod
     def _to_pm1(samples):
-        return (2.0 * samples) - 1.0
+        return samples.mul(2.).sub(1.)
+
+    @staticmethod
+    def _to_01(samples):
+        return samples.add(1.).div(2.)
 
     def energy_1d_tfim(self, h, k, num_samples):
+        r"""Compute the energy per spin site for a 1D TFIM chain
+
+        $$\langle E \rangle =
+            - \frac{1}{M} \sum_\sigma \sum_i \sigma_i \sigma_{i+1}
+            - \frac{h}{M} \sum_\sigma \frac{1}{\sqrt{p(\sigma)}}
+                          \sum_i \sqrt{p(\sigma_{-i})} $$
+        """
         samples = self._to_pm1(self.rbm.sample(k, num_samples))
-        probs = self.rbm.unnormalized_probability(samples)
+        psis = self.rbm.unnormalized_probability(self._to_01(samples)) \
+                       .sqrt()
 
-        interaction_term = ((samples[:, 1:] * samples[:, :-1])
-                            .sum(1).mean().item())
+        interaction_term = ((samples[:, :-1] * samples[:, 1:])
+                            .sum(1)   # sum over spin sites
+                            .mean()   # average the results
+                            .item())  # retrieve the numerical value
 
-        flipped_probs = torch.zeros_like(probs)
+        flipped_psis = torch.zeros_like(psis)
 
-        for i in range(samples.shape[-1]):
-            flipped_probs += self.rbm.unnormalized_probability(
-                self._flip_spin(i, samples))
+        for i in range(samples.shape[-1]):  # sum over spin sites
+            self._flip_spin(i, samples)  # flip the spin at site i
+            flipped_psis += self.rbm.unnormalized_probability(
+                                        self._to_01(samples)
+                                    ).sqrt()
+            self._flip_spin(i, samples)  # flip it back
 
-        flipped_probs /= num_samples
+        transverse_field_term = (flipped_psis
+                                 .div(psis)
+                                 .mean()   # average over the samples
+                                 .item())  # retrieve the numerical value
 
-        transverse_field_term = ((flipped_probs / probs)
-                                 .sqrt().sum().item())
-
-        return -(interaction_term + (h * transverse_field_term))
+        return -((interaction_term + (h * transverse_field_term))
+                 / samples.shape[-1])
