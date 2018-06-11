@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from torch.nn import functional as F
 from tqdm import tqdm, tqdm_notebook
 import warnings
+from cplx import *
 
 class RBM(nn.Module):
     def __init__(self, num_visible, num_hidden_amp, num_hidden_phase, gpu=True, seed=1234):
@@ -226,14 +227,14 @@ class RBM(nn.Module):
                     U = 1.
 
                     for index in range(len(z_indices)):
-                        constructed_state[z_indices[index]] = data[i][z_indices[index]]
+                        constructed_state[z_indices[index]] = batch[row_count][z_indices[index]]
 
                     for index in range(len(tau_indices)):
                         constructed_state[tau_indices[index]] = s[index]
                         # TODO: right now this will only work for one unitary...
-                        U *= cplx_DOT( cplx_MV(self.unitary(str(character_data[row_count][tau_indices[index]])), 
-                                               self.basis_state_generator(data[row_count][tau_indices[index]])), 
-                                       self.basis_state_generator(s[index]) ) 
+                        U *= cplx_DOT( cplx_MV(self.unitary(str(chars_batch[row_count][tau_indices[index]])), 
+                                               self.basis_state_generator(batch[row_count][tau_indices[index]])), 
+                                       self.basis_state_generator(s[index]) )
 
                     '''Gradients for phase and amp.'''
                     w_grad_amp  = torch.matmul(F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp)), 
@@ -295,11 +296,11 @@ class RBM(nn.Module):
                 g_vb_phase      += L_vb_phase[1]/batch_size
                 g_hb_phase      += L_hb_phase[1]/batch_size
         
-        # Return negative gradients to match up nicely with the usual
-        # parameter update rules, which *subtract* the gradient from
-        # the parameters. This is in contrast with the RBM update
-        # rules which ADD the gradients (scaled by the learning rate)
-        # to the parameters.
+            '''Return negative gradients to match up nicely with the usual
+            parameter update rules, which *subtract* the gradient from
+            the parameters. This is in contrast with the RBM update
+            rules which ADD the gradients (scaled by the learning rate)
+            to the parameters.'''
             row_count += 1
 
         return {"weight_amp": -g_weights_amp,
@@ -328,7 +329,7 @@ class RBM(nn.Module):
                                       self.weights_phase,
                                       self.visible_bias_phase,
                                       self.hidden_bias_phase],
-                                     lr=lr)
+                                      r=lr)
 
         vis = self.generate_visible_space()
         for ep in progress_bar(range(epochs + 1), desc="Epochs ",
@@ -436,7 +437,7 @@ class RBM(nn.Module):
 
         return (len(data)*logZ) - total_free_energy
 
-    def f_length(self, path):i
+    def f_length(self, path):
         '''A function that returns the number of rows in a text file.'''
         f = open('{!s}'.format(path))
         num_rows = len(f.readlines())
@@ -470,3 +471,93 @@ class RBM(nn.Module):
             return torch.tensor([[1., 0.],[0., 0.]])
         if s == 1.:
             return torch.tensor([[0., 1.],[0., 0.]]) 
+
+#----------------------------------------------------------------------------------------#
+#------------------------------------DEBUG ZONE BELOW------------------------------------#
+#----------------------------------------------------------------------------------------#
+
+'''Trying to see if I am applying the unitary correctly'''
+
+def f_length(path):
+    '''A function that returns the number of rows in a text file.'''
+    f = open('{!s}'.format(path))
+    num_rows = len(f.readlines())
+    f.close()
+    return num_rows
+
+def unitary(character):
+    '''A function that pytrochifies the unitary matrix given its name. It must be in the unitary_library!'''
+    num_rows = f_length('unitary_library.txt')
+    with open('unitary_library.txt') as f:
+        for i, line in enumerate(f):
+            if character in line:
+                a = torch.from_numpy(np.genfromtxt('unitary_library.txt', delimiter='\t', skip_header = i+1, skip_footer = num_rows - i - 3))
+                b = torch.from_numpy(np.genfromtxt('unitary_library.txt', delimiter='\t', skip_header = i+3, skip_footer = num_rows - i - 5))
+        f.close()
+    return make_cplx(a,b)
+
+def state_generator(num_non_trivial_unitaries):
+    '''A function that returns all possible configurations of 'num_non_trivial_unitaries' spins.'''
+    states = torch.zeros(2**num_non_trivial_unitaries, num_non_trivial_unitaries)
+    for i in range(2**num_non_trivial_unitaries):
+        temp = i
+        for j in range(num_non_trivial_unitaries): 
+            temp, remainder = divmod(temp, 2)
+            states[i][j] = remainder
+    return states
+
+def basis_state_generator(s):
+    '''Only works for binary at the moment. If s = 0, this is the (1,0) state in the basis of the measurement. If s = 1, this is the (0,1) state in the basis of the measurement.'''
+    if s == 0.:
+        return torch.tensor([[1., 0.],[0., 0.]])
+    if s == 1.:
+        return torch.tensor([[0., 1.],[0., 0.]]) 
+
+
+batch      = torch.from_numpy(np.loadtxt('small_data.txt'))
+chars_batch = np.loadtxt('strings.txt', dtype = str)
+
+num_visible = batch.shape[-1]
+row_count = 0
+
+for v0 in batch:
+
+    num_non_trivial_unitaries = 0
+    
+    '''tau_indices will contain the index of spins not in the computational basis (Z). z_indices will contain the index numbers of spins in the computational basis.'''
+    tau_indices = []
+    z_indices   = []
+
+    for j in range(chars_batch.shape[1]):
+        if chars_batch[row_count][j] != 'z':
+            num_non_trivial_unitaries += 1
+            tau_indices.append(j)
+
+        else:
+            z_indices.append(j)
+
+    unitary_matrix = torch.zeros(2**num_non_trivial_unitaries, 2**num_non_trivial_unitaries)
+
+    for j in range(2**num_non_trivial_unitaries):
+        s = state_generator(num_non_trivial_unitaries)[j]
+
+        '''This is the "sigma" state in Giacomo's pseudo code.'''
+        constructed_state = torch.zeros(num_visible)
+        U = 1.
+
+        for index in range(len(z_indices)):
+            constructed_state[z_indices[index]] = batch[row_count][z_indices[index]]
+
+        for index in range(len(tau_indices)):
+            constructed_state[tau_indices[index]] = s[index]
+            # TODO: right now this will only work for one unitary...
+            U *= cplx_DOT( cplx_MV(unitary(str(chars_batch[row_count][tau_indices[index]])), 
+                                   basis_state_generator(batch[row_count][tau_indices[index]])), 
+                           basis_state_generator(s[index]) ) 
+
+        print ('Measurements >>> ',chars_batch[row_count])
+        print ('|s> = ',s)
+        print ('|sigma> = ',constructed_state)
+        print ('U = ',U,'\n')
+
+    row_count += 1
