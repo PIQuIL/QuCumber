@@ -295,6 +295,7 @@ def test_rbm():
                                             tile_spacing=(1, 1))
             
 			samples = sess.run(grbm.reconstruction(x), feed_dict={x:test_samples[i*n_batch:(i+1)*n_chains]})
+#			x is the place holder for the input size 
 			image_data[(2*i+1)*29:(2*i+1)*29+28,:] = tile_raster_images(X=samples,
                                             img_shape=(28, 28),
                                             tile_shape=(1, n_chains),
