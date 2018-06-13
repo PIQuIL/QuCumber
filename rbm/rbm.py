@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 from torch.nn import functional as F
 from tqdm import tqdm, tqdm_notebook
 import warnings
-import pickle
 
 
 class RBM(nn.Module):
@@ -45,15 +44,13 @@ class RBM(nn.Module):
         return ("RBM(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
 
-    def save(self, location):
-        with open(location) as f:
-            pickle.dump(self.state_dict(), f)
+    def save(self, location, **metadata):
+        # add extra metadata to dictionary before saving it to disk
+        rbm_data = {**self.state_dict(), **metadata}
+        torch.save(rbm_data, location)
 
     def load(self, location):
-        with open(location) as f:
-            state_dict = pickle.load(f)
-
-        self.load_state_dict(state_dict)
+        self.load_state_dict(torch.load(location), strict=False)
         self.num_visible = self.visible_bias.shape[0]
         self.num_hidden = self.hidden_bias.shape[0]
 
@@ -152,9 +149,8 @@ class RBM(nn.Module):
               k=10, persistent=False,
               lr=1e-3, momentum=0.0,
               method='sgd', l1_reg=0.0, l2_reg=0.0,
-              initial_gaussian_noise=0.01, gamma=0.55,
+              initial_gaussian_noise=0.0, gamma=0.55,
               callbacks=[], progbar=False,
-              log_every=50,
               **kwargs):
         # callback_outputs = []
         disable_progbar = (progbar is False)
@@ -162,10 +158,10 @@ class RBM(nn.Module):
 
         data = torch.tensor(data).to(device=self.device,
                                      dtype=torch.double)
-        optimizer = torch.optim.Adam([self.weights,
-                                      self.visible_bias,
-                                      self.hidden_bias],
-                                     lr=lr)
+        optimizer = torch.optim.SGD([self.weights,
+                                     self.visible_bias,
+                                     self.hidden_bias],
+                                    lr=lr)
 
         if persistent:
             dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
