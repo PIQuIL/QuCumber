@@ -203,7 +203,6 @@ class RBM(nn.Module):
                     getattr(self, name).grad = grads[name]
 
                 optimizer.step()  # tell the optimizer to apply the gradients
-            # TODO: run callbacks
 
     def free_energy(self, v):
         if len(v.shape) < 2:
