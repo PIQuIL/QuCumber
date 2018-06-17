@@ -114,8 +114,8 @@ def main():
     Nsamples = 100 
     D = 1<<N
     psi_fout =     open("../benchmarks/data/2qubits_complex/2qubits_psi.txt",'w')
-    basis_fout =   open("../benchmarks/data/2qubits_complex/2qubits_bases.txt",'w')
-    data_fout =    open("../benchmarks/data/2qubits_complex/2qubits_train.txt",'w')
+    basis_fout =   open("../benchmarks/data/2qubits_complex/2qubits_train_bases.txt",'w')
+    data_fout =    open("../benchmarks/data/2qubits_complex/2qubits_train_samples.txt",'w')
     unitary_fout = open("../benchmarks/data/2qubits_complex/2qubits_unitaries.txt",'w')
 
     random.seed(1234)
