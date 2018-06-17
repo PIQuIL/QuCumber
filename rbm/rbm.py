@@ -1,10 +1,11 @@
+import warnings
+
 import numpy as np
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
 from torch.nn import functional as F
+from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
-import warnings
 
 
 class RBM(nn.Module):
@@ -216,6 +217,18 @@ class RBM(nn.Module):
 
     def unnormalized_probability(self, v):
         return self.free_energy(v).exp()
+
+    def probability_ratio(self, a, b):
+        prob_a = self.unnormalized_probability(a)
+        prob_b = self.unnormalized_probability(b)
+
+        return prob_a.div(prob_b)
+
+    def log_probability_ratio(self, a, b):
+        log_prob_a = self.free_energy(a)
+        log_prob_b = self.free_energy(b)
+
+        return log_prob_a.sub(log_prob_b)
 
     def generate_visible_space(self):
         space = torch.zeros((1 << self.num_visible, self.num_visible),
