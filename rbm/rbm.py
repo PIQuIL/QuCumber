@@ -1,11 +1,11 @@
+import warnings
+
 import numpy as np
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
 from torch.nn import functional as F
+from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
-import warnings
-import pickle
 
 
 class RBM(nn.Module):
@@ -45,15 +45,13 @@ class RBM(nn.Module):
         return ("RBM(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
 
-    def save(self, location):
-        with open(location) as f:
-            pickle.dump(self.state_dict(), f)
+    def save(self, location, **metadata):
+        # add extra metadata to dictionary before saving it to disk
+        rbm_data = {**self.state_dict(), **metadata}
+        torch.save(rbm_data, location)
 
     def load(self, location):
-        with open(location) as f:
-            state_dict = pickle.load(f)
-
-        self.load_state_dict(state_dict)
+        self.load_state_dict(torch.load(location), strict=False)
         self.num_visible = self.visible_bias.shape[0]
         self.num_hidden = self.hidden_bias.shape[0]
 
@@ -152,9 +150,8 @@ class RBM(nn.Module):
               k=10, persistent=False,
               lr=1e-3, momentum=0.0,
               method='sgd', l1_reg=0.0, l2_reg=0.0,
-              initial_gaussian_noise=0.01, gamma=0.55,
+              initial_gaussian_noise=0.0, gamma=0.55,
               callbacks=[], progbar=False,
-              log_every=50,
               **kwargs):
         # callback_outputs = []
         disable_progbar = (progbar is False)
@@ -162,10 +159,10 @@ class RBM(nn.Module):
 
         data = torch.tensor(data).to(device=self.device,
                                      dtype=torch.double)
-        optimizer = torch.optim.Adam([self.weights,
-                                      self.visible_bias,
-                                      self.hidden_bias],
-                                     lr=lr)
+        optimizer = torch.optim.SGD([self.weights,
+                                     self.visible_bias,
+                                     self.hidden_bias],
+                                    lr=lr)
 
         if persistent:
             dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
@@ -206,7 +203,6 @@ class RBM(nn.Module):
                     getattr(self, name).grad = grads[name]
 
                 optimizer.step()  # tell the optimizer to apply the gradients
-            # TODO: run callbacks
 
     def free_energy(self, v):
         if len(v.shape) < 2:
@@ -220,6 +216,18 @@ class RBM(nn.Module):
 
     def unnormalized_probability(self, v):
         return self.free_energy(v).exp()
+
+    def probability_ratio(self, a, b):
+        prob_a = self.unnormalized_probability(a)
+        prob_b = self.unnormalized_probability(b)
+
+        return prob_a.div(prob_b)
+
+    def log_probability_ratio(self, a, b):
+        log_prob_a = self.free_energy(a)
+        log_prob_b = self.free_energy(b)
+
+        return log_prob_a.sub(log_prob_b)
 
     def generate_visible_space(self):
         space = torch.zeros((1 << self.num_visible, self.num_visible),
