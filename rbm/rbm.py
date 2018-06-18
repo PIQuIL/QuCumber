@@ -81,7 +81,7 @@ class RBM(nn.Module):
             ph, h = self.sample_h_given_v(v)
         return v0, h0, v, h, ph
 
-    def sample(self, k, num_samples):
+    def sample(self, num_samples, k, **kwargs):
         dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
         v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
                   .to(device=self.device, dtype=torch.double))
