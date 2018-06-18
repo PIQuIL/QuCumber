@@ -8,6 +8,7 @@ import warnings
 from cplx import *
 from matplotlib import pyplot as plt
 
+
 class RBM(nn.Module):
     def __init__(self, full_unitaries, unitaries, psi_dictionary, num_visible, num_hidden_amp, num_hidden_phase, gpu=True, seed=1234):
         super(RBM, self).__init__()

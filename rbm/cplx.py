@@ -74,7 +74,6 @@ def cplx_MS_mult(x, y):
     '''A function that takes a given input complex matrix (y) and multiplies it by a complex scalar (x).'''
     if len(list(y.size())) != 3 or list(y.size())[0] != 2 or list(x.size())[0] != 2:
         raise ValueError('An input is not of the right dimension.')
-
     z = torch.zeros_like(y)
     z[0] = x[0]*y[0] - x[1]*y[1]
     z[1] = x[0]*y[1] + x[1]*y[0]
