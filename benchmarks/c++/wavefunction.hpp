@@ -11,7 +11,6 @@ namespace qst{
 class Wavefunction{
 
     int N_;        // Number of degrees of freedom (visible units)
-    //int nh_;      // Number of hidden units
     int npar_;    // Number of parameters
 
     Rbm rbmAm_;   // RBM for the amplitude
@@ -33,8 +32,6 @@ public:
         //rgen_.seed(rd());
         rgen_.seed(13579);
     }
-
-    //typedef std::complex<double> StateType;
     
     // Private members access functions
     inline int N()const{
@@ -50,35 +47,34 @@ public:
         return rbmAm_.VisibleStateRow(s);
     }
 
-    // Set the visible layer state
+    // Set the state of the wavefunction's degrees of freedom
     inline void SetVisibleLayer(Eigen::MatrixXd v){
         rbmAm_.SetVisibleLayer(v);
     }
  
-    // Initialize the network parameters    
+    // Initialize the wavefunction parameters    
     void InitRandomPars(int seed,double sigma){
         rbmAm_.InitRandomPars(seed,sigma);
         rbmPh_.InitRandomPars(seed,sigma);
     }
     
-    //Compute derivative of log-probability
+    //Compute gradient of effective energy wrt Lambda 
     Eigen::VectorXd LambdaGrad(const Eigen::VectorXd & v){
-        //VectorXd der(npar_);
-        //der<<rbmAm_.DerLog(v),rbmPh_.DerLog(v);
-        //return der;
         return rbmAm_.VisEnergyGrad(v);
     }
+    //Compute gradient of effective energy wrt Mu
     Eigen::VectorXd MuGrad(const Eigen::VectorXd & v){
         return rbmPh_.VisEnergyGrad(v);
     }
-   
+  
+    //Compute gradient of effective energy wrt all parameters
     Eigen::VectorXd Grad(const Eigen::VectorXd & v){
         Eigen::VectorXd der(npar_);
         der<<rbmAm_.VisEnergyGrad(v),rbmPh_.VisEnergyGrad(v);
         return der;
     }
 
-    //Conditional Probabilities 
+    //Conditional Probabilities for the amplitude RBM 
     void ProbHiddenGivenVisible(const Eigen::MatrixXd & v,Eigen::MatrixXd & probs){
         rbmAm_.ProbHiddenGivenVisible(v,probs);
     }
@@ -94,7 +90,7 @@ public:
     double phase(const Eigen::VectorXd & v){
         return std::log(rbmPh_.prob(v));
     }
-    // Wavefunction
+    // Psi
     std::complex<double> psi(const Eigen::VectorXd & v){
         return amplitude(v)*exp(0.5*I_*phase(v));
     }

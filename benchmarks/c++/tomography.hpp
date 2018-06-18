@@ -1,17 +1,25 @@
 #include <iostream>
 #include <Eigen/Dense>
+#include <random>
+#include <vector>
 #include <iomanip>
 #include <fstream>
+#include <bitset>
+#include <string>
+#include <map>
+
 #ifndef QST_TOMOGRAPHY_HPP
 #define QST_TOMOGRAPHY_HPP
 
 namespace qst{
 
 //Quantum State Tomography class
-class Tomography {
+template<class NNState,class Optimizer> class Tomography {
 
-    Rbm & rbm_;                         // Rbm
-
+    NNState & NNstate_;                   // Neural network representation of the state
+    Optimizer & opt_;                   // Optimizer
+    int N_;
+    //int nh_;
     int npar_;                          // Number of variational parameters
     int bs_;                            // Batch size
     int cd_;                            // Number of Gibbs stepos in contrastive divergence
@@ -19,105 +27,126 @@ class Tomography {
     double lr_;                         // Learning rate
     double l2_;                         // L2 regularization constant
 
-    Eigen::VectorXd grad_;              // Gradient
-    
+    Eigen::VectorXd grad_;              // Gradients 
+    Eigen::VectorXcd rotated_grad_;     // Rotated gradients
     std::mt19937 rgen_;                 // Random number generator
     
     double negative_log_likelihood_;    // Negative log-likelihood
     double overlap_;                    // Overlap
     double Z_;                          // Partition function
     Eigen::MatrixXd basis_states_;      // Hilbert space basis
+ 
+    Eigen::VectorXcd wf_;                               // Target wavefunction
+    std::map<std::string,Eigen::MatrixXcd> U_;          // Structure containin the single unitary rotations
 
+    //std::vector<std::vector<std::string> > basisSet_;   // Possible bases       
+    //std::vector<Eigen::VectorXcd> rotated_wf_;
 public:
-    // Contructor 
-    Tomography(Rbm &rbm,Parameters &par): rbm_(rbm){
-        npar_=rbm_.Npar();
+    
+    Tomography(Optimizer & opt,NNState & NNstate,Parameters &par):opt_(opt),NNstate_(NNstate),N_(NNstate.N()),bs_(par.bs_),cd_(par.cd_) {
+            
+        npar_=NNstate_.Npar();
+        opt_.SetNpar(npar_);
         bs_ = par.bs_;
         cd_ = par.cd_;
         lr_ = par.lr_;
         l2_ = par.l2_;
         epochs_ = par.ep_;
         grad_.resize(npar_);
-        basis_states_.resize(1<<rbm_.Nvisible(),rbm_.Nvisible());
+        rotated_grad_.resize(npar_);
+        basis_states_.resize(1<<N_,N_);
         std::bitset<10> bit;
-        for(int i=0;i<1<<rbm_.Nvisible();i++){
+
+        // Create the basis of the Hilbert space
+        for(int i=0;i<1<<N_;i++){
             bit = i;
-            for(int j=0;j<rbm_.Nvisible();j++){
-                basis_states_(i,j) = bit[rbm_.Nvisible()-j-1];
+            for(int j=0;j<N_;j++){
+                basis_states_(i,j) = bit[N_-j-1];
             }
         }
     }
 
-    // Compute gradients of negative Log-Likelihood on a batch 
-    void Gradient(const Eigen::MatrixXd &batch){ 
+    //Compute gradient of KL divergence 
+    void Gradient(const Eigen::MatrixXd & batchSamples,const std::vector<std::vector<std::string> >& batchBases){ 
         grad_.setZero();
-        
-        //Positive Phase driven by the data
-        for(int s=0;s<bs_;s++){
-            grad_ -= rbm_.DerLog(batch.row(s))/double(bs_);
-        }
-        //Negative Phase driven by the model
-        rbm_.Sample(cd_);
-        for(int s=0;s<rbm_.Nchains();s++){
-            grad_ += rbm_.DerLog(rbm_.VisibleStateRow(s))/double(rbm_.Nchains());
-        }
-    }
+        Eigen::VectorXd tmp;
 
+        int bID = 0;
+        //Positive Phase
+        for(int k=0;k<bs_;k++){
+            bID = 0;
+            for(int j=0;j<N_;j++){ // Check if the basis is the reference one
+                if (batchBases[k][j]!="Z"){
+                    bID = 1;
+                    break;
+                }
+            }
+            if (bID==0){ // Positive phase - Lambda gradient in the reference basis
+                grad_.head(npar_/2) += NNstate_.LambdaGrad(batchSamples.row(k))/double(bs_);
+            }
+            else { // Positive phase - Lambda and Mu gradients for non-trivial bases
+                getRotatedGradient(batchBases[k],batchSamples.row(k),rotated_grad_);
+                grad_.head(npar_/2) += rotated_grad_.head(npar_/2).real()/double(bs_);
+                grad_.tail(npar_/2) -= rotated_grad_.tail(npar_/2).imag()/double(bs_);
+            }
+        }
+        
+        //Negative Phase
+        NNstate_.Sample(cd_);
+        for(int k=0;k<NNstate_.Nchains();k++){
+            grad_.head(npar_/2) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
+        }
+        opt_.getUpdates(grad_);
+    }
+    
     // Update rbm parameters
     void UpdateParameters(){
-        auto pars=rbm_.GetParameters();
-        for(int i=0;i<npar_;i++){
-            pars(i) -= lr_*(grad_(i)+l2_*pars(i));
-        }
-        rbm_.SetParameters(pars);
+        auto pars=NNstate_.GetParameters();
+        opt_.Update(pars);
+        NNstate_.SetParameters(pars);
     }
-
-    // Run the tomography
-    void Run(Eigen::MatrixXd &dataSet,Eigen::VectorXd &target_psi){
-        
-        // Initialization
+    
+    ////Run the tomography
+    void Run(Eigen::MatrixXd & trainData,std::vector<std::vector<std::string> >& trainBases){
+        //opt_.Reset();
         int index;
-        int saveFrequency = 1000;
         int counter = 0;
-        int trainSize = int(0.9*dataSet.rows());
-        int validSize = int(0.1*dataSet.rows());
-        Eigen::MatrixXd trainSet(1<<rbm_.Nvisible(),trainSize);
-        Eigen::MatrixXd validSet(1<<rbm_.Nvisible(),validSize);
-        Eigen::MatrixXd batch_bin;
+        int trainSize = trainData.rows();
+        int saveFrequency =  int(trainSize / bs_);
+        Eigen::MatrixXd batch_samples;
+        std::vector<std::vector<std::string> > batch_bases;
         std::uniform_int_distribution<int> distribution(0,trainSize-1);
         
-        trainSet = dataSet.topRows(trainSize);
-        validSet = dataSet.bottomRows(validSize);
-
-        // Training
+        int epoch = 0;
         for(int i=0;i<epochs_;i++){
 
             // Initialize the visible layer to random data samples
-            batch_bin.resize(rbm_.Nchains(),rbm_.Nvisible());
-            for(int k=0;k<rbm_.Nchains();k++){
+            batch_samples.resize(NNstate_.Nchains(),N_);
+            for(int k=0;k<NNstate_.Nchains();k++){
                 index = distribution(rgen_);
-                batch_bin.row(k) = trainSet.row(index);
+                batch_samples.row(k) = trainData.row(index);
             }
-            rbm_.SetVisibleLayer(batch_bin);
+            NNstate_.SetVisibleLayer(batch_samples);
             
             // Build the batch of data
-            batch_bin.resize(bs_,rbm_.Nvisible()); 
+            batch_samples.resize(bs_,N_); 
+            batch_bases.resize(bs_,std::vector<std::string>(N_));
+
             for(int k=0;k<bs_;k++){
                 index = distribution(rgen_);
-                batch_bin.row(k) = trainSet.row(index);
+                batch_samples.row(k) = trainData.row(index);
+                batch_bases[k] = trainBases[index];
             }
             
             // Perform one step of optimization
-            Gradient(batch_bin);
+            Gradient(batch_samples,batch_bases);
             UpdateParameters();
-            
             //Compute stuff and print
             if (counter == saveFrequency){
+                epoch += 1;
                 ExactPartitionFunction();
-                Overlap(target_psi);
-                NLL(validSet);
-                std::cout<<"Epoch "<<i<<"\t";
-                std::cout<<"NLL = "<<std::setprecision(8)<<negative_log_likelihood_<<"\t    ";
+                Overlap();
+                std::cout<<"Epoch "<<epoch<<"\t";
                 std::cout<<"Overlap = "<<std::setprecision(8)<<overlap_;
                 std::cout<<std::endl;
                 counter = 0;
@@ -130,73 +159,74 @@ public:
     void ExactPartitionFunction() {
         Z_ =0.0;
         for(int i=0;i<basis_states_.rows();i++){
-            Z_ += rbm_.p(basis_states_.row(i));
-        }
-    }
- 
-    // Compute the overlap with the target wavefunction
-    void Overlap(Eigen::VectorXd &target_psi){
-        overlap_ = 0.0;
-        for(int i=0;i<basis_states_.rows();i++){
-            overlap_ += target_psi(i)*std::sqrt(rbm_.p(basis_states_.row(i)))/std::sqrt(Z_);
+            Z_ += norm(NNstate_.psi(basis_states_.row(i)));
         }
     }
 
-    // Compute the average negative log-likelihood
-    void NLL(Eigen::MatrixXd & samples) {
-        negative_log_likelihood_=0.0;
-        for (int k=0;k<samples.rows();k++){
-            negative_log_likelihood_ += std::log(Z_) - std::log(rbm_.p(samples.row(k)));
+    // Compute the overlap with the target wavefunction
+    void Overlap(){
+        overlap_ = 0.0;
+        std::complex<double> tmp;
+        for(int i=0;i<basis_states_.rows();i++){
+            tmp += conj(wf_(i))*NNstate_.psi(basis_states_.row(i))/std::sqrt(Z_);
         }
-        negative_log_likelihood_ /= double(samples.rows());
+        overlap_ = abs(tmp);
     }
  
-    // Derivatives check
-    void DerKLTest(Eigen::MatrixXd &trainSet,Eigen::VectorXd &target_psi){
-        double eps = 0.0001;
-        auto pars = rbm_.GetParameters();
-        double KL;
-      
-        std::cout<<"Running the derivative check..."<<std::endl<<std::endl;
-        // Compute the algorithmic derivatives
-        ExactPartitionFunction();
-        Eigen::VectorXd ders(npar_);
-        ders.setZero(npar_);
-        for(int j=0;j<1<<rbm_.Nvisible();j++){
-            ders -= target_psi(j)*target_psi(j)*rbm_.DerLog(basis_states_.row(j));
-            ders += rbm_.DerLog(basis_states_.row(j))*rbm_.p(basis_states_.row(j))/Z_;
+    //Set the value of the target wavefunction
+    void setWavefunction(Eigen::VectorXcd & psi){
+        wf_.resize(1<<N_);
+        for(int i=0;i<1<<N_;i++){
+            wf_(i) = psi(i);
         }
-           
-        // Compute the numerical derivatives
-        for(int p=0;p<npar_;p++){
-            pars(p)+=eps;
-            rbm_.SetParameters(pars);
-            double valp=0.0;
-            KL=0.0;
-            ExactPartitionFunction();
-            for(int j=0;j<1<<rbm_.Nvisible();j++){
-                KL += target_psi(j)*target_psi(j)*2*log(target_psi(j));
-                KL += target_psi(j)*target_psi(j)*log(Z_);
-                KL -= target_psi(j)*target_psi(j)*log(rbm_.p(basis_states_.row(j)));
+    }
+
+    //Set the value of the target wavefunction
+    void setBasisRotations(std::map<std::string,Eigen::MatrixXcd> & U){
+        U_ = U;
+    }
+
+    void getRotatedGradient(const std::vector<std::string> & basis,const Eigen::VectorXd & state,Eigen::VectorXcd &gradR){//VectorRbmT & gradR){
+        int t=0,counter=0;
+        std::complex<double> U=1.0,den=0.0;
+        std::bitset<16> bit;
+        std::bitset<16> st;
+        std::vector<int> basisIndex;
+        Eigen::VectorXd v(N_);
+        Eigen::VectorXcd num(npar_);
+        num.setZero(); 
+        basisIndex.clear();
+        
+        // Extract the sites where the rotation is non-trivial
+        for(int j=0;j<N_;j++){
+            if (basis[j]!="Z"){
+                t++;
+                basisIndex.push_back(j);
             }
-            valp = KL;
-            pars(p)-=2*eps;
-            rbm_.SetParameters(pars);
-            double valm=0.0;
-            KL=0.0;
-            ExactPartitionFunction();
-            for(int j=0;j<1<<rbm_.Nvisible();j++){
-                KL += target_psi(j)*target_psi(j)*2*log(target_psi(j));
-                KL +=target_psi(j)*target_psi(j)*log(Z_);
-                KL -=target_psi(j)*target_psi(j)*log(rbm_.p(basis_states_.row(j)));
-            }
-            valm = KL;
-            pars(p)+=eps;
-            double numder=(-valm+valp)/(eps*2);
-            std::cout<<"Derivative wrt par "<<p<<" :  Algorithmic gradient = "<<ders(p)<<"  \tNumerical gradient = "<<numder<<std::endl;
         }
-        std::cout << std::endl;
+
+        // Loop over the states of the local Hilbert space
+        for(int i=0;i<1<<t;i++){
+            counter =0;
+            bit = i;
+            v=state;
+            for(int j=0;j<N_;j++){
+                if (basis[j] != "Z"){
+                    v(j) = bit[counter];
+                    counter++;
+                }
+            }
+            U=1.0;
+            //Compute the product of the matrix elements of the unitary rotations
+            for(int ii=0;ii<t;ii++){
+                U = U * U_[basis[basisIndex[ii]]](int(state(basisIndex[ii])),int(v(basisIndex[ii])));
+            }
+            num += U*NNstate_.Grad(v)*NNstate_.psi(v); 
+            den += U*NNstate_.psi(v);
+        }
+        gradR = num/den;
     }
 };
 }
+
 #endif
