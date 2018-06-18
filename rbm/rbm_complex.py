@@ -178,7 +178,6 @@ class RBM(nn.Module):
                         constructed_state[z_indices[index]] = batch[row_count][z_indices[index]]
 
                     for index in range(len(tau_indices)):
-
                         constructed_state[tau_indices[index]] = s[index]
                         # I've got the right unitary (2x2)
 
@@ -540,7 +539,7 @@ class RBM(nn.Module):
                            self.true_psi()) ))
         '''
         overlap_ = cplx_inner(self.get_true_psi(basis),
-                              self.normalized_wavefunction(visible_space))
+                           self.normalized_wavefunction(visible_space))
         '''
         overlap_ = cplx_inner(self.true_psi(),
                            self.normalized_wavefunction(visible_space).t())
