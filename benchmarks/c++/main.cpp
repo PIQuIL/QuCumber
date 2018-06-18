@@ -12,7 +12,7 @@ int main(int argc, char* argv[]){
    
     //Load the data
     std::string fileName; 
-    std::string baseName = "../data/2qubits_complex/2qubits_";
+    std::string baseName = "data/2qubits_";
     Eigen::VectorXcd target_psi(1<<par.nv_);                //Target wavefunction
     std::vector<Eigen::VectorXcd> rotated_target_psi;       //Vector with the target wavefunctions in different basis
     std::vector<std::vector<std::string> > basisSet;        //Set of bases available
@@ -35,22 +35,27 @@ int main(int argc, char* argv[]){
 
     //---- NEURAL NETWORK STATE ----//
     typedef qst::Wavefunction NNState;
+    typedef qst::ObserverPSI Observer;
+
+    
     NNState nn(par);
     nn.InitRandomPars(12345,par.w_);
-
-    //---- OBSERVER ----/#Not yet implemented
-    //qst::Observer obs(nn);
-
-    ////---- TOMOGRAPHY ----//
-    qst::Tomography<NNState,Optimizer> tomo(opt,nn,par);
-    tomo.setWavefunction(target_psi);
-    tomo.setBasisRotations(UnitaryRotations);
-    tomo.Run(training_samples,training_bases);
+    Observer obs(nn);
+    obs.setWavefunction(target_psi);
+    obs.setBasisRotations(UnitaryRotations);
+    obs.setBasis(basisSet);
+    obs.setRotatedWavefunctions(rotated_target_psi);
     
+    //---- TOMOGRAPHY ----//
+    //qst::Tomography<NNState,Observer,Optimizer> tomo(opt,nn,obs,par);
+    //tomo.setBasisRotations(UnitaryRotations);
+    //tomo.Run(training_samples,training_bases);
     
-    
-    //---- TEST ----// #Need the test file (not currently on the repo)
-    //tomo.setBasis(basisSet);
-    //tomo.setRotatedWavefunctions(rotated_target_psi);
-    //tomo.DerKLTest(0.000001);
+    //---- TEST ----// 
+    qst::Test<NNState,Observer> test(nn,obs,par);
+    test.setWavefunction(target_psi);
+    test.setBasisRotations(UnitaryRotations);
+    test.setBasis(basisSet);
+    test.setRotatedWavefunctions(rotated_target_psi);
+    test.DerKL(0.000001);
 }
