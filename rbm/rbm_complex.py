@@ -122,14 +122,14 @@ class RBM(nn.Module):
                     z_indices.append(j) 
 
             v0, h0, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
-            # maybe add sampling of phase here too...
+            ph, h = self.sample_h_given_v_amp(v0)
 
             '''Condition if data point is in the comptational basis.'''
             if num_non_trivial_unitaries == 0:
                 '''Do regular grad updates, like you would if there was no phase.'''
 
-                norm_factor1 = len(batch)*self.unnormalized_probability_amp(v0)
-                norm_factor2 = len(batch)*self.unnormalized_probability_amp(vk_amp)
+                norm_factor1 = len(batch)
+                norm_factor2 = len(batch)
 
                 '''Positive phase of gradient.'''
                 g_weights_amp -= torch.einsum("j,k->jk", (h0, v0)) / (norm_factor1)  #Outer product.
@@ -162,7 +162,6 @@ class RBM(nn.Module):
                                               device=self.device, dtype = torch.double)
 
                 B      = torch.zeros(2, device = self.device, dtype = torch.double)
-                #B_norm = torch.zeros(2, device = self.device, dtype = torch.double)
 
                 '''Loop over Hilbert space of the non trivial unitaries to build the state |sigma> in Giacomo's pseudo code (alg 4.2).'''
                 for j in range(2**num_non_trivial_unitaries):
@@ -179,7 +178,6 @@ class RBM(nn.Module):
 
                     for index in range(len(tau_indices)):
                         constructed_state[tau_indices[index]] = s[index]
-                        # I've got the right unitary (2x2)
 
                         temp = cplx_inner( cplx_MV_mult(self.unitaries[chars_batch[row_count][tau_indices[index]]], 
                                                         self.basis_state_generator(batch[row_count][tau_indices[index]])), 
@@ -187,14 +185,13 @@ class RBM(nn.Module):
 
                         U = cplx_scalar_mult(U, temp)
 
-                    #print ('|sigma> ',constructed_state)
+                    #norm_factor2 = self.unnormalized_probability_amp(constructed_state)
+                    #norm_factor3 = self.unnormalized_probability_phase(constructed_state)
 
-                    norm_factor2 = self.unnormalized_probability_amp(constructed_state)
-                    norm_factor3 = self.unnormalized_probability_phase(constructed_state)
+                    norm_factor2 = 1.
+                    norm_factor3 = 1.
 
                     '''Gradients for phase and amp.'''
-                    
-                    # TODO: ADD NEG PHASE??? ASK GIACOMO
                     w_grad_amp  = torch.einsum("j,k->jk", (h0, constructed_state)) / norm_factor2  #Outer product.
                     vb_grad_amp = constructed_state / norm_factor2
                     hb_grad_amp = h0 / norm_factor2
@@ -203,23 +200,6 @@ class RBM(nn.Module):
                     vb_grad_phase = constructed_state / norm_factor3
                     hb_grad_phase = h0 / norm_factor3
                     
-                    #print (constructed_state)
-                    #print (F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp)))
-                    #print (torch.ger(F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp)), constructed_state))
-                    '''
-                    w_grad_amp  = torch.ger(constructed_state, F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp))) / norm_factor2
-                    vb_grad_amp = constructed_state / norm_factor2
-                    hb_grad_amp = F.sigmoid(F.linear(constructed_state, self.weights_amp.t(), self.hidden_bias_amp)) / norm_factor2
-                    
-                    w_grad_phase  = torch.ger(constructed_state, F.sigmoid(F.linear(constructed_state, self.weights_phase.t(), self.hidden_bias_phase))) / norm_factor3
-                    vb_grad_phase = constructed_state / norm_factor3
-                    hb_grad_phase = F.sigmoid(F.linear(constructed_state, self.weights_phase.t(), self.hidden_bias_phase)) / norm_factor3
-                    '''
-                    #w_grad_amp  = self.regularize_weight_gradients_amp(w_grad_amp, l1_reg, l2_reg)
-                    #w_grad_amp += (stddev * torch.randn_like(w_grad_amp, device=self.device))
-
-                    #w_grad_phase  = self.regularize_weight_gradients_phase(w_grad_phase, l1_reg, l2_reg)
-                    #w_grad_phase += (stddev * torch.randn_like(w_grad_amp, device=self.device))
                     '''
                     In order to calculate the 'A' parameters below with my current complex library, I need to make the weights and biases complex.
                     '''
