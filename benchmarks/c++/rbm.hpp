@@ -85,8 +85,8 @@ public:
         }
     }
 
-    // Compute derivative of log-probability
-    Eigen::VectorXd DerLog(const Eigen::VectorXd & v){
+    // Compute derivative of the effective visible energy
+    Eigen::VectorXd VisEnergyGrad(const Eigen::VectorXd & v){
         Eigen::VectorXd der(npar_);
         int p=0;
         logistic(W_*v+c_,gamma_);
@@ -104,11 +104,11 @@ public:
             der(p)=gamma_(i);
             p++;
         } 
-        return der;
+        return -der;
     }
    
     // Return the probability for state v
-    inline double p(const Eigen::VectorXd & v){
+    inline double prob(const Eigen::VectorXd & v){
         return exp(LogVal(v));
     }
     
@@ -126,7 +126,7 @@ public:
         logistic((h*W_).rowwise() + b_.transpose(),probs);
     }
 
-    // Sample the one layer 
+    // Sample one layer 
     void SampleLayer(Eigen::MatrixXd & hv,const Eigen::MatrixXd & probs){
         std::uniform_real_distribution<double> distribution(0,1);
         for(int s=0;s<hv.rows();s++){
