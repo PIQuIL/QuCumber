@@ -9,6 +9,25 @@ from cplx import *
 from matplotlib import pyplot as plt
 
 class RBM(nn.Module):
+    """Class to build the Restricted Boltzmann Machine
+
+    Parameters
+    ----------
+    unitaries : array_like
+        list of unitaries
+    num_visible : int
+        Number of visible units
+    num_hidden_amp : int
+        Number of hidden units to learn the amplitude
+    num_hidden_phase : int
+        Number of hidden units to learn the phase
+    gpu : bool
+        Should the GPU be used for the training
+    seed : int
+        Fix the random number seed to make results reproducable
+        
+    
+    """
     def __init__(self, unitaries, num_visible, num_hidden_amp, num_hidden_phase, gpu=True, seed=1234):
         super(RBM, self).__init__()
         self.num_visible      = int(num_visible)
@@ -63,9 +82,37 @@ class RBM(nn.Module):
                                         requires_grad=True)
 
     def compute_batch_gradients(self, k, batch, chars_batch, l1_reg, l2_reg, stddev=0):
-        '''This function will compute the gradients of a batch of the training data (data_file) given the basis measurements (chars_file).'''
+        '''This function will compute the gradients of a batch of the training 
+        data (data_file) given the basis measurements (chars_file).
+
+        Parameters
+        ----------
+        k : int
+            number of Gibbs steps in amplitude training
+        batch : array_like
+            batch of the input data
+        chars_batch : array_like
+            batch of the unitaries. Indicates in which basis the input data was
+            measured
+        l1_reg : float
+            L1 regularization hyperparameter
+        l2_reg : float
+            L2 regularization hyperparameter
+        stddev : float
+            standard deviation of random noise that can be added to the weights.
+            This is also a hyperparamter.
+
+        Returns 
+        ----------
+        Gradients : dictionary
+            Dictionary containing all the gradients in the following order:
+            Gradient of weights, visible bias and hidden bias for the amplitude 
+            Gradients of weights, visible bias and hidden bias for the phase.
+
+        '''
         
         if len(batch) == 0:
+        #If batch has length 0, return zero matrices as grad update
             return (torch.zeros_like(self.weights_amp,
                                      device=self.device,
                                      dtype=torch.double),
@@ -103,20 +150,26 @@ class RBM(nn.Module):
 
         zeros_for_w  = torch.zeros_like(w_grad_amp)
         zeros_for_vb = torch.zeros_like(vb_grad_amp)
-        zeros_for_hb = torch.zeros_like(hb_grad_amp) #NOTE! THIS WILL CURRENTLY ONLY WORK IF AND ONLY IF THE NUMBER OF HIDDEN UNITS FOR PHASE AND AMP ARE THE SAME!!!
+        zeros_for_hb = torch.zeros_like(hb_grad_amp) 
+        #NOTE! THIS WILL CURRENTLY ONLY WORK IF AND ONLY IF THE NUMBER OF HIDDEN UNITS FOR PHASE AND AMP ARE THE SAME!!!
 
         for row_count, v0 in enumerate(batch):
             num_non_trivial_unitaries = 0
             
-            '''tau_indices will contain the index numbers of spins not in the computational basis (Z). z_indices will contain the index numbers of spins in the computational basis.'''
+            '''tau_indices will contain the index numbers of spins not in the   
+            computational basis (Z). 
+            z_indices will contain the index numbers of spins in the computational 
+            basis.'''
             tau_indices = []
             z_indices   = []
             for j in range(self.num_visible):
+                """Go through list of unitaries and save inidices of non-trivial"""
                 if chars_batch[row_count][j] != 'Z':
                     num_non_trivial_unitaries += 1
                     tau_indices.append(j)
 
                 else:
+                    """"Create list of indices of trivial unitaries """
                     z_indices.append(j) 
 
             '''Condition if data point is in the comptational basis.'''
@@ -508,12 +561,14 @@ class RBM(nn.Module):
 
         print ('True psi norm >>> \n',cplx_norm( cplx_inner(self.true_psi(),
                            self.true_psi()) ))
+                           
         '''
         overlap_ = cplx_inner(self.true_psi(),
                            self.normalized_wavefunction(visible_space))
         '''
         overlap_ = cplx_inner(self.true_psi(),
                            self.normalized_wavefunction(visible_space).t())
+                           
         '''
         return overlap_
 
