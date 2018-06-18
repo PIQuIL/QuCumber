@@ -109,13 +109,8 @@ public:
    
     // Return the probability for state v
     inline double prob(const Eigen::VectorXd & v){
-        return exp(LogVal(v));
-    }
-    
-    // Value of the logarithm of the RBM probability
-    inline double LogVal(const Eigen::VectorXd & v){
         ln1pexp(W_*v+c_,gamma_);
-        return v.dot(b_)+gamma_.sum();
+        return std::exp(v.dot(b_)+gamma_.sum());
     }
     
     // Conditional Probabilities 
@@ -230,6 +225,7 @@ public:
     }
 
  };
+
 }
 
 #endif
