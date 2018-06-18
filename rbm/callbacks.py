@@ -40,12 +40,14 @@ class Logger:
 
 class EarlyStopping:
     def __init__(self, period, tolerance, patience,
-                 metric, **metric_kwargs):
+                 metric, higher_is_better=False,
+                 **metric_kwargs):
         self.period = period
         self.tolerance = tolerance
         self.patience = int(patience)
         self.metric = metric
         self.metric_kwargs = metric_kwargs
+        self.higher_is_better = higher_is_better
         self.past_metric_values = []
 
     def __call__(self, rbm, epoch):
@@ -56,5 +58,9 @@ class EarlyStopping:
             if len(self.past_metric_values) >= self.patience:
                 change_in_metric = (self.past_metric_values[-self.patience]
                                     - self.past_metric_values[-1])
+                if self.higher_is_better:
+                    # flip sign if we want to maximize the given metric
+                    change_in_metric *= -1.0
+
                 if change_in_metric < self.tolerance:
                     rbm.stop_training = True
