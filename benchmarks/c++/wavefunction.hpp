@@ -58,30 +58,6 @@ public:
         rbmPh_.InitRandomPars(seed,sigma);
     }
     
-    //Compute gradient of effective energy wrt Lambda 
-    Eigen::VectorXd LambdaGrad(const Eigen::VectorXd & v){
-        return rbmAm_.VisEnergyGrad(v);
-    }
-    //Compute gradient of effective energy wrt Mu
-    Eigen::VectorXd MuGrad(const Eigen::VectorXd & v){
-        return rbmPh_.VisEnergyGrad(v);
-    }
-  
-    //Compute gradient of effective energy wrt all parameters
-    Eigen::VectorXd Grad(const Eigen::VectorXd & v){
-        Eigen::VectorXd der(npar_);
-        der<<rbmAm_.VisEnergyGrad(v),rbmPh_.VisEnergyGrad(v);
-        return der;
-    }
-
-    //Conditional Probabilities for the amplitude RBM 
-    void ProbHiddenGivenVisible(const Eigen::MatrixXd & v,Eigen::MatrixXd & probs){
-        rbmAm_.ProbHiddenGivenVisible(v,probs);
-    }
-    void ProbVisibleGivenHidden(const Eigen::MatrixXd & h,Eigen::MatrixXd & probs){
-        rbmAm_.ProbVisibleGivenHidden(h,probs);
-    }
-
     // Amplitude
     double amplitude(const Eigen::VectorXd & v){
         return std::sqrt(rbmAm_.prob(v));//exp(0.5*rbmAm_.LogVal(v));         
@@ -95,6 +71,16 @@ public:
         return amplitude(v)*exp(0.5*I_*phase(v));
     }
 
+   
+    //---- SAMPLING ----/
+    
+    //Conditional Probabilities for the amplitude RBM 
+    void ProbHiddenGivenVisible(const Eigen::MatrixXd & v,Eigen::MatrixXd & probs){
+        rbmAm_.ProbHiddenGivenVisible(v,probs);
+    }
+    void ProbVisibleGivenHidden(const Eigen::MatrixXd & h,Eigen::MatrixXd & probs){
+        rbmAm_.ProbVisibleGivenHidden(h,probs);
+    }
     // Sample the one layer 
     void SampleLayer(Eigen::MatrixXd & hv,const Eigen::MatrixXd & probs){
         std::uniform_real_distribution<double> distribution(0,1);
@@ -108,7 +94,71 @@ public:
     void Sample(int steps){
         rbmAm_.Sample(steps);
     }
- 
+   
+    //---- DERIVATIVES ----//
+    
+    //Compute gradient of effective energy wrt Lambda 
+    Eigen::VectorXd LambdaGrad(const Eigen::VectorXd & v){
+        return rbmAm_.VisEnergyGrad(v);
+    }
+    //Compute gradient of effective energy wrt Mu
+    Eigen::VectorXd MuGrad(const Eigen::VectorXd & v){
+        return rbmPh_.VisEnergyGrad(v);
+    }
+    //Compute gradient of effective energy wrt all parameters
+    Eigen::VectorXd Grad(const Eigen::VectorXd & v){
+        Eigen::VectorXd der(npar_);
+        der<<rbmAm_.VisEnergyGrad(v),rbmPh_.VisEnergyGrad(v);
+        return der;
+    }
+    //Compute the gradient of the effective energy in an arbitrary basis given by U
+    void rotatedGrad(const std::vector<std::string> & basis,
+                            const Eigen::VectorXd & state,//VectorRbmT & gradR){
+                            std::map<std::string,Eigen::MatrixXcd> & Unitaries,
+                            Eigen::VectorXcd &gradR ){
+        int t=0,counter=0;
+        std::complex<double> U=1.0,den=0.0;
+        std::bitset<16> bit;
+        std::bitset<16> st;
+        std::vector<int> basisIndex;
+        Eigen::VectorXd v(N_);
+        Eigen::VectorXcd num(npar_);
+        //Eigen::VectorXcd gradR(npar_);
+        num.setZero(); 
+        basisIndex.clear();
+        // Extract the sites where the rotation is non-trivial
+        for(int j=0;j<N_;j++){
+            if (basis[j]!="Z"){
+                t++;
+                basisIndex.push_back(j);
+            }
+        }
+
+        // Loop over the states of the local Hilbert space
+        for(int i=0;i<1<<t;i++){
+            counter =0;
+            bit = i;
+            v=state;
+            for(int j=0;j<N_;j++){
+                if (basis[j] != "Z"){
+                    v(j) = bit[counter];
+                    counter++;
+                }
+            }
+            U=1.0;
+            //Compute the product of the matrix elements of the unitary rotations
+            for(int ii=0;ii<t;ii++){
+                U = U * Unitaries[basis[basisIndex[ii]]](int(state(basisIndex[ii])),int(v(basisIndex[ii])));
+            }
+            num += U*Grad(v)*psi(v); 
+            den += U*psi(v);
+        }
+        gradR = num/den;
+    }
+
+    
+    //---- UTILITIES ----//
+
     //Get RBM parameters
     Eigen::VectorXd GetParameters(){
         Eigen::VectorXd pars(npar_);
