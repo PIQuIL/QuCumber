@@ -63,7 +63,7 @@ class EarlyStopping:
 
 
 class ComputeMetrics:
-    def __init__(self, period, metrics, **metric_kwargs):
+    def __init__(self, period, num_samples, k, metrics, **metric_kwargs):
         self.period = period
         self.metrics = metrics
         self.metric_values = []
@@ -71,6 +71,12 @@ class ComputeMetrics:
 
     def __call__(self, rbm, epoch):
         if epoch % self.period == 0:
-            metric_values_ep = {k: fn(rbm, **self.metric_kwargs)
-                                for k, fn in self.metrics.items()}
-            self.metric_values.append((epoch, metric_values_ep))
+            metric_vals_for_epoch = {}
+            for metric_name, metric_fn in self.metrics.items():
+                val = metric_fn(rbm, **self.metric_kwargs)
+                if isinstance(val, dict):
+                    metric_vals_for_epoch.update(val)
+                else:
+                    metric_vals_for_epoch["metric_name"] = val
+
+            self.metric_values.append((epoch, metric_vals_for_epoch))
