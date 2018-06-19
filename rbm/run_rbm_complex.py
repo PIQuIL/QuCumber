@@ -89,10 +89,10 @@ def benchmark(num_hidden_amp, num_hidden_phase, epochs, batch_size,
 
 
 @cli.command("train")
-@click.option('--train-path', default='../benchmarks/data/2qubits_complex/2qubits_train.txt',
+@click.option('--train-path', default='../benchmarks/data/2qubits_complex/2qubits_train_samples_justZ.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the training data")
-@click.option('--basis-path', default='../benchmarks/data/2qubits_complex/2qubits_bases.txt',
+@click.option('--basis-path', default='../benchmarks/data/2qubits_complex/2qubits_train_bases_justZ.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the basis data")
 @click.option('-n', '--num-hidden-amp', default=None, type=int,
@@ -130,7 +130,6 @@ def train(train_path, basis_path, num_hidden_amp, num_hidden_phase, epochs, batc
     train_set = torch.tensor(data, dtype = torch.double)
     basis_set = np.loadtxt(basis_path, dtype = str)
 
-
     f = open('unitary_library.txt')
     num_rows = len(f.readlines())
     f.close()
@@ -145,16 +144,36 @@ def train(train_path, basis_path, num_hidden_amp, num_hidden_phase, epochs, batc
                 b = torch.tensor(np.genfromtxt('unitary_library.txt', delimiter='\t', skip_header = i+3, 
                                  skip_footer = num_rows - i - 5), dtype = torch.double)
                 character = line.strip('\n')
-                print (character)
                 unitary_dictionary[character] = cplx_make_complex_matrix(a,b)
     f.close()
 
-    print ('These are the unitaries >>> \n',unitary_dictionary)
+    full_unitary_file = np.loadtxt('../benchmarks/data/2qubits_complex/2qubits_unitaries.txt')
+    basis_list = ['Z' 'Z', 'X' 'Z', 'Z' 'X', 'Y' 'Z', 'Z' 'Y']
+    full_unitary_dictionary = {}
 
+    psi_file = np.loadtxt('../benchmarks/data/2qubits_complex/2qubits_psi.txt')
+    psi_dictionary = {}
+
+    for i in range(len(basis_list)): # 5 possible wavefunctions: ZZ, XZ, ZX, YZ, ZY
+        psi      = torch.zeros(2, 2**train_set.shape[-1], dtype = torch.double)
+        psi_real = torch.tensor(psi_file[i*4:(i*4+4),0], dtype = torch.double)
+        psi_imag = torch.tensor(psi_file[i*4:(i*4+4),1], dtype = torch.double)
+        psi[0]   = psi_real
+        psi[1]   = psi_imag
+        psi_dictionary[basis_list[i]] = psi
+        
+        full_unitary      = torch.zeros(2, 2**train_set.shape[-1], 2**train_set.shape[-1], dtype = torch.double)
+        full_unitary_real = torch.tensor(full_unitary_file[i*8:(i*8+4)], dtype = torch.double)
+        full_unitary_imag = torch.tensor(full_unitary_file[(i*8+4):(i*8+8)], dtype = torch.double)
+        print (full_unitary_real.size()) 
+        full_unitary[0]   = full_unitary_real
+        full_unitary[1]   = full_unitary_imag
+        full_unitary_dictionary[basis_list[i]] = full_unitary
+    
     num_hidden_amp   = train_set.shape[-1] if num_hidden_amp is None else num_hidden_amp
     num_hidden_phase = train_set.shape[-1] if num_hidden_phase is None else num_hidden_phase
 
-    rbm = RBM(unitaries=unitary_dictionary, num_visible=train_set.shape[-1],
+    rbm = RBM(full_unitaries=full_unitary_dictionary, unitaries=unitary_dictionary, psi_dictionary=psi_dictionary, num_visible=train_set.shape[-1],
               num_hidden_amp=num_hidden_amp,
               num_hidden_phase=num_hidden_phase,
               seed=seed)

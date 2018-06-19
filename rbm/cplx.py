@@ -192,6 +192,33 @@ def cplx_kronecker(x, y):
 
     return z
 
+def cplx_VS_divide(x,y):
+    '''Computes x/y, where x is a complex vector and y is a complex scalar.'''
+    if list(x.size())[0] != 2 or list(y.size())[0] != 2:
+        raise ValueError('An input is not of the right dimension.')
+
+    y_star = torch.zeros_like(y)
+    y_star[0] = y[0]
+    y_star[1] = -y[1]
+
+    numerator = cplx_VS_mult(y_star, x)
+    denominator = cplx_scalar_mult(y, y_star)[0]
+
+    return numerator / denominator
+
+def cplx_MS_divide(x,y):
+    '''Computes x/y, where x is a complex tensor and y is a complex scalar.'''
+    if list(x.size())[0] != 2 or list(y.size())[0] != 2:
+        raise ValueError('An input is not of the right dimension.')
+
+    y_star = torch.zeros_like(y)
+    y_star[0] = y[0]
+    y_star[1] = -y[1]
+
+    numerator = cplx_MS_mult(y_star, x)
+    denominator = cplx_scalar_mult(y, y_star)[0]
+
+    return numerator / denominator
 
 def cplx_norm(x):
     '''A function that returns |<x|x>|^2. Argument must be <x|x> (i.e. a scalar).'''
@@ -200,6 +227,7 @@ def cplx_norm(x):
 
     x_conj = torch.zeros_like(x)
     x_conj[0] = x[0]
-    x_conj[1] = -x[0]
+    x_conj[1] = -x[1]
 
-    return cplx_scalar_mult(x_conj, x)
+    return cplx_scalar_mult(x_conj, x)[0]
+
