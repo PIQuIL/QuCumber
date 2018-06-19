@@ -63,7 +63,7 @@ class EarlyStopping:
 
 
 class ComputeMetrics:
-    def __init__(self, period, num_samples, k, metrics, **metric_kwargs):
+    def __init__(self, period, metrics, **metric_kwargs):
         self.period = period
         self.metrics = metrics
         self.metric_values = []
