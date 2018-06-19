@@ -35,7 +35,7 @@ def to_01(samples):
 
 
 class Observable:
-    def __init__(self, name=None, variance_name=None):
+    def __init__(self, name=None, variance_name=None, **kwargs):
         self.name = name
         self.variance_name = variance_name
         if variance_name:  # alias the variance function
@@ -102,11 +102,12 @@ class Observable:
 
 
 class TFIMChainEnergy(Observable):
-    def __init__(self, h, name="Energy",
+    def __init__(self, h, density=True, name="Energy",
                  variance_name="Heat Capacity"):
         super(TFIMChainEnergy, self).__init__(name=name,
                                               variance_name=variance_name)
         self.h = h
+        self.density = density
 
     @staticmethod
     def _flip_spin(i, s):
@@ -138,15 +139,20 @@ class TFIMChainEnergy(Observable):
                                   .sub(log_psis)
                                   .exp())  # convert to ratio of probabilities
 
-        return (transverse_field_terms
-                .mul(self.h)
-                .add(interaction_terms)
-                .mul(-1.))
+        energy = (transverse_field_terms
+                  .mul(self.h)
+                  .add(interaction_terms)
+                  .mul(-1.))
+
+        if self.density:
+            return energy.div(samples.shape[-1])
+        else:
+            return energy
 
 
 class TFIMChainMagnetization(Observable):
     def __init__(self, name="Magnetization",
-                 variance_name="Susceptibility"):
+                 variance_name="Susceptibility", **kwargs):
         super(TFIMChainMagnetization, self).__init__(
             name=name, variance_name=variance_name)
 

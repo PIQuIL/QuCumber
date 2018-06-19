@@ -4,7 +4,8 @@ from pathlib import Path
 __all__ = [
     "ModelSaver",
     "Logger",
-    "EarlyStopping"
+    "EarlyStopping",
+    "ComputeMetrics"
 ]
 
 
@@ -59,3 +60,17 @@ class EarlyStopping:
                                    / self.past_metric_values[-self.patience])
                 if abs(relative_change) < self.tolerance:
                     rbm.stop_training = True
+
+
+class ComputeMetrics:
+    def __init__(self, period, metrics, **metric_kwargs):
+        self.period = period
+        self.metrics = metrics
+        self.metric_values = []
+        self.metric_kwargs = metric_kwargs
+
+    def __call__(self, rbm, epoch):
+        if epoch % self.period == 0:
+            metric_values_ep = {k: fn(rbm, **self.metric_kwargs)
+                                for k, fn in self.metrics.items()}
+            self.metric_values.append((epoch, metric_values_ep))
