@@ -203,3 +203,4 @@ def cplx_norm(x):
     x_conj[1] = -x[0]
 
     return cplx_scalar_mult(x_conj, x)
+    
