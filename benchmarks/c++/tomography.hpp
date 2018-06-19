@@ -22,6 +22,8 @@ template<class NNState,class Observer,class Optimizer> class Tomography {
 
     int N_;                                     // Number of physical degrees of freedom
     int npar_;                                  // Number of variational parameters
+    int nparLambda_;                            // Number of amplitude variational parameters
+    int nparMu_;                                // Number of phase variational parameters
     int bs_;                                    // Batch size
     int cd_;                                    // Number of Gibbs stepos in contrastive divergence
     int epochs_;                                // Number of training iterations
@@ -37,6 +39,7 @@ public:
     Tomography(Optimizer & opt,NNState & NNstate,Observer &obs,Parameters &par):opt_(opt),NNstate_(NNstate),obs_(obs),N_(NNstate.N()),bs_(par.bs_),cd_(par.cd_) {
             
         npar_=NNstate_.Npar();
+        nparLambda_ = NNstate_.NparLambda();
         opt_.SetNpar(npar_);
         bs_ = par.bs_;
         cd_ = par.cd_;
@@ -50,7 +53,6 @@ public:
     //Compute gradient of KL divergence 
     void ComputeGradient(const Eigen::MatrixXd & batchSamples,const std::vector<std::vector<std::string> >& batchBases){ 
         grad_.setZero();
-        Eigen::VectorXd tmp;
 
         int bID = 0;
         //Positive Phase
@@ -63,20 +65,20 @@ public:
                 }
             }
             if (bID==0){ // Positive phase - Lambda gradient in the reference basis
-                grad_.head(npar_/2) += NNstate_.LambdaGrad(batchSamples.row(k))/double(bs_);
+                grad_.head(nparLambda_) += NNstate_.LambdaGrad(batchSamples.row(k))/double(bs_);
             }
             else { // Positive phase - Lambda and Mu gradients for non-trivial bases
                 NNstate_.rotatedGrad(batchBases[k],batchSamples.row(k),U_,rotated_grad_);
                 //getRotatedGradient(batchBases[k],batchSamples.row(k),rotated_grad_);
-                grad_.head(npar_/2) += rotated_grad_.head(npar_/2).real()/double(bs_);
-                grad_.tail(npar_/2) -= rotated_grad_.tail(npar_/2).imag()/double(bs_);
+                grad_.head(nparLambda_) += rotated_grad_.head(nparLambda_).real()/double(bs_);
+                grad_.tail(nparMu_) -= rotated_grad_.tail(nparMu_).imag()/double(bs_);
             }
         }
         
         //Negative Phase
         NNstate_.Sample(cd_);
         for(int k=0;k<NNstate_.Nchains();k++){
-            grad_.head(npar_/2) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
+            grad_.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
         }
         opt_.getUpdates(grad_);
     }

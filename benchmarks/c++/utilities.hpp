@@ -24,13 +24,28 @@ void LoadTrainingData(std::string &baseName, Parameters &par,Eigen::MatrixXd & t
 
     fileName = baseName + "train_samples.txt";
     std::ifstream fin_samples(fileName);
-    fileName = baseName + "train_bases.txt";
-    std::ifstream fin_bases(fileName);
     
     for (int n=0; n<trainSize; n++) {
         for (int j=0; j<par.nv_; j++) {
             fin_samples>> trainSamples(n,j);
-            fin_bases>> trainBases[n][j];
+        }
+    }
+    if (par.basis_.compare("std")!=0){
+        fileName = baseName + "train_bases.txt";
+        std::ifstream fin_bases(fileName);
+        
+        for (int n=0; n<trainSize; n++) {
+            for (int j=0; j<par.nv_; j++) {
+                fin_samples>> trainSamples(n,j);
+                fin_bases>> trainBases[n][j];
+            }
+        }
+    }
+    else {
+        for (int n=0; n<trainSize; n++) {
+            for (int j=0; j<par.nv_; j++) {
+                trainBases[n][j] = "Z";
+            }
         }
     }
 }
@@ -48,26 +63,37 @@ void LoadWavefunction(Parameters & par,std::string &wf_fileName,Eigen::VectorXcd
     std::ifstream fin(wf_fileName);
     wf.resize(1<<par.nv_);
     double x_in;
-    for(int i=0;i<1<<par.nv_;i++){
-        fin >> x_in;
-        wf.real()(i)=x_in;
-        fin >> x_in;
-        wf.imag()(i)=x_in;
-    }
-    Eigen::VectorXcd tmp(1<<par.nv_);
-    for(int b=1;b<par.nb_;b++){
+   
+    if (par.basis_.compare("std")!=0){
         for(int i=0;i<1<<par.nv_;i++){
             fin >> x_in;
-            tmp.real()(i)=x_in;
+            wf.real()(i)=x_in;
             fin >> x_in;
-            tmp.imag()(i)=x_in;
+            wf.imag()(i)=x_in;
         }
-        rotated_wf.push_back(tmp);
+        Eigen::VectorXcd tmp(1<<par.nv_);
+        for(int b=1;b<par.nb_;b++){
+            for(int i=0;i<1<<par.nv_;i++){
+                fin >> x_in;
+                tmp.real()(i)=x_in;
+                fin >> x_in;
+                tmp.imag()(i)=x_in;
+            }
+            rotated_wf.push_back(tmp);
+        }
+    }
+    else {
+        for(int i=0;i<1<<par.nv_;i++){
+            fin >> x_in;
+            wf.real()(i)=x_in;
+            wf.imag()(i)=0.0;
+        }
+
+
     }
 }
 void LoadBasesConfigurations(Parameters &par,std::string &basis_name,std::vector<std::vector<std::string> > &basis) {
     
-    par.nb_ = 2*par.nv_+1;
     std::ifstream fin(basis_name);
     basis.resize(par.nb_,std::vector<std::string>(par.nv_));
     for (int b=0;b<par.nb_;b++){
@@ -77,6 +103,10 @@ void LoadBasesConfigurations(Parameters &par,std::string &basis_name,std::vector
     }
 }
 
+void SetNumberOfBases(Parameters &par){
+    if (par.basis_ == "std")    par.nb_ = par.nv_;
+    if (par.basis_ == "xy1")    par.nb_ = 2*par.nv_+1;
+}
 void GenerateUnitaryRotations(std::map<std::string,Eigen::MatrixXcd> & U){
 
     double oneDivSqrt2 = 1.0/sqrt(2.0);

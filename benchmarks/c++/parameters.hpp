@@ -21,6 +21,7 @@ public:
     int ep_;     // Training iterations
     int ns_;     // Number of training samples
     int nb_;     // Number of bases
+    std::string basis_;
 
     // Constructor
     Parameters() {
@@ -36,6 +37,7 @@ public:
         ep_ = 1000000;
         ns_ = 100;
         nb_ = 5;
+        basis_ = "std";
     }
     
     // Read parameters from the command line
@@ -81,6 +83,10 @@ public:
         flag = "-ep";
         for(int i=1;i<argc;i++){
             if(flag==argv[i]) ep_=atoi(argv[i+1]);
+        }
+        flag = "-basis";
+        for(int i=1;i<argc;i++){
+            if(flag==argv[i]) basis_=argv[i+1];
         }
         nb_ = 2*nv_+1;
     }

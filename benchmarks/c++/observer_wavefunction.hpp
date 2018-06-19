@@ -8,7 +8,7 @@
 
 namespace qst{
 
-class ObserverPSI{
+template<class Wavefunction> class ObserverPSI{
 
     Wavefunction &PSI_;
 
@@ -19,19 +19,19 @@ class ObserverPSI{
     Eigen::MatrixXd basis_states_;      // Hilbert space basis
     std::map<std::string,Eigen::MatrixXcd> U_;
     std::vector<std::vector<std::string> > basisSet_;
-
+    std::string basis_;
 public:
 
     double KL_;
     double overlap_;
     double Z_;
 
-    ObserverPSI(Wavefunction &PSI):PSI_(PSI){ 
+    ObserverPSI(Wavefunction &PSI,std::string &basis):PSI_(PSI){ 
         
         std::cout<<"- Initializing observer module"<<std::endl;
         N_ = PSI_.N();
         npar_ = PSI_.Npar();
-
+        basis_ = basis;
         basis_states_.resize(1<<N_,N_);
         std::bitset<10> bit;
         // Create the basis of the Hilbert space
@@ -81,15 +81,17 @@ public:
             KL_ -= norm(target_psi_(i))*log(norm(PSI_.psi(basis_states_.row(i))));
             KL_ += norm(target_psi_(i))*log(Z_);
         }
-        //KL in the rotated bases
-        for (int b=1;b<basisSet_.size();b++){
-            rotateRbmWF(basisSet_[b],rotated_psi);
-            for(int i=0;i<1<<N_;i++){
-                if (norm(rotated_wf_[b-1](i))>0.0){
-                    KL_ += norm(rotated_wf_[b-1](i))*log(norm(rotated_wf_[b-1](i)));
+        if (basis_.compare("std")!=0){
+            //KL in the rotated bases
+            for (int b=1;b<basisSet_.size();b++){
+                rotateRbmWF(basisSet_[b],rotated_psi);
+                for(int i=0;i<1<<N_;i++){
+                    if (norm(rotated_wf_[b-1](i))>0.0){
+                        KL_ += norm(rotated_wf_[b-1](i))*log(norm(rotated_wf_[b-1](i)));
+                    }
+                    KL_ -= norm(rotated_wf_[b-1](i))*log(norm(rotated_psi(i)));
+                    KL_ += norm(rotated_wf_[b-1](i))*log(Z_);
                 }
-                KL_ -= norm(rotated_wf_[b-1](i))*log(norm(rotated_psi(i)));
-                KL_ += norm(rotated_wf_[b-1](i))*log(Z_);
             }
         }
     }
@@ -113,7 +115,6 @@ public:
     void setRotatedWavefunctions(std::vector<Eigen::VectorXcd> & psi){
         for(int b=0;b<psi.size();b++){
             rotated_wf_.push_back(psi[b]);
-            std::cout<<rotated_wf_[b]<<std::endl;
         }
     }
     //Set the value of the target wavefunction
