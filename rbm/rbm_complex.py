@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 
 
 class RBM(nn.Module):
-<<<<<<< HEAD
     """Class to build the Restricted Boltzmann Machine
 
     Parameters
