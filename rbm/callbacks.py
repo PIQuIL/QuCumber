@@ -53,9 +53,9 @@ class EarlyStopping:
                 self.metric(rbm, **self.metric_kwargs))
 
             if len(self.past_metric_values) >= self.patience:
-                change_in_metric = abs(self.past_metric_values[-self.patience]
-                                       - self.past_metric_values[-1])
+                change_in_metric = (self.past_metric_values[-self.patience]
+                                    - self.past_metric_values[-1])
                 relative_change = (change_in_metric
                                    / self.past_metric_values[-self.patience])
-                if relative_change < self.tolerance:
+                if abs(relative_change) < self.tolerance:
                     rbm.stop_training = True
