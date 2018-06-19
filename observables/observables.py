@@ -113,6 +113,7 @@ class TFIMChainEnergy(Observable):
         s[:, i] *= -1.0
 
     def apply(self, samples, sampler):
+        samples = to_pm1(samples)
         log_psis = sampler.free_energy(to_01(samples)).div(2.)
 
         shape = log_psis.shape + (samples.shape[-1],)

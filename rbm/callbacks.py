@@ -1,6 +1,12 @@
 import os.path
 from pathlib import Path
 
+__all__ = [
+    "ModelSaver",
+    "Logger",
+    "EarlyStopping"
+]
+
 
 class ModelSaver:
     def __init__(self, period, folder_path, rbm_name, **metadata):
@@ -15,9 +21,8 @@ class ModelSaver:
 
     def __call__(self, rbm, epoch):
         if epoch % self.period == 0:
-            rbm.save(os.path.join(self.path,
-                                  "epoch{}".format(epoch)),
-                     {k: v(rbm) for k, v in self.metadata.items()})
+            rbm.save(os.path.join(self.path, "epoch{}".format(epoch)),
+                     **{k: v(rbm) for k, v in self.metadata.items()})
 
 
 class Logger:
@@ -50,5 +55,7 @@ class EarlyStopping:
             if len(self.past_metric_values) >= self.patience:
                 change_in_metric = (self.past_metric_values[-self.patience]
                                     - self.past_metric_values[-1])
-                if change_in_metric < self.tolerance:
+                relative_change = (change_in_metric
+                                   / self.past_metric_values[-self.patience])
+                if abs(relative_change) < self.tolerance:
                     rbm.stop_training = True
