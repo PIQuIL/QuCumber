@@ -36,13 +36,16 @@ class RBM(nn.Module):
                          device=self.device, dtype=torch.double)
              / np.sqrt(self.num_visible)),
             requires_grad=True)
-                
+                      
         self.weights_phase = nn.Parameter(
             (torch.randn(self.num_hidden_phase, self.num_visible,
                          device=self.device, dtype=torch.double)
              / np.sqrt(self.num_visible)),
             requires_grad=True)
-        
+        '''
+        self.weights_phase = nn.Parameter(torch.zeros(self.num_hidden_phase, self.num_visible, 
+                         device=self.device, dtype=torch.double), requires_grad=True)
+        '''
         self.visible_bias_amp   = nn.Parameter(torch.zeros(self.num_visible,
                                                      device=self.device,
                                                      dtype=torch.double),
@@ -67,6 +70,7 @@ class RBM(nn.Module):
         '''This function will compute the gradients of a batch of the training data (data_file) given the basis measurements (chars_file).'''
         vis = self.generate_visible_space()
         if len(batch) == 0:
+            print ('Batch length is zero...')
             return (torch.zeros_like(self.weights_amp,
                                      device=self.device,
                                      dtype=torch.double),
@@ -88,6 +92,9 @@ class RBM(nn.Module):
     
         #unrotated_RBM_psi_initial = self.normalized_wavefunction(vis)
         #constructed_RBM_psi_initial = torch.zeros_like(unrotated_RBM_psi_initial)   
+        # GRADIENT FOR HIDDEN BIAS PHASE VANISHES...
+
+        batch_size = len(batch)
 
         w_grad_amp      = torch.zeros_like(self.weights_amp)
         vb_grad_amp     = torch.zeros_like(self.visible_bias_amp)
@@ -111,42 +118,31 @@ class RBM(nn.Module):
 
         for row_count, v0 in enumerate(batch):
             num_non_trivial_unitaries = 0
-            #print (chars_batch[row_count])
+
             '''tau_indices will contain the index numbers of spins not in the computational basis (Z). z_indices will contain the index numbers of spins in the computational basis.'''
             tau_indices = []
             z_indices   = []
+
             for j in range(self.num_visible):
                 if chars_batch[row_count][j] != 'Z':
                     num_non_trivial_unitaries += 1
                     tau_indices.append(j)
                 else:
-                    z_indices.append(j) 
+                    z_indices.append(j)
 
-            v0, h0, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
-            ph, h = self.sample_h_given_v_amp(v0)
+            v0, h0_amp, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
+            _, h0_phase = self.sample_h_given_v_phase(v0)
 
             '''Condition if data point is in the comptational basis.'''
             if num_non_trivial_unitaries == 0:
                 '''Do regular grad updates, like you would if there was no phase.'''
 
-                norm_factor1 = len(batch)
-                norm_factor2 = len(batch)
-
                 '''Positive phase of gradient.'''
-                g_weights_amp -= torch.einsum("j,k->jk", (h0, v0)) / (norm_factor1)  #Outer product.
-                g_vb_amp      -= v0 / (norm_factor1)
-                g_hb_amp      -= h0 / (norm_factor1)
-
-                '''Negative phase of amp gradient.'''
-                g_weights_amp += torch.einsum("j,k->jk", (phk_amp, vk_amp)) / (norm_factor2)
-                g_vb_amp      += vk_amp / (norm_factor2)
-                g_hb_amp      += phk_amp / (norm_factor2)
-                '''Divide by unnormalized prob because we took gradient of log(unnormalized prob).'''
-
-                continue
+                g_weights_amp -= torch.einsum("j,k->jk", (h0_amp, v0)) / batch_size #Outer product.
+                g_vb_amp      -= v0 / batch_size
+                g_hb_amp      -= h0_amp / batch_size
 
             if num_non_trivial_unitaries > 0:
-
                 '''Initialize the 'A' parameters (see alg 4.2).'''
                 A_weights_amp = torch.zeros(2, self.weights_amp.size()[0], self.weights_amp.size()[1], 
                                             device=self.device, dtype = torch.double)
@@ -162,7 +158,7 @@ class RBM(nn.Module):
                 A_hb_phase      = torch.zeros(2, self.hidden_bias_phase.size()[0], 
                                               device=self.device, dtype = torch.double)
 
-                B      = torch.zeros(2, device = self.device, dtype = torch.double)
+                B = torch.zeros(2, device = self.device, dtype = torch.double)
 
                 '''Loop over Hilbert space of the non trivial unitaries to build the state |sigma> in Giacomo's pseudo code (alg 4.2).'''
                 for j in range(2**num_non_trivial_unitaries):
@@ -186,25 +182,17 @@ class RBM(nn.Module):
 
                         U = cplx_scalar_mult(U, temp)
 
-                    #norm_factor2 = self.unnormalized_probability_amp(constructed_state)
-                    #norm_factor3 = self.unnormalized_probability_phase(constructed_state)
+                    '''Positive phase gradients for phase and amp. Will be added into the 'A' parameters.'''
+                    w_grad_amp  = torch.einsum("j,k->jk", (h0_amp, constructed_state)) #Outer product.
+                    vb_grad_amp = constructed_state
+                    hb_grad_amp = h0_amp
 
-                    norm_factor2 = 1.
-                    norm_factor3 = 1.
-
-                    '''Gradients for phase and amp.'''
-                    w_grad_amp  = torch.einsum("j,k->jk", (h0, constructed_state)) / norm_factor2  #Outer product.
-                    vb_grad_amp = constructed_state / norm_factor2
-                    hb_grad_amp = h0 / norm_factor2
-
-                    w_grad_phase  = torch.einsum("j,k->jk", (h0, constructed_state)) / norm_factor3 #Outer product.
-                    vb_grad_phase = constructed_state / norm_factor3
-                    hb_grad_phase = h0 / norm_factor3
-                    
+                    w_grad_phase  = torch.einsum("j,k->jk", (h0_phase, constructed_state)) #Outer product.
+                    vb_grad_phase = constructed_state
+                    hb_grad_phase = h0_phase
                     '''
                     In order to calculate the 'A' parameters below with my current complex library, I need to make the weights and biases complex.
                     '''
-
                     temp_w_grad_amp  = cplx_make_complex_matrix(w_grad_amp, zeros_for_w)
                     temp_vb_grad_amp = cplx_make_complex_vector(vb_grad_amp, zeros_for_vb)
                     temp_hb_grad_amp = cplx_make_complex_vector(hb_grad_amp, zeros_for_hb)
@@ -232,9 +220,6 @@ class RBM(nn.Module):
 
                 #U_matrix = self.get_full_unitary(chars_batch[row_count])
 
-                #v0, h0, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
-                norm_factor1 = len(batch)*self.unnormalized_probability_amp(vk_amp)
-
                 L_weights_amp = cplx_MS_divide(A_weights_amp, B)
                 L_vb_amp      = cplx_VS_divide(A_vb_amp, B)
                 L_hb_amp      = cplx_VS_divide(A_hb_amp, B)
@@ -244,28 +229,26 @@ class RBM(nn.Module):
                 L_hb_phase      = cplx_VS_divide(A_hb_phase, B)
 
                 '''Gradents of amplitude parameters take the real part of the L gradients.'''
-                g_weights_amp -= L_weights_amp[0] / len(batch)
-                g_vb_amp      -= L_vb_amp[0] / len(batch)
-                g_hb_amp      -= L_hb_amp[0] / len(batch)
-
-                '''Negative phase of amp gradient.'''
-                g_weights_amp += torch.einsum("j,k->jk", (phk_amp, vk_amp)) / (norm_factor1)
-                g_vb_amp      += vk_amp / (norm_factor1)
-                g_hb_amp      += phk_amp / (norm_factor1)
-                '''Divide by unnormalized prob because we took gradient of log(unnormalized prob).'''
+                g_weights_amp -= L_weights_amp[0] / batch_size
+                g_vb_amp      -= L_vb_amp[0] / batch_size
+                g_hb_amp      -= L_hb_amp[0] / batch_size
 
                 '''Gradents of phase parameters take the real part of the L gradients. Phase gradients have no neg phase.'''
-                g_weights_phase += L_weights_phase[1]/len(batch)
-                g_vb_phase      += L_vb_phase[1]/len(batch)
-                g_hb_phase      += L_hb_phase[1]/len(batch)
+                g_weights_phase += L_weights_phase[1]/batch_size
+                g_vb_phase      += L_vb_phase[1]/batch_size
+                g_hb_phase      += L_hb_phase[1]/batch_size
 
-                continue
-        
-            '''Return negative gradients to match up nicely with the usual
-            parameter update rules, which *subtract* the gradient from
-            the parameters. This is in contrast with the RBM update
-            rules which ADD the gradients (scaled by the learning rate)
+        '''Negative phase of amp gradient. Phase parameters do not have a negative phase.'''
+        g_weights_amp += torch.einsum("j,k->jk", (phk_amp, vk_amp)) / batch_size
+        g_vb_amp      += vk_amp / batch_size
+        g_hb_amp      += phk_amp / batch_size
+
+        '''Return negative gradients to match up nicely with the usual
+        parameter update rules, which *subtract* the gradient from
+        the parameters. This is in contrast with the RBM update
+        rules which ADD the gradients (scaled by the learning rate)
             to the parameters.'''
+
         '''
         print ('Initial RBM psi: \n',unrotated_RBM_psi_initial)
         print ('Constructed RBM psi with rotation: \n', constructed_RBM_psi_initial)
@@ -326,10 +309,13 @@ class RBM(nn.Module):
                 #print('Not calculating anything right now, just checking grads.')
 
             if ep == epochs:
-                fidelity_file = open('fidelity_file.txt', 'w')
                 print ('Finished training. Saving results...' )               
+                fidelity_file = open('fidelity_file.txt', 'w')
+
                 for i in range(len(fidelity_list)):
                     fidelity_file.write('%.5f' % fidelity_list[i] + ' %d\n' % epoch_list[i])
+
+                fidelity_file.close()
                 break
 
             stddev = torch.tensor(
@@ -349,11 +335,11 @@ class RBM(nn.Module):
                     getattr(self, name).grad = grads[name]
 
                 optimizer.step()  # tell the optimizer to apply the gradients
-                '''
+                
                 self.test_gradients(vis, k, batches[batch_index], char_batches[batch_index],
                                                      l1_reg, l2_reg,
                                                      stddev=stddev)                
-                '''
+                
             # TODO: run callbacks
 
     def prob_v_given_h_amp(self, h):
@@ -432,36 +418,32 @@ class RBM(nn.Module):
                 + (l2_reg * self.weights_phase)
                 + (l1_reg * self.weights_phase.sign()))
 
-    def free_energy_amp(self, v):
+    def eff_energy_amp(self, v):
         if len(v.shape) < 2:
             v = v.view(1, -1)
 
         visible_bias_term = torch.mv(v, self.visible_bias_amp)
-        hidden_bias_term = F.softplus(
-            F.linear(v, self.weights_amp, self.hidden_bias_amp)).sum(1)
+        hidden_bias_term = F.softplus(F.linear(v, self.weights_amp, self.hidden_bias_amp)).sum(1)
 
         return visible_bias_term + hidden_bias_term
 
-    def free_energy_phase(self, v):
+    def eff_energy_phase(self, v):
         if len(v.shape) < 2:
             v = v.view(1, -1)
 
         visible_bias_term = torch.mv(v, self.visible_bias_phase)
-        hidden_bias_term = F.softplus(
-            F.linear(v, self.weights_phase, self.hidden_bias_phase)).sum(1)
+        hidden_bias_term = F.softplus(F.linear(v, self.weights_phase, self.hidden_bias_phase)).sum(1)
 
         return visible_bias_term + hidden_bias_term
 
     def unnormalized_probability_amp(self, v):
-        return self.free_energy_amp(v).exp()
+        return self.eff_energy_amp(v).exp()
 
     def unnormalized_probability_phase(self, v):
-        return self.free_energy_phase(v).exp()
+        return self.eff_energy_phase(v).exp()
 
     def normalized_wavefunction(self, v):
         v_prime   = v.view(-1,self.num_visible)
-        #v_prime = v
-        #v_prime = v
         temp1     = (self.unnormalized_probability_amp(v_prime)).sqrt()
         temp2     = ((self.unnormalized_probability_phase(v_prime)).log())*0.5
 
@@ -511,20 +493,8 @@ class RBM(nn.Module):
             key += basis[i]
         return self.full_unitaries[key]
 
-    def overlap(self, visible_space, basis):
-        '''
-        print ('RBM psi norm >>> \n',cplx_norm( cplx_inner(self.normalized_wavefunction(visible_space),
-                           self.normalized_wavefunction(visible_space)) ))
-
-        print ('True psi norm >>> \n',cplx_norm( cplx_inner(self.true_psi(),
-                           self.true_psi()) ))
-        '''
-        overlap_ = cplx_inner(self.get_true_psi(basis),
-                           self.normalized_wavefunction(visible_space))
-        '''
-        overlap_ = cplx_inner(self.true_psi(),
-                           self.normalized_wavefunction(visible_space).t())
-        '''
+    def overlap(self, visible_space, basis): 
+        overlap_ = cplx_inner(self.get_true_psi(basis), self.normalized_wavefunction(visible_space))
         return overlap_
 
     def fidelity(self, visible_space, basis):
@@ -542,11 +512,11 @@ class RBM(nn.Module):
         return space
 
     def log_partition(self, visible_space):
-        free_energies = self.free_energy_amp(visible_space)
-        max_free_energy = free_energies.max()
+        eff_energies = self.eff_energy_amp(visible_space)
+        max_eff_energy = eff_energies.max()
 
-        f_reduced = free_energies - max_free_energy
-        logZ = max_free_energy + f_reduced.exp().sum().log()
+        reduced = eff_energies - max_eff_energy
+        logZ = max_eff_energy + reduced.exp().sum().log()
 
         return logZ
 
@@ -554,9 +524,9 @@ class RBM(nn.Module):
         return self.log_partition(visible_space).exp()
 
     def nll(self, data, logZ):
-        total_free_energy = self.free_energy_amp(data).sum()
+        total_eff_energy = self.eff_energy_amp(data).sum()
 
-        return (len(data)*logZ) - total_free_energy
+        return (len(data)*logZ) - total_eff_energy
 
     def state_generator(self, num_non_trivial_unitaries):
         '''A function that returns all possible configurations of 'num_non_trivial_unitaries' spins.'''
@@ -608,8 +578,8 @@ class RBM(nn.Module):
 
             num_grad = (KL_pos - KL_neg) / (2*eps)
 
-            #print ('numerical:', num_grad)
-            #print ('algebraic: ', alg_grad[i],'\n')
+            print ('numerical:', num_grad)
+            print ('algebraic: ', alg_grad[i],'\n')
 
     def test_gradients(self, visible_space, k, batch, chars_batch, l1_reg, l2_reg, stddev):
 
@@ -644,6 +614,7 @@ class RBM(nn.Module):
         self.compute_numerical_gradient(visible_space, self.hidden_bias_phase, -alg_grads["hidden_bias_phase"])
 
     def state_to_index(self, state):
+        ''' Only for debugging how the unitary is applied to the unnormalized wavefunction - the 'B' term in alg 4.2.'''
         states = torch.zeros(2**self.num_visible, self.num_visible)
         npstates = states.numpy()
         npstate  = state.numpy()
