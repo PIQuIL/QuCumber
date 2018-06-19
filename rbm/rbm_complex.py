@@ -119,11 +119,8 @@ class RBM(nn.Module):
         '''This function will compute the gradients of a batch of the training data (data_file) given the basis measurements (chars_file).'''
         vis = self.generate_visible_space()
         if len(batch) == 0:
-<<<<<<< HEAD
             print ('Batch length is zero...')
-=======
         #If batch has length 0, return zero matrices as grad update
->>>>>>> d052d609588f15b735f418ced42c05d217666972
             return (torch.zeros_like(self.weights_amp,
                                      device=self.device,
                                      dtype=torch.double),
@@ -172,15 +169,11 @@ class RBM(nn.Module):
 
         for row_count, v0 in enumerate(batch):
             num_non_trivial_unitaries = 0
-<<<<<<< HEAD
 
-            '''tau_indices will contain the index numbers of spins not in the computational basis (Z). z_indices will contain the index numbers of spins in the computational basis.'''
-=======
             '''tau_indices will contain the index numbers of spins not in the   
             computational basis (Z). 
             z_indices will contain the index numbers of spins in the computational 
             basis.'''
->>>>>>> d052d609588f15b735f418ced42c05d217666972
             tau_indices = []
             z_indices   = []
 
@@ -190,12 +183,9 @@ class RBM(nn.Module):
                     num_non_trivial_unitaries += 1
                     tau_indices.append(j)
                 else:
-<<<<<<< HEAD
                     z_indices.append(j)
-=======
                     """"Create list of indices of trivial unitaries """
                     z_indices.append(j) 
->>>>>>> d052d609588f15b735f418ced42c05d217666972
 
             v0, h0_amp, vk_amp, hk_amp, phk_amp = self.gibbs_sampling_amp(k, v0)
             _, h0_phase = self.sample_h_given_v_phase(v0)
@@ -560,10 +550,6 @@ class RBM(nn.Module):
             key += basis[i]
         return self.full_unitaries[key]
 
-<<<<<<< HEAD
-    def overlap(self, visible_space, basis): 
-        overlap_ = cplx_inner(self.get_true_psi(basis), self.normalized_wavefunction(visible_space))
-=======
     def overlap(self, visible_space, basis):
         '''
         print ('RBM psi norm >>> \n',cplx_norm( cplx_inner(self.normalized_wavefunction(visible_space),
@@ -580,7 +566,6 @@ class RBM(nn.Module):
                            self.normalized_wavefunction(visible_space).t())
                            
         '''
->>>>>>> d052d609588f15b735f418ced42c05d217666972
         return overlap_
 
     def fidelity(self, visible_space, basis):
