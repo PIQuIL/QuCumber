@@ -13,7 +13,7 @@ __all__ = [
 
 class ModelSaver:
     def __init__(self, period, folder_path, rbm_name,
-                 metadata_only=False, **metadata):
+                 metadata, metadata_only=False):
         self.folder_path = folder_path
         self.period = period
         self.rbm_name = rbm_name
@@ -27,12 +27,18 @@ class ModelSaver:
     def __call__(self, rbm, epoch):
         if epoch % self.period == 0:
             save_path = os.path.join(self.path, "epoch{}".format(epoch))
+
+            if callable(self.metadata):
+                metadata = self.metadata(rbm, epoch)
+            elif isinstance(self.metadata, dict):
+                metadata = self.metadata
+
             if self.metadata_only:
-                torch.save({k: v(rbm) for k, v in self.metadata.items()},
+                torch.save({k: v(rbm) for k, v in metadata.items()},
                            save_path)
             else:
                 rbm.save(save_path,
-                         **{k: v(rbm) for k, v in self.metadata.items()})
+                         **{k: v(rbm) for k, v in metadata.items()})
 
 
 class Logger:
