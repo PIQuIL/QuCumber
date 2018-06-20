@@ -107,7 +107,7 @@ class Observable:
 
 class TFIMChainEnergy(Observable):
     def __init__(self, h, density=True, name="Energy",
-                 variance_name="Heat Capacity"):
+                 variance_name="Heat Capacity", **kwargs):
         super(TFIMChainEnergy, self).__init__(name=name,
                                               variance_name=variance_name)
         self.h = h

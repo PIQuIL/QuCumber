@@ -1,6 +1,8 @@
 import os.path
 from pathlib import Path
 
+import torch
+
 __all__ = [
     "ModelSaver",
     "Logger",
@@ -10,11 +12,13 @@ __all__ = [
 
 
 class ModelSaver:
-    def __init__(self, period, folder_path, rbm_name, **metadata):
+    def __init__(self, period, folder_path, rbm_name,
+                 metadata_only=False, **metadata):
         self.folder_path = folder_path
         self.period = period
         self.rbm_name = rbm_name
         self.metadata = metadata
+        self.metadata_only = metadata_only
 
         self.path = Path(folder_path, rbm_name)
         self.path.mkdir(parents=True, exist_ok=True)
@@ -22,8 +26,13 @@ class ModelSaver:
 
     def __call__(self, rbm, epoch):
         if epoch % self.period == 0:
-            rbm.save(os.path.join(self.path, "epoch{}".format(epoch)),
-                     **{k: v(rbm) for k, v in self.metadata.items()})
+            save_path = os.path.join(self.path, "epoch{}".format(epoch))
+            if self.metadata_only:
+                torch.save({k: v(rbm) for k, v in self.metadata.items()},
+                           save_path)
+            else:
+                rbm.save(save_path,
+                         **{k: v(rbm) for k, v in self.metadata.items()})
 
 
 class Logger:
@@ -47,6 +56,7 @@ class EarlyStopping:
         self.metric = metric
         self.metric_kwargs = metric_kwargs
         self.past_metric_values = []
+        self.last_epoch = None
 
     def __call__(self, rbm, epoch):
         if epoch % self.period == 0:
@@ -60,6 +70,7 @@ class EarlyStopping:
                                    / self.past_metric_values[-self.patience])
                 if abs(relative_change) < self.tolerance:
                     rbm.stop_training = True
+                    self.last_epoch = epoch
 
 
 class ComputeMetrics:
@@ -67,6 +78,7 @@ class ComputeMetrics:
         self.period = period
         self.metrics = metrics
         self.metric_values = []
+        self.last = {}
         self.metric_kwargs = metric_kwargs
 
     def __call__(self, rbm, epoch):
@@ -78,5 +90,5 @@ class ComputeMetrics:
                     metric_vals_for_epoch.update(val)
                 else:
                     metric_vals_for_epoch["metric_name"] = val
-
+            self.last = metric_vals_for_epoch.copy()
             self.metric_values.append((epoch, metric_vals_for_epoch))
