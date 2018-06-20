@@ -34,11 +34,9 @@ class ModelSaver:
                 metadata = self.metadata
 
             if self.metadata_only:
-                torch.save({k: v(rbm) for k, v in metadata.items()},
-                           save_path)
+                torch.save(metadata, save_path)
             else:
-                rbm.save(save_path,
-                         **{k: v(rbm) for k, v in metadata.items()})
+                rbm.save(save_path, metadata)
 
 
 class Logger:
