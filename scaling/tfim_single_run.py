@@ -13,7 +13,7 @@ import os.path
 
 
 def load_train(N, h):
-    data = np.load(
+    data = np.loadtxt(
         f"/home/ejaazm/projects/def-rgmelko/ejaazm/"
         f"tfim1d/datasets/tfim1d_N{N}_h{h:.2f}_train.txt")
     return data.astype('float32')
@@ -57,7 +57,7 @@ def main(task_id, n, h):
 
 
 def run(N, h, dataset_size, alpha, run):
-    print(f"Beginning evaluation for system size N={n} and h={h}")
+    print(f"Beginning evaluation for system size N={N} and h={h}")
     print(f"Dataset Size: {dataset_size}; Alpha: {alpha}; Run: {run}.")
 
     data = load_train(N, h)
