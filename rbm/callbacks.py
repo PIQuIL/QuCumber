@@ -24,9 +24,10 @@ class ModelSaver:
         self.path.mkdir(parents=True, exist_ok=True)
         self.path = self.path.resolve()
 
-    def __call__(self, rbm, epoch):
+    def __call__(self, rbm, epoch, last=False):
         if epoch % self.period == 0:
-            save_path = os.path.join(self.path, "epoch{}".format(epoch))
+            last = "" if not last else "_last"
+            save_path = os.path.join(self.path, "epoch{}".format(epoch) + last)
 
             if callable(self.metadata):
                 metadata = self.metadata(rbm, epoch)

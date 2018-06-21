@@ -25,11 +25,12 @@ SAVE_PATH = ("/home/ejaazm/projects/def-rgmelko/ejaazm/"
 RBM_NAME = "tmp"  # should get overwritten
 
 
-NUM_GIBBS_STEPS_OBS = int(1e4)
+NUM_GIBBS_STEPS_OBS = 100
 NUM_SAMPLES = int(1e5)
 
 
 def sigterm_handler(signal, frame):
+    print(f"Job killed while evaluating {RBM_NAME}")
     open(os.path.join(SAVE_PATH, RBM_NAME, "job_killed"), 'a').close()
 
 
@@ -46,13 +47,17 @@ POSSIBLE_CONFIGS = list(product(
 
 
 @click.command()
-@click.argument("slurm_array_task_id")
-def main(slurm_array_task_id):
-    config = POSSIBLE_CONFIGS[slurm_array_task_id]
+@click.option("--task-id", type=int, envvar="SLURM_ARRAY_TASK_ID")
+def main(task_id):
+    print(f"Task id is: {task_id}")
+    config = POSSIBLE_CONFIGS[task_id]
     run(*config)
 
 
 def run(N, h, dataset_size, alpha, run):
+    print(f"Beginning evaluation for system size N={n} and h={h}")
+    print(f"Dataset Size: {dataset_size}; Alpha: {alpha}; Run: {run}.")
+
     data = load_train(N, h)
     data = data[np.random.choice(len(data), dataset_size, replace=False)]
 
@@ -76,7 +81,7 @@ def run(N, h, dataset_size, alpha, run):
                         k=NUM_GIBBS_STEPS_OBS,
                         batch_size=100)
 
-    es = EarlyStopping(CB_PERIOD, 0.05/100, 10,
+    es = EarlyStopping(CB_PERIOD, 0.1/100, 10,
                        lambda rbm, **kwargs: cm.last["Energy"])
 
     ms = ModelSaver(CB_PERIOD, SAVE_PATH, rbm_name,
@@ -95,7 +100,7 @@ def run(N, h, dataset_size, alpha, run):
     # along with trained model params
     ms.metadata_only = False
     ms.metadata = cm.last
-    ms.run(model, es.last_epoch)
+    ms(model, es.last_epoch, last=True)
 
 
 if __name__ == '__main__':
