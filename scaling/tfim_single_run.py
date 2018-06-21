@@ -5,11 +5,11 @@ Run TFIM Scaling experiments on GRAHAM
 import click
 import numpy as np
 from observables import TFIMChainEnergy, TFIMChainMagnetization
-from callbacks import ModelSaver, ComputeMetrics, EarlyStopping
+from rbm.callbacks import ModelSaver, ComputeMetrics, EarlyStopping
 from rbm import RBM
 from itertools import product
 import signal
-import os.path.join
+import os.path
 
 
 def load_train(N, h):
@@ -38,8 +38,8 @@ def sigterm_handler(signal, frame):
 signal.signal(signal.SIGTERM, sigterm_handler)
 
 POSSIBLE_CONFIGS = list(product(
-    [16, 32, 64, 128, 256],          # N : do 512 later
-    [0.5, 1.0, 1.5],                 # h
+    # [16, 32, 64, 128, 256],          # N : do 512 later
+    # [0.5, 1.0, 1.5],                 # h
     range(10000, 210000, 10000),     # dataset_size
     [1 / 8., 1 / 4., 1 / 2., 1, 2],  # alpha
     range(5)                         # run number
@@ -48,10 +48,12 @@ POSSIBLE_CONFIGS = list(product(
 
 @click.command()
 @click.option("--task-id", type=int, envvar="SLURM_ARRAY_TASK_ID")
-def main(task_id):
+@click.option("-n", type=int)
+@click.option("-h", type=float)
+def main(task_id, n, h):
     print(f"Task id is: {task_id}")
     config = POSSIBLE_CONFIGS[task_id]
-    run(*config)
+    run(n, h, *config)
 
 
 def run(N, h, dataset_size, alpha, run):
