@@ -35,14 +35,18 @@ def to_01(samples):
 
 
 class Observable:
-    def __init__(self, name=None, variance_name=None):
+    def __init__(self, name=None, variance_name=None, **kwargs):
         self.name = name
-        self.variance_name = variance_name
+        self.mean_name = name if name else "mean"
+
         if variance_name:  # alias the variance function
             # if someone manages to put in a mangled enough string to
             # break this...they brought it on themselves
             variance_alias = format_alias(variance_name)
             setattr(self, variance_alias, self.variance)
+            self.variance_name = variance_name
+        else:
+            self.variance_name = "variance"
 
     def apply(self, samples, sampler):
         pass
@@ -51,15 +55,12 @@ class Observable:
         return self.apply(sampler.sample(num_samples, **kwargs), sampler)
 
     def expected_value(self, sampler, num_samples, batch_size=0, **kwargs):
-        expected_val, _ = self.statistics(sampler,
-                                          num_samples,
-                                          batch_size,
-                                          **kwargs)
-        return expected_val
+        stats = self.statistics(sampler, num_samples, batch_size, **kwargs)
+        return stats[self.mean_name]
 
     def variance(self, sampler, num_samples, batch_size=0, **kwargs):
-        _, var = self.statistics(sampler, num_samples, batch_size, **kwargs)
-        return var
+        stats = self.statistics(sampler, num_samples, batch_size, **kwargs)
+        return stats[self.variance_name]
 
     def statistics(self, sampler, num_samples, batch_size, **kwargs):
         batch_size = num_samples if batch_size <= 0 else batch_size
@@ -98,15 +99,19 @@ class Observable:
                 update_statistics(running_mean, running_var, running_length,
                                   batch_mean, batch_var, batch_size)
 
-        return running_mean, running_var
+        return {
+            self.mean_name: running_mean,
+            self.variance_name: running_var
+        }
 
 
 class TFIMChainEnergy(Observable):
-    def __init__(self, h, name="Energy",
-                 variance_name="Heat Capacity"):
+    def __init__(self, h, density=True, name="Energy",
+                 variance_name="Heat Capacity", **kwargs):
         super(TFIMChainEnergy, self).__init__(name=name,
                                               variance_name=variance_name)
         self.h = h
+        self.density = density
 
     @staticmethod
     def _flip_spin(i, s):
@@ -138,15 +143,20 @@ class TFIMChainEnergy(Observable):
                                   .sub(log_psis)
                                   .exp())  # convert to ratio of probabilities
 
-        return (transverse_field_terms
-                .mul(self.h)
-                .add(interaction_terms)
-                .mul(-1.))
+        energy = (transverse_field_terms
+                  .mul(self.h)
+                  .add(interaction_terms)
+                  .mul(-1.))
+
+        if self.density:
+            return energy.div(samples.shape[-1])
+        else:
+            return energy
 
 
 class TFIMChainMagnetization(Observable):
     def __init__(self, name="Magnetization",
-                 variance_name="Susceptibility"):
+                 variance_name="Susceptibility", **kwargs):
         super(TFIMChainMagnetization, self).__init__(
             name=name, variance_name=variance_name)
 
