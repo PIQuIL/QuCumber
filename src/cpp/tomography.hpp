@@ -40,6 +40,7 @@ public:
             
         npar_=NNstate_.Npar();
         nparLambda_ = NNstate_.NparLambda();
+        nparMu_ = NNstate_.NparMu();
         opt_.SetNpar(npar_);
         bs_ = par.bs_;
         cd_ = par.cd_;

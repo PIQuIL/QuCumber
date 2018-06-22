@@ -13,6 +13,7 @@ class WavefunctionComplex{
     int N_;            // Number of degrees of freedom (visible units)
     int npar_;         // Number of parameters
     int nparLambda_;   // Number of amplitude parameters
+    int nparMu_;       // Number of phase parameters
     Rbm rbmAm_;        // RBM for the amplitude
     Rbm rbmPh_;        // RBM for the phases
 
@@ -28,6 +29,7 @@ public:
                                   I_(0,1){
         npar_ = rbmAm_.Npar() + rbmPh_.Npar();  // Total number of parameters
         nparLambda_ = rbmAm_.Npar();
+        nparMu_ = rbmPh_.Npar();
         N_ = rbmAm_.Nvisible();
         std::random_device rd;
         //rgen_.seed(rd());
@@ -43,6 +45,9 @@ public:
     }
     inline int NparLambda()const{
         return nparLambda_;
+    }
+    inline int NparMu()const{
+        return nparMu_;
     }
     inline int Nchains(){
         return rbmAm_.Nchains();

@@ -12,18 +12,18 @@ int main(int argc, char* argv[]){
     //---- SPECIFIC PARAMETERS ----/
     
     // TFIM1d with 10 SPINS
-    typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
-    par.basis_ = "std";
-    std::string model = "tfim1d_N10";
-    par.nv_=10;
-    par.nh_=10;
+    //typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
+    //par.basis_ = "std";
+    //std::string model = "tfim1d_N10";
+    //par.nv_=10;
+    //par.nh_=10;
     
     // 2qubits complex 
-    //typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
-    //par.basis_ = "xy1";
-    //std::string model = "2qubits";
-    //par.nv_=2;
-    //par.nh_=2;
+    typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
+    par.basis_ = "xy1";
+    std::string model = "2qubits";
+    par.nv_=2;
+    par.nh_=2;
 
     typedef qst::Sgd Optimizer;                     //Stochastic gradient descent
     typedef qst::ObserverPSI<NNState> Observer;              //Observer for Wavefunction
@@ -68,13 +68,13 @@ int main(int argc, char* argv[]){
     tomo.setBasisRotations(UnitaryRotations);
     tomo.Run(training_samples,training_bases);
     
-    //---- TEST ----// 
-    qst::Test<NNState,Observer> test(nn,obs,par);
-    test.setWavefunction(target_psi);
-    if (par.basis_.compare("std")!=0){
-        test.setBasisRotations(UnitaryRotations);
-        test.setBasis(basisSet);
-        test.setRotatedWavefunctions(rotated_target_psi);
-    }
-    test.DerKL(0.000001);
+    ////---- TEST ----// 
+    //qst::Test<NNState,Observer> test(nn,obs,par);
+    //test.setWavefunction(target_psi);
+    //if (par.basis_.compare("std")!=0){
+    //    test.setBasisRotations(UnitaryRotations);
+    //    test.setBasis(basisSet);
+    //    test.setRotatedWavefunctions(rotated_target_psi);
+    //}
+    //test.DerKL(0.000001);
 }
