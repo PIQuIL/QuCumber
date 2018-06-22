@@ -65,7 +65,7 @@ def run(N, h, dataset_size, alpha, run):
 
     num_hidden = int(alpha * N)
 
-    model = RBM(num_visible=N, num_hidden=num_hidden)
+    model = RBM(num_visible=N, num_hidden=num_hidden, seed=run)
 
     rbm_name = (f"N_{N}/h_{h:.2f}/data_size_{dataset_size}/"
                 f"alpha_{alpha}/run_{run}/")
