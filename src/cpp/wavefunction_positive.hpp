@@ -14,7 +14,6 @@ class WavefunctionPositive{
     int npar_;         // Number of parameters
     int nparLambda_;   // Number of amplitude parameters
     Rbm rbmAm_;        // RBM for the amplitude
-    Rbm rbmPh_;        // RBM for the phases
 
     const std::complex<double> I_; // Imaginary unit
     
@@ -24,7 +23,6 @@ class WavefunctionPositive{
 public:
     // Constructor 
     WavefunctionPositive(Parameters &par):rbmAm_(par),
-                                  rbmPh_(par),
                                   I_(0,1){
         npar_ = rbmAm_.Npar();  // Total number of parameters
         nparLambda_ = npar_;
@@ -44,6 +42,9 @@ public:
     inline int NparLambda()const{
         return nparLambda_;
     }
+    inline int NparMu()const{
+        return 0;
+    }
     inline int Nchains(){
         return rbmAm_.Nchains();
     }
@@ -59,7 +60,6 @@ public:
     // Initialize the wavefunction parameters    
     void InitRandomPars(int seed,double sigma){
         rbmAm_.InitRandomPars(seed,sigma);
-        rbmPh_.InitRandomPars(seed,sigma);
     }
     
     // Amplitude
@@ -109,6 +109,11 @@ public:
     // Set RBM parameters
     void SetParameters(const Eigen::VectorXd & pars){
         rbmAm_.SetParameters(pars);
+    }
+    
+    void LoadWeights(std::string &fileName){
+        std::ifstream fin(fileName);
+        rbmAm_.LoadWeights(fin);
     }
 };
 }

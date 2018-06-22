@@ -168,6 +168,12 @@ public:
         rbmAm_.SetParameters(parsAm);
         rbmPh_.SetParameters(parsPh);
     }
+
+    void LoadWeights(std::string &fileName){
+        std::ifstream fin(fileName);
+        rbmAm_.LoadWeights(fin);
+        rbmPh_.LoadWeights(fin);
+    }
 };
 }
 

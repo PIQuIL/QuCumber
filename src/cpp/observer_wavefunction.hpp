@@ -68,6 +68,11 @@ public:
         }
         overlap_ = abs(tmp);
     }
+    // Compute the fidelity with the target wavefunction 
+    void Fidelity(){
+        Overlap();
+        return overlap*overlap;
+    }
     
     //Compute KL divergence exactly
     void ExactKL(){
