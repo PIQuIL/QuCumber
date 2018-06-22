@@ -108,15 +108,32 @@ def build_basisset(N,Nsamples,fout,basis):
             fout.write('%c ' % basis[j])
         fout.write('\n')
 
+
+def RBM_energy(sigma,W,b,c):
+
+    e = 0.
+
+    for j in range(len(b)):
+        e += b[j]*sigma[j]
+
+    for i in range(len(c)):
+        tmp=0.
+        for j in range(len(b)):
+            tmp += W[i][j] * sigma[j]
+        e += m.log(1.+m.exp(tmp+c[i]))
+
+    return -e
+
+
 def main():
 
     N = 2
     Nsamples = 100 
     D = 1<<N
-    psi_fout =     open("../benchmarks/data/2qubits_complex/2qubits_psi.txt",'w')
-    basis_fout =   open("../benchmarks/data/2qubits_complex/2qubits_train_bases.txt",'w')
-    data_fout =    open("../benchmarks/data/2qubits_complex/2qubits_train_samples.txt",'w')
-    unitary_fout = open("../benchmarks/data/2qubits_complex/2qubits_unitaries.txt",'w')
+    psi_fout =     open("../benchmarks/data/2qubits_complex_RBMlike/2qubits_psi.txt",'w')
+    basis_fout =   open("../benchmarks/data/2qubits_complex_RBMlike/2qubits_train_bases.txt",'w')
+    data_fout =    open("../benchmarks/data/2qubits_complex_RBMlike/2qubits_train_samples.txt",'w')
+    unitary_fout = open("../benchmarks/data/2qubits_complex_RBMlike/2qubits_unitaries.txt",'w')
 
     random.seed(1234)
 
@@ -137,11 +154,32 @@ def main():
     #    Norm += Psi[i]*np.conjugate(Psi[i])
     #Psi /= m.sqrt(Norm)
 
-    # Hand-crafted state
-    Psi[0] = 0.5
-    Psi[1] = -0.5
-    Psi[2] = 1j*0.5
-    Psi[3] = -1j*0.5
+    # RBM-like state
+    b_lambda = np.asarray([0.1,-0.74])
+    c_lambda = np.asarray([-0.4,-1.2])
+    W_lambda = np.asarray([[-0.8,0.3],[0.5,-0.2]])
+    b_mu = np.asarray([0.31,-0.4])
+    c_mu = np.asarray([-0.45,-0.2])
+    W_mu = np.asarray([[-1.0,0.1],[-0.5,0.48]])
+    
+    Norm = 0.0
+    sigma = np.zeros((N))
+    for i in range(1<<N):
+        st = bin(i)[2:].zfill(N)
+        state = st.split()
+        for j in range(N):
+            sigma[j] = int(state[0][j])
+        Psi[i] = cmath.exp(-0.5*(RBM_energy(sigma,W_lambda,b_lambda,c_lambda)+1j*RBM_energy(sigma,W_mu,b_mu,c_mu)))
+        Norm += Psi[i]*np.conjugate(Psi[i])
+    Psi /= m.sqrt(Norm)
+
+    print Psi
+
+    ## Hand-crafted state
+    #Psi[0] = 0.5
+    #Psi[1] = -0.5
+    #Psi[2] = 1j*0.5
+    #Psi[3] = -1j*0.5
     
     basis = []
 
