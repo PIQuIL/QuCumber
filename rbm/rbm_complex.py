@@ -87,7 +87,7 @@ class RBM(nn.Module):
                                                     dtype=torch.double),
                                         requires_grad=True)
 
-    def compute_batch_gradients(self, k, batch, chars_batch, l1_reg, l2_reg, stddev=0):
+    def compute_batch_gradients(self, k, batch, chars_batch, l1_reg, l2_reg, stddev=0.0):
         '''This function will compute the gradients of a batch of the training 
         data (data_file) given the basis measurements (chars_file).
 
@@ -202,7 +202,15 @@ class RBM(nn.Module):
             g_weights_amp += torch.ger(F.sigmoid(F.linear(vk_amp_batch[i], self.weights_amp, self.hidden_bias_amp)), vk_amp_batch[i]) / batch_size 
             g_vb_amp      += vk_amp_batch[i] / batch_size
             g_hb_amp      += F.sigmoid(F.linear(vk_amp_batch[i], self.weights_amp, self.hidden_bias_amp)) / batch_size
-              
+             
+        g_weights_amp   = self.regularize_weight_gradients_amp(g_weights_amp, l1_reg, l2_reg)
+        g_weights_phase = self.regularize_weight_gradients_phase(g_weights_phase, l1_reg, l2_reg)
+
+        if stddev != 0.0:
+            g_weights_amp   += (stddev*torch.randn_like(g_weights_amp, device = self.device))
+            g_weights_phase += (stddev*torch.randn_like(g_weights_phase, device = self.device))
+ 
+
         '''Return negative gradients to match up nicely with the usual
         parameter update rules, which *subtract* the gradient from
         the parameters. This is in contrast with the RBM update
@@ -268,6 +276,7 @@ class RBM(nn.Module):
                 print ('Epoch = ',ep,'\nFidelity = ',fidelity_)
                 fidelity_list.append(fidelity_)
                 epoch_list.append(ep)
+                print ('KL = ',self.KL_divergence(vis))
                 #print('Not calculating anything right now, just checking grads.')
 
             if ep == epochs:
@@ -289,11 +298,11 @@ class RBM(nn.Module):
                 grads = self.compute_batch_gradients(k, batches[batch_index], char_batches[batch_index],
                                                      l1_reg, l2_reg,
                                                      stddev=stddev)
-
+                '''  
                 self.test_gradients(vis, k, batches[batch_index], char_batches[batch_index],
                                                      l1_reg, l2_reg,
                                                      stddev=stddev)               
- 
+                '''
                 optimizer.zero_grad()  # clear any cached gradients
 
                 # assign all available gradients to the corresponding parameter
@@ -653,40 +662,44 @@ class RBM(nn.Module):
             return torch.tensor([[0., 1.],[0., 0.]], dtype = torch.double) 
 
     def KL_divergence(self, visible_space):
+
         KL = 0.0
         basis_list = ['Z' 'Z', 'X' 'Z', 'Z' 'X', 'Y' 'Z', 'Z' 'Y']
+        #basis_list = ['Z' 'Z']
 
         for i in range(len(basis_list)):
-            rotated_RBM_psi = cplx_MV_mult(self.full_unitaries[basis_list[i]], self.normalized_wavefunction(visible_space))
+            rotated_RBM_psi  = cplx_MV_mult(self.full_unitaries[basis_list[i]], self.normalized_wavefunction(visible_space))
             rotated_true_psi = self.get_true_psi(basis_list[i])
+            '''The wavefunction will essentially not be rotated in the case of ZZ.'''
 
             for j in range(len(visible_space)):
+                
                 elementof_rotated_RBM_psi  = torch.tensor([rotated_RBM_psi[0][j], rotated_RBM_psi[1][j]]).view(2,1)
                 elementof_rotated_true_psi = torch.tensor([rotated_true_psi[0][j], rotated_true_psi[1][j]]).view(2,1)
 
                 norm_true_psi = cplx_norm( cplx_inner(elementof_rotated_true_psi, elementof_rotated_true_psi) )
                 norm_RBM_psi  = cplx_norm( cplx_inner(elementof_rotated_RBM_psi, elementof_rotated_RBM_psi) )
-
-                if norm_true_psi > 0.0:
-                    KL -= norm_true_psi*torch.log(norm_RBM_psi)
                 
-                KL += norm_true_psi*torch.log(norm_true_psi)
+                if norm_true_psi > 0.0:
+                    KL += norm_true_psi*torch.log(norm_true_psi)
+                
+                KL -= norm_true_psi*torch.log(norm_RBM_psi)
 
         return KL
 
-    def compute_numerical_gradient(self, visible_space, hyper_param, alg_grad):
+    def compute_numerical_gradient(self, visible_space, param, alg_grad):
         eps = 1.e-6
 
-        for i in range(len(hyper_param)):
-            nu_grad = 0.
+        for i in range(len(param)):
+            num_grad = 0.
 
-            hyper_param[i].data += eps
+            param[i].data += eps
             KL_pos = self.KL_divergence(visible_space)
 
-            hyper_param[i].data -= 2*eps
+            param[i].data -= 2*eps
             KL_neg = self.KL_divergence(visible_space)
 
-            hyper_param[i].data += eps
+            param[i].data += eps
 
             num_grad = (KL_pos - KL_neg) / (2*eps)
 
