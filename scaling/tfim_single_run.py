@@ -5,7 +5,9 @@ Run TFIM Scaling experiments on GRAHAM
 import click
 import numpy as np
 from observables import TFIMChainEnergy, TFIMChainMagnetization
-from rbm.callbacks import ModelSaver, ComputeMetrics, EarlyStopping
+from rbm.callbacks import (ModelSaver,
+                           ComputeMetrics,
+                           VarianceBasedEarlyStopping)
 from rbm import RBM
 from itertools import product
 import signal
@@ -28,6 +30,15 @@ RBM_NAME = "tmp"  # should get overwritten
 NUM_GIBBS_STEPS_OBS = 100
 NUM_SAMPLES = int(1e5)
 
+ALPHA_STEP_SIZES = {
+    16: 2,
+    32: 4,
+    64: 4,
+    128: 4,
+    256: 8,
+    512: 16
+}
+
 
 def sigterm_handler(signal, frame):
     print(f"Job killed while evaluating {RBM_NAME}")
@@ -44,6 +55,7 @@ POSSIBLE_CONFIGS = list(product(
     [1 / 8., 1 / 4., 1 / 2., 1, 2],  # alpha
     range(5)                         # run number
 ))
+
 
 
 @click.command()
@@ -83,8 +95,8 @@ def run(N, h, dataset_size, alpha, run):
                         k=NUM_GIBBS_STEPS_OBS,
                         batch_size=100)
 
-    es = EarlyStopping(CB_PERIOD, 0.1/100, 10,
-                       lambda rbm, **kwargs: cm.last["Energy"])
+    es = VarianceBasedEarlyStopping(CB_PERIOD, 0.1, 10,
+                                    cm, energy.mean_name, energy.variance_name)
 
     ms = ModelSaver(CB_PERIOD, SAVE_PATH, rbm_name,
                     lambda rbm, ep: cm.last,

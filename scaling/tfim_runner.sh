@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=2500M
 #SBATCH --array=0-499%25
-#SBATCH --output=/home/ejaazm/projects/def-rgmelko/ejaazm/tfim1d_scaling/logs/%x-%J.out
+#SBATCH --output=/home/ejaazm/projects/def-rgmelko/ejaazm/tfim1d_scaling/logs/%x-%J-%t.out
 
 module load python/3.6
 cd /home/ejaazm/projects/def-rgmelko/ejaazm

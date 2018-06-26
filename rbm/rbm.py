@@ -45,7 +45,7 @@ class RBM(nn.Module):
         return ("RBM(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
 
-    def save(self, location, metadata):
+    def save(self, location, metadata={}):
         # add extra metadata to dictionary before saving it to disk
         rbm_data = {**self.state_dict(), **metadata}
         torch.save(rbm_data, location)
