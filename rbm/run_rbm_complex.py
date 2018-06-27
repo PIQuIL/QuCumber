@@ -89,10 +89,10 @@ def benchmark(num_hidden_amp, num_hidden_phase, epochs, batch_size,
 
 
 @cli.command("train")
-@click.option('--train-path', default='../benchmarks/data/2qubits_complex/2qubits_train_samples_justZ.txt',
+@click.option('--train-path', default='../benchmarks/data/2qubits_complex/2qubits_train_samples.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the training data")
-@click.option('--basis-path', default='../benchmarks/data/2qubits_complex/2qubits_train_bases_justZ.txt',
+@click.option('--basis-path', default='../benchmarks/data/2qubits_complex/2qubits_train_bases.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the basis data")
 @click.option('-n', '--num-hidden-amp', default=None, type=int,
@@ -165,7 +165,6 @@ def train(train_path, basis_path, num_hidden_amp, num_hidden_phase, epochs, batc
         full_unitary      = torch.zeros(2, 2**train_set.shape[-1], 2**train_set.shape[-1], dtype = torch.double)
         full_unitary_real = torch.tensor(full_unitary_file[i*8:(i*8+4)], dtype = torch.double)
         full_unitary_imag = torch.tensor(full_unitary_file[(i*8+4):(i*8+8)], dtype = torch.double)
-        print (full_unitary_real.size()) 
         full_unitary[0]   = full_unitary_real
         full_unitary[1]   = full_unitary_imag
         full_unitary_dictionary[basis_list[i]] = full_unitary

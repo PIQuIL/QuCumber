@@ -1,29 +1,45 @@
 import os.path
 from pathlib import Path
 
+import torch
+import numpy as np
+
 __all__ = [
     "ModelSaver",
     "Logger",
     "EarlyStopping",
+    "VarianceBasedEarlyStopping",
     "ComputeMetrics"
 ]
 
 
 class ModelSaver:
-    def __init__(self, period, folder_path, rbm_name, **metadata):
+    def __init__(self, period, folder_path, rbm_name,
+                 metadata, metadata_only=False):
         self.folder_path = folder_path
         self.period = period
         self.rbm_name = rbm_name
         self.metadata = metadata
+        self.metadata_only = metadata_only
 
         self.path = Path(folder_path, rbm_name)
         self.path.mkdir(parents=True, exist_ok=True)
         self.path = self.path.resolve()
 
-    def __call__(self, rbm, epoch):
+    def __call__(self, rbm, epoch, last=False):
         if epoch % self.period == 0:
-            rbm.save(os.path.join(self.path, "epoch{}".format(epoch)),
-                     **{k: v(rbm) for k, v in self.metadata.items()})
+            last = "" if not last else "_last"
+            save_path = os.path.join(self.path, "epoch{}".format(epoch) + last)
+
+            if callable(self.metadata):
+                metadata = self.metadata(rbm, epoch)
+            elif isinstance(self.metadata, dict):
+                metadata = self.metadata
+
+            if self.metadata_only:
+                torch.save(metadata, save_path)
+            else:
+                rbm.save(save_path, metadata)
 
 
 class Logger:
@@ -47,6 +63,7 @@ class EarlyStopping:
         self.metric = metric
         self.metric_kwargs = metric_kwargs
         self.past_metric_values = []
+        self.last_epoch = None
 
     def __call__(self, rbm, epoch):
         if epoch % self.period == 0:
@@ -60,6 +77,35 @@ class EarlyStopping:
                                    / self.past_metric_values[-self.patience])
                 if abs(relative_change) < self.tolerance:
                     rbm.stop_training = True
+                    self.last_epoch = epoch
+
+
+class VarianceBasedEarlyStopping:
+    def __init__(self, period, tolerance, patience,
+                 metric_callback, metric_name, variance_name):
+        self.period = period
+        self.tolerance = tolerance
+        self.patience = int(patience)
+        self.metric_callback = metric_callback
+        self.metric_name = metric_name
+        self.variance_name = variance_name
+        self.last_epoch = None
+
+    def __call__(self, rbm, epoch):
+        if epoch % self.period == 0:
+            past_metric_values = self.metric_callback.metric_values
+
+            if len(past_metric_values) >= self.patience:
+                change_in_metric = (
+                    past_metric_values[-self.patience][-1][self.metric_name]
+                    - past_metric_values[-1][-1][self.metric_name])
+
+                std_dev = np.sqrt(
+                    past_metric_values[-self.patience][-1][self.variance_name])
+
+                if abs(change_in_metric) < (std_dev * self.tolerance):
+                    rbm.stop_training = True
+                    self.last_epoch = epoch
 
 
 class ComputeMetrics:
@@ -67,6 +113,7 @@ class ComputeMetrics:
         self.period = period
         self.metrics = metrics
         self.metric_values = []
+        self.last = {}
         self.metric_kwargs = metric_kwargs
 
     def __call__(self, rbm, epoch):
@@ -75,8 +122,10 @@ class ComputeMetrics:
             for metric_name, metric_fn in self.metrics.items():
                 val = metric_fn(rbm, **self.metric_kwargs)
                 if isinstance(val, dict):
-                    metric_vals_for_epoch.update(val)
+                    for k, v in val.items():
+                        key = metric_name + "_" + k
+                        metric_vals_for_epoch[key] = v
                 else:
-                    metric_vals_for_epoch["metric_name"] = val
-
+                    metric_vals_for_epoch[metric_name] = val
+            self.last = metric_vals_for_epoch.copy()
             self.metric_values.append((epoch, metric_vals_for_epoch))

@@ -77,12 +77,14 @@ public:
                 W_(i,j)=distribution(generator);
             }
         }
-        for(int j=0;j<nv_;j++){
-            b_(j)=distribution(generator);
-        }
-        for(int i=0;i<nh_;i++){
-            c_(i)=distribution(generator);
-        }
+        b_.setZero();
+        c_.setZero();
+        //for(int j=0;j<nv_;j++){
+        //    b_(j)=distribution(generator);
+        //}
+        //for(int i=0;i<nh_;i++){
+        //    c_(i)=distribution(generator);
+        //}
     }
 
     // Compute derivative of the effective visible energy
@@ -182,8 +184,7 @@ public:
     }
 
     // Read weights from file 
-    void LoadWeights(std::string & name){
-        std::ifstream fin(name);
+    void LoadWeights(std::ifstream &fin){
         for(int i=0;i<nh_;i++){
             for(int j=0;j<nv_;j++){
                 fin >> W_(i,j);
@@ -195,7 +196,6 @@ public:
         for(int i=0;i<nh_;i++){
             fin >> c_(i);
         }
-        fin.close(); 
     }
  
     // Functions 
