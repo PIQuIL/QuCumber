@@ -72,7 +72,8 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_unitaries</span><span class="p">,</span> <span class="n">unitaries</span><span class="p">,</span> <span class="n">psi_dictionary</span><span class="p">,</span> <span class="n">num_visible</span><span class="p">,</span> <span class="n">num_hidden_amp</span><span class="p">,</span> <span class="n">num_hidden_phase</span><span class="p">,</span> <span class="n">gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1234</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_unitaries</span><span class="p">,</span> <span class="n">unitaries</span><span class="p">,</span> <span class="n">psi_dictionary</span><span class="p">,</span> <span class="n">num_visible</span><span class="p">,</span>
+                 <span class="n">num_hidden_amp</span><span class="p">,</span> <span class="n">num_hidden_phase</span><span class="p">,</span> <span class="n">gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1234</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">RBM</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_visible</span>      <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_visible</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_hidden_amp</span>   <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_hidden_amp</span><span class="p">)</span>
@@ -128,7 +129,7 @@
                                                     <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">),</span>
                                         <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<div class="viewcode-block" id="RBM.compute_batch_gradients"><a class="viewcode-back" href="../api.html#rbm_complex.RBM.compute_batch_gradients">[docs]</a>    <span class="k">def</span> <span class="nf">compute_batch_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">chars_batch</span><span class="p">,</span> <span class="n">l1_reg</span><span class="p">,</span> <span class="n">l2_reg</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="RBM.compute_batch_gradients"><a class="viewcode-back" href="../api.html#rbm_complex.RBM.compute_batch_gradients">[docs]</a>    <span class="k">def</span> <span class="nf">compute_batch_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">chars_batch</span><span class="p">,</span> <span class="n">l1_reg</span><span class="p">,</span> <span class="n">l2_reg</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;This function will compute the gradients of a batch of the training </span>
 <span class="sd">        data (data_file) given the basis measurements (chars_file).</span>
 
@@ -184,17 +185,8 @@
     
         <span class="c1">#unrotated_RBM_psi_initial = self.normalized_wavefunction(vis)</span>
         <span class="c1">#constructed_RBM_psi_initial = torch.zeros_like(unrotated_RBM_psi_initial)   </span>
-        <span class="c1"># GRADIENT FOR HIDDEN BIAS PHASE VANISHES...</span>
 
         <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
-
-        <span class="n">w_grad_amp</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">)</span>
-        <span class="n">vb_grad_amp</span>     <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_amp</span><span class="p">)</span>
-        <span class="n">hb_grad_amp</span>     <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">)</span>
-    
-        <span class="n">w_grad_phase</span>    <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="p">)</span>
-        <span class="n">vb_grad_phase</span>   <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_phase</span><span class="p">)</span>
-        <span class="n">hb_grad_phase</span>   <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_phase</span><span class="p">)</span>
 
         <span class="n">g_weights_amp</span>   <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">)</span>
         <span class="n">g_vb_amp</span>        <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_amp</span><span class="p">)</span>
@@ -203,11 +195,6 @@
         <span class="n">g_weights_phase</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="p">)</span>
         <span class="n">g_vb_phase</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_phase</span><span class="p">)</span>
         <span class="n">g_hb_phase</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_phase</span><span class="p">)</span>
-
-        <span class="n">zeros_for_w</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">w_grad_amp</span><span class="p">)</span>
-        <span class="n">zeros_for_vb</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">vb_grad_amp</span><span class="p">)</span>
-        <span class="n">zeros_for_hb</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">hb_grad_amp</span><span class="p">)</span> 
-        <span class="c1">#NOTE! THIS WILL CURRENTLY ONLY WORK IF AND ONLY IF THE NUMBER OF HIDDEN UNITS FOR PHASE AND AMP ARE THE SAME!!!</span>
 
         <span class="k">for</span> <span class="n">row_count</span><span class="p">,</span> <span class="n">v0</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
             <span class="n">num_non_trivial_unitaries</span> <span class="o">=</span> <span class="mi">0</span>
@@ -227,132 +214,57 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">z_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
                     <span class="sd">&quot;&quot;&quot;&quot;Create list of indices of trivial unitaries &quot;&quot;&quot;</span>
-                    <span class="n">z_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> 
 
-            <span class="n">v0</span><span class="p">,</span> <span class="n">h0_amp</span><span class="p">,</span> <span class="n">vk_amp</span><span class="p">,</span> <span class="n">hk_amp</span><span class="p">,</span> <span class="n">phk_amp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gibbs_sampling_amp</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v0</span><span class="p">)</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">h0_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_h_given_v_phase</span><span class="p">(</span><span class="n">v0</span><span class="p">)</span>
-
-            <span class="sd">&#39;&#39;&#39;Condition if data point is in the comptational basis.&#39;&#39;&#39;</span>
             <span class="k">if</span> <span class="n">num_non_trivial_unitaries</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="sd">&#39;&#39;&#39;Do regular grad updates, like you would if there was no phase.&#39;&#39;&#39;</span>
-
-                <span class="sd">&#39;&#39;&#39;Positive phase of gradient.&#39;&#39;&#39;</span>
-                <span class="n">g_weights_amp</span> <span class="o">-=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;j,k-&gt;jk&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">h0_amp</span><span class="p">,</span> <span class="n">v0</span><span class="p">))</span> <span class="o">/</span> <span class="n">batch_size</span> <span class="c1">#Outer product.</span>
+                <span class="sd">&#39;&#39;&#39;Positive phase of regular gradient. Use the actual data point, v0&#39;&#39;&#39;</span>
+                <span class="n">g_weights_amp</span> <span class="o">-=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ger</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">v0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">)),</span> <span class="n">v0</span><span class="p">)</span> <span class="o">/</span> <span class="n">batch_size</span> 
                 <span class="n">g_vb_amp</span>      <span class="o">-=</span> <span class="n">v0</span> <span class="o">/</span> <span class="n">batch_size</span>
-                <span class="n">g_hb_amp</span>      <span class="o">-=</span> <span class="n">h0_amp</span> <span class="o">/</span> <span class="n">batch_size</span>
+                <span class="n">g_hb_amp</span>      <span class="o">-=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">v0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">))</span> <span class="o">/</span> <span class="n">batch_size</span>
 
-            <span class="k">if</span> <span class="n">num_non_trivial_unitaries</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="sd">&#39;&#39;&#39;Initialize the &#39;A&#39; parameters (see alg 4.2).&#39;&#39;&#39;</span>
-                <span class="n">A_weights_amp</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> 
-                                            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
-                <span class="n">A_vb_amp</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_amp</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> 
-                                            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
-                <span class="n">A_hb_amp</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> 
-                                            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
-                
-                <span class="n">A_weights_phase</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> 
-                                              <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
-                <span class="n">A_vb_phase</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_phase</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> 
-                                              <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
-                <span class="n">A_hb_phase</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_phase</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> 
-                                              <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="sd">&#39;&#39;&#39;Compute the rotated gradients.&#39;&#39;&#39;</span> 
+                <span class="n">L_weights_amp</span><span class="p">,</span> <span class="n">L_vb_amp</span><span class="p">,</span> <span class="n">L_hb_amp</span><span class="p">,</span> <span class="n">L_weights_phase</span><span class="p">,</span> <span class="n">L_vb_phase</span><span class="p">,</span> <span class="n">L_hb_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_rotated_grads</span><span class="p">(</span><span class="n">v0</span><span class="p">,</span> <span class="n">chars_batch</span><span class="p">[</span><span class="n">row_count</span><span class="p">],</span> 
+                                                                                                                        <span class="n">num_non_trivial_unitaries</span><span class="p">,</span>
+                                                                                                                        <span class="n">z_indices</span><span class="p">,</span> <span class="n">tau_indices</span><span class="p">)</span> 
 
-                <span class="n">B</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
 
-                <span class="sd">&#39;&#39;&#39;Loop over Hilbert space of the non trivial unitaries to build the state |sigma&gt; in Giacomo&#39;s pseudo code (alg 4.2).&#39;&#39;&#39;</span>
-                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">num_non_trivial_unitaries</span><span class="p">):</span>
-                    <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_generator</span><span class="p">(</span><span class="n">num_non_trivial_unitaries</span><span class="p">)[</span><span class="n">j</span><span class="p">]</span>
-                    <span class="sd">&#39;&#39;&#39;Creates a matrix where the jth row is the desired state, |S&gt;, a vector.&#39;&#39;&#39;</span>
-
-                    <span class="sd">&#39;&#39;&#39;This is the |sigma&gt; state in Giacomo&#39;s pseudo code.&#39;&#39;&#39;</span>
-                    <span class="n">constructed_state</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_visible</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
-                    
-                    <span class="n">U</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-
-                    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z_indices</span><span class="p">)):</span>
-                        <span class="n">constructed_state</span><span class="p">[</span><span class="n">z_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="n">row_count</span><span class="p">][</span><span class="n">z_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span>
-
-                    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tau_indices</span><span class="p">)):</span>
-                        <span class="n">constructed_state</span><span class="p">[</span><span class="n">tau_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-
-                        <span class="n">temp</span> <span class="o">=</span> <span class="n">cplx_inner</span><span class="p">(</span> <span class="n">cplx_MV_mult</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unitaries</span><span class="p">[</span><span class="n">chars_batch</span><span class="p">[</span><span class="n">row_count</span><span class="p">][</span><span class="n">tau_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]]],</span> 
-                                                        <span class="bp">self</span><span class="o">.</span><span class="n">basis_state_generator</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="n">row_count</span><span class="p">][</span><span class="n">tau_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]])),</span> 
-                                           <span class="bp">self</span><span class="o">.</span><span class="n">basis_state_generator</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">index</span><span class="p">])</span> <span class="p">)</span>
-
-                        <span class="n">U</span> <span class="o">=</span> <span class="n">cplx_scalar_mult</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
-
-                    <span class="sd">&#39;&#39;&#39;Positive phase gradients for phase and amp. Will be added into the &#39;A&#39; parameters.&#39;&#39;&#39;</span>
-                    <span class="n">w_grad_amp</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;j,k-&gt;jk&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">h0_amp</span><span class="p">,</span> <span class="n">constructed_state</span><span class="p">))</span> <span class="c1">#Outer product.</span>
-                    <span class="n">vb_grad_amp</span> <span class="o">=</span> <span class="n">constructed_state</span>
-                    <span class="n">hb_grad_amp</span> <span class="o">=</span> <span class="n">h0_amp</span>
-
-                    <span class="n">w_grad_phase</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;j,k-&gt;jk&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">h0_phase</span><span class="p">,</span> <span class="n">constructed_state</span><span class="p">))</span> <span class="c1">#Outer product.</span>
-                    <span class="n">vb_grad_phase</span> <span class="o">=</span> <span class="n">constructed_state</span>
-                    <span class="n">hb_grad_phase</span> <span class="o">=</span> <span class="n">h0_phase</span>
-                    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">                    In order to calculate the &#39;A&#39; parameters below with my current complex library, I need to make the weights and biases complex.</span>
-<span class="sd">                    &#39;&#39;&#39;</span>
-                    <span class="n">temp_w_grad_amp</span>  <span class="o">=</span> <span class="n">cplx_make_complex_matrix</span><span class="p">(</span><span class="n">w_grad_amp</span><span class="p">,</span> <span class="n">zeros_for_w</span><span class="p">)</span>
-                    <span class="n">temp_vb_grad_amp</span> <span class="o">=</span> <span class="n">cplx_make_complex_vector</span><span class="p">(</span><span class="n">vb_grad_amp</span><span class="p">,</span> <span class="n">zeros_for_vb</span><span class="p">)</span>
-                    <span class="n">temp_hb_grad_amp</span> <span class="o">=</span> <span class="n">cplx_make_complex_vector</span><span class="p">(</span><span class="n">hb_grad_amp</span><span class="p">,</span> <span class="n">zeros_for_hb</span><span class="p">)</span>
-
-                    <span class="n">temp_w_grad_phase</span>  <span class="o">=</span> <span class="n">cplx_make_complex_matrix</span><span class="p">(</span><span class="n">w_grad_phase</span><span class="p">,</span> <span class="n">zeros_for_w</span><span class="p">)</span>
-                    <span class="n">temp_vb_grad_phase</span> <span class="o">=</span> <span class="n">cplx_make_complex_vector</span><span class="p">(</span><span class="n">vb_grad_phase</span><span class="p">,</span> <span class="n">zeros_for_vb</span><span class="p">)</span>
-                    <span class="n">temp_hb_grad_phase</span> <span class="o">=</span> <span class="n">cplx_make_complex_vector</span><span class="p">(</span><span class="n">hb_grad_phase</span><span class="p">,</span> <span class="n">zeros_for_hb</span><span class="p">)</span>
-
-                    <span class="n">temp</span> <span class="o">=</span> <span class="n">cplx_scalar_mult</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unnormalized_wavefunction</span><span class="p">(</span><span class="n">constructed_state</span><span class="p">))</span>
-
-                    <span class="n">A_weights_amp</span> <span class="o">+=</span> <span class="n">cplx_MS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_w_grad_amp</span><span class="p">)</span>
-                    <span class="n">A_vb_amp</span>      <span class="o">+=</span> <span class="n">cplx_VS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_vb_grad_amp</span><span class="p">)</span>
-                    <span class="n">A_hb_amp</span>      <span class="o">+=</span> <span class="n">cplx_VS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_hb_grad_amp</span><span class="p">)</span>
-
-                    <span class="n">A_weights_phase</span> <span class="o">+=</span> <span class="n">cplx_MS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_w_grad_phase</span><span class="p">)</span>
-                    <span class="n">A_vb_phase</span>      <span class="o">+=</span> <span class="n">cplx_VS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_vb_grad_phase</span><span class="p">)</span>
-                    <span class="n">A_hb_phase</span>      <span class="o">+=</span> <span class="n">cplx_VS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_hb_grad_phase</span><span class="p">)</span>
-                    
-                    <span class="sd">&#39;&#39;&#39;Rotated wavefunction.&#39;&#39;&#39;</span>
-                    <span class="n">B</span> <span class="o">+=</span> <span class="n">temp</span>
-                    <span class="c1">#B_norm += cplx_scalar_mult(U, self.normalized_wavefunction(constructed_state)) # for debugging </span>
-
-                <span class="c1">#constructed_RBM_psi_initial[0][self.state_to_index(batch[row_count])] = B_norm[0]</span>
-                <span class="c1">#constructed_RBM_psi_initial[1][self.state_to_index(batch[row_count])] = B_norm[1]</span>
-
-                <span class="c1">#U_matrix = self.get_full_unitary(chars_batch[row_count])</span>
-
-                <span class="n">L_weights_amp</span> <span class="o">=</span> <span class="n">cplx_MS_divide</span><span class="p">(</span><span class="n">A_weights_amp</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-                <span class="n">L_vb_amp</span>      <span class="o">=</span> <span class="n">cplx_VS_divide</span><span class="p">(</span><span class="n">A_vb_amp</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-                <span class="n">L_hb_amp</span>      <span class="o">=</span> <span class="n">cplx_VS_divide</span><span class="p">(</span><span class="n">A_hb_amp</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-
-                <span class="n">L_weights_phase</span> <span class="o">=</span> <span class="n">cplx_MS_divide</span><span class="p">(</span><span class="n">A_weights_phase</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-                <span class="n">L_vb_phase</span>      <span class="o">=</span> <span class="n">cplx_VS_divide</span><span class="p">(</span><span class="n">A_vb_phase</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-                <span class="n">L_hb_phase</span>      <span class="o">=</span> <span class="n">cplx_VS_divide</span><span class="p">(</span><span class="n">A_hb_phase</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
-
-                <span class="sd">&#39;&#39;&#39;Gradents of amplitude parameters take the real part of the L gradients.&#39;&#39;&#39;</span>
+                <span class="sd">&#39;&#39;&#39;Gradents of amplitude parameters take the real part of the rotated gradients.&#39;&#39;&#39;</span>
                 <span class="n">g_weights_amp</span> <span class="o">-=</span> <span class="n">L_weights_amp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">batch_size</span>
                 <span class="n">g_vb_amp</span>      <span class="o">-=</span> <span class="n">L_vb_amp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">batch_size</span>
                 <span class="n">g_hb_amp</span>      <span class="o">-=</span> <span class="n">L_hb_amp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">batch_size</span>
+                
+                <span class="sd">&#39;&#39;&#39;Gradents of phase parameters take the real part of the rotated gradients.&#39;&#39;&#39;</span>
+                <span class="n">g_weights_phase</span> <span class="o">+=</span> <span class="n">L_weights_phase</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">batch_size</span>
+                <span class="n">g_vb_phase</span>      <span class="o">+=</span> <span class="n">L_vb_phase</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">batch_size</span>
+                <span class="n">g_hb_phase</span>      <span class="o">+=</span> <span class="n">L_hb_phase</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">batch_size</span>
 
-                <span class="sd">&#39;&#39;&#39;Gradents of phase parameters take the real part of the L gradients. Phase gradients have no neg phase.&#39;&#39;&#39;</span>
-                <span class="n">g_weights_phase</span> <span class="o">+=</span> <span class="n">L_weights_phase</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">batch_size</span>
-                <span class="n">g_vb_phase</span>      <span class="o">+=</span> <span class="n">L_vb_phase</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">batch_size</span>
-                <span class="n">g_hb_phase</span>      <span class="o">+=</span> <span class="n">L_hb_phase</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">batch_size</span>
+        <span class="n">batch</span><span class="p">,</span> <span class="n">h0_amp_batch</span><span class="p">,</span> <span class="n">vk_amp_batch</span><span class="p">,</span> <span class="n">hk_amp_batch</span><span class="p">,</span> <span class="n">phk_amp_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gibbs_sampling_amp</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span> 
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;Negative phase of amp gradient. Phase parameters do not have a negative phase.&#39;&#39;&#39;</span>
+            <span class="n">g_weights_amp</span> <span class="o">+=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ger</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">vk_amp_batch</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">)),</span> <span class="n">vk_amp_batch</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="n">batch_size</span> 
+            <span class="n">g_vb_amp</span>      <span class="o">+=</span> <span class="n">vk_amp_batch</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">batch_size</span>
+            <span class="n">g_hb_amp</span>      <span class="o">+=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">vk_amp_batch</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">))</span> <span class="o">/</span> <span class="n">batch_size</span>
+             
+        <span class="n">g_weights_amp</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regularize_weight_gradients_amp</span><span class="p">(</span><span class="n">g_weights_amp</span><span class="p">,</span> <span class="n">l1_reg</span><span class="p">,</span> <span class="n">l2_reg</span><span class="p">)</span>
+        <span class="n">g_weights_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regularize_weight_gradients_phase</span><span class="p">(</span><span class="n">g_weights_phase</span><span class="p">,</span> <span class="n">l1_reg</span><span class="p">,</span> <span class="n">l2_reg</span><span class="p">)</span>
 
-        <span class="sd">&#39;&#39;&#39;Negative phase of amp gradient. Phase parameters do not have a negative phase.&#39;&#39;&#39;</span>
-        <span class="n">g_weights_amp</span> <span class="o">+=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;j,k-&gt;jk&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">phk_amp</span><span class="p">,</span> <span class="n">vk_amp</span><span class="p">))</span> <span class="o">/</span> <span class="n">batch_size</span>
-        <span class="n">g_vb_amp</span>      <span class="o">+=</span> <span class="n">vk_amp</span> <span class="o">/</span> <span class="n">batch_size</span>
-        <span class="n">g_hb_amp</span>      <span class="o">+=</span> <span class="n">phk_amp</span> <span class="o">/</span> <span class="n">batch_size</span>
+        <span class="k">if</span> <span class="n">stddev</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">g_weights_amp</span>   <span class="o">+=</span> <span class="p">(</span><span class="n">stddev</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">g_weights_amp</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
+            <span class="n">g_weights_phase</span> <span class="o">+=</span> <span class="p">(</span><span class="n">stddev</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">g_weights_phase</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
+ 
 
         <span class="sd">&#39;&#39;&#39;Return negative gradients to match up nicely with the usual</span>
 <span class="sd">        parameter update rules, which *subtract* the gradient from</span>
 <span class="sd">        the parameters. This is in contrast with the RBM update</span>
 <span class="sd">        rules which ADD the gradients (scaled by the learning rate)</span>
 <span class="sd">            to the parameters.&#39;&#39;&#39;</span>
-
+ 
         <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        print (&#39;Unitary: &#39;,U_matrix) </span>
 <span class="sd">        print (&#39;Initial RBM psi: \n&#39;,unrotated_RBM_psi_initial)</span>
 <span class="sd">        print (&#39;Constructed RBM psi with rotation: \n&#39;, constructed_RBM_psi_initial)</span>
-<span class="sd">        print (&#39;Undo the rotation: \n&#39;, cplx_MV_mult(U_matrix, constructed_RBM_psi_initial)) # U^T = U for XZ</span>
-<span class="sd">        &#39;&#39;&#39;</span>    
+<span class="sd">        print (&#39;Undo the rotation: \n&#39;, cplx_MV_mult(cplx_compT_matrix(U_matrix), constructed_RBM_psi_initial)) # U^T = U for XZ</span>
+<span class="sd">        &#39;&#39;&#39;</span> 
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;weights_amp&quot;</span><span class="p">:</span> <span class="n">g_weights_amp</span><span class="p">,</span>
                 <span class="s2">&quot;visible_bias_amp&quot;</span><span class="p">:</span> <span class="n">g_vb_amp</span><span class="p">,</span>
                 <span class="s2">&quot;hidden_bias_amp&quot;</span><span class="p">:</span> <span class="n">g_hb_amp</span><span class="p">,</span>
@@ -369,8 +281,8 @@
               <span class="n">log_every</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
               <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># callback_outputs = []</span>
-        <span class="n">disable_progbar</span> <span class="o">=</span> <span class="p">(</span><span class="n">progbar</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="n">progress_bar</span> <span class="o">=</span> <span class="n">tqdm_notebook</span> <span class="k">if</span> <span class="n">progbar</span> <span class="o">==</span> <span class="s2">&quot;notebook&quot;</span> <span class="k">else</span> <span class="n">tqdm</span>
+        <span class="c1">#disable_progbar = (progbar is False)</span>
+        <span class="c1">#progress_bar = tqdm_notebook if progbar == &quot;notebook&quot; else tqdm</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">,</span>
@@ -386,7 +298,7 @@
         <span class="n">fidelity_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">epoch_list</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">epochs</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
         
             <span class="n">random_permutation</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randperm</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
@@ -405,6 +317,8 @@
                 <span class="n">fidelity_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fidelity</span><span class="p">(</span><span class="n">vis</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span> <span class="s1">&#39;Z&#39;</span><span class="p">)</span>
                 <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;Epoch = &#39;</span><span class="p">,</span><span class="n">ep</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Fidelity = &#39;</span><span class="p">,</span><span class="n">fidelity_</span><span class="p">)</span>
                 <span class="n">fidelity_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fidelity_</span><span class="p">)</span>
+                <span class="n">epoch_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;KL = &#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">KL_divergence</span><span class="p">(</span><span class="n">vis</span><span class="p">))</span>
                 <span class="c1">#print(&#39;Not calculating anything right now, just checking grads.&#39;)</span>
 
             <span class="k">if</span> <span class="n">ep</span> <span class="o">==</span> <span class="n">epochs</span><span class="p">:</span>
@@ -426,21 +340,141 @@
                 <span class="n">grads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_batch_gradients</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">batches</span><span class="p">[</span><span class="n">batch_index</span><span class="p">],</span> <span class="n">char_batches</span><span class="p">[</span><span class="n">batch_index</span><span class="p">],</span>
                                                      <span class="n">l1_reg</span><span class="p">,</span> <span class="n">l2_reg</span><span class="p">,</span>
                                                      <span class="n">stddev</span><span class="o">=</span><span class="n">stddev</span><span class="p">)</span>
-
+                <span class="sd">&#39;&#39;&#39;  </span>
+<span class="sd">                self.test_gradients(vis, k, batches[batch_index], char_batches[batch_index],</span>
+<span class="sd">                                                     l1_reg, l2_reg,</span>
+<span class="sd">                                                     stddev=stddev)               </span>
+<span class="sd">                &#39;&#39;&#39;</span>
                 <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>  <span class="c1"># clear any cached gradients</span>
 
                 <span class="c1"># assign all available gradients to the corresponding parameter</span>
                 <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">grads</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                     <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">grads</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-
-                <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>  <span class="c1"># tell the optimizer to apply the gradients</span>
                 
-                <span class="bp">self</span><span class="o">.</span><span class="n">test_gradients</span><span class="p">(</span><span class="n">vis</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">batches</span><span class="p">[</span><span class="n">batch_index</span><span class="p">],</span> <span class="n">char_batches</span><span class="p">[</span><span class="n">batch_index</span><span class="p">],</span>
-                                                     <span class="n">l1_reg</span><span class="p">,</span> <span class="n">l2_reg</span><span class="p">,</span>
-                                                     <span class="n">stddev</span><span class="o">=</span><span class="n">stddev</span><span class="p">)</span>                
-                
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>  <span class="c1"># tell the optimizer to apply the gradients </span>
             <span class="c1"># TODO: run callbacks</span>
 
+<div class="viewcode-block" id="RBM.compute_rotated_grads"><a class="viewcode-back" href="../api.html#rbm_complex.RBM.compute_rotated_grads">[docs]</a>    <span class="k">def</span> <span class="nf">compute_rotated_grads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v0</span><span class="p">,</span> <span class="n">characters</span><span class="p">,</span> <span class="n">num_non_trivial_unitaries</span><span class="p">,</span> <span class="n">z_indices</span><span class="p">,</span> <span class="n">tau_indices</span><span class="p">):</span> 
+        <span class="sd">&#39;&#39;&#39;Computes the L gradient terms in alg. 4.2.&#39;&#39;&#39;</span>
+
+        <span class="sd">&#39;&#39;&#39;Initialize the &#39;A&#39; parameters (see alg 4.2).&#39;&#39;&#39;</span>
+        <span class="n">A_weights_amp</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> 
+                                    <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        <span class="n">A_vb_amp</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_amp</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> 
+                                    <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        <span class="n">A_hb_amp</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> 
+                                    <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        
+        <span class="n">A_weights_phase</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> 
+                                      <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        <span class="n">A_vb_phase</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_phase</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> 
+                                      <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        <span class="n">A_hb_phase</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_phase</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> 
+                                      <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39; &#39;B&#39; will contain the coefficients of the rotated unnormalized wavefunction. &#39;&#39;&#39;</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        <span class="c1">#B_norm = torch.zeros(2, device = self.device, dtype = torch.double)</span>
+
+        <span class="n">w_grad_amp</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">)</span>
+        <span class="n">vb_grad_amp</span>     <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_amp</span><span class="p">)</span>
+        <span class="n">hb_grad_amp</span>     <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">)</span>
+    
+        <span class="n">w_grad_phase</span>    <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="p">)</span>
+        <span class="n">vb_grad_phase</span>   <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_phase</span><span class="p">)</span>
+        <span class="n">hb_grad_phase</span>   <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_phase</span><span class="p">)</span>
+
+        <span class="n">zeros_for_w</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">w_grad_amp</span><span class="p">)</span>
+        <span class="n">zeros_for_vb</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">vb_grad_amp</span><span class="p">)</span>
+        <span class="n">zeros_for_hb</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">hb_grad_amp</span><span class="p">)</span> 
+        <span class="c1">#NOTE! THIS WILL CURRENTLY ONLY WORK IF AND ONLY IF THE NUMBER OF HIDDEN UNITS FOR PHASE AND AMP ARE THE SAME!!!</span>
+
+        <span class="sd">&#39;&#39;&#39;Loop over Hilbert space of the non trivial unitaries to build the state |sigma&gt; in Giacomo&#39;s pseudo code (alg 4.2).&#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">num_non_trivial_unitaries</span><span class="p">):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_generator</span><span class="p">(</span><span class="n">num_non_trivial_unitaries</span><span class="p">)[</span><span class="n">j</span><span class="p">]</span>
+            <span class="sd">&#39;&#39;&#39;Creates a matrix where the jth row is the desired state, |S&gt;, a vector.&#39;&#39;&#39;</span>
+        
+            <span class="sd">&#39;&#39;&#39;This is the |sigma&gt; state in Giacomo&#39;s pseudo code.&#39;&#39;&#39;</span>
+            <span class="n">constructed_state</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_visible</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+            
+            <span class="n">U</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        
+            <span class="sd">&#39;&#39;&#39;Populate the |sigma&gt; state (aka constructed_state) accirdingly. &#39;&#39;&#39;</span>
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z_indices</span><span class="p">)):</span>
+                <span class="sd">&#39;&#39;&#39;These are the sites in the computational basis.&#39;&#39;&#39;</span>
+                <span class="n">constructed_state</span><span class="p">[</span><span class="n">z_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="n">v0</span><span class="p">[</span><span class="n">z_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span>
+        
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tau_indices</span><span class="p">)):</span>
+                <span class="sd">&#39;&#39;&#39;These are the sites that are NOT in the computational basis. &#39;&#39;&#39;</span>
+                <span class="n">constructed_state</span><span class="p">[</span><span class="n">tau_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        
+                <span class="n">aa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitaries</span><span class="p">[</span><span class="n">characters</span><span class="p">[</span><span class="n">tau_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]]]</span>
+                <span class="n">bb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis_state_generator</span><span class="p">(</span><span class="n">v0</span><span class="p">[</span><span class="n">tau_indices</span><span class="p">[</span><span class="n">index</span><span class="p">]])</span>
+                <span class="n">cc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis_state_generator</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">cplx_inner</span><span class="p">(</span> <span class="n">cplx_MV_mult</span><span class="p">(</span><span class="n">cplx_compT_matrix</span><span class="p">(</span><span class="n">aa</span><span class="p">),</span> <span class="n">bb</span><span class="p">),</span> <span class="n">cc</span> <span class="p">)</span>
+        
+                <span class="n">U</span> <span class="o">=</span> <span class="n">cplx_scalar_mult</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+            
+            <span class="sd">&#39;&#39;&#39;Positive phase gradients for phase and amp. Will be added into the &#39;A&#39; parameters.&#39;&#39;&#39;</span>
+            <span class="n">w_grad_amp</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ger</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">constructed_state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">)),</span> <span class="n">constructed_state</span><span class="p">)</span>
+            <span class="n">vb_grad_amp</span> <span class="o">=</span> <span class="n">constructed_state</span>
+            <span class="n">hb_grad_amp</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">constructed_state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">))</span>
+
+            <span class="n">w_grad_phase</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ger</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">constructed_state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_phase</span><span class="p">)),</span> <span class="n">constructed_state</span><span class="p">)</span>
+            <span class="n">vb_grad_phase</span> <span class="o">=</span> <span class="n">constructed_state</span>
+            <span class="n">hb_grad_phase</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">constructed_state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_phase</span><span class="p">))</span>
+
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            w_grad_amp  = torch.einsum(&quot;j,k-&gt;jk&quot;, (h0_amp, constructed_state)) #Outer product.</span>
+<span class="sd">            vb_grad_amp = constructed_state</span>
+<span class="sd">            hb_grad_amp = h0_amp</span>
+<span class="sd">        </span>
+<span class="sd">            w_grad_phase  = torch.einsum(&quot;j,k-&gt;jk&quot;, (h0_phase, constructed_state)) #Outer product.</span>
+<span class="sd">            vb_grad_phase = constructed_state</span>
+<span class="sd">            hb_grad_phase = h0_phase</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            In order to calculate the &#39;A&#39; parameters below with my current complex library, I need to make the weights and biases complex.</span>
+<span class="sd">            I fill the complex parts of the parameters with a tensor of zeros.</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">temp_w_grad_amp</span>  <span class="o">=</span> <span class="n">cplx_make_complex_matrix</span><span class="p">(</span><span class="n">w_grad_amp</span><span class="p">,</span> <span class="n">zeros_for_w</span><span class="p">)</span>
+            <span class="n">temp_vb_grad_amp</span> <span class="o">=</span> <span class="n">cplx_make_complex_vector</span><span class="p">(</span><span class="n">vb_grad_amp</span><span class="p">,</span> <span class="n">zeros_for_vb</span><span class="p">)</span>
+            <span class="n">temp_hb_grad_amp</span> <span class="o">=</span> <span class="n">cplx_make_complex_vector</span><span class="p">(</span><span class="n">hb_grad_amp</span><span class="p">,</span> <span class="n">zeros_for_hb</span><span class="p">)</span>
+ 
+            <span class="n">temp_w_grad_phase</span>  <span class="o">=</span> <span class="n">cplx_make_complex_matrix</span><span class="p">(</span><span class="n">w_grad_phase</span><span class="p">,</span> <span class="n">zeros_for_w</span><span class="p">)</span>
+            <span class="n">temp_vb_grad_phase</span> <span class="o">=</span> <span class="n">cplx_make_complex_vector</span><span class="p">(</span><span class="n">vb_grad_phase</span><span class="p">,</span> <span class="n">zeros_for_vb</span><span class="p">)</span>
+            <span class="n">temp_hb_grad_phase</span> <span class="o">=</span> <span class="n">cplx_make_complex_vector</span><span class="p">(</span><span class="n">hb_grad_phase</span><span class="p">,</span> <span class="n">zeros_for_hb</span><span class="p">)</span>
+        
+            <span class="sd">&#39;&#39;&#39; Temp = U*psi(sigma)&#39;&#39;&#39;</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">cplx_scalar_mult</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unnormalized_wavefunction</span><span class="p">(</span><span class="n">constructed_state</span><span class="p">))</span>
+            
+            <span class="n">A_weights_amp</span> <span class="o">+=</span> <span class="n">cplx_MS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_w_grad_amp</span><span class="p">)</span>
+            <span class="n">A_vb_amp</span>      <span class="o">+=</span> <span class="n">cplx_VS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_vb_grad_amp</span><span class="p">)</span>
+            <span class="n">A_hb_amp</span>      <span class="o">+=</span> <span class="n">cplx_VS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_hb_grad_amp</span><span class="p">)</span>
+        
+            <span class="n">A_weights_phase</span> <span class="o">+=</span> <span class="n">cplx_MS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_w_grad_phase</span><span class="p">)</span>
+            <span class="n">A_vb_phase</span>      <span class="o">+=</span> <span class="n">cplx_VS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_vb_grad_phase</span><span class="p">)</span>
+            <span class="n">A_hb_phase</span>      <span class="o">+=</span> <span class="n">cplx_VS_mult</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">temp_hb_grad_phase</span><span class="p">)</span>
+           
+            <span class="sd">&#39;&#39;&#39;Rotated wavefunction.&#39;&#39;&#39;</span>
+            <span class="n">B</span> <span class="o">+=</span> <span class="n">temp</span>
+            <span class="c1">#B_norm += cplx_scalar_mult(U, self.normalized_wavefunction(constructed_state)) # for debugging </span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        constructed_RBM_psi_initial[0][self.state_to_index(batch[row_count])] = B_norm[0]</span>
+<span class="sd">        constructed_RBM_psi_initial[1][self.state_to_index(batch[row_count])] = B_norm[1]</span>
+<span class="sd">        </span>
+<span class="sd">        U_matrix = self.get_full_unitary(chars_batch[row_count])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">L_weights_amp</span> <span class="o">=</span> <span class="n">cplx_MS_divide</span><span class="p">(</span><span class="n">A_weights_amp</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+        <span class="n">L_vb_amp</span>      <span class="o">=</span> <span class="n">cplx_VS_divide</span><span class="p">(</span><span class="n">A_vb_amp</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+        <span class="n">L_hb_amp</span>      <span class="o">=</span> <span class="n">cplx_VS_divide</span><span class="p">(</span><span class="n">A_hb_amp</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+        
+        <span class="n">L_weights_phase</span> <span class="o">=</span> <span class="n">cplx_MS_divide</span><span class="p">(</span><span class="n">A_weights_phase</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+        <span class="n">L_vb_phase</span>      <span class="o">=</span> <span class="n">cplx_VS_divide</span><span class="p">(</span><span class="n">A_vb_phase</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+        <span class="n">L_hb_phase</span>      <span class="o">=</span> <span class="n">cplx_VS_divide</span><span class="p">(</span><span class="n">A_hb_phase</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+       
+        <span class="k">return</span> <span class="n">L_weights_amp</span><span class="p">,</span> <span class="n">L_vb_amp</span><span class="p">,</span> <span class="n">L_hb_amp</span><span class="p">,</span> <span class="n">L_weights_phase</span><span class="p">,</span> <span class="n">L_vb_phase</span><span class="p">,</span> <span class="n">L_hb_phase</span> </div>
+               
     <span class="k">def</span> <span class="nf">prob_v_given_h_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="o">.</span><span class="n">t</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_amp</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">p</span>
@@ -449,49 +483,49 @@
         <span class="n">p</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="o">.</span><span class="n">t</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible_bias_phase</span><span class="p">))</span>
         <span class="k">return</span> 
 
-    <span class="k">def</span> <span class="nf">prob_h_given_v_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">p</span>
+    <span class="k">def</span> <span class="nf">prob_h_given_v_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_amp</span><span class="p">):</span>
+        <span class="n">p_amp</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">v_amp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_amp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_amp</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">p_amp</span>
 
-    <span class="k">def</span> <span class="nf">prob_h_given_v_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_phase</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">p</span>
+    <span class="k">def</span> <span class="nf">prob_h_given_v_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_phase</span><span class="p">):</span>
+        <span class="n">p_phase</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">v_phase</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_phase</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_bias_phase</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">p_phase</span>
 
-    <span class="k">def</span> <span class="nf">sample_v_given_h_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_v_given_h_amp</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-        <span class="n">v</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span>
+    <span class="k">def</span> <span class="nf">sample_v_given_h_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_amp</span><span class="p">):</span>
+        <span class="n">p_amp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_v_given_h_amp</span><span class="p">(</span><span class="n">h_amp</span><span class="p">)</span>
+        <span class="n">v_amp</span> <span class="o">=</span> <span class="n">p_amp</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">p_amp</span><span class="p">,</span> <span class="n">v_amp</span>
 
-    <span class="k">def</span> <span class="nf">sample_h_given_v_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_h_given_v_amp</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">p</span><span class="p">,</span> <span class="n">h</span>
+    <span class="k">def</span> <span class="nf">sample_h_given_v_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_amp</span><span class="p">):</span>
+        <span class="n">p_amp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_h_given_v_amp</span><span class="p">(</span><span class="n">v_amp</span><span class="p">)</span>
+        <span class="n">h_amp</span> <span class="o">=</span> <span class="n">p_amp</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">p_amp</span><span class="p">,</span> <span class="n">h_amp</span>
 
-    <span class="k">def</span> <span class="nf">sample_v_given_h_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_v_given_h_phase</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-        <span class="n">v</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span>
+    <span class="k">def</span> <span class="nf">sample_v_given_h_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_phase</span><span class="p">):</span>
+        <span class="n">p_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_v_given_h_phase</span><span class="p">(</span><span class="n">h_phase</span><span class="p">)</span>
+        <span class="n">v_phase</span> <span class="o">=</span> <span class="n">p_phase</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">p_phase</span><span class="p">,</span> <span class="n">v_phase</span>
 
-    <span class="k">def</span> <span class="nf">sample_h_given_v_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_h_given_v_phase</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">p</span><span class="p">,</span> <span class="n">h</span>
+    <span class="k">def</span> <span class="nf">sample_h_given_v_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_phase</span><span class="p">):</span>
+        <span class="n">p_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_h_given_v_phase</span><span class="p">(</span><span class="n">v_phase</span><span class="p">)</span>
+        <span class="n">h_phase</span> <span class="o">=</span> <span class="n">p_phase</span><span class="o">.</span><span class="n">bernoulli</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">p_phase</span><span class="p">,</span> <span class="n">h_phase</span>
 
-    <span class="k">def</span> <span class="nf">gibbs_sampling_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v0</span><span class="p">):</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">h0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_h_given_v_amp</span><span class="p">(</span><span class="n">v0</span><span class="p">)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">h0</span>
+    <span class="k">def</span> <span class="nf">gibbs_sampling_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v0_amp</span><span class="p">):</span>
+        <span class="n">ph_amp</span><span class="p">,</span> <span class="n">h0_amp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_h_given_v_amp</span><span class="p">(</span><span class="n">v0_amp</span><span class="p">)</span>
+        <span class="n">v_amp</span><span class="p">,</span> <span class="n">h_amp</span> <span class="o">=</span> <span class="n">v0_amp</span><span class="p">,</span> <span class="n">h0_amp</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
-            <span class="n">pv</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_v_given_h_amp</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-            <span class="n">ph</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_h_given_v_amp</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">v0</span><span class="p">,</span> <span class="n">h0</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">ph</span>
+            <span class="n">pv_amp</span><span class="p">,</span> <span class="n">v_amp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_v_given_h_amp</span><span class="p">(</span><span class="n">h_amp</span><span class="p">)</span>
+            <span class="n">ph_amp</span><span class="p">,</span> <span class="n">h_amp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_h_given_v_amp</span><span class="p">(</span><span class="n">v_amp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v0_amp</span><span class="p">,</span> <span class="n">h0_amp</span><span class="p">,</span> <span class="n">v_amp</span><span class="p">,</span> <span class="n">h_amp</span><span class="p">,</span> <span class="n">ph_amp</span>
 
-    <span class="k">def</span> <span class="nf">gibbs_sampling_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v0</span><span class="p">):</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">h0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_h_given_v_phase</span><span class="p">(</span><span class="n">v0</span><span class="p">)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">h0</span>
+    <span class="k">def</span> <span class="nf">gibbs_sampling_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v0_phase</span><span class="p">):</span>
+        <span class="n">ph_phase</span><span class="p">,</span> <span class="n">h0_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_h_given_v_phase</span><span class="p">(</span><span class="n">v0_phase</span><span class="p">)</span>
+        <span class="n">v_phase</span><span class="p">,</span> <span class="n">h_phase</span> <span class="o">=</span> <span class="n">v0_phase</span><span class="p">,</span> <span class="n">h0_phase</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
-            <span class="n">pv</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_v_given_h_phase</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-            <span class="n">ph</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_h_given_v_phase</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">v0</span><span class="p">,</span> <span class="n">h0</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">ph</span>
+            <span class="n">pv_phase</span><span class="p">,</span> <span class="n">v_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_v_given_h_phase</span><span class="p">(</span><span class="n">h_phase</span><span class="p">)</span>
+            <span class="n">ph_phase</span><span class="p">,</span> <span class="n">h_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_h_given_v_phase</span><span class="p">(</span><span class="n">v_phase</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v0_phase</span><span class="p">,</span> <span class="n">h0_phase</span><span class="p">,</span> <span class="n">v_phase</span><span class="p">,</span> <span class="n">h_phase</span><span class="p">,</span> <span class="n">ph_phase</span>
 
     <span class="k">def</span> <span class="nf">sample_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">):</span>
         <span class="n">dist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">bernoulli</span><span class="o">.</span><span class="n">Bernoulli</span><span class="p">(</span><span class="n">probs</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
@@ -541,6 +575,15 @@
     <span class="k">def</span> <span class="nf">unnormalized_probability_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">eff_energy_phase</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span>
 
+<div class="viewcode-block" id="RBM.normalized_wavefunction_noPhase"><a class="viewcode-back" href="../api.html#rbm_complex.RBM.normalized_wavefunction_noPhase">[docs]</a>    <span class="k">def</span> <span class="nf">normalized_wavefunction_noPhase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;For debugging only.&#39;&#39;&#39;</span>
+        <span class="n">psi</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">psi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">psi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unnormalized_probability_amp</span><span class="p">(</span><span class="n">v</span><span class="p">))</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span>
+        <span class="n">sqrt_Z</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_visible_space</span><span class="p">()))</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">psi</span> <span class="o">/</span> <span class="n">sqrt_Z</span></div>
+
     <span class="k">def</span> <span class="nf">normalized_wavefunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
         <span class="n">v_prime</span>   <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_visible</span><span class="p">)</span>
         <span class="n">temp1</span>     <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unnormalized_probability_amp</span><span class="p">(</span><span class="n">v_prime</span><span class="p">))</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span>
@@ -560,7 +603,9 @@
     <span class="k">def</span> <span class="nf">unnormalized_wavefunction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
         <span class="n">v_prime</span>   <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_visible</span><span class="p">)</span>
         <span class="c1">#v_prime = v</span>
+        <span class="c1"># temp1 = sqrt(p_amp)</span>
         <span class="n">temp1</span>     <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unnormalized_probability_amp</span><span class="p">(</span><span class="n">v_prime</span><span class="p">))</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span>
+        <span class="c1"># temp2 = log(p_phase)/2</span>
         <span class="n">temp2</span>     <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">unnormalized_probability_phase</span><span class="p">(</span><span class="n">v_prime</span><span class="p">))</span><span class="o">.</span><span class="n">log</span><span class="p">())</span><span class="o">*</span><span class="mf">0.5</span>
         <span class="n">cos_angle</span> <span class="o">=</span> <span class="n">temp2</span><span class="o">.</span><span class="n">cos</span><span class="p">()</span>
         <span class="n">sin_angle</span> <span class="o">=</span> <span class="n">temp2</span><span class="o">.</span><span class="n">sin</span><span class="p">()</span>
@@ -659,35 +704,44 @@
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">double</span><span class="p">)</span> </div>
 
     <span class="k">def</span> <span class="nf">KL_divergence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visible_space</span><span class="p">):</span>
-        <span class="n">KL</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">KL</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="n">basis_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Z&#39;</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span> <span class="s1">&#39;Y&#39;</span><span class="p">]</span>
+        <span class="c1">#basis_list = [&#39;Z&#39; &#39;Z&#39;]</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">basis_list</span><span class="p">)):</span>
             <span class="n">rotated_RBM_psi</span>  <span class="o">=</span> <span class="n">cplx_MV_mult</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">full_unitaries</span><span class="p">[</span><span class="n">basis_list</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalized_wavefunction</span><span class="p">(</span><span class="n">visible_space</span><span class="p">))</span>
             <span class="n">rotated_true_psi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_true_psi</span><span class="p">(</span><span class="n">basis_list</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="sd">&#39;&#39;&#39;The wavefunction will essentially not be rotated in the case of ZZ.&#39;&#39;&#39;</span>
 
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">visible_space</span><span class="p">)):</span>
+                
                 <span class="n">elementof_rotated_RBM_psi</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">rotated_RBM_psi</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">rotated_RBM_psi</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">]])</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
                 <span class="n">elementof_rotated_true_psi</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">rotated_true_psi</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">rotated_true_psi</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">]])</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 
                 <span class="n">norm_true_psi</span> <span class="o">=</span> <span class="n">cplx_norm</span><span class="p">(</span> <span class="n">cplx_inner</span><span class="p">(</span><span class="n">elementof_rotated_true_psi</span><span class="p">,</span> <span class="n">elementof_rotated_true_psi</span><span class="p">)</span> <span class="p">)</span>
                 <span class="n">norm_RBM_psi</span>  <span class="o">=</span> <span class="n">cplx_norm</span><span class="p">(</span> <span class="n">cplx_inner</span><span class="p">(</span><span class="n">elementof_rotated_RBM_psi</span><span class="p">,</span> <span class="n">elementof_rotated_RBM_psi</span><span class="p">)</span> <span class="p">)</span>
-
-                <span class="n">KL</span> <span class="o">+=</span> <span class="n">norm_true_psi</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">norm_RBM_psi</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">norm_true_psi</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">KL</span> <span class="o">+=</span> <span class="n">norm_true_psi</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">norm_true_psi</span><span class="p">)</span>
+                
+                <span class="n">KL</span> <span class="o">-=</span> <span class="n">norm_true_psi</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">norm_RBM_psi</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">KL</span>
 
-    <span class="k">def</span> <span class="nf">compute_numerical_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visible_space</span><span class="p">,</span> <span class="n">hyper_param</span><span class="p">,</span> <span class="n">alg_grad</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">compute_numerical_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visible_space</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">alg_grad</span><span class="p">):</span>
         <span class="n">eps</span> <span class="o">=</span> <span class="mf">1.e-6</span>
 
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hyper_param</span><span class="p">)):</span>
-            <span class="n">hyper_param</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">eps</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">param</span><span class="p">)):</span>
+            <span class="n">num_grad</span> <span class="o">=</span> <span class="mf">0.</span>
+
+            <span class="n">param</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">eps</span>
             <span class="n">KL_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KL_divergence</span><span class="p">(</span><span class="n">visible_space</span><span class="p">)</span>
 
-            <span class="n">hyper_param</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">eps</span>
+            <span class="n">param</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">eps</span>
             <span class="n">KL_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KL_divergence</span><span class="p">(</span><span class="n">visible_space</span><span class="p">)</span>
 
-            <span class="n">hyper_param</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">eps</span>
+            <span class="n">param</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">eps</span>
 
             <span class="n">num_grad</span> <span class="o">=</span> <span class="p">(</span><span class="n">KL_pos</span> <span class="o">-</span> <span class="n">KL_neg</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">eps</span><span class="p">)</span>
 
@@ -740,6 +794,7 @@
             
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">npstates</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">npstate</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">i</span></div></div>
+
 </pre></div>
 
           </div>

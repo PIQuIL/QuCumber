@@ -69,7 +69,7 @@
 
 <dl class="method">
 <dt id="rbm_complex.RBM.compute_batch_gradients">
-<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>batch</em>, <em>chars_batch</em>, <em>l1_reg</em>, <em>l2_reg</em>, <em>stddev=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.compute_batch_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>batch</em>, <em>chars_batch</em>, <em>l1_reg</em>, <em>l2_reg</em>, <em>stddev=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.compute_batch_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will compute the gradients of a batch of the training 
 data (data_file) given the basis measurements (chars_file).</p>
 <dl class="docutils">
@@ -97,9 +97,21 @@ Gradients of weights, visible bias and hidden bias for the phase.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="rbm_complex.RBM.compute_rotated_grads">
+<code class="descname">compute_rotated_grads</code><span class="sig-paren">(</span><em>v0</em>, <em>characters</em>, <em>num_non_trivial_unitaries</em>, <em>z_indices</em>, <em>tau_indices</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.compute_rotated_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.compute_rotated_grads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the L gradient terms in alg. 4.2.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="rbm_complex.RBM.get_true_psi">
 <code class="descname">get_true_psi</code><span class="sig-paren">(</span><em>basis</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.get_true_psi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.get_true_psi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Picks out the correct psi in the correct basis.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rbm_complex.RBM.normalized_wavefunction_noPhase">
+<code class="descname">normalized_wavefunction_noPhase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.normalized_wavefunction_noPhase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.normalized_wavefunction_noPhase" title="Permalink to this definition">¶</a></dt>
+<dd><p>For debugging only.</p>
 </dd></dl>
 
 <dl class="method">
