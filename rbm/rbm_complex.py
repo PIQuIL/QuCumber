@@ -219,7 +219,7 @@ class RBM(nn.Module):
 
                 '''Loop over Hilbert space of the non trivial unitaries to build the state |sigma> in Giacomo's pseudo code (alg 4.2).'''
                 for j in range(2**num_non_trivial_unitaries):
-                    s = self.state_generator(num_non_trivial_unitaries)[j]
+                    s = self.state_generator(num_non_trivial_unitaries)[j] #Put this function before loop and just call the [j] in the loop. You generate this thing every time you loop, which is inefficient
                     '''Creates a matrix where the jth row is the desired state, |S>, a vector.'''
 
                     '''This is the |sigma> state in Giacomo's pseudo code.'''

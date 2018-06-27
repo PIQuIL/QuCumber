@@ -1,0 +1,201 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Title of documentation &#8212; RBM_complex 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-rbm">
+<span id="title-of-documentation"></span><h1>Title of documentation<a class="headerlink" href="#module-rbm" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-rbm_complex">
+<span id="the-complex-rbm"></span><h2>The complex RBM<a class="headerlink" href="#module-rbm_complex" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="rbm_complex.RBM">
+<em class="property">class </em><code class="descclassname">rbm_complex.</code><code class="descname">RBM</code><span class="sig-paren">(</span><em>full_unitaries</em>, <em>unitaries</em>, <em>psi_dictionary</em>, <em>num_visible</em>, <em>num_hidden_amp</em>, <em>num_hidden_phase</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to build the Restricted Boltzmann Machine</p>
+<dl class="docutils">
+<dt>unitaries <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd>list of unitaries</dd>
+<dt>num_visible <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Number of visible units</dd>
+<dt>num_hidden_amp <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Number of hidden units to learn the amplitude</dd>
+<dt>num_hidden_phase <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Number of hidden units to learn the phase</dd>
+<dt>gpu <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>Should the GPU be used for the training</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Fix the random number seed to make results reproducable</dd>
+</dl>
+<dl class="method">
+<dt id="rbm_complex.RBM.basis_state_generator">
+<code class="descname">basis_state_generator</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.basis_state_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.basis_state_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only works for binary at the moment. If s = 0, this is the (1,0) state in the basis of the measurement. If s = 1, this is the (0,1) state in the basis of the measurement.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rbm_complex.RBM.compute_batch_gradients">
+<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>batch</em>, <em>chars_batch</em>, <em>l1_reg</em>, <em>l2_reg</em>, <em>stddev=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.compute_batch_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will compute the gradients of a batch of the training 
+data (data_file) given the basis measurements (chars_file).</p>
+<dl class="docutils">
+<dt>k <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>number of Gibbs steps in amplitude training</dd>
+<dt>batch <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd>batch of the input data</dd>
+<dt>chars_batch <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd>batch of the unitaries. Indicates in which basis the input data was
+measured</dd>
+<dt>l1_reg <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>L1 regularization hyperparameter</dd>
+<dt>l2_reg <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>L2 regularization hyperparameter</dd>
+<dt>stddev <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>standard deviation of random noise that can be added to the weights.
+This is also a hyperparamter.</dd>
+</dl>
+<dl class="docutils">
+<dt>Gradients <span class="classifier-delimiter">:</span> <span class="classifier">dictionary</span></dt>
+<dd>Dictionary containing all the gradients in the following order:
+Gradient of weights, visible bias and hidden bias for the amplitude 
+Gradients of weights, visible bias and hidden bias for the phase.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="rbm_complex.RBM.get_true_psi">
+<code class="descname">get_true_psi</code><span class="sig-paren">(</span><em>basis</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.get_true_psi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.get_true_psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Picks out the correct psi in the correct basis.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rbm_complex.RBM.overlap">
+<code class="descname">overlap</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.overlap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.overlap" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>print (‘RBM psi norm &gt;&gt;&gt;</div></blockquote>
+<dl class="docutils">
+<dt>‘,cplx_norm( cplx_inner(self.normalized_wavefunction(visible_space),</dt>
+<dd><blockquote class="first">
+<div>self.normalized_wavefunction(visible_space)) ))</div></blockquote>
+<p class="last">print (‘True psi norm &gt;&gt;&gt;</p>
+</dd>
+<dt>‘,cplx_norm( cplx_inner(self.true_psi(),</dt>
+<dd>self.true_psi()) ))</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="rbm_complex.RBM.spin_list">
+<code class="descname">spin_list</code><span class="sig-paren">(</span><em>n_vis</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.spin_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.spin_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a list of all possible spin configurations for n_vis spins</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rbm_complex.RBM.state_generator">
+<code class="descname">state_generator</code><span class="sig-paren">(</span><em>num_non_trivial_unitaries</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.state_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.state_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns all possible configurations of ‘num_non_trivial_unitaries’ spins.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rbm_complex.RBM.state_to_index">
+<code class="descname">state_to_index</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.state_to_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.state_to_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only for debugging how the unitary is applied to the unnormalized wavefunction - the ‘B’ term in alg 4.2.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rbm_complex.RBM.test_gradients">
+<code class="descname">test_gradients</code><span class="sig-paren">(</span><em>visible_space</em>, <em>k</em>, <em>batch</em>, <em>chars_batch</em>, <em>l1_reg</em>, <em>l2_reg</em>, <em>stddev</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rbm_complex.html#RBM.test_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rbm_complex.RBM.test_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Must have negative sign because the compute_batch_grads returns the neg of the grads.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="rbm_complex.RBM.weights_phase">
+<code class="descname">weights_phase</code><em class="property"> = None</em><a class="headerlink" href="#rbm_complex.RBM.weights_phase" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>self.weights_phase = nn.Parameter(torch.zeros(self.num_hidden_phase, self.num_visible,</dt>
+<dd>device=self.device, dtype=torch.double), requires_grad=True)</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Patrick Huembeli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
