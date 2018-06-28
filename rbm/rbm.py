@@ -45,7 +45,7 @@ class RBM(nn.Module):
         return ("RBM(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
 
-    def save(self, location, metadata):
+    def save(self, location, metadata={}):
         # add extra metadata to dictionary before saving it to disk
         rbm_data = {**self.state_dict(), **metadata}
         torch.save(rbm_data, location)
@@ -151,7 +151,7 @@ class RBM(nn.Module):
               lr=1e-3, momentum=0.0,
               method='sgd', l1_reg=0.0, l2_reg=0.0,
               initial_gaussian_noise=0.0, gamma=0.55,
-              callbacks=[], progbar=False,
+              callbacks=[], progbar=False, starting_epoch=0,
               **kwargs):
         # callback_outputs = []
         disable_progbar = (progbar is False)
@@ -171,8 +171,9 @@ class RBM(nn.Module):
         else:
             pbatch = None
 
-        for ep in progress_bar(range(epochs + 1), desc="Epochs ",
-                               total=epochs, disable=disable_progbar):
+        for ep in progress_bar(range(starting_epoch, epochs + 1),
+                               desc="Epochs ", total=epochs,
+                               disable=disable_progbar):
             batches = DataLoader(data, batch_size=batch_size, shuffle=True)
 
             for cb in callbacks:

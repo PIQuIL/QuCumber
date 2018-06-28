@@ -2,11 +2,13 @@ import os.path
 from pathlib import Path
 
 import torch
+import numpy as np
 
 __all__ = [
     "ModelSaver",
     "Logger",
     "EarlyStopping",
+    "VarianceBasedEarlyStopping",
     "ComputeMetrics"
 ]
 
@@ -78,6 +80,34 @@ class EarlyStopping:
                     self.last_epoch = epoch
 
 
+class VarianceBasedEarlyStopping:
+    def __init__(self, period, tolerance, patience,
+                 metric_callback, metric_name, variance_name):
+        self.period = period
+        self.tolerance = tolerance
+        self.patience = int(patience)
+        self.metric_callback = metric_callback
+        self.metric_name = metric_name
+        self.variance_name = variance_name
+        self.last_epoch = None
+
+    def __call__(self, rbm, epoch):
+        if epoch % self.period == 0:
+            past_metric_values = self.metric_callback.metric_values
+
+            if len(past_metric_values) >= self.patience:
+                change_in_metric = (
+                    past_metric_values[-self.patience][-1][self.metric_name]
+                    - past_metric_values[-1][-1][self.metric_name])
+
+                std_dev = np.sqrt(
+                    past_metric_values[-self.patience][-1][self.variance_name])
+
+                if abs(change_in_metric) < (std_dev * self.tolerance):
+                    rbm.stop_training = True
+                    self.last_epoch = epoch
+
+
 class ComputeMetrics:
     def __init__(self, period, metrics, **metric_kwargs):
         self.period = period
@@ -92,8 +122,10 @@ class ComputeMetrics:
             for metric_name, metric_fn in self.metrics.items():
                 val = metric_fn(rbm, **self.metric_kwargs)
                 if isinstance(val, dict):
-                    metric_vals_for_epoch.update(val)
+                    for k, v in val.items():
+                        key = metric_name + "_" + k
+                        metric_vals_for_epoch[key] = v
                 else:
-                    metric_vals_for_epoch["metric_name"] = val
+                    metric_vals_for_epoch[metric_name] = val
             self.last = metric_vals_for_epoch.copy()
             self.metric_values.append((epoch, metric_vals_for_epoch))

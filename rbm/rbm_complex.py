@@ -919,7 +919,6 @@ class RBM(nn.Module):
 		double
 			The partition function.
 		'''
-	
 		return self.log_partition(visible_space).exp()
 
 	def state_generator(self, num_non_trivial_unitaries):

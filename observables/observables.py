@@ -56,11 +56,11 @@ class Observable:
 
     def expected_value(self, sampler, num_samples, batch_size=0, **kwargs):
         stats = self.statistics(sampler, num_samples, batch_size, **kwargs)
-        return stats[self.mean_name]
+        return stats["mean"]
 
     def variance(self, sampler, num_samples, batch_size=0, **kwargs):
         stats = self.statistics(sampler, num_samples, batch_size, **kwargs)
-        return stats[self.variance_name]
+        return stats["variance"]
 
     def statistics(self, sampler, num_samples, batch_size, **kwargs):
         batch_size = num_samples if batch_size <= 0 else batch_size
@@ -100,8 +100,8 @@ class Observable:
                                   batch_mean, batch_var, batch_size)
 
         return {
-            self.mean_name: running_mean,
-            self.variance_name: running_var
+            "mean": running_mean,
+            "variance": running_var
         }
 
 
