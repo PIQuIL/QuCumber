@@ -1,0 +1,162 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Theory &#8212; RBM_complex 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="theory">
+<h1>Theory<a class="headerlink" href="#theory" title="Permalink to this headline">¶</a></h1>
+<p>Here we will explain the theory behind the code.</p>
+<div class="section" id="compute-batch-gradient">
+<h2>compute_batch_gradient<a class="headerlink" href="#compute-batch-gradient" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The gradients for the amplitude and the phase are initialized as zero tensors.</li>
+<li>For each element in the batch the number of non-trivial unitaries is counted</li>
+<li>If all the unitaries are trivial, the gradient for the amplitude reads:</li>
+</ul>
+<div class="math">
+\[\nabla_{\lambda} \log p_{\lambda}(\hat{}\sigma ) / M\]</div>
+</div>
+<div class="section" id="calculating-the-gradients">
+<h2>Calculating the gradients<a class="headerlink" href="#calculating-the-gradients" title="Permalink to this headline">¶</a></h2>
+<p>If the number of non-trivial unitaries <span class="math">\(N_U&gt;0\)</span> is not equal zero we construct the following state for all possible :math: <cite>S_j</cite>: (For simplicity we assume there is only one unitary.)</p>
+<div class="math">
+\[| \bm{\sigma} \rangle = | \sigma_1^{b=z} \dots S_j^{b = z} \sigma_{j+1}^{b=z} \rangle\]</div>
+</div>
+<div class="section" id="special-triangles">
+<h2>Special triangles<a class="headerlink" href="#special-triangles" title="Permalink to this headline">¶</a></h2>
+<p>There are two special kinds of triangle
+for which <code class="xref py py-mod docutils literal"><span class="pre">trianglelib</span></code> offers special support.</p>
+<dl class="docutils">
+<dt><em>Equilateral triangle</em></dt>
+<dd>All three sides are of equal length.</dd>
+<dt><em>Isosceles triangle</em></dt>
+<dd>Has at least two sides that are of equal length.</dd>
+</dl>
+<p>These are supported both by simple methods
+that are available in the <code class="xref py py-mod docutils literal"><span class="pre">trianglelib.utils</span></code> module,
+and also by a pair of methods of the main
+<code class="xref py py-class docutils literal"><span class="pre">Triangle</span></code> class itself.</p>
+</div>
+<div class="section" id="example-code">
+<span id="triangle-dimensions"></span><h2>Example Code<a class="headerlink" href="#example-code" title="Permalink to this headline">¶</a></h2>
+<p>example Code</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">trianglelib.shape</span> <span class="k">import</span> <span class="n">Triangle</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span> <span class="o">=</span> <span class="n">Triangle</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t2</span> <span class="o">=</span> <span class="n">Triangle</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t3</span> <span class="o">=</span> <span class="n">Triangle</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">t1</span> <span class="o">==</span> <span class="n">t2</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">t1</span> <span class="o">==</span> <span class="n">t3</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">t1</span><span class="o">.</span><span class="n">area</span><span class="p">()</span>
+<span class="go">6.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">t1</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">area</span><span class="p">()</span>
+<span class="go">24.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blabla</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="math-example">
+<h2>Math example<a class="headerlink" href="#math-example" title="Permalink to this headline">¶</a></h2>
+<p>math example</p>
+<div class="math">
+\[a + b &gt; c
+\int dx \partial q\]</div>
+<p>While the documentation
+for each function in the <code class="xref py py-mod docutils literal"><span class="pre">utils</span></code> module
+simply specifies a return value for cases that are not real triangles,
+the <code class="xref py py-class docutils literal"><span class="pre">Triangle</span></code> class is more strict
+and raises an exception if your sides lengths are not appropriate:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">trianglelib.shape</span> <span class="k">import</span> <span class="n">Triangle</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Triangle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">one side is too long to make a triangle</span>
+</pre></div>
+</div>
+<p>If you are not sanitizing your user input
+to verify that the three side lengths they are giving you are safe,
+then be prepared to trap this exception
+and report the error to your user.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Patrick Huembeli.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/theory.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

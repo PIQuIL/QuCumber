@@ -1,0 +1,154 @@
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{framed}
+\usepackage{amssymb}
+\usepackage{dsfont}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath, bm}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{braket}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage[ruled, vlined]{algorithm2e}
+\SetKwComment{Comment}{$\triangleright$\ }{}
+
+
+
+
+\title{Theory}
+\author{Patrick Huembeli}
+
+\begin{document}
+
+\section{Restricted Boltzmann Machine for Quantum State Tomography}
+
+
+This tomography package allows to approximate a wave function $\psi( \boldsymbol{\sigma} )  = \langle \Psi \vert \boldsymbol{\sigma} \rangle$ in the reference basis $\{ \vert \boldsymbol{ \sigma} \rangle \}$ from experimental data. A so called Restricted Boltzmann Machine (RBM) can learn the distribution of the experimental data (e.g. qubit measurements $\vert \widehat{\boldsymbol{ \sigma}} \rangle = \vert \hat{ \sigma}_1~\hat{ \sigma}_2 \dots \rangle$) and allows after training to sample from it.
+
+This file is a walk through for our code. For more theoretical background we refer to the following tutorials:
+\textbf{ADD some refrences or Anna's File}
+
+
+\section{Algorithm}
+The training algorithm of the RBM has the following structure.
+%=================================================================================
+% RBM.train
+ 
+\begin{algorithm}[H]
+	 \caption{Training Algorithm of RBM. \textbf{RBM.train}() }
+  \SetAlgoLined
+  \For{batch in training set}{
+  Load batch from training set, batch $=(\hat{ \boldsymbol{\sigma}}_1~\hat{ \boldsymbol{ \sigma}}_2 \dots)$\;
+  compute the gradients from the batch $\Delta \bm{\Theta }  =$ ($\Delta W$, $\Delta h_b$, $\Delta v_b$)\\
+  \textbf{\lstinline{RBM.compute_batch_gradients}}(k, batch)   \Comment*[r]{Algorithm 2}
+  update weights and biases \\
+$\bm{\Theta} \leftarrow \bm{\Theta } - \Delta \bm{\Theta }  $ \;
+  }
+ 
+\end{algorithm}
+
+%=================================================================================
+% RBM.compute gradient
+
+The gradients are calculated according to the contrastive divergence algorithm, which allows us to approximate the probability distribution of the model with $k$ Gibbs sampling steps from the actual training data.
+
+\begin{algorithm}[H]
+	 \caption{Compute Gradient from Batch. \textbf{\lstinline{RBM.compute_batch_gradients}}(k, batch) }
+  \SetAlgoLined
+  Reset gradients $\Delta W$, $\Delta h_b$, $\Delta v_b$ $= 0$\;
+  \For{$\hat{ \boldsymbol{ \sigma}}_i$ in batch}{
+  sample $\bm{h}_0$, $\bm{v}_k$ and $\bm{p}_{h_k}$ from $\hat{ \boldsymbol{ \sigma}}_i$\\
+   \textbf{\lstinline{RBM.gibbs_sampling}}(k, $\hat{ \boldsymbol{ \sigma}}_i$)   \Comment*[r]{Algorithm 3}
+  calculate gradients\\
+  $\Delta W += \bm{v}_0 \bm{h}_0^T - \bm{v}_k \bm{p}_{h_k}^T$ \\
+  $\Delta h_b += \bm{h}_0 - \bm{p}_{h_k}$ \\
+  $\Delta v_b += \bm{v}_0 - \bm{v}_k$ \;
+  }
+ $M = \vert batch \vert$ \;
+ return $\Delta W / M$,  $\Delta h_b / M$, $\Delta v_b / M$
+\end{algorithm}
+
+%=================================================================================
+% RBM.gibbs sampling
+
+The Gibbs sampling is done $k$ times back and forth. The contrastive divergence algorithm already shows good results for $k=1$. But for better results this value can be increased.
+
+\begin{algorithm}[H]
+	 \caption{Gibbs sampling. \textbf{\lstinline{RBM.gibbs_sampling}}(k, $\hat{ \boldsymbol{ \sigma}}_i$) }
+  \SetAlgoLined
+  calculate $\bm{p}_h$ and sample $\bm{h}_0$ from $\hat{ \boldsymbol{ \sigma}}_i$\\
+  \textbf{\lstinline{RBM.sample_h_given_v}}($\hat{ \boldsymbol{ \sigma}}$)   \Comment*[r]{Algorithm 4}
+  $\bm{h} = \bm{h}_0$\;
+  i = 0\;
+  \While{i $\leq$ k}{
+	calculate $\bm{p}(\bm{v}|\bm{h}_i)$ and sample $\bm{v}$ from $\bm{h}$\\
+	\textbf{\lstinline{RBM.sample_v_given_h}}($\bm{h}$)   \Comment*[r]{Algorithm 5}
+	calculate $\bm{p}(\bm{h}|\bm{v})$ and sample $\bm{h}$ from $\bm{v}$\\
+	\textbf{\lstinline{RBM.sample_h_given_v}}($\bm{v}$)   \Comment*[r]{Algorithm 4}
+	$i +=1$
+  }
+  return $\bm{p}_{h_k} =$  $\bm{p}(\bm{h}|\bm{v})$, $\bm{v}_k = \bm{v}$ and $\bm{h}_0$\;
+ 
+\end{algorithm}
+
+
+%=================================================================================
+% RBM.v given h and vice versa
+
+
+
+\begin{algorithm}[H]
+	 \caption{calculate $\bm{p}(\bm{v}|\bm{h})$ and sample $\bm{v}$ \textbf{\lstinline{RBM.v_given_h}}() }
+  \SetAlgoLined
+  calculate probability $\bm{p}(\bm{v} = 1|\bm{h}) = \sigma( W \bm{h} + v_b)$\;
+  Bernoulli sample $\bm{v}$ from this probability\;
+  return $\bm{v}$ and $\bm{p}(\bm{v} = 1|\bm{h})$\;
+ 
+\end{algorithm}
+
+
+\begin{algorithm}[H]
+	 \caption{calculate $\bm{p}(\bm{h}|\bm{v})$ and sample $\bm{h}$ \textbf{\lstinline{RBM.h_given_v}}() }
+  \SetAlgoLined
+  calculate probability $\bm{p}(\bm{h} = 1|\bm{v}) = \sigma(\bm{v}^T W  + h_b)$\;
+  Bernoulli sample $\bm{h}$ from this probability\;
+  return $\bm{h}$ and $\bm{p}(\bm{h} = 1|\bm{v})$\;
+ 
+\end{algorithm}
+
+
+
+
+
+\section{Algorithm example}
+
+\begin{algorithm}
+	 \caption{Training Algorithm of RBM. \textbf{RBM.train}() }
+  \SetAlgoLined
+  \KwData{this text}
+  \KwResult{how to write algorithm with \LaTeX2e }
+  initialization\;
+  \While{not at end of this document}{
+    read current\;
+    \eIf{understand}{
+      go to next section \Comment*[r]{Some comment}
+      current section becomes this one\;
+    }{
+      go back to the beginning of current section\;
+    }
+  }
+ 
+\end{algorithm}
+
+\end{document}\grid

@@ -752,3 +752,4 @@ class RBM(nn.Module):
             
             if np.array_equal(npstates[i], npstate):
                 return i
+
