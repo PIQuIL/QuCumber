@@ -1,6 +1,6 @@
 import torch
 
-'''
+"""
 A class that allows torch to handle complex algebra.
 ---------
 SYNTAX / ORDERING OF INDICES
@@ -13,10 +13,10 @@ vectors: v[2][i]               >>> 2 = real and imaginary part
 
 scalars: s[2]                  >>> 2 = real and imaginary part
 ---------
-'''
+"""
 
 def make_complex_vector(x, y):
-	'''A function that takes two vector (a REAL (x) and IMAGINARY part (y)) and returns the combined complex tensor.
+	"""A function that takes two vector (a REAL (x) and IMAGINARY part (y)) and returns the combined complex tensor.
 	
 	
 	# Arguments
@@ -37,7 +37,7 @@ def make_complex_vector(x, y):
 	
 	z: torch.doubleTensor
 		The full vector with the real and imaginary parts seperated as previously mentioned.
-	'''	
+	"""	
 	if x.size()[0] != y.size()[0]:
 		raise ValueError('Real and imaginary parts do not have the same dimension.')
 
@@ -48,7 +48,7 @@ def make_complex_vector(x, y):
 	return z
 
 def make_complex_matrix(x, y):
-	'''A function that takes two tensors (a REAL (x) and IMAGINARY part (y)) and returns the combine complex tensor.
+	"""A function that takes two tensors (a REAL (x) and IMAGINARY part (y)) and returns the combine complex tensor.
 
 
 	# Arguments
@@ -69,7 +69,7 @@ def make_complex_matrix(x, y):
 	z: torch.doubleTensor
 		The full vector with the real and imaginary parts seperated as previously mentioned.
 
-	'''
+	"""
 	if x.size()[0] != y.size()[0] or x.size()[1] != y.size()[1]:
 		raise ValueError(
 			'Real and imaginary parts do not have the same dimension.')
@@ -81,7 +81,7 @@ def make_complex_matrix(x, y):
 	return z
 
 def scalar_mult(x, y):
-	'''A function that does complex scalar multiplication between two complex scalars, x and y.
+	"""A function that does complex scalar multiplication between two complex scalars, x and y.
 
 
 	# Arguments
@@ -102,7 +102,7 @@ def scalar_mult(x, y):
 	
 	z: torch.doubleTensor
 		The product of x and y.
-	'''
+	"""
 	if list(x.size())[0] < 2 or list(y.size())[0] < 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -113,7 +113,7 @@ def scalar_mult(x, y):
 	return z
 
 def VS_mult(x, y):
-	'''A function that returns x*y, where x is a complex scalar and y is a complex vector.
+	"""A function that returns x*y, where x is a complex scalar and y is a complex vector.
 	
 
 	# Arguments
@@ -134,7 +134,7 @@ def VS_mult(x, y):
 	
 	z: torch.doubleTensor
 		The vector scalar product of x and y.
-	'''
+	"""
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -146,7 +146,7 @@ def VS_mult(x, y):
 
 
 def MS_mult(x, y):
-	'''A function that takes a given input complex matrix (y) and multiplies it by a complex scalar (x).
+	"""A function that takes a given input complex matrix (y) and multiplies it by a complex scalar (x).
 	
 	
 	# Arguments
@@ -168,7 +168,7 @@ def MS_mult(x, y):
 	z: torch.doubleTensor
 		The matrix-scalar product - x*y.
 
-	'''
+	"""
 	if len(list(y.size())) != 3 or list(y.size())[0] != 2 or list(x.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 	z = torch.zeros_like(y)
@@ -178,7 +178,7 @@ def MS_mult(x, y):
 	return z
 
 def MV_mult(x, y):
-	'''A function that returns x*y, where x is a complex tensor and y is a complex vector.
+	"""A function that returns x*y, where x is a complex tensor and y is a complex vector.
 	
 
 	# Arguments
@@ -199,7 +199,7 @@ def MV_mult(x, y):
 	
 	z: torch.doubleTensor
 		The matrix-vector product, xy.
-	'''
+	"""
 	if len(list(x.size())) != 3 or len(list(y.size())) != 2 or list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -211,7 +211,7 @@ def MV_mult(x, y):
 
 
 def MM_mult(x, y):
-	'''A function that returns x*y, where x and y are complex tensors.
+	"""A function that returns x*y, where x and y are complex tensors.
 	
 
 	# Arguments
@@ -232,7 +232,7 @@ def MM_mult(x, y):
 	
 	z: torch.doubleTensor
 		The matrix-matrix product, xy.
-	'''
+	"""
 	if len(list(x.size())) != 3 or len(list(y.size())) != 3 or list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -243,7 +243,7 @@ def MM_mult(x, y):
 	return z
 
 def inner_prod(x, y):
-	'''A function that returns the inner product of two complex vectors, x and y >>> <x|y>.
+	"""A function that returns the inner product of two complex vectors, x and y >>> <x|y>.
 
 
 	# Arguments
@@ -264,7 +264,7 @@ def inner_prod(x, y):
 	
 	z: torch.doubleTensor
 		The inner product, <x|y>
-	'''
+	"""
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -275,7 +275,7 @@ def inner_prod(x, y):
 	return z
 
 def outer_prod(x, y):
-	'''A function that returns the outer product of two complex vectors, x and y.
+	"""A function that returns the outer product of two complex vectors, x and y.
 	
 
 	# Arguments
@@ -296,7 +296,7 @@ def outer_prod(x, y):
 	
 	z: torch.doubleTensor
 		The outer product between x and y, |x><y|.
-	'''
+	"""
 	if len(list(x.size())) < 2 or len(list(y.size())) < 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -307,7 +307,7 @@ def outer_prod(x, y):
 	return z
 
 def compT_matrix(x):
-	'''A function that returns the complex transpose of a complex tensor, x.
+	"""A function that returns the complex transpose of a complex tensor, x.
 	
 
 	# Arguments
@@ -326,7 +326,7 @@ def compT_matrix(x):
 	
 	z: torch.doubleTensor
 		The complex transpose of x.
-	'''
+	"""
 	if len(list(x.size())) != 3 or list(x.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -337,7 +337,7 @@ def compT_matrix(x):
 	return z
 
 def compT_vector(x):
-	'''A function that returns the complex conjugate of a complex vector, x.
+	"""A function that returns the complex conjugate of a complex vector, x.
 
 
 	# Arguments
@@ -357,7 +357,7 @@ def compT_vector(x):
 	z: torch.doubleTensor
 		The complex transpose of x.
 
-	'''
+	"""
 	if len(list(x.size())) != 2 or list(x.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -368,7 +368,7 @@ def compT_vector(x):
 	return z
 
 def kronecker_prod(x, y):
-	'''A function that returns the tensor / kronecker product of 2 comlex tensors, x and y.
+	"""A function that returns the tensor / kronecker product of 2 comlex tensors, x and y.
 
 
 	# Arguments
@@ -389,7 +389,7 @@ def kronecker_prod(x, y):
 	
 	z: torch.doubleTensor
 		The tensorproduct of x and y.
-	'''
+	"""
 	if len(list(x.size())) != 3 or len(list(y.size())) != 3:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -416,7 +416,7 @@ def kronecker_prod(x, y):
 	return z
 
 def VS_divide(x,y):
-	'''Computes x/y, where x is a complex vector and y is a complex scalar.
+	"""Computes x/y, where x is a complex vector and y is a complex scalar.
 
 	
 	# Arguments
@@ -437,7 +437,7 @@ def VS_divide(x,y):
 	
 	z: torch.doubleTensor
 		z = x/y.
-	'''
+	"""
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -451,7 +451,7 @@ def VS_divide(x,y):
 	return numerator / denominator
 
 def MS_divide(x,y):
-	'''Computes x/y, where x is a complex tensor and y is a complex scalar.
+	"""Computes x/y, where x is a complex tensor and y is a complex scalar.
 
 
 	# Arguments
@@ -472,7 +472,7 @@ def MS_divide(x,y):
 	
 	z: torch.doubleTensor
 		z = x/y
-	'''
+	"""
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 
@@ -486,7 +486,7 @@ def MS_divide(x,y):
 	return numerator / denominator
 
 def norm(x):
-	'''A function that returns |<x|x>|^2. Argument must be <x|x> (i.e. a scalar).
+	"""A function that returns |<x|x>|^2. Argument must be <x|x> (i.e. a scalar).
 
 
 	# Arguments
@@ -505,7 +505,7 @@ def norm(x):
 	
 	z: torch.doubleTensor
 		The norm of x.
-	'''
+	"""
 	if list(x.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
 
