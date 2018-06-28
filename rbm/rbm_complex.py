@@ -10,21 +10,21 @@ from matplotlib import pyplot as plt
 class RBM(nn.Module):
 	"""Class to build the Restricted Boltzmann Machine
 
-	Parameters
-	----------
-	unitaries : dict
+	# Arguments
+	
+	unitaries: dict
 		Dictionary of unitary names (key) that correspond to (2x2) unitary matrices (value)
-	psi_dictionary : dict
+	psi_dictionary: dict
 		Dictionary of true wavefunctions of the system (value) in a particular basis (key)
-	num_visible : int
+	num_visible: int
 		Number of visible units (determined from training data)
-	num_hidden_amp : int
+	num_hidden_amp: int
 		Number of hidden units to learn the amplitude (default = num_visible)
-	num_hidden_phase : int
+	num_hidden_phase: int
 		Number of hidden units to learn the phase (default = num_visible)
-	gpu : bool
+	gpu: bool
 		Should the GPU be used for the training (default = True)
-	seed : int
+	seed: int
 		Fix the random number seed to make results reproducable (default = 1234)
 	
 	"""
@@ -86,25 +86,25 @@ class RBM(nn.Module):
 		'''This function will compute the gradients of a batch of the training 
 		data (data_file) given the basis measurements (chars_file).
 
-		Parameters
-		----------
-		k : int
+		# Arguments
+		
+		k: int
 			Number of contrastive divergence steps in amplitude training
-		batch : array_like
+		batch: array_like
 			Batch of the input data
-		chars_batch : array_like
+		chars_batch: array_like
 			Batch of bases that correspondingly indicates the basis each site in the batch was measured in
-		l1_reg : float
+		l1_reg: float
 			L1 regularization hyperparameter (default = 0.0)
-		l2_reg : float
+		l2_reg: float
 			L2 regularization hyperparameter (default = 0.0)
-		stddev : float
+		stddev: float
 			standard deviation of random noise that can be added to the weights.
 			This is also a hyperparamter. (default = 0.0)
 
-		Returns 
-		----------
-		Gradients : dict
+		# Returns 
+		
+		Gradients: dict
 			Dictionary containing all the gradients (negative) in the following order:
 			Gradient of weights, visible bias and hidden bias for the amplitude 
 			Gradients of weights, visible bias and hidden bias for the phase.
@@ -203,34 +203,34 @@ class RBM(nn.Module):
 		'''Computes the rotated gradients.
 
 		
-		Parameters
-		----------
-		v0 : torch.doubleTensor
+		# Arguments
+		
+		v0: torch.doubleTensor
 			A visible unit.
-		characters : str
+		characters: str
 			A string of characters corresponding to the basis that each site in v0 was measured in.
-		num_non_trivial_unitaries : int
+		num_non_trivial_unitaries: int
 			The number of sites in v0 that are not measured in the computational basis.
-		z_indices : list
+		z_indices: list
 			A list of indices that correspond to sites of v0 that are measured in the computational basis.
-		tau_indicies : list
+		tau_indicies: list
 			A list of indices that correspond to sites of v0 that are not measured in the computational basis.
 	
 
-		Returns
-		----------
+		# Returns
+		
 		Returns a dictionary of the rotated gradients below.
-		L_weights_amp : torch.doubleTensor
+		L_weights_amp: torch.doubleTensor
 			The rotated gradients for the weights for the amplitude RBM.	
-		L_vb_amp : torch.doubleTensor
+		L_vb_amp: torch.doubleTensor
 			The rotated gradients for the visible biases for the amplitude RBM.
-		L_hb_amp : torch.doubleTensor
+		L_hb_amp: torch.doubleTensor
 			The rotated gradients for the hidden biases for the phase RBM. 
-		L_weights_phase : torch.doubleTensor
+		L_weights_phase: torch.doubleTensor
 			The rotated gradients for the weights for the phase RBM.
-		L_vb_phase : torch.doubleTensor
+		L_vb_phase: torch.doubleTensor
 			The rotated gradients for the visible biases for the phase RBM.
-		L_hb_phase : torch.doubleTensor
+		L_hb_phase: torch.doubleTensor
 			The rotated gradients for the hidden biases for the phase RBM.
 		'''
 
@@ -344,37 +344,37 @@ class RBM(nn.Module):
 
 		'''This function will execute the training of the RBM.
 
-		Parameters
-		----------
-		data : array_like
+		# Arguments
+		
+		data: array_like
 			The actual training data.
-		character_data : array_like
+		character_data: array_like
 			The corresponding bases that each site in the data has been measured in.
-		epochs : int
+		epochs: int
 			The number of parameter (i.e. weights and biases) updates (default = 100).
-		batch_size : int
+		batch_size: int
 			The size of batches taken from the data (default = 100).
-		k : int
+		k: int
 			The number of contrastive divergence steps (default = 1).
-		lr : float
+		lr: float
 			Learning rate (default = 1.0e-3)
-		momentum : float
+		momentum: float
 			Momentum hyperparameter (default = 0.0)
-		l1_reg : float
+		l1_reg: float
 			L1 regularization hyperparameter (default = 0.0)
-		l2_reg : float
+		l2_reg: float
 			L2 regularization hyperparameter (default = 0.0)
-		initial_gaussian_noise : float
+		initial_gaussian_noise: float
 			Initial gaussian noise used to calculate stddev of random noise added to weight gradients (default = 0.01).
-		gamma : float
+		gamma: float
 			Parameter used to calculate stddev (default = 0.55).
-		log_every : int
+		log_every: int
 			Indicates how often (i.e. after how many epochs) to calculate convergence parameters (e.g. fidelity, energy, etc.).
 
 
-		Returns 
-		----------
-		fidelity : float
+		# Returns 
+		
+		fidelity: float
 			Overlap squared.
 		'''
 		
@@ -461,14 +461,14 @@ class RBM(nn.Module):
 	def prob_v_given_h_amp(self, h):
 		'''Given a hidden amplitude unit, whats the probability of a visible unit.
 		
-		Parameters
-		----------
-		h : torch.doubleTensor 
+		# Arguments
+		
+		h: torch.doubleTensor 
 			The hidden unit.
 		
-		Returns 
-		----------
-		p : torch.doubleTensor 
+		# Returns 
+		
+		p: torch.doubleTensor 
 			probability of a visible unit given the hidden unit, h
 		'''
 		p = F.sigmoid(F.linear(h, self.weights_amp.t(), self.visible_bias_amp))
@@ -477,14 +477,14 @@ class RBM(nn.Module):
 	def prob_v_given_h_phase(self, h):
 		'''Given a hidden phase unit, whats the probability of a visible unit.
 
-		Parameters
-		----------
-		h : torch.doubleTensor
+		# Arguments
+		
+		h: torch.doubleTensor
 			The hidden unit. 
 
-		Returns 
-		----------
-		p : torch.doubleTensor
+		# Returns 
+		
+		p: torch.doubleTensor
 			probability of a visible unit given the hidden unit, h
 		'''
 		p = F.sigmoid(F.linear(h, self.weights_phase.t(), self.visible_bias_phase))
@@ -493,14 +493,14 @@ class RBM(nn.Module):
 	def prob_h_given_v_amp(self, v):
 		'''Given a visible unit, whats the probability of a hidden amplitude unit.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 			The visible unit.
 
-		Returns 
-		----------
-		p : torch.doubleTensor
+		# Returns 
+		
+		p: torch.doubleTensor
 			probability of a hidden unit given the visible unit, v
 		'''
 		p = F.sigmoid(F.linear(v, self.weights_amp, self.hidden_bias_amp))
@@ -509,14 +509,14 @@ class RBM(nn.Module):
 	def prob_h_given_v_phase(self, v):
 		'''Given a visible unit, whats the probability of a hidden phase unit.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 			The visible unit. 
 
-		Returns 
-		----------
-		p : torch.doubleTensor
+		# Returns 
+		
+		p: torch.doubleTensor
 			probability of a hidden unit given the visible unit, v
 		'''
 		p = F.sigmoid(F.linear(v, self.weights_phase, self.hidden_bias_phase))
@@ -525,16 +525,16 @@ class RBM(nn.Module):
 	def sample_v_given_h_amp(self, h):
 		'''Sample/generate a visible unit given a hidden amplitude unit.
 
-		Parameters
-		----------
-		h : torch.doubleTensor
+		# Arguments
+		
+		h: torch.doubleTensor
 			The hidden unit.            
   
-		Returns 
-		----------
-		p : torch.doubleTensor
+		# Returns 
+		
+		p: torch.doubleTensor
 			see prob_v_given_h_amp
-		v : torch.doubleTensor
+		v: torch.doubleTensor
 			The sampled visible unit.
 		'''
 		p = self.prob_v_given_h_amp(h)
@@ -544,16 +544,16 @@ class RBM(nn.Module):
 	def sample_h_given_v_amp(self, v):
 		'''Sample/generate a hidden amplitude unit given a visible unit.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 			The visible unit. 
 			  
-		Returns 
-		----------
-		p : torch.doubleTensor
+		# Returns 
+		
+		p: torch.doubleTensor
 			see prob_h_given_v_amp
-		h : torch.doubleTensor
+		h: torch.doubleTensor
 			The sampled hidden unit.
 		'''
 		p = self.prob_h_given_v_amp(v)
@@ -563,16 +563,16 @@ class RBM(nn.Module):
 	def sample_v_given_h_phase(self, h):
 		'''Sample/generate a visible unit given a hidden phase unit.
 
-		Parameters
-		----------
-		h : torch.doubleTensor
+		# Arguments
+		
+		h: torch.doubleTensor
 			The hidden unit. 
 
-		Returns 
-		----------
-		p : torch.doubleTensor
+		# Returns 
+		
+		p: torch.doubleTensor
 			see prob_v_given_h_phase
-		v : torch.doubleTensor
+		v: torch.doubleTensor
 			The sampled visible unit.
 		'''
 		p = self.prob_v_given_h_phase(h)
@@ -582,16 +582,16 @@ class RBM(nn.Module):
 	def sample_h_given_v_phase(self, v):
 		'''Sample/generate a hidden phase unit given a visible unit.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 			A data point.
 			  
-		Returns 
-		----------
-		p : torch.doubleTensor
+		# Returns 
+		
+		p: torch.doubleTensor
 			see prob_h_given_v_phase
-		h : torch.doubleTensor
+		h: torch.doubleTensor
 			The sampled hidden unit.
 		'''
 		p = self.prob_h_given_v_phase(v)
@@ -601,23 +601,23 @@ class RBM(nn.Module):
 	def gibbs_sampling_amp(self, k, v0):
 		'''Contrastive divergence/gibbs sampling algorithm for generating samples from the RBM.
 
-		Parameters
-		----------
-		k : int
+		# Arguments
+		
+		k: int
 			Number of contrastive divergence iterations.
-		v0 : torch.doubleTensor
+		v0: torch.doubleTensor
 			A visible unit from the data
 		
-		Returns 
-		----------
-		v0 : torch.doubleTensor
-		h0 : torch.doubleTensor
+		# Returns 
+		
+		v0: torch.doubleTensor
+		h0: torch.doubleTensor
 			The hidden unit sampled from v0.
-		v : torch.doubleTensor
+		v: torch.doubleTensor
 			The sampled visible unit after k steps.
-		h : torch.doubleTensor
+		h: torch.doubleTensor
 			The sampled hidden unit after k steps.
-		ph : torch.doubleTensor
+		ph: torch.doubleTensor
 			See sample_h_given_v_amp
 		'''
 		ph, h0 = self.sample_h_given_v_amp(v0)
@@ -630,23 +630,23 @@ class RBM(nn.Module):
 	def gibbs_sampling_phase(self, k, v0_phase):
 		'''Contrastive divergence/gibbs sampling algorithm for generating samples from the RBM.
 
-		Parameters
-		----------
-		k : int
+		# Arguments
+		
+		k: int
 			Number of contrastive divergence iterations.
-		v0 : torch.doubleTensor
+		v0: torch.doubleTensor
 			A visible unit from the data
 		
-		Returns 
-		----------
-		v0 : torch.doubleTensor
-		h0 : torch.doubleTensor
+		# Returns 
+		
+		v0: torch.doubleTensor
+		h0: torch.doubleTensor
 			The hidden unit sampled from v0.
-		v : torch.doubleTensor
+		v: torch.doubleTensor
 			The sampled visible unit after k steps.
-		h : torch.doubleTensor
+		h: torch.doubleTensor
 			The sampled hidden unit after k steps.
-		ph : torch.doubleTensor
+		ph: torch.doubleTensor
 			See sample_h_given_v_phase
 		'''
 		ph, h0 = self.sample_h_given_v_phase(v0)
@@ -659,13 +659,13 @@ class RBM(nn.Module):
 	def regularize_weight_gradients_amp(self, w_grad, l1_reg, l2_reg):
 		'''Weight gradient regularization.
 		
-		Parameters
-		----------
-		w_grad : torch.doubleTensor
+		# Arguments
+		
+		w_grad: torch.doubleTensor
 			The entire weight gradient matrix (amplitude).
-		l1_reg : float
+		l1_reg: float
 			L1 regularization hyperparameter (default = 0.0)
-		l2_reg : float
+		l2_reg: float
 			L2 regularization hyperparameter (default = 0.0)
 		'''
 		return (w_grad
@@ -675,13 +675,13 @@ class RBM(nn.Module):
 	def regularize_weight_gradients_phase(self, w_grad, l1_reg, l2_reg):
 		'''Weight gradient regularization.
 		
-		Parameters
-		----------
-		w_grad : torch.doubleTensor
+		# Arguments
+		
+		w_grad: torch.doubleTensor
 			The entire weight gradient matrix (phase).
-		l1_reg : float
+		l1_reg: float
 			L1 regularization hyperparameter
-		l2_reg : float
+		l2_reg: float
 			L2 regularization hyperparameter
 		'''
 		return (w_grad
@@ -691,12 +691,12 @@ class RBM(nn.Module):
 	def eff_energy_amp(self, v):
 		'''The effective energy of the amplitude RBM.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 
-		Returns
-		----------
+		# Returns
+		
 		.. math::
 			E_{\lambda} = b^{\lambda}v + \sum_{i}\log\sum_{h_{i}^{\lambda}}e^{h_{i}^{\lambda}\left(c_{i}^{\lambda} + W_{i}^{\lambda}v\right)}
 		'''
@@ -711,12 +711,12 @@ class RBM(nn.Module):
 	def eff_energy_phase(self, v):
 		'''The effective energy of the phase RBM.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 
-		Returns
-		----------
+		# Returns
+		
 		.. math::
 			E_{\mu} = b^{\mu}v + \sum_{i}\log\sum_{h_{i}^{\mu}}e^{h_{i}^{\mu}\left(c_{i}^{\mu} + W_{i}^{\mu}v\right)}
 		'''
@@ -731,13 +731,13 @@ class RBM(nn.Module):
 	def unnormalized_probability_amp(self, v):
 		'''The effective energy of the phase RBM.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 			Visible units.
 
-		Returns
-		----------
+		# Returns
+		
 		.. math::
 			p_{\lambda} = e^{E_{\lambda}} 
 		''' 
@@ -746,13 +746,13 @@ class RBM(nn.Module):
 	def unnormalized_probability_phase(self, v):
 		'''The effective energy of the phase RBM.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 			Visible units.
 
-		Returns
-		----------
+		# Returns
+		
 		.. math::
 			p_{\mu} = e^{E_{\mu}}       
 		''' 
@@ -761,12 +761,12 @@ class RBM(nn.Module):
 	def normalized_wavefunction(self, v):
 		'''The RBM wavefunction.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 
-		Returns
-		----------
+		# Returns
+		
 		.. math::
 			\psi_{\lambda\mu} = \sqrt{\frac{p_{\lambda}}{Z_{\lambda}}}e^{\frac{i\log(p_{\mu})}{2}} 
 		''' 
@@ -788,12 +788,12 @@ class RBM(nn.Module):
 	def unnormalized_wavefunction(self, v):
 		'''The unnormalized RBM wavefunction.
 
-		Parameters
-		----------
-		v : torch.doubleTensor
+		# Arguments
+		
+		v: torch.doubleTensor
 
-		Returns
-		----------
+		# Returns
+		
 		.. math::
 			\tilde{\psi}_{\lambda\mu} = \sqrt{p_{\lambda}}e^{\frac{i\log(p_{\mu})}{2}} 
 		''' 
@@ -813,9 +813,9 @@ class RBM(nn.Module):
 	def get_true_psi(self, basis):
 		'''Picks out the true psi in the correct basis.
 		
-		Parameters
-		----------
-		basis : str
+		# Arguments
+		
+		basis: str
 			E.g. XZZZX
 		'''
 		key = ''
@@ -825,16 +825,17 @@ class RBM(nn.Module):
 
 	def overlap(self, visible_space, basis):
 		'''Computes the overlap between the RBM and true wavefunctions.
-		Parameters
-		----------
-		visible_space : torch.doubleTensor
+		# Arguments
+		
+		visible_space: torch.doubleTensor
 			An array of all possible spin configurations.
-		basis : str
+		basis: str
 			E.g. XZZZX
 
-		Returns
-		----------
-		double
+
+		# Returns
+		
+		overlap_: double
 		.. math::
 			O = \braket{\psi_{true} | \psi_{\lambda\mu}}
 		
@@ -845,15 +846,15 @@ class RBM(nn.Module):
 
 	def fidelity(self, visible_space, basis):
 		'''Computed the fidelity of the RBM and true wavefunctions. 
-		Parameters
-		----------
-		visible_space : torch.doubleTensor
+		# Arguments
+		
+		visible_space: torch.doubleTensor
 			An array of all possible spin configurations.
-		basis : str
+		basis: str
 			E.g. XZZZX
 
-		Returns
-		----------
+		# Returns
+		
 		double 
 		.. math::
 			F = |O|^2
@@ -865,9 +866,9 @@ class RBM(nn.Module):
 		'''Generates all possible spin configurations of "num_visible" spins.
 		
 
-		Returns 
-		----------
-		space : torch.doubleTensor
+		# Returns 
+		
+		space: torch.doubleTensor
 			An array where each row is a given spin configuration (2^N rows).
 		'''    
 		space = torch.zeros((2**self.num_visible, self.num_visible),
@@ -884,15 +885,15 @@ class RBM(nn.Module):
 		'''Computes the natural log of the partition function.
 		
 		
-		Parameters
-		----------
-		visible_space : torch.doubleTensor
+		# Arguments
+		
+		visible_space: torch.doubleTensor
 			An array of all possible spin configurations.
 
 
-		Returns
-		----------
-		logZ : double
+		# Returns
+		
+		logZ: double
 			The log of the partition function.
 		'''
 
@@ -908,15 +909,15 @@ class RBM(nn.Module):
 		'''Computes the partition function.
 		
 		
-		Parameters
-		----------
-		visible_space : torch.doubleTensor
+		# Arguments
+		
+		visible_space: torch.doubleTensor
 			An array of all possible spin configurations.
 
 
-		Returns
-		----------
-		double
+		# Returns
+		
+		Z: double
 			The partition function.
 		'''
 		return self.log_partition(visible_space).exp()
@@ -924,15 +925,15 @@ class RBM(nn.Module):
 	def state_generator(self, num_non_trivial_unitaries):
 		'''A function that returns all possible configurations of 'num_non_trivial_unitaries' spins. Similar to generate_visible_space.
 
-		Parameters
-		----------
-		num_non_trivial_unitaries : int
+		# Arguments
+		
+		num_non_trivial_unitaries: int
 			The number of sites measured in the non-computational basis.
 
   
-		Returns
-		----------
-		states : torch.doubleTensor
+		# Returns
+		
+		states: torch.doubleTensor
 			An array of all possible spin configurations of 'num_non_trivial_unitaries' spins.
 		'''
 		states = torch.zeros((2**num_non_trivial_unitaries, num_non_trivial_unitaries), device = self.device, dtype=torch.double)
@@ -947,14 +948,14 @@ class RBM(nn.Module):
 		'''Only works for binary visible units at the moment. Generates a vector given a spin value (0 or 1).
 
 
-		Parameters
-		----------
-		s : double
+		# Arguments
+		
+		s: double
 			A spin's value (either 0 or 1).
 
 
-		Returns
-		----------
+		# Returns
+		
 		torch.doubleTensor
 			If s = 0, this is the (1,0) state in the basis of the measurement. If s = 1, this is the (0,1) state in the basis of the measurement.
 		'''

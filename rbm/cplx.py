@@ -2,7 +2,7 @@ import torch
 
 '''
 A class that allows torch to handle complex algebra.
------------------------------------------------------------------------------------------
+---------
 SYNTAX / ORDERING OF INDICES
 matrices / tensors: m[2][i][j] >>> 2 = real and imaginary part
 							   >>> i = number of rows in the real and imaginary parts
@@ -12,30 +12,30 @@ vectors: v[2][i]               >>> 2 = real and imaginary part
 							   >>> i = nmber of rows in the real and imaginary parts
 
 scalars: s[2]                  >>> 2 = real and imaginary part
------------------------------------------------------------------------------------------
+---------
 '''
 
 def make_complex_vector(x, y):
 	'''A function that takes two vector (a REAL (x) and IMAGINARY part (y)) and returns the combined complex tensor.
 	
 	
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		The real part of your vector.
 	y: torch.doubleTensor
 		The imaginary part of your vector.
 
 	
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		This function will not execute if x and y do not have the same dimension.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The full vector with the real and imaginary parts seperated as previously mentioned.
 	'''	
 	if x.size()[0] != y.size()[0]:
@@ -51,22 +51,22 @@ def make_complex_matrix(x, y):
 	'''A function that takes two tensors (a REAL (x) and IMAGINARY part (y)) and returns the combine complex tensor.
 
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		The real part of your matrix.
 	y: torch.doubleTensor
 		The imaginary part of your matrix.
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		This function will not execute if x and y do not have the same dimension.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The full vector with the real and imaginary parts seperated as previously mentioned.
 
 	'''
@@ -84,23 +84,23 @@ def scalar_mult(x, y):
 	'''A function that does complex scalar multiplication between two complex scalars, x and y.
 
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex scalar. (x[0], x[1]) = (real part, imaginary part).
-	y : torch.doubleTensor
+	y: torch.doubleTensor
  		A complex scalar. (x[0], x[1]) = (real part, imaginary part).
 
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x or y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.
 	
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The product of x and y.
 	'''
 	if list(x.size())[0] < 2 or list(y.size())[0] < 2:
@@ -116,23 +116,23 @@ def VS_mult(x, y):
 	'''A function that returns x*y, where x is a complex scalar and y is a complex vector.
 	
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex scalar.
-	y : torch.doubleTensor
+	y: torch.doubleTensor
 		A complex vector.
 
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The vector scalar product of x and y.
 	'''
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
@@ -149,23 +149,23 @@ def MS_mult(x, y):
 	'''A function that takes a given input complex matrix (y) and multiplies it by a complex scalar (x).
 	
 	
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex scalar.
-	y : torch.doubleTensor
+	y: torch.doubleTensor
 		A complex matrix.
 
 	
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If y is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if x's dimension is not 2, the function will not execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The matrix-scalar product - x*y.
 
 	'''
@@ -181,23 +181,23 @@ def MV_mult(x, y):
 	'''A function that returns x*y, where x is a complex tensor and y is a complex vector.
 	
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex matrix.
-	y : torch.doubleTensor
+	y: torch.doubleTensor
 		A complex vector.
 
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError 
 		If y is not a complex vector (i.e. has 2 dimensions) and if its first dimension is not 2, OR if x is not a complex matrix (i.e. has 3 dimensions) and if its first dimention is not 2, then the function will not execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The matrix-vector product, xy.
 	'''
 	if len(list(x.size())) != 3 or len(list(y.size())) != 2 or list(x.size())[0] != 2 or list(y.size())[0] != 2:
@@ -214,23 +214,23 @@ def MM_mult(x, y):
 	'''A function that returns x*y, where x and y are complex tensors.
 	
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex matrix.
-	y : torch.doubleTensor
+	y: torch.doubleTensor
 		A complex matrix.
 
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The matrix-matrix product, xy.
 	'''
 	if len(list(x.size())) != 3 or len(list(y.size())) != 3 or list(x.size())[0] != 2 or list(y.size())[0] != 2:
@@ -246,23 +246,23 @@ def inner_prod(x, y):
 	'''A function that returns the inner product of two complex vectors, x and y >>> <x|y>.
 
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex vector.
-	y : torch.doubleTensor
+	y: torch.doubleTensor
 		A complex vector.
 
 	
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.
 
 	
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The inner product, <x|y>
 	'''
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
@@ -278,23 +278,23 @@ def outer_prod(x, y):
 	'''A function that returns the outer product of two complex vectors, x and y.
 	
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex vector.
-	y : torch.doubleTensor
+	y: torch.doubleTensor
 		A complex vector.
 
 	
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.
 
 	
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The outer product between x and y, |x><y|.
 	'''
 	if len(list(x.size())) < 2 or len(list(y.size())) < 2:
@@ -310,21 +310,21 @@ def compT_matrix(x):
 	'''A function that returns the complex transpose of a complex tensor, x.
 	
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex matrix
 
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x does not have 3 dimensions and its first dimension isn't 2, the function cannot execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The complex transpose of x.
 	'''
 	if len(list(x.size())) != 3 or list(x.size())[0] != 2:
@@ -340,21 +340,21 @@ def compT_vector(x):
 	'''A function that returns the complex conjugate of a complex vector, x.
 
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex vector.
 
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x does not have 2 dimensions and its first dimension isn't 2, the function cannot execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The complex transpose of x.
 
 	'''
@@ -371,23 +371,23 @@ def kronecker_prod(x, y):
 	'''A function that returns the tensor / kronecker product of 2 comlex tensors, x and y.
 
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex matrix.
-	y : torch.doubleTensor
+	y: torch.doubleTensor
 		A complex matrix.
 
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The tensorproduct of x and y.
 	'''
 	if len(list(x.size())) != 3 or len(list(y.size())) != 3:
@@ -419,23 +419,23 @@ def VS_divide(x,y):
 	'''Computes x/y, where x is a complex vector and y is a complex scalar.
 
 	
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex vector.
-	y : torch.doubleTensor
+	y: torch.doubleTensor
 		A complex scalar.
 
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		z = x/y.
 	'''
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
@@ -454,23 +454,23 @@ def MS_divide(x,y):
 	'''Computes x/y, where x is a complex tensor and y is a complex scalar.
 
 
-	Parameters
-	----------
-	x : torch.doubleTensor
+	# Arguments
+	
+	x: torch.doubleTensor
 		A complex matrix.
-	y : torch.doubleTensor
+	y: torch.doubleTensor
 		A complex scalar.
 
 	
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if y's dimension is not 2, the function will not execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		z = x/y
 	'''
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
@@ -489,21 +489,21 @@ def norm(x):
 	'''A function that returns |<x|x>|^2. Argument must be <x|x> (i.e. a scalar).
 
 
-	Parameters
-	----------	
-	x : torch.doubleTensor
+	# Arguments
+		
+	x: torch.doubleTensor
 		A complex scalar.
 
 
-	Raises
-	----------
+	# Raises
+	
 	ValueError
 		If x is not a complex scalar, this function will not execute.
 
 
-	Returns
-	----------
-	z : torch.doubleTensor
+	# Returns
+	
+	z: torch.doubleTensor
 		The norm of x.
 	'''
 	if list(x.size())[0] != 2:
