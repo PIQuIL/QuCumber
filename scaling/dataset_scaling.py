@@ -10,10 +10,8 @@ from rbm.callbacks import (ModelSaver,
                            VarianceBasedEarlyStopping)
 from rbm import RBM
 import torch
-import pathlib
+from pathlib import Path
 import re
-# from itertools import product
-import signal
 import os.path
 
 
@@ -25,7 +23,7 @@ def load_train(N, h):
 
 
 CB_PERIOD = 100
-SAVE_PATH = ("/home/ejaazm/projects/def-rgmelko/ejaazm/"
+SAVE_PATH = ("/home/ejaazm/projects/scratch/"
              "tfim1d_dataset_scaling/model_snapshots")
 RBM_NAME = "tmp"  # should get overwritten
 
@@ -48,7 +46,7 @@ for N in [16, 32, 64, 128, 256, 512]:
 
 
 def extract_config(path):
-    px = pathlib.Path(path)
+    px = Path(path)
     config = {
         "N": None,
         "h": None,
@@ -66,49 +64,36 @@ def extract_config(path):
     return config
 
 
-def make_rbm_name(N, h, dataset_size, rep):
+def make_rbm_path(N, h, dataset_size, rep):
     return f"N_{N}/h_{h:.2f}/dataset_size_{dataset_size}/rep_{rep}/"
 
 
 def scan_for_incomplete():
-    px = pathlib.Path(SAVE_PATH)
-    all_incomplete = set(map(lambda p: p.parent, px.glob("./**/checkpoint")))
-    return all_incomplete
+    px = Path(SAVE_PATH)
+    all_runs = set(map(lambda p: p.parent, px.glob("./**/epoch_*.params")))q
+    all_complete = set(map(lambda p: p.parent, px.glob("./**/done")))
+    return all_runs - all_complete
 
 
 GET_NUMS_REGEX = re.compile(r'\d+')  # match all numerical chars
 
 
-def get_epoch_num(p):
+def get_epoch_num(p: Path):
     return int(GET_NUMS_REGEX.findall(p.name)[0])
 
 
-def get_last_epoch_path(path):
-    epoch_paths = pathlib.Path(path).glob("./epoch*")
+def get_last_epoch_params(path):
+    epoch_paths = Path(path).glob("./epoch_*.params")
     return max(epoch_paths, key=get_epoch_num)
 
 
-@click.command()
-@click.option("--task-id", type=int, envvar="SLURM_ARRAY_TASK_ID")
-@click.option("--rerun", is_flag=True)
-def main(task_id, rerun):
-    if not rerun:
-        print(f"Task id is: {task_id}")
-        config = POSSIBLE_CONFIGS[task_id]
-        run(**config)
-    else:
-        incomplete_runs = scan_for_incomplete()
-        print(f"Found {len(incomplete_runs)} incomplete runs.")
-        if len(incomplete_runs) > 0:
-            continue_run(
-                incomplete_runs[0],
-                starting_epoch_path=get_last_epoch_path(incomplete_runs[0]))
+def get_all_epoch_params_except_last(path):
+    epoch_paths = Path(path).glob("./epoch_*.params")
+    last_epoch_path = max(epoch_paths, key=get_epoch_num)
+    return set(epoch_paths) - {last_epoch_path}
 
 
-def run(N, h, dataset_size, rep):
-    print(f"Beginning evaluation for system size N={N} and h={h}")
-    print(f"Dataset Size: {dataset_size}; Repetition: {rep}.")
-
+def init(N: int, h: float, dataset_size: int, rep: int):
     data = load_train(N, h)
 
     rs = np.random.RandomState(int(N * h * dataset_size * rep))
@@ -116,17 +101,8 @@ def run(N, h, dataset_size, rep):
 
     model = RBM(num_visible=N, num_hidden=N, seed=rep)
 
-    rbm_name = make_rbm_name(N, h, dataset_size, rep)
-
-    current_epoch = 0
-
-    def sigterm_handler(signal, frame):
-        print(f"Job killed while evaluating {rbm_name}")
-        model.save(os.path.join(SAVE_PATH, rbm_name,
-                                f"checkpoint_{current_epoch}"))
-
-    # catch any sigterms that show up
-    signal.signal(signal.SIGTERM, sigterm_handler)
+    rbm_path = make_rbm_path(N, h, dataset_size, rep)
+    save_dir_path = os.path.join(SAVE_PATH, rbm_path)
 
     mag = TFIMChainMagnetization()
     energy = TFIMChainEnergy(h)
@@ -141,92 +117,89 @@ def run(N, h, dataset_size, rep):
     es = VarianceBasedEarlyStopping(CB_PERIOD, 0.01, 10, cm,
                                     "energy_mean", "energy_variance")
 
-    ms = ModelSaver(CB_PERIOD, SAVE_PATH, rbm_name,
-                    lambda rbm, ep: cm.last,
-                    metadata_only=True)
+    metric_saver = ModelSaver(CB_PERIOD, save_dir_path, "epoch_{}.metrics",
+                              lambda rbm, ep: cm.last,
+                              metadata_only=True)
 
-    def update_epoch_cb(rbm, epoch):
-        global current_epoch
-        current_epoch = epoch
+    model_saver = ModelSaver(CB_PERIOD, save_dir_path, "epoch_{}.params")
 
-    model.train(data,
-                epochs=int(1e5), batch_size=100,
-                k=10, persistent=False,
-                lr=1e-3, momentum=0.0,
-                l1_reg=0.0, l2_reg=1e-5,
-                progbar=False,
-                callbacks=[cm, es, ms, update_epoch_cb])
-
-    # Save most recent observable values
-    # along with trained model params
-    ms.metadata_only = False
-    ms.metadata = cm.last
-    ms(model, es.last_epoch, last=True)
+    return model, data, [cm, es, metric_saver, model_saver], save_dir_path
 
 
-def continue_run(path, starting_epoch_path):
+TRAINING_CONFIG = {
+    "epochs": int(1e5),
+    "batch_size": 100,
+    "k": 10,
+    "persistent": False,
+    "lr": 1e-3,
+    "momentum": 0.0,
+    "l1_reg": 0.0,
+    "l2_reg": 1e-5,
+    "progbar": False
+}
+
+
+def delete_old_params(path):
+    # Delete all param files except for the last one
+    for f in get_all_epoch_params_except_last(path):
+        if f.is_file():
+            f.unlink()
+
+
+def dataset_scaling(N: int, h: float, dataset_size: int, rep: int):
+    print(f"Beginning evaluation for system size N={N} and h={h}")
+    print(f"Dataset Size: {dataset_size}; Repetition: {rep}.")
+    model, data, callbacks, save_dir_path = init(N, h, dataset_size, rep)
+    model.train(data, callbacks=callbacks, **TRAINING_CONFIG)
+    delete_old_params(save_dir_path)
+
+    # create file to show that training finished
+    open(os.path.join(save_dir_path, "done"), "w").close()
+
+
+def continue_dataset_scaling(path, starting_epoch_path):
     config = extract_config(path)
-    starting_epoch_path = pathlib.Path(starting_epoch_path)
+    starting_epoch_path = Path(starting_epoch_path)
     starting_epoch = get_epoch_num(starting_epoch_path)
     N, h, dataset_size, rep = (config["N"], config["h"],
                                config["dataset_size"], config["rep"])
+
     print(f"Continuing evaluation for system size N={N} and "
           f"h={h} at epoch {starting_epoch}.")
     print(f"Dataset Size: {dataset_size}; Repetition: {rep}.")
 
-    data = load_train(N, h)
+    model, data, callbacks, save_dir_path = init(N, h, dataset_size, rep)
 
-    rs = np.random.RandomState(int(N * h * dataset_size * rep))
-    data = data[rs.choice(len(data), dataset_size, replace=False)]
-
-    model = RBM(num_visible=N, num_hidden=N, seed=rep)
-    model.load(str(starting_epoch_path.absolute()))
-
-    rbm_name = make_rbm_name(N, h, dataset_size, rep)
-
-    global RBM_NAME
-    RBM_NAME = rbm_name
-
-    mag = TFIMChainMagnetization()
-    energy = TFIMChainEnergy(h)
-
-    cm = ComputeMetrics(CB_PERIOD,
-                        {"mag": mag.statistics,
-                         "energy": energy.statistics},
-                        num_samples=NUM_SAMPLES,
-                        k=NUM_GIBBS_STEPS_OBS,
-                        batch_size=100)
-
-    # Populate cm history with old metric values
-    epoch_paths = pathlib.Path(path).glob("./epoch*")
+    # Populate metric history with old metric values
+    epoch_paths = Path(path).glob("./epoch_*.metrics")
     for ep in epoch_paths:
         stats = torch.load(ep)
-        cm.metric_values.append(stats)
-        cm.last = stats.copy()
-
-    es = VarianceBasedEarlyStopping(CB_PERIOD, 0.01, 10, cm,
-                                    "energy_mean",
-                                    "energy_variance")
-
-    ms = ModelSaver(CB_PERIOD, SAVE_PATH, rbm_name,
-                    lambda rbm, ep: cm.last,
-                    metadata_only=True)
+        callbacks[0].metric_values.append(stats)
+        callbacks[0].last = stats.copy()
 
     model.train(data,
-                epochs=int(1e5),
                 starting_epoch=starting_epoch,
-                batch_size=100,
-                k=10, persistent=False,
-                lr=1e-3, momentum=0.0,
-                l1_reg=0.0, l2_reg=1e-5,
-                progbar=False,
-                callbacks=[cm, es, ms])
+                callbacks=callbacks,
+                **TRAINING_CONFIG)
 
-    # Save most recent observable values
-    # along with trained model params
-    ms.metadata_only = False
-    ms.metadata = cm.last
-    ms(model, es.last_epoch, last=True)
+    delete_old_params(save_dir_path)
+
+
+@click.command()
+@click.option("--task-id", type=int, envvar="SLURM_ARRAY_TASK_ID")
+@click.option("--rerun", is_flag=True)
+def main(task_id, rerun):
+    if not rerun and task_id is not None:
+        print(f"Task id is: {task_id}")
+        config = POSSIBLE_CONFIGS[task_id]
+        dataset_scaling(**config)
+    else:
+        incomplete_runs = scan_for_incomplete()
+        print(f"Found {len(incomplete_runs)} incomplete runs.")
+        if len(incomplete_runs) > 0:
+            continue_dataset_scaling(
+                incomplete_runs[0],
+                starting_epoch_path=get_last_epoch_params(incomplete_runs[0]))
 
 
 if __name__ == '__main__':

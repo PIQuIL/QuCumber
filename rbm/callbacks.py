@@ -14,27 +14,28 @@ __all__ = [
 
 
 class ModelSaver:
-    def __init__(self, period, folder_path, rbm_name,
-                 metadata, metadata_only=False):
+    def __init__(self, period, folder_path, file_name,
+                 metadata=None, metadata_only=False):
         self.folder_path = folder_path
         self.period = period
-        self.rbm_name = rbm_name
+        self.file_name = file_name
         self.metadata = metadata
         self.metadata_only = metadata_only
 
-        self.path = Path(folder_path, rbm_name)
+        self.path = Path(folder_path)
         self.path.mkdir(parents=True, exist_ok=True)
         self.path = self.path.resolve()
 
-    def __call__(self, rbm, epoch, last=False):
+    def __call__(self, rbm, epoch):
         if epoch % self.period == 0:
-            last = "" if not last else "_last"
-            save_path = os.path.join(self.path, "epoch{}".format(epoch) + last)
+            save_path = os.path.join(self.path, self.file_name.format(epoch))
 
             if callable(self.metadata):
                 metadata = self.metadata(rbm, epoch)
             elif isinstance(self.metadata, dict):
                 metadata = self.metadata
+            elif self.metadata is None:
+                metadata = {}
 
             if self.metadata_only:
                 torch.save(metadata, save_path)
