@@ -23,7 +23,7 @@ def load_train(N, h):
 
 
 CB_PERIOD = 100
-SAVE_PATH = ("/home/ejaazm/projects/scratch/"
+SAVE_PATH = ("/home/ejaazm/scratch/"
              "tfim1d_dataset_scaling/model_snapshots")
 RBM_NAME = "tmp"  # should get overwritten
 
@@ -70,7 +70,7 @@ def make_rbm_path(N, h, dataset_size, rep):
 
 def scan_for_incomplete():
     px = Path(SAVE_PATH)
-    all_runs = set(map(lambda p: p.parent, px.glob("./**/epoch_*.params")))q
+    all_runs = set(map(lambda p: p.parent, px.glob("./**/epoch_*.params")))
     all_complete = set(map(lambda p: p.parent, px.glob("./**/done")))
     return all_runs - all_complete
 
