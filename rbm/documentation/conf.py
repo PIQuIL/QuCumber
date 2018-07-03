@@ -51,8 +51,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'RBM_complex'
-copyright = '2018, Patrick Huembeli'
-author = 'Patrick Huembeli'
+copyright = '2018, PIQuIL'
+author = 'PIQuIL'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -144,7 +144,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'RBM_complex.tex', 'RBM\\_complex Documentation',
-     'Patrick Huembeli', 'manual'),
+     'PIQuIL', 'manual'),
 ]
 
 
