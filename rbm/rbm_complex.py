@@ -102,7 +102,7 @@ class RBM(nn.Module):
 		:param stddev: Standard deviation of random noise that can be added to the weights.	This is also a hyperparamter. (default = 0.0)
 		:type stddev: double
 
-		:returns: Dictionary containing all the gradients (negative) in the following order: Gradient of weights, visible bias and hidden bias for the amplitude, Gradients of weights, visible bias and hidden bias for the phase.
+		:returns: Dictionary containing all the gradients (negative): Gradient of weights, visible bias and hidden bias for the amplitude, Gradients of weights, visible bias and hidden bias for the phase.
 		:rtype: dict
 		"""
 		
@@ -117,21 +117,18 @@ class RBM(nn.Module):
 		g_vb_phase      = torch.zeros_like(self.visible_bias_phase)
 		g_hb_phase      = torch.zeros_like(self.hidden_bias_phase)
 
-		"""Iterate through every data point in the batch."""
+		# Iterate through every data point in the batch.
 		for row_count, v0 in enumerate(batch):
 
-			"""A counter for the number of non-trivial unitaries (non-computational basis) in the data point."""
+			# A counter for the number of non-trivial unitaries (non-computational basis) in the data point.
 			num_non_trivial_unitaries = 0
 
-			"""tau_indices will contain the index numbers of spins not in the   
-			computational basis (Z). 
-			z_indices will contain the index numbers of spins in the computational 
-			basis."""
+			# tau_indices will contain the index numbers of spins not in the computational basis (Z). z_indices will contain the index numbers of spins in the computational basis.
 			tau_indices = []
 			z_indices   = []
 
 			for j in range(self.num_visible):
-				"""Go through the unitaries (chars_batch[row_count]) of each site in the data point, v0, and save inidices of non-trivial."""
+				# Go through the unitaries (chars_batch[row_count]) of each site in the data point, v0, and save inidices of non-trivial.
 				if chars_batch[row_count][j] != 'Z':
 					num_non_trivial_unitaries += 1
 					tau_indices.append(j)
@@ -139,43 +136,42 @@ class RBM(nn.Module):
 					z_indices.append(j)
 
 			if num_non_trivial_unitaries == 0:
-				"""If there are no non-trivial unitaries for the data point v0, calculate the positive phase of regular (i.e. non-complex RBM) gradient. Use the actual data point, v0."""
+				# If there are no non-trivial unitaries for the data point v0, calculate the positive phase of regular (i.e. non-complex RBM) gradient. Use the actual data point, v0.
 				g_weights_amp -= torch.ger(F.sigmoid(F.linear(v0, self.weights_amp, self.hidden_bias_amp)), v0) / batch_size 
 				g_vb_amp      -= v0 / batch_size
 				g_hb_amp      -= F.sigmoid(F.linear(v0, self.weights_amp, self.hidden_bias_amp)) / batch_size
 
 			else:
-				"""Compute the rotated gradients.""" 
+				# Compute the rotated gradients.
 				L_weights_amp, L_vb_amp, L_hb_amp, L_weights_phase, L_vb_phase, L_hb_phase = self.compute_rotated_grads(v0, chars_batch[row_count], 
 																														num_non_trivial_unitaries,
 																														z_indices, tau_indices) 
 
 
-				"""Gradents of amplitude parameters take the real part of the rotated gradients."""
+				# Gradents of amplitude parameters take the real part of the rotated gradients.
 				g_weights_amp -= L_weights_amp[0] / batch_size
 				g_vb_amp      -= L_vb_amp[0] / batch_size
 				g_hb_amp      -= L_hb_amp[0] / batch_size
 				
-				"""Gradents of phase parameters take the imaginary part of the rotated gradients."""
+				# Gradents of phase parameters take the imaginary part of the rotated gradients.
 				g_weights_phase += L_weights_phase[1] / batch_size
 				g_vb_phase      += L_vb_phase[1] / batch_size
 				g_hb_phase      += L_hb_phase[1] / batch_size
 
 		batch, h0_amp_batch, vk_amp_batch, hk_amp_batch, phk_amp_batch = self.gibbs_sampling_amp(k, batch) 
 		for i in range(batch_size):
-			"""Negative phase of amplitude gradient. Phase parameters do not have a negative phase."""
+			# Negative phase of amplitude gradient. Phase parameters do not have a negative phase.
 			g_weights_amp += torch.ger(F.sigmoid(F.linear(vk_amp_batch[i], self.weights_amp, self.hidden_bias_amp)), vk_amp_batch[i]) / batch_size 
 			g_vb_amp      += vk_amp_batch[i] / batch_size
 			g_hb_amp      += F.sigmoid(F.linear(vk_amp_batch[i], self.weights_amp, self.hidden_bias_amp)) / batch_size
 			
 	   
-		"""Perform weight regularization if L1 and/or L2 are not zero."""
-	  
+		# Perform weight regularization if L1 and/or L2 are not zero.
 		if L1_reg != 0 or L2_reg != 0:
 			g_weights_amp   = self.regularize_weight_gradients_amp(g_weights_amp, L1_reg, L2_reg)
 			g_weights_phase = self.regularize_weight_gradients_phase(g_weights_phase, L1_reg, L2_reg)
 
-		"""Add small random noise to weight gradients if stddev is not zero."""
+		# Add small random noise to weight gradients if stddev is not zero.
 		if stddev != 0.0:
 			g_weights_amp   += (stddev*torch.randn_like(g_weights_amp, device = self.device))
 			g_weights_phase += (stddev*torch.randn_like(g_weights_phase, device = self.device))
@@ -226,7 +222,7 @@ class RBM(nn.Module):
 									  device=self.device, dtype = torch.double)
 		A_hb_phase      = torch.zeros(2, self.hidden_bias_phase.size()[0], 
 									  device=self.device, dtype = torch.double)
-		""" 'B' will contain the coefficients of the rotated unnormalized wavefunction. """
+		# 'B' will contain the coefficients of the rotated unnormalized wavefunction.
 		B = torch.zeros(2, device = self.device, dtype = torch.double)
 
 		w_grad_amp      = torch.zeros_like(self.weights_amp)
@@ -240,25 +236,25 @@ class RBM(nn.Module):
 		zeros_for_w  = torch.zeros_like(w_grad_amp)
 		zeros_for_vb = torch.zeros_like(vb_grad_amp)
 		zeros_for_hb = torch.zeros_like(hb_grad_amp) 
-		"""NOTE! THIS WILL CURRENTLY ONLY WORK IF AND ONLY IF THE NUMBER OF HIDDEN UNITS FOR PHASE AND AMP ARE THE SAME!!!"""
+		# NOTE! THIS WILL CURRENTLY ONLY WORK IF AND ONLY IF THE NUMBER OF HIDDEN UNITS FOR PHASE AND AMP ARE THE SAME!!!
 
-		"""Loop over Hilbert space of the non trivial unitaries to build the state."""
+		# Loop over Hilbert space of the non trivial unitaries to build the state.
 		for j in range(2**num_non_trivial_unitaries):
 			s = self.state_generator(num_non_trivial_unitaries)[j]
-			"""Creates a matrix where the jth row is the desired state, |S>, a vector."""
+			# Creates a matrix where the jth row is the desired state, |S>, a vector.
 	
-			"""This is the sigma state."""	
+			# This is the sigma state.
 			constructed_state = torch.zeros(self.num_visible, dtype = torch.double)
 			
 			U = torch.tensor([1., 0.], dtype = torch.double, device = self.device)
 		
-			"""Populate the |sigma> state (aka constructed_state) accirdingly. """
+			# Populate the |sigma> state (aka constructed_state) accirdingly.
 			for index in range(len(z_indices)):
-				"""These are the sites in the computational basis."""
+				# These are the sites in the computational basis.
 				constructed_state[z_indices[index]] = v0[z_indices[index]]
 		
 			for index in range(len(tau_indices)):
-				"""These are the sites that are NOT in the computational basis. """
+				# These are the sites that are NOT in the computational basis.
 				constructed_state[tau_indices[index]] = s[index]
 		
 				aa = self.unitaries[characters[tau_indices[index]]]
@@ -269,7 +265,7 @@ class RBM(nn.Module):
 		
 				U = cplx.scalar_mult(U, temp)
 			
-			"""Positive phase gradients for phase and amp. Will be added into the 'A' parameters."""
+			# Positive phase gradients for phase and amp. Will be added into the 'A' parameters.
 			w_grad_amp  = torch.ger(F.sigmoid(F.linear(constructed_state, self.weights_amp, self.hidden_bias_amp)), constructed_state)
 			vb_grad_amp = constructed_state
 			hb_grad_amp = F.sigmoid(F.linear(constructed_state, self.weights_amp, self.hidden_bias_amp))
@@ -290,7 +286,7 @@ class RBM(nn.Module):
 			temp_vb_grad_phase = cplx.make_complex_vector(vb_grad_phase, zeros_for_vb)
 			temp_hb_grad_phase = cplx.make_complex_vector(hb_grad_phase, zeros_for_hb)
 		
-			""" Temp = U*psi(sigma)"""
+			# Temp = U*psi(sigma)
 			temp = cplx.scalar_mult(U, self.unnormalized_wavefunction(constructed_state))
 			
 			A_weights_amp += cplx.MS_mult(temp, temp_w_grad_amp)
@@ -301,7 +297,7 @@ class RBM(nn.Module):
 			A_vb_phase      += cplx.VS_mult(temp, temp_vb_grad_phase)
 			A_hb_phase      += cplx.VS_mult(temp, temp_hb_grad_phase)
 		   
-			"""Rotated wavefunction."""
+			# Rotated wavefunction.
 			B += temp
 		
 		L_weights_amp = cplx.MS_divide(A_weights_amp, B)
@@ -350,10 +346,10 @@ class RBM(nn.Module):
 		:returns: Currently returns nothing. Just calculates fidelity. Will eventually need to return weights and biases (and save them). 
 		"""
 		
-		"""Make data file into a torch tensor."""
+		# Make data file into a torch tensor.
 		data = torch.tensor(data).to(device=self.device)
 
-		"""Use the Adam optmizer to update the weights and biases."""
+		# Use the Adam optmizer to update the weights and biases.
 		optimizer = torch.optim.Adam([self.weights_amp,
 									  self.visible_bias_amp,
 									  self.hidden_bias_amp,
@@ -365,33 +361,33 @@ class RBM(nn.Module):
 		vis = self.generate_visible_space()
 		print ('Generated visible space. Ready to begin training.')
 
-		"""Empty lists to put calculated convergence quantities in."""
+		# Empty lists to put calculated convergence quantities in.
 		fidelity_list = []
 		epoch_list = []
 
 		for ep in range(0,epochs+1):
-			"""Shuffle the data to ensure that the batches taken from the data are random data points.""" 
+			# Shuffle the data to ensure that the batches taken from the data are random data points.
 			random_permutation = torch.randperm(data.shape[0])
 
 			shuffled_data           = data[random_permutation]   
 			shuffled_character_data = character_data[random_permutation]
 
-			"""List of all the batches."""
+			# List of all the batches.
 			batches = [shuffled_data[batch_start:(batch_start + batch_size)] 
 					   for batch_start in range(0, len(data), batch_size)]
 
-			"""List of all the bases."""
+			# List of all the bases.
 			char_batches = [shuffled_character_data[batch_start:(batch_start + batch_size)] 
 							for batch_start in range(0, len(data), batch_size)]
 
-			"""Calculate convergence quantities every "log-every" steps."""
+			# Calculate convergence quantities every "log-every" steps.
 			if ep % log_every == 0:
 				fidelity_ = self.fidelity(vis, 'Z' 'Z')
 				print ('Epoch = ',ep,'\nFidelity = ',fidelity_)
 				fidelity_list.append(fidelity_)
 				epoch_list.append(ep)
 		   
-			"""Save fidelities at the end of training.""" 
+			# Save fidelities at the end of training.
 			if ep == epochs:
 				print ('Finished training. Saving results...' )               
 				fidelity_file = open('fidelity_file.txt', 'w')
@@ -407,21 +403,21 @@ class RBM(nn.Module):
 				[initial_gaussian_noise / ((1 + ep) ** gamma)],
 				dtype=torch.double, device=self.device).sqrt()
 
-			"""Loop through all of the batches and calculate the batch gradients."""
+			# Loop through all of the batches and calculate the batch gradients.
 			for batch_index in range(len(batches)):
 				
 				grads = self.compute_batch_gradients(k, batches[batch_index], char_batches[batch_index],
 													 L1_reg, L2_reg,
 													 stddev=stddev)
 
-				"""Clear any cached gradients."""
+				# Clear any cached gradients.
 				optimizer.zero_grad()  
 
-				"""Assign all available gradients to the corresponding parameter."""
+				# Assign all available gradients to the corresponding parameter.
 				for name in grads.keys():
 					getattr(self, name).grad = grads[name]
 			   
-				"""Tell the optimizer to apply the gradients and update the parameters.""" 
+				# Tell the optimizer to apply the gradients and update the parameters.
 				optimizer.step()  
 			   
 	def prob_v_given_h_amp(self, h):
