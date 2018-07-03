@@ -18,25 +18,15 @@ scalars: s[2]                  >>> 2 = real and imaginary part
 def make_complex_vector(x, y):
 	"""A function that takes two vector (a REAL (x) and IMAGINARY part (y)) and returns the combined complex tensor.
 	
+	:param x: The real part of your vector.
+	:type x: torch.doubleTensor
+	:param y: The imaginary part of your vector.
+	:type y: torch.doubleTensor
 	
-	# Arguments
-	
-	x: torch.doubleTensor
-		The real part of your vector.
-	y: torch.doubleTensor
-		The imaginary part of your vector.
+	:raises ValueError:	This function will not execute if x and y do not have the same dimension.
 
-	
-	# Raises
-	
-	ValueError
-		This function will not execute if x and y do not have the same dimension.
-
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The full vector with the real and imaginary parts seperated as previously mentioned.
+	:returns: The full vector with the real and imaginary parts seperated as previously mentioned.
+	:rtype: torch.doubleTensor
 	"""	
 	if x.size()[0] != y.size()[0]:
 		raise ValueError('Real and imaginary parts do not have the same dimension.')
@@ -49,26 +39,16 @@ def make_complex_vector(x, y):
 
 def make_complex_matrix(x, y):
 	"""A function that takes two tensors (a REAL (x) and IMAGINARY part (y)) and returns the combine complex tensor.
-
-
-	# Arguments
 	
-	x: torch.doubleTensor
-		The real part of your matrix.
-	y: torch.doubleTensor
-		The imaginary part of your matrix.
-
-	# Raises
+	:param x: The real part of your matrix.
+	:type x: torch.doubleTensor
+	:param y: The imaginary part of your matrix.
+	:type y: torch.doubleTensor
 	
-	ValueError
-		This function will not execute if x and y do not have the same dimension.
+	:raises ValueError:	This function will not execute if x and y do not have the same dimension.
 
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The full vector with the real and imaginary parts seperated as previously mentioned.
-
+	:returns: The full vector with the real and imaginary parts seperated as previously mentioned.
+	:rtype: torch.doubleTensor
 	"""
 	if x.size()[0] != y.size()[0] or x.size()[1] != y.size()[1]:
 		raise ValueError(
@@ -83,25 +63,15 @@ def make_complex_matrix(x, y):
 def scalar_mult(x, y):
 	"""A function that does complex scalar multiplication between two complex scalars, x and y.
 
-
-	# Arguments
+	:param x: A complex scalar. (x[0], x[1]) = (real part, imaginary part).
+	:type x: torch.doubleTensor
+	:param y: A complex scalar. (x[0], x[1]) = (real part, imaginary part).
+	:type y: torch.doubleTensor
 	
-	x: torch.doubleTensor
-		A complex scalar. (x[0], x[1]) = (real part, imaginary part).
-	y: torch.doubleTensor
- 		A complex scalar. (x[0], x[1]) = (real part, imaginary part).
-
-
-	# Raises
+	:raises ValueError:	If x or y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.
 	
-	ValueError
-		If x or y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.
-	
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The product of x and y.
+	:returns: The product of x and y.
+	:rtype: torch.doubleTensor
 	"""
 	if list(x.size())[0] < 2 or list(y.size())[0] < 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -115,25 +85,15 @@ def scalar_mult(x, y):
 def VS_mult(x, y):
 	"""A function that returns x*y, where x is a complex scalar and y is a complex vector.
 	
-
-	# Arguments
+	:param x: A complex scalar.
+	:type x: torch.doubleTensor
+	:param y: A complex vector.
+	:type y: torch.doubleTensor
 	
-	x: torch.doubleTensor
-		A complex scalar.
-	y: torch.doubleTensor
-		A complex vector.
-
-
-	# Raises
+	:raises ValueError:	If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.
 	
-	ValueError
-		If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.
-
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The vector scalar product of x and y.
+	:returns: The vector scalar product of x and y.
+	:rtype: torch.doubleTensor
 	"""
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -148,26 +108,15 @@ def VS_mult(x, y):
 def MS_mult(x, y):
 	"""A function that takes a given input complex matrix (y) and multiplies it by a complex scalar (x).
 	
+	:param x: A complex scalar.
+	:type x: torch.doubleTensor
+	:param y: A complex matrix.
+	:type y: torch.doubleTensor
 	
-	# Arguments
+	:raises ValueError: If y is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if x's dimension is not 2, the function will not execute.
 	
-	x: torch.doubleTensor
-		A complex scalar.
-	y: torch.doubleTensor
-		A complex matrix.
-
-	
-	# Raises
-	
-	ValueError
-		If y is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if x's dimension is not 2, the function will not execute.
-
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The matrix-scalar product - x*y.
-
+	:returns: The matrix-scalar product - x*y.
+	:rtype: torch.doubleTensor
 	"""
 	if len(list(y.size())) != 3 or list(y.size())[0] != 2 or list(x.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -180,25 +129,15 @@ def MS_mult(x, y):
 def MV_mult(x, y):
 	"""A function that returns x*y, where x is a complex tensor and y is a complex vector.
 	
+	:param x: A complex matrix.
+	:type x: torch.doubleTensor
+	:param y: A complex vector.
+	:type y: torch.doubleTensor
 
-	# Arguments
-	
-	x: torch.doubleTensor
-		A complex matrix.
-	y: torch.doubleTensor
-		A complex vector.
+	:raises ValueError: If y is not a complex vector (i.e. has 2 dimensions) and if its first dimension is not 2, OR if x is not a complex matrix (i.e. has 3 dimensions) and if its first dimention is not 2, then the function will not execute.
 
-
-	# Raises
-	
-	ValueError 
-		If y is not a complex vector (i.e. has 2 dimensions) and if its first dimension is not 2, OR if x is not a complex matrix (i.e. has 3 dimensions) and if its first dimention is not 2, then the function will not execute.
-
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The matrix-vector product, xy.
+	:returns: The matrix-vector product, xy.
+	:rtype: torch.doubleTensor
 	"""
 	if len(list(x.size())) != 3 or len(list(y.size())) != 2 or list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -213,25 +152,15 @@ def MV_mult(x, y):
 def MM_mult(x, y):
 	"""A function that returns x*y, where x and y are complex tensors.
 	
+	:param x: A complex matrix.
+	:type x: torch.doubleTensor
+	:param y: A complex matrix.
+	:type y: torch.doubleTensor
 
-	# Arguments
+	:raises ValueError:	If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.
 	
-	x: torch.doubleTensor
-		A complex matrix.
-	y: torch.doubleTensor
-		A complex matrix.
-
-
-	# Raises
-	
-	ValueError
-		If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.
-
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The matrix-matrix product, xy.
+	:returns: The matrix-matrix product, xy.
+	:rtype: torch.doubleTensor
 	"""
 	if len(list(x.size())) != 3 or len(list(y.size())) != 3 or list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -245,25 +174,15 @@ def MM_mult(x, y):
 def inner_prod(x, y):
 	"""A function that returns the inner product of two complex vectors, x and y >>> <x|y>.
 
-
-	# Arguments
+	:param x: A complex vector.
+	:type x: torch.doubleTensor
+	:param y: A complex vector.
+	:type y: torch.doubleTensor
 	
-	x: torch.doubleTensor
-		A complex vector.
-	y: torch.doubleTensor
-		A complex vector.
-
+	:raises ValueError: If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.
 	
-	# Raises
-	
-	ValueError
-		If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.
-
-	
-	# Returns
-	
-	z: torch.doubleTensor
-		The inner product, <x|y>
+	:returns: The inner product, :math:`\\langle x\\vert y\\rangle`.
+	:rtype: torch.doubleTensor
 	"""
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -277,25 +196,15 @@ def inner_prod(x, y):
 def outer_prod(x, y):
 	"""A function that returns the outer product of two complex vectors, x and y.
 	
-
-	# Arguments
+	:param x: A complex vector.
+	:type x: torch.doubleTensor
+	:param y: A complex vector.
+	:type y: torch.doubleTensor
 	
-	x: torch.doubleTensor
-		A complex vector.
-	y: torch.doubleTensor
-		A complex vector.
-
+	:raises ValueError:	If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.
 	
-	# Raises
-	
-	ValueError
-		If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.
-
-	
-	# Returns
-	
-	z: torch.doubleTensor
-		The outer product between x and y, |x><y|.
+	:returns: The outer product between x and y, :math:`\\vert x \\rangle\\langle y\\vert`.
+	:rtype: torch.doubleTensor
 	"""
 	if len(list(x.size())) < 2 or len(list(y.size())) < 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -309,23 +218,13 @@ def outer_prod(x, y):
 def compT_matrix(x):
 	"""A function that returns the complex transpose of a complex tensor, x.
 	
-
-	# Arguments
+	:param x: A complex matri.
+	:type x: torch.doubleTensor
 	
-	x: torch.doubleTensor
-		A complex matrix
-
-
-	# Raises
+	:raises ValueError:	If x does not have 3 dimensions and its first dimension isn't 2, the function cannot execute.
 	
-	ValueError
-		If x does not have 3 dimensions and its first dimension isn't 2, the function cannot execute.
-
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The complex transpose of x.
+	:returns: The complex transpose of x.
+	:rtype: torch.doubleTensor
 	"""
 	if len(list(x.size())) != 3 or list(x.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -338,25 +237,14 @@ def compT_matrix(x):
 
 def compT_vector(x):
 	"""A function that returns the complex conjugate of a complex vector, x.
-
-
-	# Arguments
 	
-	x: torch.doubleTensor
-		A complex vector.
+	:param x: A complex vector.
+	:type x: torch.doubleTensor
 
-
-	# Raises
+	:raises ValueError:	If x does not have 2 dimensions and its first dimension isn't 2, the function cannot execute.
 	
-	ValueError
-		If x does not have 2 dimensions and its first dimension isn't 2, the function cannot execute.
-
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The complex transpose of x.
-
+	:returns: The complex transpose of x.
+	:rtype: torch.doubleTensor
 	"""
 	if len(list(x.size())) != 2 or list(x.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -369,26 +257,16 @@ def compT_vector(x):
 
 def kronecker_prod(x, y):
 	"""A function that returns the tensor / kronecker product of 2 comlex tensors, x and y.
-
-
-	# Arguments
 	
-	x: torch.doubleTensor
-		A complex matrix.
-	y: torch.doubleTensor
-		A complex matrix.
-
-
-	# Raises
+	:param x: A complex matrix.
+	:type x: torch.doubleTensor
+	:param y: A complex matrix.
+	:type y: torch.doubleTensor
 	
-	ValueError
-		If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.
+	:raises ValueError: If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.
 
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The tensorproduct of x and y.
+	:returns: The tensorproduct of x and y, :math:`x \\otimes y`.
+	:rtype: torch.doubleTensor
 	"""
 	if len(list(x.size())) != 3 or len(list(y.size())) != 3:
 		raise ValueError('An input is not of the right dimension.')
@@ -417,26 +295,16 @@ def kronecker_prod(x, y):
 
 def VS_divide(x,y):
 	"""Computes x/y, where x is a complex vector and y is a complex scalar.
-
 	
-	# Arguments
+	:param x: A complex vector.
+	:type x: torch.doubleTensor
+	:param y: A complex scalar.
+	:type y: torch.doubleTensor
 	
-	x: torch.doubleTensor
-		A complex vector.
-	y: torch.doubleTensor
-		A complex scalar.
-
-
-	# Raises
+	:raises ValueError:	If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.
 	
-	ValueError
-		If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.
-
-
-	# Returns
-	
-	z: torch.doubleTensor
-		z = x/y.
+	:returns: :math:`\\frac{x}{y}`.
+	:rtype: torch.doubleTensor
 	"""
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -452,26 +320,16 @@ def VS_divide(x,y):
 
 def MS_divide(x,y):
 	"""Computes x/y, where x is a complex tensor and y is a complex scalar.
-
-
-	# Arguments
 	
-	x: torch.doubleTensor
-		A complex matrix.
-	y: torch.doubleTensor
-		A complex scalar.
-
+	:param x: A complex matrix.
+	:type x: torch.doubleTensor
+	:param y: A complex scalar.i
+	:type y: torch.doubleTensor
 	
-	# Raises
+	:raises ValueError:	If x is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if y's dimension is not 2, the function will not execute.
 	
-	ValueError
-		If x is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if y's dimension is not 2, the function will not execute.
-
-
-	# Returns
-	
-	z: torch.doubleTensor
-		z = x/y
+	:returns: :math:`\\frac{x}{y}`.
+	:rtype: torch.doubleTensor
 	"""
 	if list(x.size())[0] != 2 or list(y.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')
@@ -486,25 +344,15 @@ def MS_divide(x,y):
 	return numerator / denominator
 
 def norm(x):
-	"""A function that returns |<x|x>|^2. Argument must be <x|x> (i.e. a scalar).
+	"""A function that returns the norm of the argument. 
 
-
-	# Arguments
-		
-	x: torch.doubleTensor
-		A complex scalar.
-
-
-	# Raises
+	:param x: A complex scalar.
+	:type x: torch.doubleTensor
 	
-	ValueError
-		If x is not a complex scalar, this function will not execute.
+	:raises ValueError:	If x is not a complex scalar, this function will not execute.
 
-
-	# Returns
-	
-	z: torch.doubleTensor
-		The norm of x.
+	:returns: :math:`|x|^2`.
+	:rtype: torch.doubleTensor
 	"""
 	if list(x.size())[0] != 2:
 		raise ValueError('An input is not of the right dimension.')

@@ -34,9 +34,9 @@ def cli():
 @click.option('-m', '--momentum', default=0.5, show_default=True, type=float,
               help=("value of the momentum parameter; ignored if "
                     "using SGD or Adam optimization"))
-@click.option('--l1', default=0, show_default=True, type=float,
+@click.option('--L1', default=0, show_default=True, type=float,
               help="L1 regularization parameter")
-@click.option('--l2', default=0, show_default=True, type=float,
+@click.option('--L2', default=0, show_default=True, type=float,
               help="L2 regularization parameter")
 @click.option('--log-every', default=10, show_default=True, type=int,
               help=("how often the validation statistics are recorded, "
@@ -45,7 +45,7 @@ def cli():
               help="random seed to initialize the RBM with")
 
 def train(train_path, basis_path, num_hidden_amp, num_hidden_phase, epochs, batch_size,
-          k, learning_rate, momentum, l1, l2,
+          k, learning_rate, momentum, L1, L2,
           seed, log_every):
     """Train an RBM"""
 
@@ -95,7 +95,7 @@ def train(train_path, basis_path, num_hidden_amp, num_hidden_phase, epochs, batc
               batch_size, k=k,
               lr=learning_rate,
               momentum=momentum,
-              l1_reg=l1, l2_reg=l2,
+              L1_reg=L1, L2_reg=L2,
               log_every=log_every,
               )
 
