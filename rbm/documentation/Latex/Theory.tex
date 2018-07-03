@@ -105,6 +105,8 @@ rbm.sample(num_samples, k)
 
 \subsection{Observables}
 
+Observables like energy, magnetisation, etc. can be calculated directly on the sampled data from the RBM
+
 \subsection{Fidelity}
 
 If one has access to the wave function $\psi(\bm{\sigma)}$ that is approximated by the RBM $\psi_{\Theta}(\bm{\sigma})$ the fidelity can be computed via $\sum_{\bm{\sigma}} \psi(\bm{\sigma)} \psi_{\Theta}(\bm{\sigma})$. This can be used to verify for example that experimental data actually comes from the state that should be prepared in an experiment. Because of the exponential growth of the wave function this is only feasible for small physical systems.
@@ -198,27 +200,5 @@ The Gibbs sampling is done $k$ times back and forth. The contrastive divergence 
 \end{algorithm}
 
 
-
-
-
-\section{Algorithm example}
-
-\begin{algorithm}
-	 \caption{Training Algorithm of RBM. \textbf{RBM.train}() }
-  \SetAlgoLined
-  \KwData{this text}
-  \KwResult{how to write algorithm with \LaTeX2e }
-  initialization\;
-  \While{not at end of this document}{
-    read current\;
-    \eIf{understand}{
-      go to next section \Comment*[r]{Some comment}
-      current section becomes this one\;
-    }{
-      go back to the beginning of current section\;
-    }
-  }
- 
-\end{algorithm}
 
 \end{document}\grid
