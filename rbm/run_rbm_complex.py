@@ -1,4 +1,4 @@
-from rbm_complex import RBM
+from rbm_complex import RBMcomplex
 import click
 import gzip
 import pickle
@@ -19,10 +19,10 @@ def cli():
 @click.option('--basis-path', default='../benchmarks/data/2qubits_complex/2qubits_train_bases.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the basis data")
-@click.option('-n', '--num-hidden-amp', default=None, type=int,
+@click.option('-nha', '--num-hidden-amp', default=None, type=int,
               help=("number of hidden units in the amp RBM; defaults to "
                     "number of visible units"))
-@click.option('-n', '--num-hidden-phase', default=None, type=int,
+@click.option('-nhp', '--num-hidden-phase', default=None, type=int,
               help=("number of hidden units in the phase RBM; defaults to "
                     "number of visible units"))
 @click.option('-e', '--epochs', default=100, show_default=True, type=int)
@@ -31,23 +31,18 @@ def cli():
               help="number of Contrastive Divergence steps")
 @click.option('-l', '--learning-rate', default=1e-3,
               show_default=True, type=float)
-@click.option('-m', '--momentum', default=0.5, show_default=True, type=float,
-              help=("value of the momentum parameter; ignored if "
-                    "using SGD or Adam optimization"))
-@click.option('--L1', default=0, show_default=True, type=float,
-              help="L1 regularization parameter")
-@click.option('--L2', default=0, show_default=True, type=float,
-              help="L2 regularization parameter")
+@click.option('--l1', default=0, show_default=True, type=float,
+              help="l1 regularization parameter")
+@click.option('--l2', default=0, show_default=True, type=float,
+              help="l2 regularization parameter")
 @click.option('--log-every', default=10, show_default=True, type=int,
               help=("how often the validation statistics are recorded, "
                     "in epochs; 0 means no logging"))
 @click.option('--seed', default=1234, show_default=True, type=int,
               help="random seed to initialize the RBM with")
 
-def train(train_path, basis_path, num_hidden_amp, num_hidden_phase, epochs, batch_size,
-          k, learning_rate, momentum, L1, L2,
-          seed, log_every):
-    """Train an RBM"""
+def train(train_path, basis_path, num_hidden_amp, num_hidden_phase, epochs, batch_size, k, learning_rate, l1, l2, seed, log_every):
+    """Train an RBM."""
 
     data = np.loadtxt(train_path, dtype= 'float32')
 
@@ -86,18 +81,12 @@ def train(train_path, basis_path, num_hidden_amp, num_hidden_phase, epochs, batc
     num_hidden_amp   = train_set.shape[-1] if num_hidden_amp is None else num_hidden_amp
     num_hidden_phase = train_set.shape[-1] if num_hidden_phase is None else num_hidden_phase
 
-    rbm = RBM(unitaries=unitary_dictionary, psi_dictionary=psi_dictionary, num_visible=train_set.shape[-1],
+    rbm = RBMcomplex(unitaries=unitary_dictionary, psi_dictionary=psi_dictionary, num_visible=train_set.shape[-1],
               num_hidden_amp=num_hidden_amp,
               num_hidden_phase=num_hidden_phase,
               seed=seed)
 
-    rbm.train(train_set, basis_set, epochs,
-              batch_size, k=k,
-              lr=learning_rate,
-              momentum=momentum,
-              L1_reg=L1, L2_reg=L2,
-              log_every=log_every,
-              )
+    rbm.train(train_set, basis_set, epochs, batch_size, k=k, lr=learning_rate, l1_reg=l1, l2_reg=l2, log_every=log_every)
 
 if __name__ == '__main__':
     cli()

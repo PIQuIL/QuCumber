@@ -7,7 +7,7 @@ import warnings
 import cplx
 from matplotlib import pyplot as plt
 
-class RBM(nn.Module):
+class RBMcomplex(nn.Module):
 	"""Class to build the Restricted Boltzmann Machine.
 
 	:ivar dict unitaries: Dictionary of unitary names (key) that correspond to (2x2) unitary matrices (value).
@@ -36,7 +36,7 @@ class RBM(nn.Module):
 	"""
 	def __init__(self, unitaries, psi_dictionary, num_visible,
 				 num_hidden_amp, num_hidden_phase, gpu=True, seed=1234):
-		super(RBM, self).__init__()
+		super(RBMcomplex, self).__init__()
 		self.num_visible      = int(num_visible)
 		self.num_hidden_amp   = int(num_hidden_amp)
 		self.num_hidden_phase = int(num_hidden_phase)
@@ -85,7 +85,7 @@ class RBM(nn.Module):
 													dtype=torch.double),
 										requires_grad=True)
 		
-	def compute_batch_gradients(self, k, batch, chars_batch, L1, L2, stddev=0.0):
+	def compute_batch_gradients(self, k, batch, chars_batch, l1_reg, l2_reg, stddev=0.0):
 		"""This function will compute the gradients of a batch of the training 
 		data (data_file) given the basis measurements (chars_file).
 
@@ -95,10 +95,10 @@ class RBM(nn.Module):
 		:type batch: torch.doubleTensor
 		:param chars_batch: Batch of bases that correspondingly indicates the basis each site in the batch was measured in.
 		:type chars_batch: array_like (str)
-		:param L1: L1 regularization hyperparameter (default = 0.0)
-		:type L1: double
-		:param L2: L2 regularization hyperparameter (default = 0.0)
-		:type L2: double
+		:param l1_reg: L1 regularization hyperparameter (default = 0.0)
+		:type l1_reg: double
+		:param l2_reg: L2 regularization hyperparameter (default = 0.0)
+		:type l2_reg: double
 		:param stddev: Standard deviation of random noise that can be added to the weights.	This is also a hyperparamter. (default = 0.0)
 		:type stddev: double
 
@@ -166,10 +166,10 @@ class RBM(nn.Module):
 			g_hb_amp      += F.sigmoid(F.linear(vk_amp_batch[i], self.weights_amp, self.hidden_bias_amp)) / batch_size
 			
 	   
-		# Perform weight regularization if L1 and/or L2 are not zero.
-		if L1 != 0 or L2 != 0:
-			g_weights_amp   = self.regularize_weight_gradients_amp(g_weights_amp, L1, L2)
-			g_weights_phase = self.regularize_weight_gradients_phase(g_weights_phase, L1, L2)
+		# Perform weight regularization if l1_reg and/or l2_reg are not zero.
+		if l1_reg != 0 or l2_reg != 0:
+			g_weights_amp   = self.regularize_weight_gradients_amp(g_weights_amp, l1_reg, l2_reg)
+			g_weights_phase = self.regularize_weight_gradients_phase(g_weights_phase, l1_reg, l2_reg)
 
 		# Add small random noise to weight gradients if stddev is not zero.
 		if stddev != 0.0:
@@ -310,11 +310,7 @@ class RBM(nn.Module):
 	   
 		return L_weights_amp, L_vb_amp, L_hb_amp, L_weights_phase, L_vb_phase, L_hb_phase 
 
-	def train(self, data, character_data, epochs, batch_size,
-			  k=1, lr=1e-3, momentum=0.0,
-			  L1=0.0, L2=0.0,
-			  initial_gaussian_noise=0.01, gamma=0.55,
-			  log_every=50):
+	def train(self, data, character_data, epochs, batch_size, k=1, lr=1e-3, l1_reg=0.0, l2_reg=0.0, initial_gaussian_noise=0.01, gamma=0.55, log_every=50, **kwargs):
 
 		"""Execute the training of the RBM.
 
@@ -330,12 +326,10 @@ class RBM(nn.Module):
 		:type k: int
 		:param lr: Learning rate (default = 1.0e-3).
 		:type lr: double		
-		:param momentum: Momentum hyperparameter (default = 0.0).
-		:type momentum: double
-		:param L1: L1 regularization hyperparameter (default = 0.0).
-		:type L1: double
-		:param L2: L2 regularization hyperparameter (default = 0.0).
-		:type L2: double
+		:param l1_reg: L1 regularization hyperparameter (default = 0.0).
+		:type l1_reg: double
+		:param l2_reg: L2 regularization hyperparameter (default = 0.0).
+		:type l2_reg: double
 		:param initial_gaussian_noise: Initial gaussian noise used to calculate stddev of random noise added to weight gradients (default = 0.01).
 		:type initial_gaussian_noise: double	
 		:param gamma: Parameter used to calculate stddev (default = 0.55).
@@ -345,7 +339,6 @@ class RBM(nn.Module):
 
 		:returns: Currently returns nothing. Just calculates fidelity. Will eventually need to return weights and biases (and save them). 
 		"""
-		
 		# Make data file into a torch tensor.
 		data = torch.tensor(data).to(device=self.device)
 
@@ -407,7 +400,7 @@ class RBM(nn.Module):
 			for batch_index in range(len(batches)):
 				
 				grads = self.compute_batch_gradients(k, batches[batch_index], char_batches[batch_index],
-													 L1, L2,
+													 l1_reg, l2_reg,
 													 stddev=stddev)
 
 				# Clear any cached gradients.
@@ -556,39 +549,39 @@ class RBM(nn.Module):
 			ph, h = self.sample_h_given_v_phase(v)
 		return v0, h0, v, h, ph
 
-	def regularize_weight_gradients_amp(self, w_grad, L1, L2):
+	def regularize_weight_gradients_amp(self, w_grad, l1_reg, l2_reg):
 		"""Weight gradient regularization.
 		
 		:param w_grad: The entire weight gradient (amplitude) matrix, :math:`\\nabla_{W_{\\lambda}}NLL`.
 		:type w_grad: torch.doubleTensor
-		:param L1: L1 regularization hyperparameter (default = 0.0).
-		:type L1: double
-		:param L2: L2 regularization hyperparameter (default = 0.0).
-		:type L2: double
+		:param l1_reg: L1 regularization hyperparameter (default = 0.0).
+		:type l1_reg: double
+		:param l2_reg: L2 regularization hyperparameter (default = 0.0).
+		:type l2_reg: double
 
 		:returns: :math:`[\\nabla_{W_{\\lambda}}NLL]_{i,j} = [\\nabla_{W_{\\lambda}}NLL]_{i,j} + L_1sign([W_{\\lambda}]_{i,j}) + L_2\\vert[W_{\\lambda}]_{i,j}\\vert^2`.
 		:rtype: torch.doubleTensor
 		"""
 		return (w_grad
-				+ (L2 * self.weights_amp)
-				+ (L1 * self.weights_amp.sign()))
+				+ (l2_reg * self.weights_amp)
+				+ (l1_reg * self.weights_amp.sign()))
 
-	def regularize_weight_gradients_phase(self, w_grad, L1, L2):
+	def regularize_weight_gradients_phase(self, w_grad, l1_reg, l2_reg):
 		"""Weight gradient regularization.
 		
 		:param w_grad: The entire weight gradient (phase) matrix, :math:`\\nabla_{W_{\\mu}}NLL`.
 		:type w_grad: torch.doubleTensor
-		:param L1: L1 regularization hyperparameter (default = 0.0).
-		:type L1: double
-		:param L2: L2 regularization hyperparameter (default = 0.0).
-		:type L2: double
+		:param l1_reg: L1 regularization hyperparameter (default = 0.0).
+		:type l1_reg: double
+		:param l2_reg: L2 regularization hyperparameter (default = 0.0).
+		:type l2_reg: double
 
 		:returns: :math:`[\\nabla_{W_{\\mu}}NLL]_{i,j} = [\\nabla_{W_{\\mu}}NLL]_{i,j} + L_1sign([W_{\\mu}]_{i,j}) + L_2\\vert[W_{\\mu}]_{i,j}\\vert^2`.
 		:rtype: torch.doubleTensor
 		"""
 		return (w_grad
-				+ (L2 * self.weights_phase)
-				+ (L1 * self.weights_phase.sign()))
+				+ (l2_reg * self.weights_phase)
+				+ (l1_reg * self.weights_phase.sign()))
 
 	def eff_energy_amp(self, v):
 		"""The effective energy of the amplitude RBM. :math:`E_{\\lambda} = b^{\\lambda}v + \\sum_{i}\\log\\sum_{h_{i}^{\\lambda}}e^{h_{i}^{\\lambda}\\left(c_{i}^{\\lambda} + W_{i}^{\\lambda}v\\right)}`.
