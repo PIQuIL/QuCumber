@@ -144,6 +144,7 @@ class RBMcomplex(nn.Module):
 		g_vb_phase      = torch.zeros_like(self.visible_bias_phase)
 		g_hb_phase      = torch.zeros_like(self.hidden_bias_phase)
 
+		[batch, h0_amp_batch, vk_amp_batch, hk_amp_batch, phk_amp_batch] = self.gibbs_sampling(k, batch) 
 		# Iterate through every data point in the batch.
 		for row_count, v0 in enumerate(batch):
 
@@ -170,14 +171,10 @@ class RBMcomplex(nn.Module):
 				# If there are no non-trivial unitaries for the data point v0, 
 				# calculate the positive phase of regular (i.e. non-complex RBM)
 				# gradient. Use the actual data point, v0.
-				g_weights_amp -= torch.ger(F.sigmoid(
-												F.linear(v0, self.weights_amp, 
-														 self.hidden_bias_amp)), 
-										   v0) / batch_size 
+				g_weights_amp -= torch.ger(h0_amp_batch[row_count], v0) / batch_size 
 				g_vb_amp      -= v0 / batch_size
-				g_hb_amp      -= F.sigmoid(F.linear(v0, self.weights_amp, 
-													self.hidden_bias_amp)) / batch_size
-
+				g_hb_amp      -= h0_amp_batch[row_count] / batch_size
+				# TODO  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			else:
 				# Compute the rotated gradients.
 				[L_weights_amp, L_vb_amp, L_hb_amp, L_weights_phase, L_vb_phase, 
@@ -198,20 +195,10 @@ class RBMcomplex(nn.Module):
 				g_weights_phase += L_weights_phase[1] / batch_size
 				g_vb_phase      += L_vb_phase[1] / batch_size
 				g_hb_phase      += L_hb_phase[1] / batch_size
-
-		[batch, h0_amp_batch, vk_amp_batch, hk_amp_batch, phk_amp_batch] = self.gibbs_sampling(k, batch) 
-		for i in range(batch_size):
-			# Negative phase of amplitude gradient. Phase parameters do not have
-			# a negative phase.
-			g_weights_amp += torch.ger(F.sigmoid(F.linear(vk_amp_batch[i], 
-													  	  self.weights_amp, 
-														  self.hidden_bias_amp)), 
-									   vk_amp_batch[i]) / batch_size 
-			g_vb_amp      += vk_amp_batch[i] / batch_size
-			g_hb_amp      += F.sigmoid(F.linear(vk_amp_batch[i], 
-												self.weights_amp, 
-												self.hidden_bias_amp)) / batch_size
-			
+				1
+		g_weights_amp += torch.einsum("ij,ik->jk",(phk_amp_batch, vk_amp_batch)) / batch_size 
+		g_vb_amp      += torch.einsum('ij->j', vk_amp_batch) / batch_size
+		g_hb_amp      += torch.einsum('ij->j', phk_amp_batch) / batch_size
 	   
 		# Perform weight regularization if l1_reg and/or l2_reg are not zero.
 		if l1_reg != 0 or l2_reg != 0:
