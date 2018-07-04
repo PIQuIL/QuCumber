@@ -10,7 +10,7 @@ from tqdm import tqdm, tqdm_notebook
 class RBM_Module(nn.Module):
 
 	def __init__(self, num_visible, num_hidden, zero_weights=False, gpu=True, seed=1234):
-
+		super(RBM_Module, self).__init__()
 		self.num_visible = int(num_visible)
 		self.num_hidden  = int(num_hidden)
 
@@ -45,11 +45,24 @@ class RBM_Module(nn.Module):
 													dtype=torch.double),
 										requires_grad=True)
 
+	def effective_energy(self, v):
+		"""The effective energies of the given visible states.
+		.. :math:`E_{\\lambda} = b^{\\lambda}v + \\sum_{i}\\log\\sum_{h_{i}^{\\lambda}}e^{h_{i}^{\\lambda}\\left(c_{i}^{\\lambda} + W_{i}^{\\lambda}v\\right)}`.
 
-	def __repr__(self):
-		return ("RBM(num_visible={}, num_hidden={}, gpu={})"
-				.format(self.num_visible, self.num_hidden, self.gpu))
+		:param v: The visible states.
+		:type v: torch.doubleTensor
 
+		:returns: The effective energies of the given visible states.
+		:rtype: torch.doubleTensor
+		"""
+		if len(v.shape) < 2:
+			v = v.view(1, -1)
+		visible_bias_term = torch.mv(v, self.visible_bias)
+		hidden_bias_term = F.softplus(
+			F.linear(v, self.weights, self.hidden_bias)
+		).sum(1)
+
+		return visible_bias_term + hidden_bias_term
 
 	def prob_v_given_h(self, h):
 		"""Given a hidden unit configuration, compute the probability
@@ -147,25 +160,6 @@ class RBM_Module(nn.Module):
 				  .to(device=self.device, dtype=torch.double))
 		_, _, v, _, _ = self.gibbs_sampling(k, v0)
 		return v
-
-	def effective_energy(self, v):
-		"""The effective energies of the given visible states.
-		.. :math:`E_{\\lambda} = b^{\\lambda}v + \\sum_{i}\\log\\sum_{h_{i}^{\\lambda}}e^{h_{i}^{\\lambda}\\left(c_{i}^{\\lambda} + W_{i}^{\\lambda}v\\right)}`.
-
-		:param v: The visible states.
-		:type v: torch.doubleTensor
-
-		:returns: The effective energies of the given visible states.
-		:rtype: torch.doubleTensor
-		"""
-		if len(v.shape) < 2:
-			v = v.view(1, -1)
-		visible_bias_term = torch.mv(v, self.visible_bias)
-		hidden_bias_term = F.softplus(
-			F.linear(v, self.weights, self.hidden_bias)
-		).sum(1)
-
-		return visible_bias_term + hidden_bias_term
 
 	def unnormalized_probability(self, v):
 		"""The unnormalized probabilities of the given visible states.
@@ -277,206 +271,206 @@ class RBM_Module(nn.Module):
 
 class BinomialRBM:
 
-	def __init__(self, num_visible, num_hidden, gpu=True, seed=1234)
+	def __init__(self, num_visible, num_hidden, gpu=True, seed=1234):
 
 		self.num_visible = int(num_visible)
 		self.num_hidden  = int(num_hidden)
 		self.rbm_module  = RBM_Module(num_visible, num_hidden, gpu=gpu, seed=seed)
 
-    def regularize_weight_gradients(self, w_grad, l1_reg, l2_reg):
-        """Applies regularization to the given weight gradient
+	def regularize_weight_gradients(self, w_grad, l1_reg, l2_reg):
+		"""Applies regularization to the given weight gradient
 
-        :param w_grad: The entire weight gradient matrix,
-                       :math:`\\nabla_{\\lambda_{weights}}NLL`.
-        :type w_grad: torch.doubleTensor
-        :param l1_reg: l1 regularization hyperparameter (default = 0.0).
-        :type l1_reg: double
-        :param l2_reg: l2 regularization hyperparameter (default = 0.0).
-        :type l2_reg: double
+		:param w_grad: The entire weight gradient matrix,
+					   :math:`\\nabla_{\\lambda_{weights}}NLL`.
+		:type w_grad: torch.doubleTensor
+		:param l1_reg: l1 regularization hyperparameter (default = 0.0).
+		:type l1_reg: double
+		:param l2_reg: l2 regularization hyperparameter (default = 0.0).
+		:type l2_reg: double
 
-        :returns:
-        .. :math: `[\\nabla_{W_{\\lambda}}NLL]_{i,j} =
-                   [\\nabla_{W_{\\lambda}}NLL]_{i,j}
-                    + L_1sign([W_{\\lambda}]_{i,j})
-                    + L_2\\vert[W_{\\lambda}]_{i,j}\\vert^2`.
-        :rtype: torch.doubleTensor
-        """
-        return (w_grad
-                + (l2_reg * self.rbm_module.weights)
-                + (l1_reg * self.rbm_module.weights.sign()))
+		:returns:
+		.. :math: `[\\nabla_{W_{\\lambda}}NLL]_{i,j} =
+				   [\\nabla_{W_{\\lambda}}NLL]_{i,j}
+					+ L_1sign([W_{\\lambda}]_{i,j})
+					+ L_2\\vert[W_{\\lambda}]_{i,j}\\vert^2`.
+		:rtype: torch.doubleTensor
+		"""
+		return (w_grad
+				+ (l2_reg * self.rbm_module.weights)
+				+ (l1_reg * self.rbm_module.weights.sign()))
 
-    def compute_batch_gradients(self, k, batch,
-                                persistent=False,
-                                pbatch=None,
-                                l1_reg=0.0, l2_reg=0.0,
-                                stddev=0.0):
-        """This function will compute the gradients of a batch of the training
-        data (data_file) given the basis measurements (chars_file).
+	def compute_batch_gradients(self, k, batch,
+								persistent=False,
+								pbatch=None,
+								l1_reg=0.0, l2_reg=0.0,
+								stddev=0.0):
+		"""This function will compute the gradients of a batch of the training
+		data (data_file) given the basis measurements (chars_file).
 
-        :param k: Number of contrastive divergence steps in training.
-        :type k: int
-        :param batch: Batch of the input data.
-        :type batch: torch.doubleTensor
-        :param L1_reg: L1 regularization hyperparameter (default = 0.0)
-        :type L1_reg: double
-        :param L2_reg: L2 regularization hyperparameter (default = 0.0)
-        :type L2_reg: double
-        :param stddev: Standard deviation of random noise that can be added to
-                       the weights.	This is also a hyperparameter.
-                       (default = 0.0)
-        :type stddev: double
+		:param k: Number of contrastive divergence steps in training.
+		:type k: int
+		:param batch: Batch of the input data.
+		:type batch: torch.doubleTensor
+		:param L1_reg: L1 regularization hyperparameter (default = 0.0)
+		:type L1_reg: double
+		:param L2_reg: L2 regularization hyperparameter (default = 0.0)
+		:type L2_reg: double
+		:param stddev: Standard deviation of random noise that can be added to
+					   the weights.	This is also a hyperparameter.
+					   (default = 0.0)
+		:type stddev: double
 
-        :returns: Dictionary containing all the gradients.
-        :rtype: dict
-        """
-        if len(batch) == 0:
-            return (torch.zeros_like(self.rbm_module.weights,
-                                     device=self.self.rbm_module.device,
-                                     dtype=torch.double),
-                    torch.zeros_like(self.rbm_module.visible_bias,
-                                     device=self.rbm_module.device,
-                                     dtype=torch.double),
-                    torch.zeros_like(self.rbm_module.hidden_bias,
-                                     device=self.rbm_module.device,
-                                     dtype=torch.double))
+		:returns: Dictionary containing all the gradients.
+		:rtype: dict
+		"""
+		if len(batch) == 0:
+			return (torch.zeros_like(self.rbm_module.weights,
+									 device=self.self.rbm_module.device,
+									 dtype=torch.double),
+					torch.zeros_like(self.rbm_module.visible_bias,
+									 device=self.rbm_module.device,
+									 dtype=torch.double),
+					torch.zeros_like(self.rbm_module.hidden_bias,
+									 device=self.rbm_module.device,
+									 dtype=torch.double))
 
-        if not persistent:
-            v0, h0, vk, hk, phk = self.gibbs_sampling(k, batch)
-        else:
-            # Positive phase comes from training data
-            v0, h0, _, _, _ = self.gibbs_sampling(0, batch)
-            # Negative phase comes from Markov chains
-            _, _, vk, hk, phk = self.gibbs_sampling(k, pbatch)
+		if not persistent:
+			v0, h0, vk, hk, phk = self.rbm_module.gibbs_sampling(k, batch)
+		else:
+			# Positive phase comes from training data
+			v0, h0, _, _, _ = self.rbm_module.gibbs_sampling(0, batch)
+			# Negative phase comes from Markov chains
+			_, _, vk, hk, phk = self.rbm_module.gibbs_sampling(k, pbatch)
 
-        w_grad  = torch.einsum("ij,ik->jk", (h0, v0))
-        vb_grad = torch.einsum("ij->j", (v0,))
-        hb_grad = torch.einsum("ij->j", (h0,))
+		w_grad  = torch.einsum("ij,ik->jk", (h0, v0))
+		vb_grad = torch.einsum("ij->j", (v0,))
+		hb_grad = torch.einsum("ij->j", (h0,))
 
-        w_grad  -= torch.einsum("ij,ik->jk", (phk, vk))
-        vb_grad -= torch.einsum("ij->j", (vk,))
-        hb_grad -= torch.einsum("ij->j", (phk,))
+		w_grad  -= torch.einsum("ij,ik->jk", (phk, vk))
+		vb_grad -= torch.einsum("ij->j", (vk,))
+		hb_grad -= torch.einsum("ij->j", (phk,))
 
-        w_grad  /= float(len(batch))
-        vb_grad /= float(len(batch))
-        hb_grad /= float(len(batch))
+		w_grad  /= float(len(batch))
+		vb_grad /= float(len(batch))
+		hb_grad /= float(len(batch))
 
-        w_grad = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
+		w_grad = self.regularize_weight_gradients(w_grad, l1_reg, l2_reg)
 
-        if stddev != 0.0:
-            w_grad += (stddev * torch.randn_like(w_grad, device=self.rbm_module.device))
+		if stddev != 0.0:
+			w_grad += (stddev * torch.randn_like(w_grad, device=self.rbm_module.device))
 
-        # Return negative gradients to match up nicely with the usual
-        # parameter update rules, which *subtract* the gradient from
-        # the parameters. This is in contrast with the RBM update
-        # rules which ADD the gradients (scaled by the learning rate)
-        # to the parameters.
-        return (
-            {"weights": -w_grad,
-             "visible_bias": -vb_grad,
-             "hidden_bias": -hb_grad},
-            (vk if persistent else None)
-        )
+		# Return negative gradients to match up nicely with the usual
+		# parameter update rules, which *subtract* the gradient from
+		# the parameters. This is in contrast with the RBM update
+		# rules which ADD the gradients (scaled by the learning rate)
+		# to the parameters.
+		return (
+			{"weights": -w_grad,
+			 "visible_bias": -vb_grad,
+			 "hidden_bias": -hb_grad},
+			(vk if persistent else None)
+		)
 
-    def fit(self, data, epochs, batch_size,
-              k=10, persistent=False,
-              lr=1e-3, momentum=0.0,
-              l1_reg=0.0, l2_reg=0.0,
-              initial_gaussian_noise=0.0, gamma=0.55,
-              callbacks=[], progbar=False, starting_epoch=0):
-        """Execute the training of the RBM.
+	def fit(self, data, epochs, batch_size,
+			  k=10, persistent=False,
+			  lr=1e-3, momentum=0.0,
+			  l1_reg=0.0, l2_reg=0.0,
+			  initial_gaussian_noise=0.0, gamma=0.55,
+			  callbacks=[], progbar=False, starting_epoch=0):
+		"""Execute the training of the RBM.
 
-        :param data: The actual training data
-        :type data: array_like of doubles
-        :param epochs: The number of parameter (i.e. weights and biases)
-                       updates (default = 100).
-        :type epochs: int
-        :param batch_size: The size of batches taken from the data
-                           (default = 100).
-        :type batch_size: int
-        :param k: The number of contrastive divergence steps (default = 10).
-        :type k: int
-        :param persistent: Whether to use persistent contrastive divergence
-                           (aka. Stochastic Maximum Likelihood)
-                           (default = False).
-        :type persistent: bool
-        :param lr: Learning rate (default = 1.0e-3).
-        :type lr: double
-        :param momentum: Momentum hyperparameter (default = 0.0).
-        :type momentum: double
-        :param l1_reg: L1 regularization hyperparameter (default = 0.0).
-        :type l1_reg: double
-        :param l2_reg: L2 regularization hyperparameter (default = 0.0).
-        :type l2_reg: double
-        :param initial_gaussian_noise: Initial gaussian noise used to calculate
-                                       stddev of random noise added to weight
-                                       gradients (default = 0.01).
-        :type initial_gaussian_noise: double
-        :param gamma: Parameter used to calculate stddev (default = 0.55).
-        :type gamma: double
-        :param callbacks: A list of Callback functions to call at the beginning
-                          of each epoch
-        :type callbacks: [Callback]
-        :param progbar: Whether or not to display a progress bar. If "notebook"
-                        is passed, will use a Jupyter notebook compatible
-                        progress bar.
-        :type progbar: bool or "notebook"
-        :param starting_epoch: Which epoch to start from. Doesn't actually
-                               affect the model, exists simply for book-keeping
-                               when restarting training.
+		:param data: The actual training data
+		:type data: array_like of doubles
+		:param epochs: The number of parameter (i.e. weights and biases)
+					   updates (default = 100).
+		:type epochs: int
+		:param batch_size: The size of batches taken from the data
+						   (default = 100).
+		:type batch_size: int
+		:param k: The number of contrastive divergence steps (default = 10).
+		:type k: int
+		:param persistent: Whether to use persistent contrastive divergence
+						   (aka. Stochastic Maximum Likelihood)
+						   (default = False).
+		:type persistent: bool
+		:param lr: Learning rate (default = 1.0e-3).
+		:type lr: double
+		:param momentum: Momentum hyperparameter (default = 0.0).
+		:type momentum: double
+		:param l1_reg: L1 regularization hyperparameter (default = 0.0).
+		:type l1_reg: double
+		:param l2_reg: L2 regularization hyperparameter (default = 0.0).
+		:type l2_reg: double
+		:param initial_gaussian_noise: Initial gaussian noise used to calculate
+									   stddev of random noise added to weight
+									   gradients (default = 0.01).
+		:type initial_gaussian_noise: double
+		:param gamma: Parameter used to calculate stddev (default = 0.55).
+		:type gamma: double
+		:param callbacks: A list of Callback functions to call at the beginning
+						  of each epoch
+		:type callbacks: [Callback]
+		:param progbar: Whether or not to display a progress bar. If "notebook"
+						is passed, will use a Jupyter notebook compatible
+						progress bar.
+		:type progbar: bool or "notebook"
+		:param starting_epoch: Which epoch to start from. Doesn't actually
+							   affect the model, exists simply for book-keeping
+							   when restarting training.
 
-        :returns: None
-        """
+		:returns: None
+		"""
 
-        disable_progbar = (progbar is False)
-        progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
+		disable_progbar = (progbar is False)
+		progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
 
-        data = torch.tensor(data).to(device=self.rbm_module.device,
-                                     dtype=torch.double)
-        optimizer = torch.optim.SGD([self.rbm_module.weights,
-                                     self.rbm_module.visible_bias,
-                                     self.rbm_module.hidden_bias],
-                                    lr=lr)
+		data = torch.tensor(data).to(device=self.rbm_module.device,
+									 dtype=torch.double)
+		optimizer = torch.optim.SGD([self.rbm_module.weights,
+									 self.rbm_module.visible_bias,
+									 self.rbm_module.hidden_bias],
+									lr=lr)
 
-        if persistent:
-            dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
-            pbatch = (dist.sample(torch.Size([batch_size, self.num_visible]))
-                          .to(device=self.rbm_module.device, dtype=torch.double))
-        else:
-            pbatch = None
+		if persistent:
+			dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
+			pbatch = (dist.sample(torch.Size([batch_size, self.num_visible]))
+						  .to(device=self.rbm_module.device, dtype=torch.double))
+		else:
+			pbatch = None
 
-        for ep in progress_bar(range(starting_epoch, epochs + 1),
-                               desc="Epochs ", total=epochs,
-                               disable=disable_progbar):
-            batches = DataLoader(data, batch_size=batch_size, shuffle=True)
+		for ep in progress_bar(range(starting_epoch, epochs + 1),
+							   desc="Epochs ", total=epochs,
+							   disable=disable_progbar):
+			batches = DataLoader(data, batch_size=batch_size, shuffle=True)
 
-            for cb in callbacks:
-                cb(self, ep)
+			for cb in callbacks:
+				cb(self, ep)
 
-            if self.stop_training:  # check for stop_training signal
-                break
+			if self.stop_training:  # check for stop_training signal
+				break
 
-            if ep == epochs:
-                break
+			if ep == epochs:
+				break
 
-            stddev = torch.tensor(
-                [initial_gaussian_noise / ((1 + ep) ** gamma)],
-                dtype=torch.double, device=self.rbm_module.device).sqrt()
+			stddev = torch.tensor(
+				[initial_gaussian_noise / ((1 + ep) ** gamma)],
+				dtype=torch.double, device=self.rbm_module.device).sqrt()
 
-            for batch in progress_bar(batches, desc="Batches",
-                                      leave=False, disable=True):
-                grads, pbatch = self.compute_batch_gradients(
-                    k, batch,
-                    pbatch=pbatch,
-                    persistent=persistent,
-                    l1_reg=l1_reg, l2_reg=l2_reg, stddev=stddev)
+			for batch in progress_bar(batches, desc="Batches",
+									  leave=False, disable=True):
+				grads, pbatch = self.compute_batch_gradients(
+					k, batch,
+					pbatch=pbatch,
+					persistent=persistent,
+					l1_reg=l1_reg, l2_reg=l2_reg, stddev=stddev)
 
-                optimizer.zero_grad()  # clear any cached gradients
+				optimizer.zero_grad()  # clear any cached gradients
 
-                # assign all available gradients to the corresponding parameter
-                for name in grads.keys():
-                    getattr(self, name).grad = grads[name]
+				# assign all available gradients to the corresponding parameter
+				for name in grads.keys():
+					getattr(self, name).grad = grads[name]
 
-                optimizer.step()  # tell the optimizer to apply the gradients
+				optimizer.step()  # tell the optimizer to apply the gradients
 
 class ComplexRBM:
 
@@ -489,7 +483,156 @@ class ComplexRBM:
 		self.psi_dictionary   = psi_dictionary
 		self.rbm_amp          = RBM_Module(num_visible, num_hidden_amp, gpu=gpu, seed=seed)
 		self.rbm_phase        = RBM_Module(num_visible, num_hidden_phase, zero_weights=True, gpu=gpu, seed=seed)
-		self.device           = self.device
+		self.device           = self.rbm_amp.device
+
+	def basis_state_generator(self, s):
+		"""Only works for binary visible units at the moment. Generates a vector
+	    given a spin value (0 or 1).
+
+		:param s: A spin's value (either 0 or 1).
+		:type s: double
+
+		:returns: If s = 0, this is the (1,0) state in the basis of the
+				  measurement. If s = 1, this is the (0,1) state in the basis of
+				  the measurement.
+		:rtype: torch.doubleTensor	
+		"""
+		if s == 0.:
+			return torch.tensor([[1., 0.],[0., 0.]], dtype = torch.double)
+		if s == 1.:
+			return torch.tensor([[0., 1.],[0., 0.]], dtype = torch.double) 
+
+	def state_generator(self, num_non_trivial_unitaries):
+		"""A function that returns all possible configurations of
+		'num_non_trivial_unitaries' spins. Similar to generate_visible_space.
+
+		:param num_non_trivial_unitaries: The number of sites measured in the
+										  non-computational basis.
+		:type num_non_trivial_unitaries: int
+  
+		:returns: An array of all possible spin configurations of
+				  'num_non_trivial_unitaries' spins.
+		:rtype: torch.doubleTensor	
+		"""
+		states = torch.zeros((2**num_non_trivial_unitaries, 
+							  num_non_trivial_unitaries), device = self.device,
+							 dtype=torch.double)
+		for i in range(2**num_non_trivial_unitaries):
+			temp = i
+			for j in range(num_non_trivial_unitaries): 
+				temp, remainder = divmod(temp, 2)
+				states[i][num_non_trivial_unitaries - j - 1] = remainder
+		return states
+
+	def unnormalized_probability_amp(self, v):
+		"""The effective energy of the phase RBM.
+
+		:param v: Visible unit(s).
+		:type v: torch.doubleTensor
+
+		:returns: :math:`p_{\\lambda} = e^{E_{\\lambda}}`.
+		:rtype: torch.doubleTensor
+		""" 
+		return self.rbm_amp.effective_energy(v).exp()
+
+	def unnormalized_probability_phase(self, v):
+		"""The effective energy of the phase RBM.
+
+		:param v: Visible unit(s).
+		:type v: torch.doubleTensor
+
+		:returns: :math:`p_{\\mu} = e^{E_{\\mu}}`.
+		:rtype: torch.doubleTensor
+		""" 
+		return self.rbm_phase.effective_energy(v).exp()
+
+	def normalized_wavefunction(self, v):
+		"""The RBM wavefunction.
+
+		:param v: Visible unit(s).
+		:type v: torch.doubleTensor
+		
+		:returns: :math:`\\psi_{\\lambda\\mu} = \\sqrt{\\frac{p_{\\lambda}}{Z_{\\lambda}}}e^{\\frac{i\\log(p_{\\mu})}{2}}`.
+		:rtype: torch.doubleTensor
+		""" 
+		v_prime   = v.view(-1,self.num_visible)
+		temp1     = (self.unnormalized_probability_amp(v_prime)).sqrt()
+		temp2     = ((self.unnormalized_probability_phase(v_prime)).log())*0.5
+
+		cos_angle = temp2.cos()
+		sin_angle = temp2.sin()
+		
+		psi       = torch.zeros(2, v_prime.size()[0], dtype = torch.double)
+		psi[0]    = temp1*cos_angle
+		psi[1]    = temp1*sin_angle
+
+		sqrt_Z    = (self.rbm_amp.partition(self.rbm_amp.generate_visible_space())).sqrt()
+
+		return psi / sqrt_Z
+
+	def unnormalized_wavefunction(self, v):
+		"""The unnormalized RBM wavefunction.
+
+		:param v: Visible unit(s).
+		:type v: torch.doubleTensor
+	
+		:returns: :math:`\\tilde{\\psi}_{\\lambda\mu} =\\sqrt{p_{\\lambda}}e^{\\frac{i\\log(p_{\\mu})}{2}}`.
+		:rtype: torch.doubleTensor
+		""" 
+		v_prime   = v.view(-1,self.num_visible)
+		temp1     = (self.unnormalized_probability_amp(v_prime)).sqrt()
+		temp2     = ((self.unnormalized_probability_phase(v_prime)).log())*0.5
+		cos_angle = temp2.cos()
+		sin_angle = temp2.sin()
+		
+		psi       = torch.zeros(2, v_prime.size()[0], dtype = torch.double)
+		
+		psi[0]    = temp1*cos_angle
+		psi[1]    = temp1*sin_angle
+
+		return psi
+
+	def get_true_psi(self, basis):
+		"""Picks out the true psi in the correct basis.
+		
+		:param basis: E.g. XZZZX.
+		:type basis: str
+
+		:returns: The true wavefunction in the basis.
+		:rtype: torch.doubleTensor
+		"""
+		key = ''
+		for i in range(len(basis)):
+			key += basis[i]
+		return self.psi_dictionary[key]
+
+	def overlap(self, visible_space, basis):
+		"""Computes the overlap between the RBM and true wavefunctions.
+		
+		:param visible_space: An array of all possible spin configurations.
+		:type visible_space: torch.doubleTensor	
+		:param basis: E.g. XZZZX.
+		:type basis: str
+		
+		:returns: :math:`O = \\langle{\\psi_{true}}\\vert\\psi_{\\lambda\\mu}\\rangle`.
+		:rtype: double		
+		"""
+		overlap_ = cplx.inner_prod(self.get_true_psi(basis),
+						   self.normalized_wavefunction(visible_space))
+		return overlap_
+
+	def fidelity(self, visible_space, basis):
+		"""Computed the fidelity of the RBM and true wavefunctions. 
+	
+		:param visible_space: An array of all possible spin configurations.
+		:type visible_space: torch.doubleTensor	
+		:param basis: E.g. XZZZX.
+		:type basis: str
+		
+		:returns: :math:`F = |O|^2`.
+		:rtype: double		
+		"""
+		return cplx.norm(self.overlap(visible_space, basis))
 
 	def compute_batch_gradients(self, k, batch, chars_batch, l1_reg, l2_reg, 
 								stddev=0.0):
@@ -518,7 +661,7 @@ class ComplexRBM:
 		:rtype: dict
 		"""
 		
-		vis = self.generate_visible_space()
+		vis = self.rbm_amp.generate_visible_space()
 		batch_size = len(batch)
 
 		g_weights_amp   = torch.zeros_like(self.rbm_amp.weights)
@@ -529,7 +672,7 @@ class ComplexRBM:
 		g_vb_phase      = torch.zeros_like(self.rbm_phase.visible_bias)
 		g_hb_phase      = torch.zeros_like(self.rbm_phase.hidden_bias)
 
-		[batch, h0_amp_batch, vk_amp_batch, hk_amp_batch, phk_amp_batch] = self.gibbs_sampling(k, batch) 
+		[batch, h0_amp_batch, vk_amp_batch, hk_amp_batch, phk_amp_batch] = self.rbm_amp.gibbs_sampling(k, batch) 
 		# Iterate through every data point in the batch.
 		for row_count, v0 in enumerate(batch):
 
@@ -556,10 +699,10 @@ class ComplexRBM:
 				# If there are no non-trivial unitaries for the data point v0, 
 				# calculate the positive phase of regular (i.e. non-complex RBM)
 				# gradient. Use the actual data point, v0.
-				g_weights_amp -= torch.ger(h0_amp_batch[row_count], v0) / batch_size 
+				g_weights_amp -= torch.einsum("i,j->ij",(h0_amp_batch[row_count], v0)) / batch_size 
 				g_vb_amp      -= v0 / batch_size
 				g_hb_amp      -= h0_amp_batch[row_count] / batch_size
-				# TODO  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 			else:
 				# Compute the rotated gradients.
 				[L_weights_amp, L_vb_amp, L_hb_amp, L_weights_phase, L_vb_phase, 
@@ -580,10 +723,11 @@ class ComplexRBM:
 				g_weights_phase += L_weights_phase[1] / batch_size
 				g_vb_phase      += L_vb_phase[1] / batch_size
 				g_hb_phase      += L_hb_phase[1] / batch_size
-				1
+				
+		# Block gibbs sampling for negative phase.	
 		g_weights_amp += torch.einsum("ij,ik->jk",(phk_amp_batch, vk_amp_batch)) / batch_size 
-		g_vb_amp      += torch.einsum('ij->j', vk_amp_batch) / batch_size
-		g_hb_amp      += torch.einsum('ij->j', phk_amp_batch) / batch_size
+		g_vb_amp      += torch.einsum("ij->j", (vk_amp_batch,)) / batch_size
+		g_hb_amp      += torch.einsum("ij->j", (phk_amp_batch,)) / batch_size
 	   
 		# Perform weight regularization if l1_reg and/or l2_reg are not zero.
 		if l1_reg != 0 or l2_reg != 0:
@@ -608,12 +752,13 @@ class ComplexRBM:
 		rules which ADD the gradients (scaled by the learning rate)
 		to the parameters."""
  
-		return {"weights_amp": g_weights_amp,
-				"visible_bias_amp": g_vb_amp,
-				"hidden_bias_amp": g_hb_amp,
-				"weights_phase": g_weights_phase,
-				"visible_bias_phase": g_vb_phase,
-				"hidden_bias_phase": g_hb_phase
+		return { "rbm_amp":{"weights": g_weights_amp,
+				"visible_bias": g_vb_amp,
+				"hidden_bias": g_hb_amp},
+				 "rbm_phase":{
+				"weights": g_weights_phase,
+				"visible_bias": g_vb_phase,
+				"hidden_bias": g_hb_phase}
 				}   
 
 	def compute_rotated_grads(self, v0, characters, num_non_trivial_unitaries, 
@@ -761,7 +906,7 @@ class ComplexRBM:
 		L_hb_phase      = cplx.VS_divide(A_hb_phase, B)
 	   
 		return [L_weights_amp, L_vb_amp, L_hb_amp, L_weights_phase, L_vb_phase,
-			    L_hb_phase ]
+				L_hb_phase ]
 
 	def fit(self, data, character_data, epochs, batch_size, k=1, lr=1e-3, 
 			  l1_reg=0.0, l2_reg=0.0, initial_gaussian_noise=0.01, gamma=0.55, 
@@ -812,7 +957,7 @@ class ComplexRBM:
 									  self.rbm_phase.hidden_bias],
 									  lr=lr)
 
-		vis = self.generate_visible_space()
+		vis = self.rbm_amp.generate_visible_space()
 		print ('Generated visible space. Ready to begin training.')
 
 		# Empty lists to put calculated convergence quantities in.
@@ -861,7 +1006,7 @@ class ComplexRBM:
 			# Loop through all of the batches and calculate the batch gradients.
 			for batch_index in range(len(batches)):
 				
-				grads = self.compute_batch_gradients(k, batches[batch_index], 
+				all_grads = self.compute_batch_gradients(k, batches[batch_index], 
 													 char_batches[batch_index],
 													 l1_reg, l2_reg,
 													 stddev=stddev)
@@ -870,10 +1015,10 @@ class ComplexRBM:
 				optimizer.zero_grad()  
 
 				# Assign all available gradients to the corresponding parameter.
-				for name in grads.keys():
-					getattr(self, name).grad = grads[name]
+				for name, grads  in all_grads.items():
+					selected_RBM = getattr(self, name)
+					for param in grads.keys():
+						getattr(selected_RBM, param).grad = grads[param]
 			   
 				# Tell the optimizer to apply the gradients and update the parameters.
 				optimizer.step()  
-
-

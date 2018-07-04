@@ -54,13 +54,14 @@ class RBMcomplex(nn.Module):
 	:raises ResourceWarning: If a GPU could not be found, continue running the 
 							 program on the CPU.
 	"""
-	def __init__(self, unitaries, psi_dictionary, num_visible,
+	def __init__(self, full_unitaries, unitaries, psi_dictionary, num_visible,
 				 num_hidden_amp, num_hidden_phase, gpu=True, seed=1234):
 		super(RBMcomplex, self).__init__()
 		self.num_visible      = int(num_visible)
 		self.num_hidden_amp   = int(num_hidden_amp)
 		self.num_hidden_phase = int(num_hidden_phase)
 		self.unitaries        = unitaries
+		self.full_unitaries   = full_unitaries
 		self.psi_dictionary   = psi_dictionary
 
 		if gpu and not torch.cuda.is_available():
@@ -132,7 +133,6 @@ class RBMcomplex(nn.Module):
 				  phase.
 		:rtype: dict
 		"""
-		
 		vis = self.generate_visible_space()
 		batch_size = len(batch)
 
@@ -143,6 +143,9 @@ class RBMcomplex(nn.Module):
 		g_weights_phase = torch.zeros_like(self.weights_phase)
 		g_vb_phase      = torch.zeros_like(self.visible_bias_phase)
 		g_hb_phase      = torch.zeros_like(self.hidden_bias_phase)
+
+		# Perform the gibbs sampling right now for the positive phase (if all Z)
+		# and the negative phase (later on)
 
 		[batch, h0_amp_batch, vk_amp_batch, hk_amp_batch, phk_amp_batch] = self.gibbs_sampling(k, batch) 
 		# Iterate through every data point in the batch.
@@ -171,10 +174,10 @@ class RBMcomplex(nn.Module):
 				# If there are no non-trivial unitaries for the data point v0, 
 				# calculate the positive phase of regular (i.e. non-complex RBM)
 				# gradient. Use the actual data point, v0.
-				g_weights_amp -= torch.ger(h0_amp_batch[row_count], v0) / batch_size 
+				g_weights_amp -= torch.einsum("i,j->ij",(h0_amp_batch[row_count], v0)) / batch_size 
 				g_vb_amp      -= v0 / batch_size
 				g_hb_amp      -= h0_amp_batch[row_count] / batch_size
-				# TODO  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 			else:
 				# Compute the rotated gradients.
 				[L_weights_amp, L_vb_amp, L_hb_amp, L_weights_phase, L_vb_phase, 
@@ -182,7 +185,6 @@ class RBMcomplex(nn.Module):
 														 chars_batch[row_count],
 														 num_non_trivial_unitaries, 
 														 z_indices, tau_indices) 
-
 
 				# Gradents of amplitude parameters take the real part of the 
 				# rotated gradients.
@@ -195,10 +197,11 @@ class RBMcomplex(nn.Module):
 				g_weights_phase += L_weights_phase[1] / batch_size
 				g_vb_phase      += L_vb_phase[1] / batch_size
 				g_hb_phase      += L_hb_phase[1] / batch_size
-				1
+		
+		# Block gibbs sampling for negative phase.	
 		g_weights_amp += torch.einsum("ij,ik->jk",(phk_amp_batch, vk_amp_batch)) / batch_size 
-		g_vb_amp      += torch.einsum('ij->j', vk_amp_batch) / batch_size
-		g_hb_amp      += torch.einsum('ij->j', phk_amp_batch) / batch_size
+		g_vb_amp      += torch.einsum("ij->j", (vk_amp_batch,)) / batch_size
+		g_hb_amp      += torch.einsum("ij->j", (phk_amp_batch,)) / batch_size
 	   
 		# Perform weight regularization if l1_reg and/or l2_reg are not zero.
 		if l1_reg != 0 or l2_reg != 0:
@@ -480,7 +483,11 @@ class RBMcomplex(nn.Module):
 													 char_batches[batch_index],
 													 l1_reg, l2_reg,
 													 stddev=stddev)
-
+				'''
+				self.test_gradients(vis, k, batches[batch_index], char_batches[batch_index],
+													 l1_reg, l2_reg,
+												 stddev=stddev)
+				'''
 				# Clear any cached gradients.
 				optimizer.zero_grad()  
 
@@ -826,3 +833,126 @@ class RBMcomplex(nn.Module):
 			return torch.tensor([[1., 0.],[0., 0.]], dtype = torch.double)
 		if s == 1.:
 			return torch.tensor([[0., 1.],[0., 0.]], dtype = torch.double) 
+
+	def KL_divergence(self, visible_space):
+		'''Computes the total KL divergence.
+
+
+		Parameters
+		----------
+		visible_space : torch.doubleTensor
+			An array of all possible spin configurations.
+
+ 
+		Returns
+		----------
+		KL : double
+			The total KL divergence.
+		'''
+		KL = 0.0
+		basis_list = ['X' 'Z', 'Z' 'X', 'Y' 'Z', 'Z' 'Y']
+
+		'''Wavefunctions (RBM and true) in the computational basis.'''
+		psi_ZZ      = self.normalized_wavefunction(visible_space)
+		true_psi_ZZ = self.get_true_psi('ZZ') 
+
+		'''Compute the KL divergence for the non computational bases.'''
+		for i in range(len(basis_list)):
+			rotated_RBM_psi  = cplx.MV_mult(self.full_unitaries[basis_list[i]], self.normalized_wavefunction(visible_space))
+			rotated_true_psi = self.get_true_psi(basis_list[i])
+
+			for j in range(len(visible_space)):
+				elementof_rotated_RBM_psi  = torch.tensor([rotated_RBM_psi[0][j], rotated_RBM_psi[1][j]]).view(2,1)
+				elementof_rotated_true_psi = torch.tensor([rotated_true_psi[0][j], rotated_true_psi[1][j]]).view(2,1)
+
+				norm_true_psi = cplx.norm( cplx.inner_prod(elementof_rotated_true_psi, elementof_rotated_true_psi) )
+				norm_RBM_psi  = cplx.norm( cplx.inner_prod(elementof_rotated_RBM_psi, elementof_rotated_RBM_psi) )
+
+				if norm_true_psi > 0.0:
+					KL += norm_true_psi*torch.log(norm_true_psi)
+				
+				KL -= norm_true_psi*torch.log(norm_RBM_psi)
+
+		'''Compute KL divergence for the computational basis.'''
+		for j in range(len(visible_space)):
+			
+			elementof_ZZ_RBM_psi  = torch.tensor([psi_ZZ[0][j], psi_ZZ[1][j]]).view(2,1)
+			elementof_ZZ_true_psi = torch.tensor([true_psi_ZZ[0][j], true_psi_ZZ[1][j]]).view(2,1)
+			
+			norm_ZZ_true_psi = cplx.norm( cplx.inner_prod(elementof_ZZ_true_psi, elementof_ZZ_true_psi) )
+			norm_ZZ_RBM_psi  = cplx.norm( cplx.inner_prod(elementof_ZZ_RBM_psi, elementof_ZZ_RBM_psi) )
+			
+			if norm_ZZ_true_psi > 0.0:
+				KL += norm_ZZ_true_psi*torch.log(norm_ZZ_true_psi)
+			
+			KL -= norm_ZZ_true_psi*torch.log(norm_ZZ_RBM_psi)
+	
+		return KL
+
+	'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~I'm not commenting these :). Just used for debugging gradients...~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	'''
+
+	def compute_numerical_gradient(self, visible_space, param, alg_grad):
+		eps = 1.e-6
+
+		for i in range(len(param)):
+
+			param[i].data += eps
+			KL_pos = self.KL_divergence(visible_space)
+
+			param[i].data -= 2*eps
+			KL_neg = self.KL_divergence(visible_space)
+
+			param[i].data += eps
+
+			num_grad = (KL_pos - KL_neg) / (2*eps)
+
+			print ('numerical:', num_grad)
+			print ('algebraic: ', alg_grad[i],'\n')
+
+	def test_gradients(self, visible_space, k, batch, chars_batch, l1_reg, l2_reg, stddev):
+		'''Must have negative sign because the compute_batch_grads returns the neg of the grads.'''
+		alg_grads = self.compute_batch_gradients(k, batch, chars_batch, l1_reg, l2_reg, stddev)
+		# key_list = ["weights_amp", "visible_bias_amp", "hidden_bias_amp", "weights_phase", "visible_bias_phase", "hidden_bias_phase"]
+
+		flat_weights_amp   = self.weights_amp.view(-1)
+		flat_weights_phase = self.weights_phase.view(-1)
+		
+		flat_grad_weights_amp   = alg_grads["weights_amp"].view(-1)
+		flat_grad_weights_phase = alg_grads["weights_phase"].view(-1)
+
+		print ('-------------------------------------------------------------------------------')
+
+		print ('Weights amp gradient')
+		self.compute_numerical_gradient(visible_space, flat_weights_amp, -flat_grad_weights_amp)
+		
+		print ('Visible bias amp gradient')
+		self.compute_numerical_gradient(visible_space, self.visible_bias_amp, -alg_grads["visible_bias_amp"])
+
+		print ('Hidden bias amp gradient')
+		self.compute_numerical_gradient(visible_space, self.hidden_bias_amp, -alg_grads["hidden_bias_amp"])
+
+		print ('Weights phase gradient')
+		self.compute_numerical_gradient(visible_space, flat_weights_phase, -flat_grad_weights_phase)
+
+		print ('Visible bias phase gradient')
+		self.compute_numerical_gradient(visible_space, self.visible_bias_phase, -alg_grads["visible_bias_phase"])
+
+		print ('Hidden bias phase gradient')
+		self.compute_numerical_gradient(visible_space, self.hidden_bias_phase, -alg_grads["hidden_bias_phase"])
+
+	def state_to_index(self, state):
+		''' Only for debugging how the unitary is applied to the unnormalized wavefunction - the 'B' term in alg 4.2.'''
+		states = torch.zeros(2**self.num_visible, self.num_visible)
+		npstates = states.numpy()
+		npstate  = state.numpy()
+		for i in range(2**self.num_visible):
+			temp = i
+			
+			for j in range(self.num_visible): 
+				temp, remainder = divmod(temp, 2)
+				npstates[i][self.num_visible - j - 1] = remainder
+			
+			if np.array_equal(npstates[i], npstate):
+				return i

@@ -1,10 +1,11 @@
-from rbm import RBM
+from rbm import RBM_Module, ComplexRBM, BinomialRBM
 import click
 import gzip
 import pickle
 import csv
 import numpy as np
 import torch
+import cplx
 
 @click.group(context_settings={"help_option_names": ['-h', '--help']})
 def cli():
@@ -12,7 +13,7 @@ def cli():
 	pass
 
 def load_train(L):
-	data = np.load("/home/data/critical-2d-ising/L={}/q=2/configs.npy"
+	data = np.load("/home/data/critical-2d-ising/L={}/q=2/configs.npy"	
 				   .format(L))
 	data = data.reshape(data.shape[0], L*L)
 	return data.astype('float32')
@@ -47,7 +48,7 @@ def load_train(L):
 def train_real(train_path, save, num_hidden, epochs, batch_size,
 		  k, learning_rate, momentum, l1, l2,
 		  seed, log_every, no_prog):
-	"""Train an RBM"""
+	"""Train an RBM without any phase."""
 	with gzip.open(train_path) as f:
 		train_set = pickle.load(f, encoding='bytes')
 
@@ -66,13 +67,13 @@ def train_real(train_path, save, num_hidden, epochs, batch_size,
 			  progbar=(not no_prog))
 
 @cli.command("train_complex")
-@click.option('--train-path', default='../benchmarks/data/2qubits_complex/2qubits_train_samples.txt',
+@click.option('--train-path', default='../cpp/data/2qubits_train_samples.txt',
 			  show_default=True, type=click.Path(exists=True),
 			  help="path to the training data")
-@click.option('--basis-path', default='../benchmarks/data/2qubits_complex/2qubits_train_bases.txt',
+@click.option('--basis-path', default='../cpp/data/2qubits_train_bases.txt',
 			  show_default=True, type=click.Path(exists=True),
 			  help="path to the basis data")
-@click.option('--true-psi-path', default='../benchmarks/data/2qubits_complex/2qubits_psi.txt',
+@click.option('--true-psi-path', default='../cpp/data/2qubits_psi.txt',
 			  show_default=True, type=click.Path(exists=True),
 			  help="path to the file containing the true wavefunctions in each basis.")
 @click.option('-nha', '--num-hidden-amp', default=None, type=int,
@@ -98,7 +99,7 @@ def train_real(train_path, save, num_hidden, epochs, batch_size,
 			  help="random seed to initialize the RBM with")
 
 def train_complex(train_path, basis_path, true_psi_path, num_hidden_amp, num_hidden_phase, epochs, batch_size, k, learning_rate, l1, l2, seed, log_every):
-	"""Train an RBM."""
+	"""Train an RBM with a phase."""
 
 	data = np.loadtxt(train_path, dtype= 'float32')
 
@@ -138,10 +139,11 @@ def train_complex(train_path, basis_path, true_psi_path, num_hidden_amp, num_hid
 	num_hidden_amp   = train_set.shape[-1] if num_hidden_amp is None else num_hidden_amp
 	num_hidden_phase = train_set.shape[-1] if num_hidden_phase is None else num_hidden_phase
 
-	rbm = ComplexRBM(unitaries=unitary_dictionary, psi_dictionary=psi_dictionary, num_visible=train_set.shape[-1],
-			  num_hidden_amp=num_hidden_amp,
-			  num_hidden_phase=num_hidden_phase,
-			  seed=seed)
+	rbm = ComplexRBM(unitaries=unitary_dictionary, psi_dictionary=psi_dictionary,
+					 num_visible=train_set.shape[-1], 
+					 num_hidden_amp=num_hidden_amp,
+			  		 num_hidden_phase=num_hidden_phase,
+			  		 seed=seed)
 
 	rbm.fit(train_set, basis_set, epochs, batch_size, k=k, lr=learning_rate, l1_reg=l1, l2_reg=l2, log_every=log_every)
 

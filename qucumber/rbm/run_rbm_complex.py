@@ -10,13 +10,13 @@ def cli():
 	pass
 
 @cli.command("train")
-@click.option('--train-path', default='../benchmarks/data/2qubits_complex/2qubits_train_samples.txt',
+@click.option('--train-path', default='../cpp/data/2qubits_train_samples.txt',
 			  show_default=True, type=click.Path(exists=True),
 			  help="path to the training data")
-@click.option('--basis-path', default='../benchmarks/data/2qubits_complex/2qubits_train_bases.txt',
+@click.option('--basis-path', default='../cpp/data/2qubits_train_bases.txt',
 			  show_default=True, type=click.Path(exists=True),
 			  help="path to the basis data")
-@click.option('--true-psi-path', default='../benchmarks/data/2qubits_complex/2qubits_psi.txt',
+@click.option('--true-psi-path', default='../cpp/data/2qubits_psi.txt',
 			  show_default=True, type=click.Path(exists=True),
 			  help="path to the file containing the true wavefunctions in each basis.")
 @click.option('-nha', '--num-hidden-amp', default=None, type=int,
@@ -66,10 +66,13 @@ def train(train_path, basis_path, true_psi_path, num_hidden_amp, num_hidden_phas
 				unitary_dictionary[character] = cplx.make_complex_matrix(a,b)
 	f.close()
 
-	# Dictionary for true wavefunctions
+	full_unitary_file = np.loadtxt('../cpp/data/2qubits_unitaries.txt')
 	basis_list = ['Z' 'Z', 'X' 'Z', 'Z' 'X', 'Y' 'Z', 'Z' 'Y']
-	psi_file = np.loadtxt(true_psi_path)
+	full_unitary_dictionary = {}
+
+	
 	psi_dictionary = {}
+	psi_file = np.loadtxt(true_psi_path)
 
 	for i in range(len(basis_list)): # 5 possible wavefunctions: ZZ, XZ, ZX, YZ, ZY
 		psi      = torch.zeros(2, 2**train_set.shape[-1], dtype = torch.double)
@@ -79,10 +82,17 @@ def train(train_path, basis_path, true_psi_path, num_hidden_amp, num_hidden_phas
 		psi[1]   = psi_imag
 		psi_dictionary[basis_list[i]] = psi
 		
+		full_unitary      = torch.zeros(2, 2**train_set.shape[-1], 2**train_set.shape[-1], dtype = torch.double)
+		full_unitary_real = torch.tensor(full_unitary_file[i*8:(i*8+4)], dtype = torch.double)
+		full_unitary_imag = torch.tensor(full_unitary_file[(i*8+4):(i*8+8)], dtype = torch.double)
+		full_unitary[0]   = full_unitary_real
+		full_unitary[1]   = full_unitary_imag
+		full_unitary_dictionary[basis_list[i]] = full_unitary
+		
 	num_hidden_amp   = train_set.shape[-1] if num_hidden_amp is None else num_hidden_amp
 	num_hidden_phase = train_set.shape[-1] if num_hidden_phase is None else num_hidden_phase
 
-	rbm = RBMcomplex(unitaries=unitary_dictionary, psi_dictionary=psi_dictionary, num_visible=train_set.shape[-1],
+	rbm = RBMcomplex(full_unitaries = full_unitary_dictionary, unitaries=unitary_dictionary, psi_dictionary=psi_dictionary, num_visible=train_set.shape[-1],
 			  num_hidden_amp=num_hidden_amp,
 			  num_hidden_phase=num_hidden_phase,
 			  seed=seed)
