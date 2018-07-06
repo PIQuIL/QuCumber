@@ -7,7 +7,6 @@ from torch.nn import functional as F
 import warnings
 from tqdm import tqdm, tqdm_notebook
 import csv
-import pandas as pd
 
 class RBM_Module(nn.Module):
 
@@ -125,7 +124,8 @@ class RBM_Module(nn.Module):
 		return p, h
 
 	def gibbs_sampling(self, k, v0):
-		"""Performs k steps of Block Gibbs sampling given an initial visible state v0.
+		"""Performs k steps of Block Gibbs sampling given an initial visible 
+		state v0.
 
 		:param k: Number of Block Gibbs steps.
 		:type k: int
@@ -268,10 +268,7 @@ class RBM_Module(nn.Module):
 		:type l2_reg: double
 
 		:returns:
-		.. :math: `[\\nabla_{W_{\\lambda}}NLL]_{i,j} =
-				   [\\nabla_{W_{\\lambda}}NLL]_{i,j}
-					+ L_1sign([W_{\\lambda}]_{i,j})
-					+ L_2\\vert[W_{\\lambda}]_{i,j}\\vert^2`.
+		.. :math: `[\\nabla_{W_{\\lambda}}NLL]_{i,j} = [\\nabla_{W_{\\lambda}}NLL]_{i,j} + L_1sign([W_{\\lambda}]_{i,j}) + L_2\\vert[W_{\\lambda}]_{i,j}\\vert^2`.
 		:rtype: torch.doubleTensor
 		"""
 		return (w_grad
@@ -280,7 +277,8 @@ class RBM_Module(nn.Module):
 
 class SampleRBM:
 	
-	def __init__(self, num_visible, num_hidden, weights, visible_bias, hidden_bias):
+	def __init__(self, num_visible, num_hidden, weights, visible_bias, 
+				 hidden_bias):
 		self.num_visible  = num_visible
 		self.num_hidden   = num_hidden
 		self.weights      = weights
@@ -344,7 +342,8 @@ class SampleRBM:
 		return p, h
 
 	def gibbs_sampling(self, k, v0):
-		"""Performs k steps of Block Gibbs sampling given an initial visible state v0.
+		"""Performs k steps of Block Gibbs sampling given an initial visible 
+		state v0.
 
 		:param k: Number of Block Gibbs steps.
 		:type k: int
@@ -390,7 +389,8 @@ class BinomialRBM:
 	def __init__(self, num_visible, num_hidden, gpu=True, seed=1234):
 		self.num_visible = int(num_visible)
 		self.num_hidden  = int(num_hidden)
-		self.rbm_module  = RBM_Module(num_visible, num_hidden, gpu=gpu, seed=seed)
+		self.rbm_module  = RBM_Module(num_visible, num_hidden, gpu=gpu, 
+									  seed=seed)
 
 	def overlap(self, visible_space):
 		"""Computes the overlap between the RBM and true wavefunctions.
@@ -406,7 +406,8 @@ class BinomialRBM:
 		sqrt_Z   = (self.rbm_module.partition(visible_space)).sqrt()
 		RBM_psi  = ((self.rbm_module.unnormalized_probability(visible_space)).sqrt()) / sqrt_Z
 
-		true_psi = torch.tensor(np.loadtxt('../cpp/data/tfim1d_N10_psi.txt'), dtype = torch.double, device = self.rbm_module.device)
+		true_psi = torch.tensor(np.loadtxt('../cpp/data/tfim1d_N10_psi.txt'), 
+								dtype=torch.double, device=self.rbm_module.device)
 		print (true_psi.size())
 		overlap_ = torch.dot(RBM_psi,true_psi)
 		return overlap_
@@ -467,7 +468,8 @@ class BinomialRBM:
 			# Negative phase comes from Markov chains
 			_, _, vk, hk, phk = self.rbm_module.gibbs_sampling(k, pbatch)
 
-		prob = F.sigmoid(F.linear(v0, self.rbm_module.weights, self.rbm_module.hidden_bias))
+		prob = F.sigmoid(F.linear(v0, self.rbm_module.weights, 
+						 self.rbm_module.hidden_bias))
 
 		w_grad  = torch.einsum("ij,ik->jk", (prob, v0))
 		vb_grad = torch.einsum("ij->j", (v0,))
@@ -481,10 +483,13 @@ class BinomialRBM:
 		vb_grad /= float(len(batch))
 		hb_grad /= float(len(batch))
 
-		w_grad = self.rbm_module.regularize_weight_gradients(w_grad, self.rbm_module.weights, l1_reg, l2_reg)
+		w_grad = self.rbm_module.regularize_weight_gradients(w_grad, 
+															 self.rbm_module.weights, 
+															 l1_reg, l2_reg)
 
 		if stddev != 0.0:
-			w_grad += (stddev * torch.randn_like(w_grad, device=self.rbm_module.device))
+			w_grad += (stddev * torch.randn_like(w_grad, 
+												 device=self.rbm_module.device))
 
 		# Return negative gradients to match up nicely with the usual
 		# parameter update rules, which *subtract* the gradient from
@@ -626,6 +631,7 @@ class BinomialRBM:
 				optimizer.step()  # tell the optimizer to apply the gradients
 
 	def save_params(self):
+		"""A function that saves weights and biases individually."""
 		trained_params = [self.rbm_module.weights.data.numpy(), 
 					  	  self.rbm_module.visible_bias.data.numpy(), 
 						  self.rbm_module.hidden_bias.data.numpy()]	
@@ -646,15 +652,19 @@ class ComplexRBM:
 	# This is only here for debugging the gradients. Delete this argument when
 	# Gradients have been debugged.
 	def __init__(self, full_unitaries, unitaries, psi_dictionary, num_visible,
-				 num_hidden_amp, num_hidden_phase, test_grads, gpu=True, seed=1234,):
+				 num_hidden_amp, num_hidden_phase, test_grads, gpu=True, 
+				 seed=1234):
+
 		self.num_visible      = int(num_visible)
 		self.num_hidden_amp   = int(num_hidden_amp)
 		self.num_hidden_phase = int(num_hidden_phase)
 		self.full_unitaries	  = full_unitaries
 		self.unitaries        = unitaries
 		self.psi_dictionary   = psi_dictionary
-		self.rbm_amp          = RBM_Module(num_visible, num_hidden_amp, gpu=gpu, seed=seed)
-		self.rbm_phase        = RBM_Module(num_visible, num_hidden_phase, zero_weights=True, gpu=gpu, seed=None)
+		self.rbm_amp          = RBM_Module(num_visible, num_hidden_amp, gpu=gpu,
+										   seed=seed)
+		self.rbm_phase        = RBM_Module(num_visible, num_hidden_phase, 
+										   zero_weights=True, gpu=gpu, seed=None)
 		self.device           = self.rbm_amp.device
 		self.test_grads       = test_grads
 
@@ -713,23 +723,7 @@ class ComplexRBM:
 
 		:param v: Visible unit(s).
 		:type v:	def save_params(self):
-
-		trained_params = [self.rbm_module.weights.data.numpy(), 
-						  self.rbm_module.visible_bias.data.numpy(), 
-						  self.rbm_module.hidden_bias.data.numpy()]
-
-		with open("trained_params.csv", 'w', newline='') as csvfile:
-			datawriter = csv.writer(csvfile, delimiter=',')
-			datawriter.writerows(trained_params[0])
-			datawriter.writerow(trained_params[1])
-			datawriter.writerow(trained_params[2])
-			print (trained_params)	
-		'''
-		np.savetxt('trained_params.csv', trained_params[0], fmt='%.5f', delimiter=',')
-		np.savetxt('trained_params.csv', trained_params[1], fmt='%.5f', delimiter=',')
-		np.savetxt('trained_params.csv', trained_params[2], fmt='%.5f', delimiter=',')
-		''' torch.doubleTensor
-
+		
 		:returns: :math:`p_{\\mu} = e^{E_{\\mu}}`.
 		:rtype: torch.doubleTensor
 		""" 
@@ -1032,7 +1026,7 @@ class ComplexRBM:
 				bb = self.basis_state_generator(v0[tau_indices[index]])
 				cc = self.basis_state_generator(s[index])
 			
-				temp = cplx.inner_prod( cplx.MV_mult(cplx.compT_matrix(aa), bb), cc )
+				temp = cplx.inner_prod(cplx.MV_mult(cplx.compT_matrix(aa), bb), cc)
 		
 				U = cplx.scalar_mult(U, temp)
 			
@@ -1051,7 +1045,7 @@ class ComplexRBM:
 			hb_grad_phase = prob_phase
 
 			"""
-			In order to calculate the 'A' parameters below with my current
+			In order to calculate the 'A' parameters below with the current
 			complex library, I need to make the weights and biases complex.
 			I fill the complex parts of the parameters with a tensor of zeros.
 			"""
@@ -1119,7 +1113,8 @@ class ComplexRBM:
 		:param l2_reg: L2 regularization hyperparameter (default = 0.0).
 		:type l2_reg: double
 		:param initial_gaussian_noise: Initial gaussian noise used to calculate 
-									   stddev of random noise added to weight gradients (default = 0.01).
+									   stddev of random noise added to weight 
+									   gradients (default = 0.01).
 		:type initial_gaussian_noise: double	
 		:param gamma: Parameter used to calculate stddev (default = 0.55).
 		:type gamma: double
@@ -1217,7 +1212,8 @@ class ComplexRBM:
 				optimizer.step()  
 
 	def save_params(self):
-
+		"""A function that saves the weights and biases for the amplitude and 
+		phase individually."""
 		trained_params = [self.rbm_amp.weights.data.numpy(), 
 						  self.rbm_amp.visible_bias.data.numpy(), 
 						  self.rbm_amp.hidden_bias.data.numpy(), 
@@ -1245,7 +1241,6 @@ class ComplexRBM:
 
 	def KL_divergence(self, visible_space):
 		'''Computes the total KL divergence.
-
 
 		Parameters
 		----------
@@ -1299,10 +1294,6 @@ class ComplexRBM:
 		'''
 		return KL
 
-	'''
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~I'm not commenting these :). Just used for debugging gradients...~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	'''
-
 	def compute_numerical_gradient(self, visible_space, param, alg_grad):
 		eps = 1.e-6
 
@@ -1322,7 +1313,7 @@ class ComplexRBM:
 			print ('algebraic: ', alg_grad[i],'\n')
 
 	def test_gradients(self, visible_space, k, batch, chars_batch, l1_reg, l2_reg, stddev):
-		'''Must have negative sign because the compute_batch_grads returns the neg of the grads.'''
+		# Must have negative sign because the compute_batch_grads returns the neg of the grads.
 		alg_grads = self.compute_batch_gradients(k, batch, chars_batch, l1_reg, l2_reg, stddev)
 		# key_list = ["weights_amp", "visible_bias_amp", "hidden_bias_amp", "weights_phase", "visible_bias_phase", "hidden_bias_phase"]
 
