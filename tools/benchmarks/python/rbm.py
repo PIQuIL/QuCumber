@@ -173,7 +173,7 @@ class RBM:
         for _ in range(k):
             v = self.sample_v_given_h(h, rs=rs)
             h = self.sample_h_given_v(v, rs=rs)
-        return v0, h0, v, h, self.prob_h_given_v(v)
+        return v0, self.prob_h_given_v(v0), v, h, self.prob_h_given_v(v)
 
     def sample(self, k, n_samples=1, seed=None):
         """Draw samples from the RBM
@@ -206,18 +206,18 @@ class RBM:
         if not persistent:
             pbatch = batch
             # both positive and negative phases come from training data
-            v0, h0, vk, hk, phk = self.gibbs_sampling(k, pbatch)
+            v0, ph0, vk, hk, phk = self.gibbs_sampling(k, pbatch)
         else:
             # Positive phase comes from training data
-            v0, h0, _, _, _ = self.gibbs_sampling(0, batch)
+            v0, ph0, _, _, _ = self.gibbs_sampling(0, batch)
             # Negative phase comes from persistent Markov chain
             _, _, vk, hk, phk = self.gibbs_sampling(k, pbatch)
             pbatch = vk
 
         # Positive phase of the gradient
-        w_grad = np.einsum("ij,ik->jk", h0, v0)
+        w_grad = np.einsum("ij,ik->jk", ph0, v0)
         v_b_grad = np.einsum("ij->j", v0)
-        h_b_grad = np.einsum("ij->j", h0)
+        h_b_grad = np.einsum("ij->j", ph0)
 
         # Negative phase of the gradient
         w_grad -= np.einsum("ij,ik->jk", phk, vk)

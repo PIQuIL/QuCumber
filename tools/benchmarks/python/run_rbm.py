@@ -109,31 +109,31 @@ def train(train_path, save, num_hidden, epochs, batch_size,
         plt.show()
 
 
-# @cli.command("test")
-# @click.option('--train-path', default='../c++/training_data.txt',
-#               show_default=True)
-# @click.option('--target-path', default='../c++/target_psi.txt',
-#               show_default=True)
-# @click.option('-n', '--num-hidden', default=None, type=int,
-#               help=("number of hidden units in the RBM; defaults to "
-#                     "number of visible units"))
-# @click.option('-k', default=1, show_default=True, type=int,
-#               help="number of Contrastive Divergence steps")
-# @click.option('-e', '--epsilon', default=1e-8, show_default=True, type=float)
-# @click.option('--seed', default=1234, show_default=True, type=int,
-#               help="random seed to initialize the RBM with")
-# def test(train_path, target_path, num_hidden, k, epsilon, seed):
-#     """Tests the RBM's gradient computations"""
-#     train_set = np.loadtxt(train_path)
-#     target_psi = np.loadtxt(target_path)
+@cli.command("test")
+@click.option('--train-path', default='../c++/training_data.txt',
+              show_default=True)
+@click.option('--target-path', default='../c++/target_psi.txt',
+              show_default=True)
+@click.option('-n', '--num-hidden', default=None, type=int,
+              help=("number of hidden units in the RBM; defaults to "
+                    "number of visible units"))
+@click.option('-k', default=1, show_default=True, type=int,
+              help="number of Contrastive Divergence steps")
+@click.option('-e', '--epsilon', default=1e-8, show_default=True, type=float)
+@click.option('--seed', default=1234, show_default=True, type=int,
+              help="random seed to initialize the RBM with")
+def test(train_path, target_path, num_hidden, k, epsilon, seed):
+    """Tests the RBM's gradient computations"""
+    train_set = np.loadtxt(train_path)
+    target_psi = np.loadtxt(target_path)
 
-#     num_hidden = train_set.shape[-1] if num_hidden is None else num_hidden
+    num_hidden = train_set.shape[-1] if num_hidden is None else num_hidden
 
-#     rbm = RBM(num_visible=train_set.shape[-1],
-#               num_hidden=num_hidden,
-#               seed=seed)
+    rbm = RBM(num_visible=train_set.shape[-1],
+              num_hidden=num_hidden,
+              seed=seed)
 
-#     rbm.test_gradients(train_set, target_psi, k, epsilon)
+    rbm.test_gradients(train_set, target_psi, k, epsilon)
 
 
 if __name__ == '__main__':

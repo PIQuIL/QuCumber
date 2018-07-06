@@ -1,3 +1,4 @@
-from .rbm import RBM
-from .callbacks import *
-from .observables import *
+from .rbm import *  # noqa
+
+
+__version__ = "0.1a"
