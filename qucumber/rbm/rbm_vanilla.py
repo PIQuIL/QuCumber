@@ -186,7 +186,7 @@ class RBM(nn.Module):
         :param k: Number of Block Gibbs steps.
         :type k: int
 
-        :returns:
+        :returns: Samples drawn from the RBM
         :rtype: torch.doubleTensor
         """
         dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
@@ -196,10 +196,10 @@ class RBM(nn.Module):
         return v
 
     def regularize_weight_gradients(self, w_grad, l1_reg, l2_reg):
-        """Applies regularization to the given weight gradient
+        r"""Applies regularization to the given weight gradient
 
         :param w_grad: The entire weight gradient matrix,
-                       :math:`\\nabla_{\\lambda_{weights}}NLL`.
+                       :math:`\nabla_{W}NLL`
         :type w_grad: torch.doubleTensor
         :param l1_reg: l1 regularization hyperparameter (default = 0.0).
         :type l1_reg: double
@@ -207,10 +207,13 @@ class RBM(nn.Module):
         :type l2_reg: double
 
         :returns:
-        .. :math: `[\\nabla_{W_{\\lambda}}NLL]_{i,j} =
-                   [\\nabla_{W_{\\lambda}}NLL]_{i,j}
-                    + L_1sign([W_{\\lambda}]_{i,j})
-                    + L_2\\vert[W_{\\lambda}]_{i,j}\\vert^2`.
+
+        .. math::
+
+            [\nabla_{W_{\lambda}}NLL]_{i,j}
+                + l_1\sgn([W_{\lambda}]_{i,j})
+                + l_2\vert[W_{\lambda}]_{i,j}\vert
+
         :rtype: torch.doubleTensor
         """
         return (w_grad
@@ -229,10 +232,10 @@ class RBM(nn.Module):
         :type k: int
         :param batch: Batch of the input data.
         :type batch: torch.doubleTensor
-        :param L1_reg: L1 regularization hyperparameter (default = 0.0)
-        :type L1_reg: double
-        :param L2_reg: L2 regularization hyperparameter (default = 0.0)
-        :type L2_reg: double
+        :param l1_reg: L1 regularization hyperparameter (default = 0.0)
+        :type l1_reg: double
+        :param l2_reg: L2 regularization hyperparameter (default = 0.0)
+        :type l2_reg: double
         :param stddev: Standard deviation of random noise that can be added to
                        the weights.	This is also a hyperparameter.
                        (default = 0.0)
@@ -391,11 +394,15 @@ class RBM(nn.Module):
                 optimizer.step()  # tell the optimizer to apply the gradients
 
     def effective_energy(self, v):
-        """The effective energies of the given visible states.
-        .. :math:`E_{\\lambda} = b^{\\lambda}v
-                    + \\sum_{i}\\log\\sum_{h_{i}^{\\lambda}}
-                    e^{h_{i}^{\\lambda}
-                        \\left(c_{i}^{\\lambda} + W_{i}^{\\lambda}v\\right)}`.
+        r"""The effective energies of the given visible states.
+
+        .. math::
+
+           \mathcal{E}(\bm{v}) &= \sum_{j}b_j v_j
+                       + \sum_{i}\log
+                            \left\lbrack 1 +
+                                  \exp\left(c_{i} + \sum_{j} W_{ij} v_j\right)
+                            \right\rbrack
 
         :param v: The visible states.
         :type v: torch.doubleTensor
@@ -413,8 +420,9 @@ class RBM(nn.Module):
         return visible_bias_term + hidden_bias_term
 
     def unnormalized_probability(self, v):
-        """The unnormalized probabilities of the given visible states.
-        .. :math: `p(v) = e^E_{\\lambda}(v)`
+        r"""The unnormalized probabilities of the given visible states.
+
+        .. math:: p(v) = \exp{\mathcal{E}(\bm{v})}
 
         :param v: The visible states.
         :type v: torch.doubleTensor
