@@ -34,6 +34,11 @@
 
 \section{What can I use this RBM Quantum State Tomography Library for?}
 
+Quantum state tomography is used to describe an unknown quantum state by performing measurements on the state. It is known, that for a full description of an arbitrary state the number of parameters and therefore measurements needed to fully specify the state grows exponentially with the system size. 
+Restricted Boltzmann machines (RBM) are stochastic neural networks that can be used to learn and model properties of many-body systems \textbf{cite Troyer, Torlai, ...}. They have been shown to capture the properties of many-body systems and to be an effective tool for quantum state tomography.
+This Python package provides a easy to use and open source RBM toolbox, which can be used to learn the wave function from experimental data, sample new data from the learned state and calculate a broad spectrum of observables directly from the learned state.
+
+
 \section{Restricted Boltzmann Machine for Quantum State Tomography}
 
 
@@ -42,11 +47,16 @@ This tomography package allows to approximate a wave function $\psi( \boldsymbol
 This file is a walk through for our code. For more theoretical background we refer to the following tutorials:
 \textbf{ADD some refrences or Anna's File}
 
+For the moment NNQuST can only handle binary inputs. Support for multinomial and continuous variable systems will come in the next version of NNQuST. Therefore measurements have to be translated into strings of $0$ and $1$ to be processed by the RBM.
+
 \section{How to use NNQuST}
 
-We will guide the user through short snippets of our code. First we load all the packages needed. \textbf{We might have to rename rbm to something like NNQuST} 
+We will guide the user through short snippets of our code for different assumptions about the wave function.
 
-\subsection{Training the NNQuST}
+\subsection{Training the NNQuST for a real positive wave function}
+
+If all the measurements have been performed in the same basis and the experimenter assumes that the wave function is positive and real, the NNQuST package provides a more efficient tomography tool for this case. Since there are no unitaries that have to be applied on the measurements, this approach is highly parallelizable  and therefore faster.
+First we load all the packages needed. \textbf{We might have to rename rbm to something like NNQuST} 
 
 \begin{python}
 from rbm import RBM #import NNQuST package
@@ -62,7 +72,10 @@ For a dummy test we can define a training set:
 train_set = np.array([[1]*10]*1000) #define a dummy training set with the correct input shape
 \end{python}
 
-Define model parameters:
+To run the RBM training we define the model parameters. The number of visible units is given by the length of one training sample. (In our case it is $10$). 
+The number of hidden units can be varied and the success of the training depends on the complexity of the system and the ratio $\alpha$ between hidden and visible units. 
+\textbf{refer to our scaling study and Giacomo's paper} 
+The number of epochs strongly depends on the complexity of the system and also the training set size. 32 for the batch size is a good average value, which can be slightly changed without having big effects on the training success. The number of Gibbs sampling steps influences the speed of the training. The smaller we choose $k$, the faster is the training. High values on the other side give a better approximation for the model distribution \textbf{Put some referenece}. But it has been shown \textbf{Hinton}, that already for $k=1$ the RBM trains well.
 
 \begin{python}
 num_visible = 10 #number of visible units (has to be equal to input data dimension)
@@ -73,15 +86,18 @@ k = 1 #Number of Gibbs sampling steps
 learning_rate = 0.01 #Learning Rate
 \end{python}
 
-\textbf{Get rid of SEED!!! it is already in ToDo list on Github}
+
 
 \begin{python}
-rbm = RBM(num_visible=num_visible, num_hidden=num_hidden, seed=seed)
+rbm = RBM(num_visible=num_visible, num_hidden=num_hidden)
 
 rbm.train(train_set, epochs, batch_size, k=k, lr=learning_rate)
 \end{python}
 
 This will already train the RBM.
+
+\subsection{Training the NNQuST for a complex wave function}
+
 
 \subsection{Saving, Loading the NNQuST}
 
@@ -97,6 +113,8 @@ rbm.load(location) #load the weights and biases from some location
 
 \subsection{Sampling}
 
+Since RBMs are generative models, one can sample new measurements from a trained RBM.
+
 \begin{python}
 num_samples = 100 #number of samples drawn from the RBM
 k = 100 #number of Gibbs steps for each sample
@@ -105,14 +123,104 @@ rbm.sample(num_samples, k)
 
 \subsection{Observables}
 
-Observables like energy, magnetisation, etc. can be calculated directly on the sampled data from the RBM
+Observables like energy, magnetisation, etc. can be calculated directly on the sampled data from the RBM. To get a good average value one has to draw a big enough number $N$ of samples $\bm{s}$, such that the value converges. For a general observable $A$, we calculate,
+
+\begin{equation}
+\braket{A} = \frac{1}{N} \sum_{\bm{\sigma}} A(\bm{\sigma})
+\end{equation}
+
+\subsubsection{Example1: Magnetization of Ising chain}
+
+The magnetization of an Ising chain can be calculated simply by averaging over all $\sigma_z$ measurements of the chain. Since the RBM only can sample in the $\sigma_z$ direction, we simply have to average over the sample $\bm{\sigma}$. The only additional step that has to be performed is the convergence from binary values $\{0,1  \}$ to actual spin measurements $\{-1 ,1  \}$.
+
+\begin{python}
+num_samples = 10000 #number of samples drawn from the RBM
+k = 100 #number of Gibbs steps for each sample
+samples = rbm.sample(num_samples, k)
+samples = (samples-1/2)*2 # converge from binary to [-1, 1]
+magnetization = 0 #initialize magnetization as 0
+for s in samples: 
+	magnetization += s.sum(0) # sum up every sample separately
+magnetization /= num_samples # devide by number of samples
+\end{python}
+
+\subsubsection{Example2: Energy of Transverse Field Ising chain}
+
+For the transverse field Ising model the Hamiltonian reads:
+
+\begin{equation}
+H = \sum_i \sigma^z_i \sigma^z_{i+1} + h \sum_i \sigma^x_{i}
+\end{equation}
+
+Calculating the energy for a sample $\ket{\bm{\sigma} }= \ket{\sigma_1 \dots  \sigma_n}$ is not that straight forward like for the magnetization, because the Hamiltonian is not state preserving, the $\sigma^x_i$ part of the Hamiltonian flips the spin at position $i$. So just calculating $\bra{\bm{\sigma} } H \ket{\bm{\sigma} }$ ignores the second part of the Hamiltonian completely. So what we have to do is the following:
+
+\begin{align}
+\ket{\psi} = \sum_{\bm{\sigma}} \psi(\bm{\sigma}) \ket{\bm{\sigma}} \\
+\frac{\braket{\psi | H | \psi}}{\braket{\psi | \psi}} = \frac{\sum_{\bm{\sigma}, \bm{\sigma'}} \psi(\bm{\sigma}) \psi (\bm{\sigma}') H_{\bm{\sigma}, \bm{\sigma}'} \cdot \psi(\bm{\sigma}) / \psi(\bm{\sigma})}{ \sum_{\bm{\sigma}} | \psi(\bm{\sigma})|}  \\
+=  \frac{1}{\sum_{\bm{\sigma}} | \psi({\bm{\sigma}} )|^2} \sum_{\bm{\sigma}} | \psi({\bm{\sigma}}) |^2 \left[ \sum_i \sigma_i \sigma_{i+1} + h \sum_i \frac{\psi(\sigma_1, \sigma_2, \dots , -\sigma_i, \sigma_{i+1} \dots)}{\psi (\bm{\sigma})} \right]\\
+\approx \frac{1}{M} \sum_k^M \left[ \sum_i \sigma_i \sigma_{i+1} + h \sum_i \frac{\psi(\sigma_1, \sigma_2, \dots , -\sigma_i, \sigma_{i+1} \dots)}{\psi (\bm{\sigma})} \right]
+\end{align}
+
+Here we used that $H_{\bm{\sigma}, \bm{\sigma}'}  = \braket{\bm{\sigma} | H | \bm{\sigma}'} = \sum_i \delta_{\bm{\sigma}, \bm{\sigma}'} + h \sum_i \delta_{\sigma_1, \sigma_1'} \dots \delta_{\sigma_i, -\sigma_i'} \dots$ and that the partition function $Z$ cancels out if we divide the probabilities and the calculation is tractable also for big systems.
+The observables.py package contains a few examples like this.
+
+\begin{python}
+from observables import TFIMChainEnergy
+num_samples = 10000 #number of samples drawn from the RBM
+k = 100 #number of Gibbs steps for each sample
+h = 1.0 #define magnetic field strength
+samples = rbm.sample(num_samples, k)
+calc_energy = TFIMChainEnergy(h)
+energy = calc_energy.apply(samples, rbm)
+\end{python}
 
 \subsection{Fidelity}
 
-If one has access to the wave function $\psi(\bm{\sigma)}$ that is approximated by the RBM $\psi_{\Theta}(\bm{\sigma})$ the fidelity can be computed via $\sum_{\bm{\sigma}} \psi(\bm{\sigma)} \psi_{\Theta}(\bm{\sigma})$. This can be used to verify for example that experimental data actually comes from the state that should be prepared in an experiment. Because of the exponential growth of the wave function this is only feasible for small physical systems.
+If one has access to the full quantum state $\ket{\phi} = \sum_{\bm{\sigma}} \phi(\bm{\sigma}) \ket{ \bm{\sigma}}$ and knows the coefficients $\phi(\bm{\sigma)}$ that are approximated by the RBM $\psi_{\Theta}(\bm{\sigma})$ the fidelity can be computed via $\sum_{\bm{\sigma}} \phi(\bm{\sigma)} \psi_{\Theta}(\bm{\sigma})$. This can be used to verify for example that experimental data actually comes from the state that should be prepared in an experiment. Because of the exponential growth of the wave function this is only feasible for small physical systems.
+
+\begin{equation}
+\psi_{\Theta}(\bm{\sigma}) = Z_{\Theta}^{-1/2} \sqrt{p_{\Theta} (\bm{\sigma})}
+\end{equation}
+
+with
+
+\begin{align}
+Z_{\Theta} &= \sum_{\bm{\sigma}} p_{\Theta}(\bm{\sigma}) \\
+p_{\Theta} (\bm{\sigma}) &= \exp{ (- \varepsilon_{\Theta} (\bm{\sigma}))} \\
+\varepsilon_{\Theta} (\bm{\sigma}) &= -\sum_{i,j} W_{i,j} h_i \sigma_j - \sum_j b_j \sigma_j - \sum_i c_i h_i
+\end{align}
 
 
-\section{Algorithm}
+The effective energy $\varepsilon$ and the unnormalized probability $p_{\Theta}$ of some configuration 
+\verb|torch.tensor([1,0,1,1,1,1,1,1,0,1])| can be accessed from the trained RBM via
+
+\textbf{We need to rename free energy to effective energy in code!!!}
+
+\begin{python}
+some_configuration = torch.tensor([1,0,1,1,1,1,1,1,0,1], dtype = torch.double)
+effective_energy = rbm.free_energy(some_configuration)
+unnormalized_probability = rbm.unnormalized_probability(some_configuration) 
+\end{python}
+
+The partition function $Z_{\Theta}$ can be calculated by summing over all possible spin configurations, which is also the limiting factor for this approach for bigger systems.
+
+\begin{python}
+visble_space = rbm.generate_visble_space()
+partition_fct = rbm.partition(visible_space)
+\end{python}
+
+To effectively calculate the fidelity with a theoretical state $\\ket{phi}$, one needs to load the coefficients $\phi(\bm{\sigma})$. In this example we create a random state with $2^N$ coefficients, where $N=10$ is the system size.
+
+\begin{python}
+N = 10 # Define system size
+phi =  torch.abs(torch.randn(2**N)) # generate random vector (this would be the theoretical wave function)
+phi /= phi.norm() # normalize the vector
+effective_energy = rbm.free_energy(some_configuration)
+unnormalized_probability = rbm.unnormalized_probability(some_configuration) 
+\end{python}
+
+
+\section{Algorithm for a reral positive wave function}
 The training algorithm of the RBM has the following structure.
 %=================================================================================
 % RBM.train
