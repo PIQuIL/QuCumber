@@ -193,6 +193,10 @@ napoleon_numpy_docstring = True
 
 # -- Options for linkcode extension ------------------------------------------
 
+
+# adapted from scikit-learn's github_link.py
+# https://github.com/scikit-learn/scikit-learn/blob/master/doc/sphinxext/github_link.py
+
 def _get_git_revision():
     REVISION_CMD = 'git rev-parse --short HEAD'
     try:

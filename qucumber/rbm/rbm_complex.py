@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 import warnings
-import cplx
+from qucumber import cplx
 
 
 __all__ = ["RBMcomplex"]

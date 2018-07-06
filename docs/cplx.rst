@@ -1,5 +1,5 @@
 Complex Algebra
 ======================
 
-.. automodule:: qucumber.rbm.cplx
+.. automodule:: qucumber.cplx
    :members:

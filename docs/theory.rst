@@ -11,7 +11,7 @@ compute_batch_gradient
 - If all the unitaries are trivial, the gradient for the amplitude reads:
 
 .. math::
-    ]frac{1}{M}\nabla_{\lambda} \log p_{\lambda}(\hat{\sigma})
+    \frac{1}{M}\nabla_{\lambda} \log p_{\lambda}(\hat{\sigma})
 
 
 Calculating the gradients
@@ -20,4 +20,4 @@ Calculating the gradients
 If the number of non-trivial unitaries :math:`N_U>0` is not equal zero we construct the following state for all possible :math: `S_j`: (For simplicity we assume there is only one unitary.)
 
 .. math::
-        | \bm{\sigma} \rangle = | \sigma_1^{b=z} \dots S_j^{b = z} \sigma_{j+1}^{b=z} \rangle
+        | \bm{\sigma} \rangle = | \sigma_1^{b=z} \dots S_j^{b=z} \sigma_{j+1}^{b=z} \rangle

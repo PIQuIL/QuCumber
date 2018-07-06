@@ -1,11 +1,14 @@
 RBMs
-======================
+==============================
 
-.. automodule:: qucumber.rbm.rbm
+Real Positive Wavefunction RBM
+------------------------------
+
+.. automodule:: qucumber.rbm.rbm_vanilla
    :members:
 
-The complex RBM
-----------------------
+Complex Wavefunction RBM
+------------------------------
 
 .. automodule:: qucumber.rbm.rbm_complex
-   :members: RBMcomplex
+   :members:
