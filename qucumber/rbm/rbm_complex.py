@@ -147,7 +147,7 @@ class RBMcomplex(nn.Module):
 		# Perform the gibbs sampling right now for the positive phase (if all Z)
 		# and the negative phase (later on)
 
-		[batch, h0_amp_batch, vk_amp_batch, hk_amp_batch, phk_amp_batch] = self.gibbs_sampling(k, batch) 
+		[batch, h0_amp_batch, vk_amp_batch, hk_amp_batch, phk_amp_batch] = self.gibbs_sampling_amp(k, batch) 
 		# Iterate through every data point in the batch.
 		for row_count, v0 in enumerate(batch):
 
@@ -181,7 +181,7 @@ class RBMcomplex(nn.Module):
 			else:
 				# Compute the rotated gradients.
 				[L_weights_amp, L_vb_amp, L_hb_amp, L_weights_phase, L_vb_phase, 
-				L_hb_phase] = self.compute_rotated_grads(v0, 
+				L_hb_phase] = self.compute_rotated_grads(k, v0, 
 														 chars_batch[row_count],
 														 num_non_trivial_unitaries, 
 														 z_indices, tau_indices) 
@@ -234,7 +234,7 @@ class RBMcomplex(nn.Module):
 				"hidden_bias_phase": g_hb_phase
 				}   
 
-	def compute_rotated_grads(self, v0, characters, num_non_trivial_unitaries, 
+	def compute_rotated_grads(self, k, v0, characters, num_non_trivial_unitaries, 
 							  z_indices, tau_indices): 
 		"""Computes the rotated gradients.
 
@@ -319,23 +319,37 @@ class RBMcomplex(nn.Module):
 			
 			# Positive phase gradients for phase and amp. Will be added into the
 			# 'A' parameters.
-			w_grad_amp  = torch.ger(F.sigmoid(F.linear(constructed_state, 
-													   self.weights_amp, 
-													   self.hidden_bias_amp)),
-									constructed_state)
-			vb_grad_amp = constructed_state
-			hb_grad_amp = F.sigmoid(F.linear(constructed_state,
-											 self.weights_amp,
-											 self.hidden_bias_amp))
+			constructed_state, h0_amp, vk_amp, hk_amp, phk_amp         = self.gibbs_sampling_amp(k, constructed_state)
+			constructed_state, h0_phase, vk_phase, hk_phase, phk_phase = self.gibbs_sampling_phase(k, constructed_state)
 
+			w_grad_amp  = torch.einsum('i,j->ij', (h0_amp, constructed_state))
+			'''
+			w_grad_amp  = torch.ger(F.sigmoid(F.linear(constructed_state, 
+													   self.rbm_amp.weights, 
+													   self.rbm_amp.hidden_bias)),
+									constructed_state)
+			'''
+			vb_grad_amp = constructed_state
+			hb_grad_amp = h0_amp
+			'''
+			hb_grad_amp = F.sigmoid(F.linear(constructed_state,
+											 self.rbm_amp.weights,
+											 self.rbm_amp.hidden_bias))
+			'''
+			w_grad_phase  = torch.einsum('i,j->ij', (h0_phase, constructed_state))
+			'''
 			w_grad_phase  = torch.ger(F.sigmoid(F.linear(constructed_state,
-														 self.weights_phase,
-														 self.hidden_bias_phase)),
+														 self.rbm_phase.weights,
+														 self.rbm_phase.hidden_bias)),
 									  constructed_state)
+			'''
 			vb_grad_phase = constructed_state
+			hb_grad_phase = h0_phase
+			'''
 			hb_grad_phase = F.sigmoid(F.linear(constructed_state,
-											   self.weights_phase,
-											   self.hidden_bias_phase))
+											   self.rbm_phase.weights,
+											   self.rbm_phase.hidden_bias))
+			'''
 
 			"""
 			In order to calculate the 'A' parameters below with my current
@@ -498,7 +512,7 @@ class RBMcomplex(nn.Module):
 				# Tell the optimizer to apply the gradients and update the parameters.
 				optimizer.step()  
 			   
-	def prob_v_given_h(self, h):
+	def prob_v_given_h_amp(self, h):
 		"""Given a hidden amplitude unit, what's the probability of a visible unit.
 		
 		:param h: The hidden unit (amplitude RBM).
@@ -510,7 +524,7 @@ class RBMcomplex(nn.Module):
 		p = F.sigmoid(F.linear(h, self.weights_amp.t(), self.visible_bias_amp))
 		return p
 
-	def prob_h_given_v(self, v):
+	def prob_h_given_v_amp(self, v):
 		"""Given a visible unit, what's the probability of a hidden amplitude unit.
 
 		:param v: The visible unit.
@@ -523,7 +537,7 @@ class RBMcomplex(nn.Module):
 		p = F.sigmoid(F.linear(v, self.weights_amp, self.hidden_bias_amp))
 		return p
 
-	def sample_v_given_h(self, h):
+	def sample_v_given_h_amp(self, h):
 		"""Sample/generate a visible unit given a hidden amplitude unit.
 
 		:param h: The hidden unit.
@@ -532,11 +546,11 @@ class RBMcomplex(nn.Module):
 		:returns: Tuple containing prob_v_given_h(h) and the sampled visible unit.
 		:rtype: Tuple containing 2 torch.doubleTensor's.
 		"""
-		p = self.prob_v_given_h(h)
+		p = self.prob_v_given_h_amp(h)
 		v = p.bernoulli()
 		return p, v
 
-	def sample_h_given_v(self, v):
+	def sample_h_given_v_amp(self, v):
 		"""Sample/generate a hidden amplitude unit given a visible unit.
 
 		:param v: The visible unit.
@@ -545,11 +559,81 @@ class RBMcomplex(nn.Module):
 		:returns: Tuple containing prob_h_given_v(v) and the sampled hidden unit.
 		:rtype: Tuple containing 2 torch.doubleTensor's.
 		"""
-		p = self.prob_h_given_v(v)
+		p = self.prob_h_given_v_amp(v)
 		h = p.bernoulli()
 		return p, h
 
-	def gibbs_sampling(self, k, v0):
+	def sample_v_given_h_phase(self, h):
+		'''Sample/generate a visible unit given a hidden phase unit.
+
+		Parameters
+		----------
+		h : torch.doubleTensor
+			The hidden unit. 
+
+		Returns 
+		----------
+		p : torch.doubleTensor
+			see prob_v_given_h_phase
+		v : torch.doubleTensor
+			The sampled visible unit.
+		'''
+		p = self.prob_v_given_h_phase(h)
+		v = p.bernoulli()
+		return p, v
+
+	def sample_h_given_v_phase(self, v):
+		'''Sample/generate a hidden phase unit given a visible unit.
+
+		Parameters
+		----------
+		v : torch.doubleTensor
+			A data point.
+			  
+		Returns 
+		----------
+		p : torch.doubleTensor
+			see prob_h_given_v_phase
+		h : torch.doubleTensor
+			The sampled hidden unit.
+		'''
+		p = self.prob_h_given_v_phase(v)
+		h = p.bernoulli()
+		return p, h
+
+	def prob_v_given_h_phase(self, h):
+		'''Given a hidden phase unit, whats the probability of a visible unit.
+
+		Parameters
+		----------
+		h : torch.doubleTensor
+			The hidden unit. 
+
+		Returns 
+		----------
+		p : torch.doubleTensor
+			probability of a visible unit given the hidden unit, h
+		'''
+		p = F.sigmoid(F.linear(h, self.weights_phase.t(), self.visible_bias_phase))
+		return p
+
+	def prob_h_given_v_phase(self, v):
+		'''Given a visible unit, whats the probability of a hidden phase unit.
+
+		Parameters
+		----------
+		v : torch.doubleTensor
+			The visible unit. 
+
+		Returns 
+		----------
+		p : torch.doubleTensor
+			probability of a hidden unit given the visible unit, v
+		'''
+		p = F.sigmoid(F.linear(v, self.weights_phase, self.hidden_bias_phase))
+		return p
+
+	def gibbs_sampling_amp(self, k, v0):
 		"""Contrastive divergence/gibbs sampling algorithm for generating samples
 		from the RBM.
 
@@ -563,11 +647,40 @@ class RBMcomplex(nn.Module):
 				  the hidden unit sampled after k steps and prob_h_given_v.
 		:rtype: Quintuple of 5 torch.doubleTensor's
 		"""
-		ph, h0 = self.sample_h_given_v(v0)
+		ph, h0 = self.sample_h_given_v_amp(v0)
 		v, h = v0, h0
 		for _ in range(k):
-			pv, v = self.sample_v_given_h(h)
-			ph, h = self.sample_h_given_v(v)
+			pv, v = self.sample_v_given_h_amp(h)
+			ph, h = self.sample_h_given_v_amp(v)
+		return v0, h0, v, h, ph
+
+	def gibbs_sampling_phase(self, k, v0):
+		'''Contrastive divergence/gibbs sampling algorithm for generating samples from the RBM.
+
+		Parameters
+		----------
+		k : int
+			Number of contrastive divergence iterations.
+		v0 : torch.doubleTensor
+			A visible unit from the data
+		
+		Returns 
+		----------
+		v0 : torch.doubleTensor
+		h0 : torch.doubleTensor
+			The hidden unit sampled from v0.
+		v : torch.doubleTensor
+			The sampled visible unit after k steps.
+		h : torch.doubleTensor
+			The sampled hidden unit after k steps.
+		ph : torch.doubleTensor
+			See sample_h_given_v_phase
+		'''
+		ph, h0 = self.sample_h_given_v_phase(v0)
+		v, h   = v0, h0
+		for _ in range(k):
+			pv, v = self.sample_v_given_h_phase(h)
+			ph, h = self.sample_h_given_v_phase(v)
 		return v0, h0, v, h, ph
 
 	def regularize_weight_gradients_amp(self, w_grad, l1_reg, l2_reg):

@@ -69,7 +69,6 @@ def train(train_path, basis_path, true_psi_path, num_hidden_amp, num_hidden_phas
 	full_unitary_file = np.loadtxt('../cpp/data/2qubits_unitaries.txt')
 	basis_list = ['Z' 'Z', 'X' 'Z', 'Z' 'X', 'Y' 'Z', 'Z' 'Y']
 	full_unitary_dictionary = {}
-
 	
 	psi_dictionary = {}
 	psi_file = np.loadtxt(true_psi_path)
