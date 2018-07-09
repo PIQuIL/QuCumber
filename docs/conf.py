@@ -132,7 +132,8 @@ latex_elements = {
 
     # Additional stuff for the LaTeX preamble.
     #
-    'preamble': r'\DeclareMathOperator{\sgn}{sgn}',
+    'preamble': (r'\usepackage{physics}'
+                 r'\DeclareMathOperator{\sgn}{sgn}'),
 
     # Latex figure (float) alignment
     #
