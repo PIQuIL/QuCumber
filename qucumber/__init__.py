@@ -1,3 +1,1 @@
-from .rbm import RBM
-from .callbacks import *
-from .observables import *
+__version__ = "0.1a"
