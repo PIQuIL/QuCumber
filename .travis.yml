@@ -1,0 +1,17 @@
+language: python
+python:
+- "3.6"
+install:
+- pip install sphinx sphinx_rtd_theme
+- pip install numpy scipy click tqdm
+- pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl
+- pip install torchvision
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_PAGES_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep-history: true
+  local-dir: docs/_build/html
+  verbose: True
+  on:
+    branch: master
