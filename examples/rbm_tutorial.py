@@ -13,7 +13,6 @@ import unitary_library
 from observables import TFIMChainEnergy, TFIMChainMagnetization
 
 class RBM_Module(nn.Module):
-
     def __init__(self, num_visible, num_hidden, seed=1234, zero_weights=False):
         super(RBM_Module, self).__init__()
         self.num_visible = int(num_visible)

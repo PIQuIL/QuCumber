@@ -1,18 +1,18 @@
-.. RBMpytorch documentation master file, created by
-   sphinx-quickstart on Mon May 28 21:49:51 2018.
+.. QuCumber documentation master file, created by
+   sphinx-quickstart on Wed Jul  4 16:50:56 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to RBMpytorch's documentation!
-======================================
+Welcome to QuCumber's documentation!
+====================================
 
-.. toctree:
+.. toctree::
    :maxdepth: 3
    :caption: Contents:
 
-   api
+   rbm
+   cplx
    theory
-
 
 
 Indices and tables

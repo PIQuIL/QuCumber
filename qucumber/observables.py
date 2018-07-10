@@ -1,5 +1,3 @@
-import re
-
 import torch
 from torch.distributions.utils import log_sum_exp
 
@@ -8,22 +6,6 @@ __all__ = [
     "TFIMChainEnergy",
     "TFIMChainMagnetization"
 ]
-
-
-def format_alias(s):
-    alias = s.strip(' _')
-    if " " not in alias:
-        # cf. https://stackoverflow.com/a/1176023
-        alias = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', alias)
-        alias = re.sub('([a-z0-9])([A-Z])', r'\1_\2', alias)
-    else:
-        alias = format_alias(alias.strip(' _')
-                                  .replace(' ', '_'))
-
-    return (alias.lower()
-                 .strip(' _')
-                 .replace('__', '_')
-                 .replace(' ', ''))
 
 
 def to_pm1(samples):
@@ -35,18 +17,8 @@ def to_01(samples):
 
 
 class Observable:
-    def __init__(self, name=None, variance_name=None, **kwargs):
-        self.name = name
-        self.mean_name = name if name else "mean"
-
-        if variance_name:  # alias the variance function
-            # if someone manages to put in a mangled enough string to
-            # break this...they brought it on themselves
-            variance_alias = format_alias(variance_name)
-            setattr(self, variance_alias, self.variance)
-            self.variance_name = variance_name
-        else:
-            self.variance_name = "variance"
+    def __init__(self):
+        pass
 
     def apply(self, samples, sampler):
         pass
@@ -106,10 +78,8 @@ class Observable:
 
 
 class TFIMChainEnergy(Observable):
-    def __init__(self, h, density=True, name="Energy",
-                 variance_name="Heat Capacity", **kwargs):
-        super(TFIMChainEnergy, self).__init__(name=name,
-                                              variance_name=variance_name)
+    def __init__(self, h, density=True):
+        super(TFIMChainEnergy, self).__init__()
         self.h = h
         self.density = density
 
@@ -155,10 +125,8 @@ class TFIMChainEnergy(Observable):
 
 
 class TFIMChainMagnetization(Observable):
-    def __init__(self, name="Magnetization",
-                 variance_name="Susceptibility", **kwargs):
-        super(TFIMChainMagnetization, self).__init__(
-            name=name, variance_name=variance_name)
+    def __init__(self):
+        super(TFIMChainMagnetization, self).__init__()
 
     def apply(self, samples, sampler=None):
         return (to_pm1(samples)
