@@ -1,0 +1,607 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Complex Algebra &mdash; QuCumber 0.1a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Theory" href="theory.html" />
+    <link rel="prev" title="RBMs" href="rbm.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuCumber
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1a
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">QuCumber</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Complex Algebra</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/cplx.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-qucumber.cplx">
+<span id="complex-algebra"></span><h1>Complex Algebra<a class="headerlink" href="#module-qucumber.cplx" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="qucumber.cplx.MM_mult">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">MM_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L155"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.MM_mult" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns x*y, where x and y are complex tensors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The matrix-matrix product, xy.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.MS_divide">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">MS_divide</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L324"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.MS_divide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes x/y, where x is a complex tensor and y is a complex scalar.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex scalar.i</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If x is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if y’s dimension is not 2, the function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><span class="math">\frac{x}{y}</span>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.MS_mult">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">MS_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L111"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.MS_mult" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that takes a given input complex matrix (y) and multiplies it by a complex scalar (x).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex scalar.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If y is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if x’s dimension is not 2, the function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The matrix-scalar product - x*y.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.MV_mult">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">MV_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L132"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.MV_mult" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns x*y, where x is a complex tensor and y is a complex vector.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If y is not a complex vector (i.e. has 2 dimensions) and if its first dimension is not 2, OR if x is not a complex matrix (i.e. has 3 dimensions) and if its first dimention is not 2, then the function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The matrix-vector product, xy.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.VS_divide">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">VS_divide</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L299"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.VS_divide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes x/y, where x is a complex vector and y is a complex scalar.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex scalar.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><span class="math">\frac{x}{y}</span>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.VS_mult">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">VS_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L88"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.VS_mult" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns x*y, where x is a complex scalar and y is a complex vector.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex scalar.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The vector scalar product of x and y.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.compT_matrix">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">compT_matrix</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L221"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.compT_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the complex transpose of a complex tensor, x.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex matri.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>ValueError</strong> – If x does not have 3 dimensions and its first dimension isn’t 2, the function cannot execute.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The complex transpose of x.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.compT_vector">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">compT_vector</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L241"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.compT_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the complex conjugate of a complex vector, x.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex vector.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>ValueError</strong> – If x does not have 2 dimensions and its first dimension isn’t 2, the function cannot execute.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The complex transpose of x.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.inner_prod">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">inner_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L177"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.inner_prod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the inner product of two complex vectors, x and y &gt;&gt;&gt; &lt;x|y&gt;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The inner product, <span class="math">\langle x\vert y\rangle</span>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.kronecker_prod">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">kronecker_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L261"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.kronecker_prod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the tensor / kronecker product of 2 comlex tensors, x and y.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The tensorproduct of x and y, <span class="math">x \otimes y</span>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.make_complex_matrix">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">make_complex_matrix</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L42"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.make_complex_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that takes two tensors (a REAL (x) and IMAGINARY part (y)) and returns the combine complex tensor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – The real part of your matrix.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – The imaginary part of your matrix.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – This function will not execute if x and y do not have the same dimension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The full vector with the real and imaginary parts seperated as previously mentioned.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.make_complex_vector">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">make_complex_vector</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L19"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.make_complex_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that takes two vector (a REAL (x) and IMAGINARY part (y)) and returns the combined complex tensor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – The real part of your vector.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – The imaginary part of your vector.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – This function will not execute if x and y do not have the same dimension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The full vector with the real and imaginary parts seperated as previously mentioned.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.norm">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">norm</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L349"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the norm of the argument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex scalar.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>ValueError</strong> – If x is not a complex scalar, this function will not execute.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><span class="math">|x|^2</span>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.outer_prod">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">outer_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L199"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.outer_prod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the outer product of two complex vectors, x and y.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The outer product between x and y, <span class="math">\vert x \rangle\langle y\vert</span>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.cplx.scalar_mult">
+<code class="descclassname">qucumber.cplx.</code><code class="descname">scalar_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/d96cae1/qucumber/cplx.py#L66"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.scalar_mult" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that does complex scalar multiplication between two complex scalars, x and y.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex scalar. (x[0], x[1]) = (real part, imaginary part).</li>
+<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex scalar. (x[0], x[1]) = (real part, imaginary part).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong> – If x or y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The product of x and y.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="theory.html" class="btn btn-neutral float-right" title="Theory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="rbm.html" class="btn btn-neutral" title="RBMs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, PIQuIL.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1a',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
