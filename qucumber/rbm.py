@@ -1,12 +1,18 @@
-from qucumber import cplx
-# from qucumber.rbm import unitary_library
+import warnings
+
 import numpy as np
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
 from torch.nn import functional as F
-import warnings
+from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
+
+from qucumber import cplx
+
+__all__ = [
+    "RBM_Module",
+    "BinomialRBM"
+]
 
 
 class RBM_Module(nn.Module):
