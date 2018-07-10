@@ -57,7 +57,7 @@ def benchmark(num_hidden, epochs, batch_size,
         for L, k_ in runs:
             print("L = {}; k = {}".format(L, k_))
             train_set = load_train(L)
-
+ l1_reg=l1, l2_reg=l2, l
             num_hidden = (train_set.shape[-1]
                           if num_hidden is None
                           else num_hidden)
