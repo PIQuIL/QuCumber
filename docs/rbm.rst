@@ -15,5 +15,7 @@ Real Positive Wavefunction RBM
 
 Complex Wavefunction RBM
 -----------------------------
+.. note:: Currently under development, use at own risk
+
 .. autoclass:: qucumber.rbm.rbm.ComplexRBM
     :members:
