@@ -351,7 +351,8 @@ class BinomialRBM(nn.Module):
                                "visible_bias": -vb_grad,
                                "hidden_bias": -hb_grad}}
 
-    def fit(self, data, epochs, batch_size, k=1, lr=1e-2, progbar=False):
+    def fit(self, data, epochs, batch_size,
+            k=1, lr=1e-2, progbar=False, callbacks=[]):
         """Execute the training of the RBM.
 
         :param data: The actual training data
@@ -369,6 +370,8 @@ class BinomialRBM(nn.Module):
                         is passed, will use a Jupyter notebook compatible
                         progress bar.
         :type progbar: bool or "notebook"
+        :param callbacks: Callbacks to run while training
+        :type callbacks: [qucumber.Callback]
         """
 
         disable_progbar = (progbar is False)
@@ -381,22 +384,25 @@ class BinomialRBM(nn.Module):
                                      self.rbm_module.hidden_bias],
                                     lr=lr)
 
-        for ep in progress_bar(range(0, epochs + 1),
-                               desc="Epochs ", total=epochs,
+        for cb in callbacks:
+            cb.on_train_start(self)
+
+        for ep in progress_bar(range(epochs), desc="Epochs ",
                                disable=disable_progbar):
             batches = DataLoader(data, batch_size=batch_size, shuffle=True)
 
-            # for cb in callbacks:
-            #     cb(self, ep)
+            for cb in callbacks:
+                cb.on_epoch_start(self, ep)
 
             if self.stop_training:  # check for stop_training signal
                 break
 
-            if ep == epochs:
-                break
-
             for batch in progress_bar(batches, desc="Batches",
                                       leave=False, disable=True):
+
+                for cb in callbacks:
+                    cb.on_batch_start(self, ep, batch)
+
                 all_grads = self.compute_batch_gradients(k, batch)
 
                 optimizer.zero_grad()  # clear any cached gradients
@@ -408,6 +414,15 @@ class BinomialRBM(nn.Module):
                         getattr(selected_RBM, param).grad = grads[param]
 
                 optimizer.step()  # tell the optimizer to apply the gradients
+
+                for cb in callbacks:
+                    cb.on_batch_end(self, ep, batch)
+
+            for cb in callbacks:
+                cb.on_epoch_end(self, ep)
+
+        for cb in callbacks:
+            cb.on_train_end(self)
 
     def sample(self, num_samples, k):
         """Samples from the RBM using k steps of Block Gibbs sampling.

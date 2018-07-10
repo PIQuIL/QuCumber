@@ -13,9 +13,36 @@ __all__ = [
 ]
 
 
-class ModelSaver:
+class Callback:
+    def on_train_start(self, rbm):
+        """Called at the start of the training cycle"""
+        pass
+
+    def on_train_end(self, rbm):
+        """Called at the end of the training cycle"""
+        pass
+
+    def on_epoch_start(self, rbm, epoch):
+        """Called at the start of each epoch"""
+        pass
+
+    def on_epoch_end(self, rbm, epoch):
+        """Called at the end of each epoch"""
+        pass
+
+    def on_batch_start(self, rbm, epoch, batch):
+        """Called at the start of each batch"""
+        pass
+
+    def on_batch_end(self, rbm, epoch, batch):
+        """Called at the end of each batch"""
+        pass
+
+
+class ModelSaver(Callback):
     def __init__(self, period, folder_path, file_name,
                  metadata=None, metadata_only=False):
+
         self.folder_path = folder_path
         self.period = period
         self.file_name = file_name
@@ -26,7 +53,7 @@ class ModelSaver:
         self.path.mkdir(parents=True, exist_ok=True)
         self.path = self.path.resolve()
 
-    def __call__(self, rbm, epoch):
+    def on_epoch_end(self, rbm, epoch):
         if epoch % self.period == 0:
             save_path = os.path.join(self.path, self.file_name.format(epoch))
 
@@ -43,19 +70,19 @@ class ModelSaver:
                 rbm.save(save_path, metadata)
 
 
-class Logger:
+class Logger(Callback):
     def __init__(self, period, logger_fn, msg_gen, **msg_gen_kwargs):
         self.period = period
         self.logger_fn = logger_fn
         self.msg_gen = msg_gen
         self.msg_gen_kwargs = msg_gen_kwargs
 
-    def __call__(self, rbm, epoch):
+    def on_epoch_end(self, rbm, epoch):
         if epoch % self.period == 0:
             self.logger_fn(self.msg_gen(rbm, epoch, **self.msg_gen_kwargs))
 
 
-class EarlyStopping:
+class EarlyStopping(Callback):
     def __init__(self, period, tolerance, patience,
                  metric, **metric_kwargs):
         self.period = period
@@ -66,7 +93,7 @@ class EarlyStopping:
         self.past_metric_values = []
         self.last_epoch = None
 
-    def __call__(self, rbm, epoch):
+    def on_epoch_end(self, rbm, epoch):
         if epoch % self.period == 0:
             self.past_metric_values.append(
                 self.metric(rbm, **self.metric_kwargs))
@@ -81,7 +108,7 @@ class EarlyStopping:
                     self.last_epoch = epoch
 
 
-class VarianceBasedEarlyStopping:
+class VarianceBasedEarlyStopping(Callback):
     def __init__(self, period, tolerance, patience,
                  metric_callback, metric_name, variance_name):
         self.period = period
@@ -92,7 +119,7 @@ class VarianceBasedEarlyStopping:
         self.variance_name = variance_name
         self.last_epoch = None
 
-    def __call__(self, rbm, epoch):
+    def on_epoch_end(self, rbm, epoch):
         if epoch % self.period == 0:
             past_metric_values = self.metric_callback.metric_values
 
@@ -109,7 +136,7 @@ class VarianceBasedEarlyStopping:
                     self.last_epoch = epoch
 
 
-class ComputeMetrics:
+class ComputeMetrics(Callback):
     def __init__(self, period, metrics, **metric_kwargs):
         self.period = period
         self.metrics = metrics
@@ -117,7 +144,7 @@ class ComputeMetrics:
         self.last = {}
         self.metric_kwargs = metric_kwargs
 
-    def __call__(self, rbm, epoch):
+    def on_epoch_end(self, rbm, epoch):
         if epoch % self.period == 0:
             metric_vals_for_epoch = {}
             for metric_name, metric_fn in self.metrics.items():
