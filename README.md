@@ -18,7 +18,7 @@ QuCumber is developed by the Perimeter Institue Quantum Intelligence Lab (PIQuIL
 QuCumber is licensed under the Apache License Version 2.0.
 
 ## Features
-QuCUMBER implements unsupervised generative modelling with a two-layer RBM.
+QuCumber implements unsupervised generative modelling with a two-layer RBM.
 Each layer is a number of binary stochastic variables (with values 0 or 1).  The size of the visible
 layer corresponds to the input data, i.e. the number of qubits.  The size of the hidden
 layer is varied to systematically control representation error.
