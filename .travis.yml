@@ -26,6 +26,7 @@ install:
 
 script:
 - cd docs
+- mkdir -p _static _templates
 - PYTHONPATH=../ make html
 
 deploy:
