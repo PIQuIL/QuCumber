@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = -WT
+SPHINXOPTS    = -aWT
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = QuCumber
 SOURCEDIR     = .
