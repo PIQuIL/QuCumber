@@ -10,7 +10,7 @@ import warnings
 from tqdm import tqdm, tqdm_notebook
 import csv
 import unitary_library
-from observables import TFIMChainEnergy, TFIMChainMagnetization
+from observables_tutorial import TFIMChainEnergy, TFIMChainMagnetization
 
 class RBM_Module(nn.Module):
     def __init__(self, num_visible, num_hidden, seed=1234, zero_weights=False):
