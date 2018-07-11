@@ -180,7 +180,7 @@
 <span id="real-positive-wavefunction-rbm"></span><h2>Real Positive Wavefunction RBM<a class="headerlink" href="#module-qucumber.rbm.rbm_vanilla" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="qucumber.rbm.rbm_vanilla.RBM">
-<em class="property">class </em><code class="descclassname">qucumber.rbm.rbm_vanilla.</code><code class="descname">RBM</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L11"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.rbm.rbm_vanilla.</code><code class="descname">RBM</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L11"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class to build the Restricted Boltzmann Machine.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -217,7 +217,7 @@ continue running the program on the CPU.</p>
 </table>
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.compute_batch_gradients">
-<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>batch</em>, <em>persistent=False</em>, <em>pbatch=None</em>, <em>l1_reg=0.0</em>, <em>l2_reg=0.0</em>, <em>stddev=0.0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L223"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>batch</em>, <em>persistent=False</em>, <em>pbatch=None</em>, <em>l1_reg=0.0</em>, <em>l2_reg=0.0</em>, <em>stddev=0.0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L223"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will compute the gradients of a batch of the training
 data (data_file) given the basis measurements (chars_file).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -247,56 +247,15 @@ the weights.     This is also a hyperparameter.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.effective_energy">
-<code class="descname">effective_energy</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L396"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.effective_energy" title="Permalink to this definition">¶</a></dt>
+<code class="descname">effective_energy</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L396"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.effective_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energies of the given visible states.</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">\mathcal{E}(\bm{v}) &amp;= \sum_{j}b_j v_j
+<div class="math">
+<p><img src="_images/math/ee967ae1bdd60bd72cfbf81e19a566ef06a0e22c.svg" alt="\mathcal{E}(\bm{v}) &amp;= \sum_{j}b_j v_j
             + \sum_{i}\log
                  \left\lbrack 1 +
                        \exp\left(c_{i} + \sum_{j} W_{ij} v_j\right)
-                 \right\rbrack</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-<table class="docutils field-list" frame="void" rules="none">
+                 \right\rbrack"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -312,7 +271,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.generate_visible_space">
-<code class="descname">generate_visible_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L472"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.generate_visible_space" title="Permalink to this definition">¶</a></dt>
+<code class="descname">generate_visible_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L472"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.generate_visible_space" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates all possible visible states.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -328,7 +287,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.gibbs_sampling">
-<code class="descname">gibbs_sampling</code><span class="sig-paren">(</span><em>k</em>, <em>v0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L157"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.gibbs_sampling" title="Permalink to this definition">¶</a></dt>
+<code class="descname">gibbs_sampling</code><span class="sig-paren">(</span><em>k</em>, <em>v0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L157"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.gibbs_sampling" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs k steps of Block Gibbs sampling given an initial visible state v0.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -358,7 +317,7 @@ torch.doubleTensor)</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.load">
-<code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L88"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.load" title="Permalink to this definition">¶</a></dt>
+<code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L88"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the RBM parameters from the given location ignoring any
 metadata stored in the file. Overwrites the RBM’s parameters.</p>
 <div class="admonition note">
@@ -379,7 +338,7 @@ loaded.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.log_partition">
-<code class="descname">log_partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L488"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.log_partition" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L488"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.log_partition" title="Permalink to this definition">¶</a></dt>
 <dd><p>The natural logarithm of the partition function of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -397,7 +356,7 @@ loaded.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.log_probability_ratio">
-<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L453"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L453"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>The natural logarithm of the probability ratio of
 two sets of visible states</p>
 <div class="admonition note">
@@ -426,7 +385,7 @@ two sets of visible states</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.nll">
-<code class="descname">nll</code><span class="sig-paren">(</span><em>data</em>, <em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L516"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.nll" title="Permalink to this definition">¶</a></dt>
+<code class="descname">nll</code><span class="sig-paren">(</span><em>data</em>, <em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L516"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.nll" title="Permalink to this definition">¶</a></dt>
 <dd><p>The negative log likelihood of the given data.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -450,7 +409,7 @@ two sets of visible states</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.partition">
-<code class="descname">partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L505"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.partition" title="Permalink to this definition">¶</a></dt>
+<code class="descname">partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L505"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.partition" title="Permalink to this definition">¶</a></dt>
 <dd><p>The partition function of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -468,7 +427,7 @@ two sets of visible states</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.prob_h_given_v">
-<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L115"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
+<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L115"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a visible unit configuration, compute the probability
 vector of the hidden units being on.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -488,7 +447,7 @@ visible state.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.prob_v_given_h">
-<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L101"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
+<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L101"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a hidden unit configuration, compute the probability
 vector of the visible units being on.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -508,7 +467,7 @@ hidden state.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.probability_ratio">
-<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L435"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L435"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>The probability ratio of two sets of visible states</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -536,7 +495,7 @@ hidden state.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.regularize_weight_gradients">
-<code class="descname">regularize_weight_gradients</code><span class="sig-paren">(</span><em>w_grad</em>, <em>l1_reg</em>, <em>l2_reg</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L198"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.regularize_weight_gradients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">regularize_weight_gradients</code><span class="sig-paren">(</span><em>w_grad</em>, <em>l1_reg</em>, <em>l2_reg</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L198"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.regularize_weight_gradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies regularization to the given weight gradient</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -544,50 +503,7 @@ hidden state.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>w_grad</strong> (<em>torch.doubleTensor</em>) – The entire weight gradient matrix,
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">\nabla_{W}NLL</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-</li>
+<img class="math" src="_images/math/adb5e71a891004ad7bd73bf4e229901a32ac12a9.svg" alt="\nabla_{W}NLL"/></li>
 <li><strong>l1_reg</strong> (<em>double</em>) – l1 regularization hyperparameter (default = 0.0).</li>
 <li><strong>l2_reg</strong> (<em>double</em>) – l2 regularization hyperparameter (default = 0.0).</li>
 </ul>
@@ -598,52 +514,11 @@ Transcript written on math.log.
 </tr>
 </tbody>
 </table>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">[\nabla_{W_{\lambda}}NLL]_{i,j}
+<div class="math">
+<p><img src="_images/math/46299c98a62fd55953617747c1798f5650cf4f56.svg" alt="[\nabla_{W_{\lambda}}NLL]_{i,j}
     + l_1\sgn([W_{\lambda}]_{i,j})
-    + l_2\vert[W_{\lambda}]_{i,j}\vert</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-<table class="docutils field-list" frame="void" rules="none">
+    + l_2\vert[W_{\lambda}]_{i,j}\vert"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -655,7 +530,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L181"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.sample" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L181"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Samples from the RBM using k steps of Block Gibbs sampling.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -679,7 +554,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.sample_h_given_v">
-<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L143"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L143"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample/generate a hidden state given a visible state.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -698,7 +573,7 @@ state.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.sample_v_given_h">
-<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L129"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L129"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample/generate a visible state given a hidden state.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -717,7 +592,7 @@ state.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>metadata={}</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L74"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.save" title="Permalink to this definition">¶</a></dt>
+<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>metadata={}</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L74"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the RBM parameters to the given location along with
 any given metadata.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -737,7 +612,7 @@ parameters</li>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>data</em>, <em>epochs</em>, <em>batch_size</em>, <em>k=10</em>, <em>persistent=False</em>, <em>lr=0.001</em>, <em>momentum=0.0</em>, <em>l1_reg=0.0</em>, <em>l2_reg=0.0</em>, <em>initial_gaussian_noise=0.0</em>, <em>gamma=0.55</em>, <em>callbacks=[]</em>, <em>progbar=False</em>, <em>starting_epoch=0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L295"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.train" title="Permalink to this definition">¶</a></dt>
+<code class="descname">train</code><span class="sig-paren">(</span><em>data</em>, <em>epochs</em>, <em>batch_size</em>, <em>k=10</em>, <em>persistent=False</em>, <em>lr=0.001</em>, <em>momentum=0.0</em>, <em>l1_reg=0.0</em>, <em>l2_reg=0.0</em>, <em>initial_gaussian_noise=0.0</em>, <em>gamma=0.55</em>, <em>callbacks=[]</em>, <em>progbar=False</em>, <em>starting_epoch=0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L295"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the training of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -781,54 +656,11 @@ when restarting training.</li>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_vanilla.RBM.unnormalized_probability">
-<code class="descname">unnormalized_probability</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_vanilla.py#L422"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.unnormalized_probability" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unnormalized_probability</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_vanilla.py#L422"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.unnormalized_probability" title="Permalink to this definition">¶</a></dt>
 <dd><p>The unnormalized probabilities of the given visible states.</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">p(v) = \exp{\mathcal{E}(\bm{v})}
-
-</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-<table class="docutils field-list" frame="void" rules="none">
+<div class="math">
+<p><img src="_images/math/8685fa8a207da155f150b494d776c127fa762e32.svg" alt="p(v) = \exp{\mathcal{E}(\bm{v})}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -849,7 +681,7 @@ Transcript written on math.log.
 <span id="complex-wavefunction-rbm"></span><h2>Complex Wavefunction RBM<a class="headerlink" href="#module-qucumber.rbm.rbm_complex" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex">
-<em class="property">class </em><code class="descclassname">qucumber.rbm.rbm_complex.</code><code class="descname">RBMcomplex</code><span class="sig-paren">(</span><em>unitaries</em>, <em>psi_dictionary</em>, <em>num_visible</em>, <em>num_hidden_amp</em>, <em>num_hidden_phase</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L12"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.rbm.rbm_complex.</code><code class="descname">RBMcomplex</code><span class="sig-paren">(</span><em>unitaries</em>, <em>psi_dictionary</em>, <em>num_visible</em>, <em>num_hidden_amp</em>, <em>num_hidden_phase</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L12"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class to build the Restricted Boltzmann Machine.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -873,281 +705,23 @@ training data).</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>weights_amp</strong> (<em>torch.doubleTensor</em>) – (<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">W_{\lambda}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-) The weight matrix for the
+<li><strong>weights_amp</strong> (<em>torch.doubleTensor</em>) – (<img class="math" src="_images/math/58d5d921ce1c0f7c16c57fc995df8932b1219e90.svg" alt="W_{\lambda}"/>) The weight matrix for the
 amplitude RBM (dims = num_hidden_amp x num_visible).
 Initialized to random numbers sampled from a normal
 distribution.</li>
-<li><strong>visible_bias_amp</strong> (<em>torch.doubleTensor</em>) – (<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">b_{\lambda}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-) The visible bias vector for
+<li><strong>visible_bias_amp</strong> (<em>torch.doubleTensor</em>) – (<img class="math" src="_images/math/3bc05bb48b70e3a574f60e84b274b5ca5004e3a2.svg" alt="b_{\lambda}"/>) The visible bias vector for
 the amplitude RBM (size = num_visible). Initialized
 to zeros.</li>
-<li><strong>hidden_bias_amp</strong> – (<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">c_{\lambda}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-) The hidden bias vector for
+<li><strong>hidden_bias_amp</strong> – (<img class="math" src="_images/math/78591a38ec4e0601309561195870dcde926c475d.svg" alt="c_{\lambda}"/>) The hidden bias vector for
 the amplitude RBM (size = num_hidden_amp).
 Initialized to zeros.</li>
-<li><strong>weights_phase</strong> (<em>torch.doubleTensor</em>) – (<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">W_{\mu}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-) The weight matrix for the phase RBM
+<li><strong>weights_phase</strong> (<em>torch.doubleTensor</em>) – (<img class="math" src="_images/math/81c31a5e7542720854dba24ff37f08c1cd41fc0d.svg" alt="W_{\mu}"/>) The weight matrix for the phase RBM
 (dims = num_hidden_phase x num_visible). Initialized
 to zeros.</li>
-<li><strong>visible_bias_phase</strong> (<em>torch.doubleTensor</em>) – (<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">b_{\mu}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-) The visible bias vector for
+<li><strong>visible_bias_phase</strong> (<em>torch.doubleTensor</em>) – (<img class="math" src="_images/math/baf59ca2c66312b7ddc074ba94f02428a2957222.svg" alt="b_{\mu}"/>) The visible bias vector for
 the phase RBM (size = num_visible). Initialized
 to zeros.</li>
-<li><strong>hidden_bias_phase</strong> – (<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">c_{\mu}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-) The hidden bias vector for the
+<li><strong>hidden_bias_phase</strong> – (<img class="math" src="_images/math/f7557bc3ca2919aec85ce55b212f3ad43159b7f9.svg" alt="c_{\mu}"/>) The hidden bias vector for the
 phase RBM (size = num_hidden_phase). Initialized
 to zeros.</li>
 </ul>
@@ -1161,7 +735,7 @@ program on the CPU.</p>
 </table>
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.basis_state_generator">
-<code class="descname">basis_state_generator</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L828"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.basis_state_generator" title="Permalink to this definition">¶</a></dt>
+<code class="descname">basis_state_generator</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L828"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.basis_state_generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Only works for binary visible units at the moment. Generates a vector
 given a spin value (0 or 1).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1182,7 +756,7 @@ the measurement.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.compute_batch_gradients">
-<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>batch</em>, <em>chars_batch</em>, <em>l1_reg</em>, <em>l2_reg</em>, <em>stddev=0.0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L111"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>batch</em>, <em>chars_batch</em>, <em>l1_reg</em>, <em>l2_reg</em>, <em>stddev=0.0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L111"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will compute the gradients of a batch of the training
 data (data_file) given the basis measurements (chars_file).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1216,7 +790,7 @@ phase.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.compute_rotated_grads">
-<code class="descname">compute_rotated_grads</code><span class="sig-paren">(</span><em>v0</em>, <em>characters</em>, <em>num_non_trivial_unitaries</em>, <em>z_indices</em>, <em>tau_indices</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L249"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.compute_rotated_grads" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_rotated_grads</code><span class="sig-paren">(</span><em>v0</em>, <em>characters</em>, <em>num_non_trivial_unitaries</em>, <em>z_indices</em>, <em>tau_indices</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L249"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.compute_rotated_grads" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the rotated gradients.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1248,51 +822,8 @@ L_hb_amp, L_weights_phase, L_vb_phase, L_hb_phase</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_amp">
-<code class="descname">eff_energy_amp</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L615"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_amp" title="Permalink to this definition">¶</a></dt>
-<dd><p>The effective energy of the amplitude RBM. <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">E_{\lambda} = b^{\lambda}v + \sum_{i}\log\sum_{h_{i}^{\lambda}}e^{h_{i}^{\lambda}\left(c_{i}^{\lambda} + W_{i}^{\lambda}v\right)}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-.</p>
+<code class="descname">eff_energy_amp</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L615"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_amp" title="Permalink to this definition">¶</a></dt>
+<dd><p>The effective energy of the amplitude RBM. <img class="math" src="_images/math/6dc81e77cf49d06e3bb1686260e7187f5ca83245.svg" alt="E_{\lambda} = b^{\lambda}v + \sum_{i}\log\sum_{h_{i}^{\lambda}}e^{h_{i}^{\lambda}\left(c_{i}^{\lambda} + W_{i}^{\lambda}v\right)}"/>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1309,7 +840,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_phase">
-<code class="descname">eff_energy_phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L633"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_phase" title="Permalink to this definition">¶</a></dt>
+<code class="descname">eff_energy_phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L633"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_phase" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energy of the phase RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1317,50 +848,7 @@ Transcript written on math.log.
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – A visible unit(s).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The effective energy of the phase RBM. <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">E_{\mu} = b^{\mu}v + \sum_{i}\log\sum_{h_{i}^{\mu}}e^{h_{i}^{\mu}\left(c_{i}^{\mu} + W_{i}^{\mu}v\right)}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The effective energy of the phase RBM. <img class="math" src="_images/math/d76449e8d0b52f7c6819c9906982a0a17a676e13.svg" alt="E_{\mu} = b^{\mu}v + \sum_{i}\log\sum_{h_{i}^{\mu}}e^{h_{i}^{\mu}\left(c_{i}^{\mu} + W_{i}^{\mu}v\right)}"/>.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">double</td>
 </tr>
@@ -1370,7 +858,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.fidelity">
-<code class="descname">fidelity</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L748"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.fidelity" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fidelity</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L748"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.fidelity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computed the fidelity of the RBM and true wavefunctions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1382,51 +870,7 @@ Transcript written on math.log.
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">F = |O|^2</tt>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/5b18b94fcf09986fb25e71cd5fc2420df2931db3.svg" alt="F = |O|^2"/>.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">double</p>
@@ -1438,7 +882,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.generate_visible_space">
-<code class="descname">generate_visible_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L761"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.generate_visible_space" title="Permalink to this definition">¶</a></dt>
+<code class="descname">generate_visible_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L761"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.generate_visible_space" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates all possible spin configurations of “num_visible” spins.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1454,7 +898,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.get_true_psi">
-<code class="descname">get_true_psi</code><span class="sig-paren">(</span><em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L719"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.get_true_psi" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_true_psi</code><span class="sig-paren">(</span><em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L719"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.get_true_psi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Picks out the true psi in the correct basis.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1472,7 +916,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.gibbs_sampling">
-<code class="descname">gibbs_sampling</code><span class="sig-paren">(</span><em>k</em>, <em>v0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L560"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.gibbs_sampling" title="Permalink to this definition">¶</a></dt>
+<code class="descname">gibbs_sampling</code><span class="sig-paren">(</span><em>k</em>, <em>v0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L560"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.gibbs_sampling" title="Permalink to this definition">¶</a></dt>
 <dd><p>Contrastive divergence/gibbs sampling algorithm for generating samples
 from the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1499,7 +943,7 @@ the hidden unit sampled after k steps and prob_h_given_v.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.log_partition">
-<code class="descname">log_partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L777"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.log_partition" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L777"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.log_partition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the natural log of the partition function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1517,7 +961,7 @@ the hidden unit sampled after k steps and prob_h_given_v.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.normalized_wavefunction">
-<code class="descname">normalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L673"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.normalized_wavefunction" title="Permalink to this definition">¶</a></dt>
+<code class="descname">normalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L673"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.normalized_wavefunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>The RBM wavefunction.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1525,50 +969,7 @@ the hidden unit sampled after k steps and prob_h_given_v.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – Visible unit(s).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">\psi_{\lambda\mu} = \sqrt{\frac{p_{\lambda}}{Z_{\lambda}}}e^{\frac{i\log(p_{\mu})}{2}}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/1d14353d7928522e7e112a0e0873bf5f8a7e8225.svg" alt="\psi_{\lambda\mu} = \sqrt{\frac{p_{\lambda}}{Z_{\lambda}}}e^{\frac{i\log(p_{\mu})}{2}}"/>.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
@@ -1578,7 +979,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.overlap">
-<code class="descname">overlap</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L733"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.overlap" title="Permalink to this definition">¶</a></dt>
+<code class="descname">overlap</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L733"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.overlap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the overlap between the RBM and true wavefunctions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1590,51 +991,7 @@ Transcript written on math.log.
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">O = \langle{\psi_{true}}\vert\psi_{\lambda\mu}\rangle</tt>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/f407c3600010e67f05db42078b64e822fa7c579b.svg" alt="O = \langle{\psi_{true}}\vert\psi_{\lambda\mu}\rangle"/>.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">double</p>
@@ -1646,7 +1003,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.partition">
-<code class="descname">partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L795"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.partition" title="Permalink to this definition">¶</a></dt>
+<code class="descname">partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L795"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.partition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the partition function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1664,7 +1021,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.prob_h_given_v">
-<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L521"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
+<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L521"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a visible unit, what’s the probability of a hidden amplitude unit.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1683,7 +1040,7 @@ visible unit.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.prob_v_given_h">
-<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L509"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
+<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L509"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a hidden amplitude unit, what’s the probability of a visible unit.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1701,107 +1058,20 @@ visible unit.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_amp">
-<code class="descname">regularize_weight_gradients_amp</code><span class="sig-paren">(</span><em>w_grad</em>, <em>l1_reg</em>, <em>l2_reg</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L581"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_amp" title="Permalink to this definition">¶</a></dt>
+<code class="descname">regularize_weight_gradients_amp</code><span class="sig-paren">(</span><em>w_grad</em>, <em>l1_reg</em>, <em>l2_reg</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L581"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_amp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Weight gradient regularization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>w_grad</strong> (<em>torch.doubleTensor</em>) – The entire weight gradient (amplitude) matrix, <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">\nabla_{W_{\lambda}}NLL</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-.</li>
+<li><strong>w_grad</strong> (<em>torch.doubleTensor</em>) – The entire weight gradient (amplitude) matrix, <img class="math" src="_images/math/533bea8ee978bfaf664d84adb1cb6665bff6a1d2.svg" alt="\nabla_{W_{\lambda}}NLL"/>.</li>
 <li><strong>l1_reg</strong> (<em>double</em>) – L1 regularization hyperparameter (default = 0.0).</li>
 <li><strong>l2_reg</strong> (<em>double</em>) – L2 regularization hyperparameter (default = 0.0).</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">[\nabla_{W_{\lambda}}NLL]_{i,j} = [\nabla_{W_{\lambda}}NLL]_{i,j} + L_1sign([W_{\lambda}]_{i,j}) + L_2\vert[W_{\lambda}]_{i,j}\vert^2</tt>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/b8e0080fc8ccbf17e92391835c86fa9be473132c.svg" alt="[\nabla_{W_{\lambda}}NLL]_{i,j} = [\nabla_{W_{\lambda}}NLL]_{i,j} + L_1sign([W_{\lambda}]_{i,j}) + L_2\vert[W_{\lambda}]_{i,j}\vert^2"/>.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
@@ -1813,107 +1083,20 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_phase">
-<code class="descname">regularize_weight_gradients_phase</code><span class="sig-paren">(</span><em>w_grad</em>, <em>l1_reg</em>, <em>l2_reg</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L598"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_phase" title="Permalink to this definition">¶</a></dt>
+<code class="descname">regularize_weight_gradients_phase</code><span class="sig-paren">(</span><em>w_grad</em>, <em>l1_reg</em>, <em>l2_reg</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L598"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_phase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Weight gradient regularization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>w_grad</strong> (<em>torch.doubleTensor</em>) – The entire weight gradient (phase) matrix, <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">\nabla_{W_{\mu}}NLL</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-.</li>
+<li><strong>w_grad</strong> (<em>torch.doubleTensor</em>) – The entire weight gradient (phase) matrix, <img class="math" src="_images/math/cd4071df06ada2a4cab88c1fd1e8986de0724baf.svg" alt="\nabla_{W_{\mu}}NLL"/>.</li>
 <li><strong>l1_reg</strong> (<em>double</em>) – L1 regularization hyperparameter (default = 0.0).</li>
 <li><strong>l2_reg</strong> (<em>double</em>) – L2 regularization hyperparameter (default = 0.0).</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">[\nabla_{W_{\mu}}NLL]_{i,j} = [\nabla_{W_{\mu}}NLL]_{i,j} + L_1sign([W_{\mu}]_{i,j}) + L_2\vert[W_{\mu}]_{i,j}\vert^2</tt>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/2cb51c68626f78d9a5cbadca122ddf5b4448d8d2.svg" alt="[\nabla_{W_{\mu}}NLL]_{i,j} = [\nabla_{W_{\mu}}NLL]_{i,j} + L_1sign([W_{\mu}]_{i,j}) + L_2\vert[W_{\mu}]_{i,j}\vert^2"/>.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
@@ -1925,7 +1108,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.sample_h_given_v">
-<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L547"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L547"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample/generate a hidden amplitude unit given a visible unit.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1943,7 +1126,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.sample_v_given_h">
-<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L534"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L534"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample/generate a visible unit given a hidden amplitude unit.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1961,7 +1144,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.state_generator">
-<code class="descname">state_generator</code><span class="sig-paren">(</span><em>num_non_trivial_unitaries</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L806"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.state_generator" title="Permalink to this definition">¶</a></dt>
+<code class="descname">state_generator</code><span class="sig-paren">(</span><em>num_non_trivial_unitaries</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L806"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.state_generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that returns all possible configurations of
 ‘num_non_trivial_unitaries’ spins. Similar to generate_visible_space.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1982,7 +1165,7 @@ non-computational basis.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>data</em>, <em>character_data</em>, <em>epochs</em>, <em>batch_size</em>, <em>k=1</em>, <em>lr=0.001</em>, <em>l1_reg=0.0</em>, <em>l2_reg=0.0</em>, <em>initial_gaussian_noise=0.01</em>, <em>gamma=0.55</em>, <em>log_every=50</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L396"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.train" title="Permalink to this definition">¶</a></dt>
+<code class="descname">train</code><span class="sig-paren">(</span><em>data</em>, <em>character_data</em>, <em>epochs</em>, <em>batch_size</em>, <em>k=1</em>, <em>lr=0.001</em>, <em>l1_reg=0.0</em>, <em>l2_reg=0.0</em>, <em>initial_gaussian_noise=0.01</em>, <em>gamma=0.55</em>, <em>log_every=50</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L396"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the training of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2018,7 +1201,7 @@ eventually need to return weights and biases (and save them).</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_amp">
-<code class="descname">unnormalized_probability_amp</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L651"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_amp" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unnormalized_probability_amp</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L651"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_amp" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energy of the phase RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2026,50 +1209,7 @@ eventually need to return weights and biases (and save them).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – Visible unit(s).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">p_{\lambda} = e^{E_{\lambda}}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/02d58509ec038da447c7716395519024de959953.svg" alt="p_{\lambda} = e^{E_{\lambda}}"/>.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
@@ -2079,7 +1219,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_phase">
-<code class="descname">unnormalized_probability_phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L662"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_phase" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unnormalized_probability_phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L662"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_phase" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energy of the phase RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2087,50 +1227,7 @@ Transcript written on math.log.
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – Visible unit(s).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">p_{\mu} = e^{E_{\mu}}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/cdb3690996b5ae676c5f6f824ec35c31bdd1569d.svg" alt="p_{\mu} = e^{E_{\mu}}"/>.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
@@ -2140,7 +1237,7 @@ Transcript written on math.log.
 
 <dl class="method">
 <dt id="qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_wavefunction">
-<code class="descname">unnormalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/a5e3b10/qucumber/rbm/rbm_complex.py#L697"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_wavefunction" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unnormalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b623011/qucumber/rbm/rbm_complex.py#L697"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_wavefunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>The unnormalized RBM wavefunction.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2148,50 +1245,7 @@ Transcript written on math.log.
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – Visible unit(s).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">\tilde{\psi}_{\lambda\mu} =\sqrt{p_{\lambda}}e^{\frac{i\log(p_{\mu})}{2}}</tt>)</p>
-latex exited with error
-[stdout]
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2011/06/27&gt;
-Babel &lt;3.9h&gt; and hyphenation patterns for 2 languages loaded.
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/utf8x.def))
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/ucs.sty
-(/usr/share/texlive/texmf-dist/tex/latex/ucs/data/uni-global.def))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `physics.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.11 \usepackage{physics}\DeclareMathOperator
-                                             {\sgn}{sgn}^^M
-No pages of output.
-Transcript written on math.log.
-</div>
-.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/201b2c157644bbd3bf73db8c3f86087798c4d5a2.svg" alt="\tilde{\psi}_{\lambda\mu} =\sqrt{p_{\lambda}}e^{\frac{i\log(p_{\mu})}{2}}"/>.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
