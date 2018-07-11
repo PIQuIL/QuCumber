@@ -7,7 +7,7 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 
-from qucumber import cplx
+from . import cplx
 
 __all__ = [
     "RBM_Module",
@@ -66,6 +66,7 @@ class RBM_Module(nn.Module):
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
         any given metadata.
+
         :param location: The location to save the RBM parameters + metadata
         :type location: str or file-like
         :param metadata: Any extra metadata to store alongside the RBM
@@ -79,9 +80,11 @@ class RBM_Module(nn.Module):
     def load(self, location):
         """Loads the RBM parameters from the given location ignoring any
         metadata stored in the file. Overwrites the RBM's parameters.
-        .. note:: The RBM object on which this function is called must
-                  have the same shape as the one who's parameters are being
-                  loaded.
+
+        .. note::
+            The RBM object on which this function is called must have the
+            same shape as the one who's parameters are being loaded.
+
         :param location: The location to load the RBM parameters from
         :type location: str or file-like
         """
@@ -182,7 +185,6 @@ class RBM_Module(nn.Module):
                   the hidden state sampled from v0,
                   the visible state sampled after k steps,
                   the hidden state sampled after k steps and its corresponding
-
                   probability vector.
         :rtype: tuple(torch.doubleTensor, torch.doubleTensor,
                       torch.doubleTensor, torch.doubleTensor,
@@ -280,6 +282,7 @@ class BinomialRBM(nn.Module):
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
         any given metadata.
+
         :param location: The location to save the RBM parameters + metadata
         :type location: str or file-like
         :param metadata: Any extra metadata to store alongside the RBM
@@ -293,9 +296,11 @@ class BinomialRBM(nn.Module):
     def load(self, location):
         """Loads the RBM parameters from the given location ignoring any
         metadata stored in the file. Overwrites the RBM's parameters.
-        .. note:: The RBM object on which this function is called must
-                  have the same shape as the one who's parameters are being
-                  loaded.
+
+        .. note::
+            The RBM object on which this function is called must have the
+            same shape as the one who's parameters are being loaded.
+
         :param location: The location to load the RBM parameters from
         :type location: str or file-like
         """

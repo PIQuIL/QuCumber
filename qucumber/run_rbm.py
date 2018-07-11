@@ -1,4 +1,4 @@
-from rbm import RBM_Module, ComplexRBM, BinomialRBM, SampleRBM
+from rbm import RBM_Module, ComplexRBM, BinomialRBM
 import click
 import gzip
 import pickle
@@ -6,7 +6,7 @@ import csv
 import numpy as np
 import torch
 import cplx
-import unitary_library
+import unitaries
 
 @click.group(context_settings={"help_option_names": ['-h', '--help']})
 def cli():
@@ -33,7 +33,7 @@ def cli():
 def train_real(train_path, num_hidden, epochs, batch_size,
 		  k, learning_rate, seed, no_prog):
 	"""Train an RBM without any phase."""
-	
+
 	train_set = torch.tensor(np.loadtxt(train_path, dtype= 'float32'), dtype=torch.double)
 
 	num_hidden = train_set.shape[-1] if num_hidden is None else num_hidden
@@ -42,8 +42,8 @@ def train_real(train_path, num_hidden, epochs, batch_size,
 			  num_hidden=num_hidden,
 			  seed=seed)
 
-	rbm.fit(train_set, epochs, batch_size, k=k, lr=learning_rate, 
-			progbar=(not no_prog))	
+	rbm.fit(train_set, epochs, batch_size, k=k, lr=learning_rate,
+			progbar=(not no_prog))
 
 @cli.command("train_complex")
 @click.option('--train-path', default='../cpp/data/2qubits_train_samples.txt',
@@ -72,8 +72,8 @@ def train_real(train_path, num_hidden, epochs, batch_size,
 @click.option('--test-grads', is_flag=True)
 @click.option('--no-prog', is_flag=True)
 
-def train_complex(train_path, basis_path, true_psi_path, num_hidden_amp, 
-				  num_hidden_phase, epochs, batch_size, k, learning_rate, seed, 
+def train_complex(train_path, basis_path, true_psi_path, num_hidden_amp,
+				  num_hidden_phase, epochs, batch_size, k, learning_rate, seed,
 				  test_grads, no_prog):
 	"""Train an RBM with a phase."""
 
@@ -109,7 +109,7 @@ def train_complex(train_path, basis_path, true_psi_path, num_hidden_amp,
 	num_hidden_phase = train_set.shape[-1] if num_hidden_phase is None else num_hidden_phase
 
 	rbm = ComplexRBM(full_unitaries=full_unitary_dictionary, psi_dictionary=psi_dictionary,
-					 num_visible=train_set.shape[-1], 
+					 num_visible=train_set.shape[-1],
 					 num_hidden_amp=num_hidden_amp,
 			  		 num_hidden_phase=num_hidden_phase,test_grads=test_grads
 			  		 )
@@ -128,8 +128,8 @@ def train_complex(train_path, basis_path, true_psi_path, num_hidden_amp,
 			  help="path to the training data")
 @click.option('-k', default=1, show_default=True, type=int,
 			  help="number of Contrastive Divergence steps")
-@click.option('--num-samples', default=100, show_default=True, type=int, 
-			  help=("How many new data samples you wish to be drawn from the " 
+@click.option('--num-samples', default=100, show_default=True, type=int,
+			  help=("How many new data samples you wish to be drawn from the "
 					"trained RBM."))
 
 def generate(weight_path, vb_path, hb_path, k, num_samples):
@@ -140,9 +140,9 @@ def generate(weight_path, vb_path, hb_path, k, num_samples):
 
 	num_visible = len(visible_bias)
 	num_hidden = len(hidden_bias)
-	
+
 	rbm = SampleRBM(num_visible, num_hidden, weights, visible_bias, hidden_bias)
-	rbm.sample(num_samples, k)	
+	rbm.sample(num_samples, k)
 
 if __name__ == '__main__':
 	cli()
