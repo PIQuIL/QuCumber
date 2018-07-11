@@ -52,6 +52,7 @@ extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.ifconfig',
     'sphinx.ext.linkcode',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
     'nbsphinx'
@@ -192,6 +193,12 @@ imgmath_image_format = 'svg'
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
+
+# -- Options for intersphinx -------------------------------------------------
+
+intersphinx_mapping = {
+    'torch': ('https://pytorch.org/docs/stable/', None)
+}
 
 
 # -- Options for linkcode extension ------------------------------------------
