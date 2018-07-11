@@ -115,6 +115,11 @@ public:
         std::ifstream fin(fileName);
         rbmAm_.LoadWeights(fin);
     }
+
+    void SaveWeights(std::string &fileName){
+        std::ofstream fout(fileName);
+        rbmAm_.SaveWeights(fout);
+    }
 };
 }
 

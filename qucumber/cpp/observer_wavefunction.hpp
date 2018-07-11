@@ -71,7 +71,7 @@ public:
     // Compute the fidelity with the target wavefunction 
     void Fidelity(){
         Overlap();
-        return overlap*overlap;
+        return overlap_*overlap_;
     }
     
     //Compute KL divergence exactly
