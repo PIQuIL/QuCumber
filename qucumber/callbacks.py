@@ -39,10 +39,25 @@ class Callback:
         pass
 
 
+class LambdaCallback(Callback):
+    def __init__(self,
+                 on_train_start=lambda rbm: None,
+                 on_train_end=lambda rbm: None,
+                 on_epoch_start=lambda rbm, epoch: None,
+                 on_epoch_end=lambda rbm, epoch: None,
+                 on_batch_start=lambda rbm, epoch, batch: None,
+                 on_batch_end=lambda rbm, epoch, batch: None):
+        self.on_train_start = on_train_start
+        self.on_train_end = on_train_end
+        self.on_epoch_start = on_epoch_start
+        self.on_epoch_end = on_epoch_end
+        self.on_batch_start = on_batch_start
+        self.on_batch_end = on_batch_end
+
+
 class ModelSaver(Callback):
     def __init__(self, period, folder_path, file_name,
                  metadata=None, metadata_only=False):
-
         self.folder_path = folder_path
         self.period = period
         self.file_name = file_name
