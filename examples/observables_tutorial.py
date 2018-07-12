@@ -108,12 +108,13 @@ class Observable:
 
 
 class TFIMChainEnergy(Observable):
-    def __init__(self, h, density=True, name="Energy",
-                 variance_name="Heat Capacity", **kwargs):
+    def __init__(self, h, density=True, boundary_conditions="open",
+                 name="Energy", variance_name="Heat Capacity", **kwargs):
         super(TFIMChainEnergy, self).__init__(name=name,
                                               variance_name=variance_name)
         self.h = h
         self.density = density
+        self.boundary_conditions = boundary_conditions
 
     @staticmethod
     def _flip_spin(i, s):
@@ -121,16 +122,16 @@ class TFIMChainEnergy(Observable):
 
     def apply(self, samples, sampler):
         samples = to_pm1(samples)
-        log_psis = sampler.rbm_module.effective_energy(to_01(samples)).div(2.)
+        log_psis = sampler.free_energy(to_01(samples)).div(2.)
 
         shape = log_psis.shape + (samples.shape[-1],)
         log_flipped_psis = torch.zeros(*shape,
                                        dtype=torch.double,
-                                       device=sampler.rbm_module.device)
+                                       device=sampler.device)
 
         for i in range(samples.shape[-1]):  # sum over spin sites
             self._flip_spin(i, samples)  # flip the spin at site i
-            log_flipped_psis[:, i] = sampler.rbm_module.effective_energy(
+            log_flipped_psis[:, i] = sampler.free_energy(
                 to_01(samples)
             ).div(2.)
             self._flip_spin(i, samples)  # flip it back
@@ -138,8 +139,14 @@ class TFIMChainEnergy(Observable):
         log_flipped_psis = log_sum_exp(
             log_flipped_psis, keepdim=True).squeeze()
 
-        interaction_terms = ((samples[:, :-1] * samples[:, 1:])
-                             .sum(1))      # sum over spin sites
+        if self.boundary_conditions == "periodic":
+            perm_indices = list(range(sampler.shape[-1]))
+            perm_indices = perm_indices[1:] + [0]
+            interaction_terms = ((samples * samples[:, perm_indices])
+                                 .sum(1))
+        else:
+            interaction_terms = ((samples[:, :-1] * samples[:, 1:])
+                                 .sum(1))      # sum over spin sites
 
         transverse_field_terms = (log_flipped_psis
                                   .sub(log_psis)

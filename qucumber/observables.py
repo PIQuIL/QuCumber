@@ -78,10 +78,11 @@ class Observable:
 
 
 class TFIMChainEnergy(Observable):
-    def __init__(self, h, density=True):
+    def __init__(self, h, density=True, boundary_conditions="open"):
         super(TFIMChainEnergy, self).__init__()
         self.h = h
         self.density = density
+        self.boundary_conditions = boundary_conditions
 
     @staticmethod
     def _flip_spin(i, s):
@@ -106,8 +107,14 @@ class TFIMChainEnergy(Observable):
         log_flipped_psis = log_sum_exp(
             log_flipped_psis, keepdim=True).squeeze()
 
-        interaction_terms = ((samples[:, :-1] * samples[:, 1:])
-                             .sum(1))      # sum over spin sites
+        if self.boundary_conditions == "periodic":
+            perm_indices = list(range(sampler.shape[-1]))
+            perm_indices = perm_indices[1:] + [0]
+            interaction_terms = ((samples * samples[:, perm_indices])
+                                 .sum(1))
+        else:
+            interaction_terms = ((samples[:, :-1] * samples[:, 1:])
+                                 .sum(1))      # sum over spin sites
 
         transverse_field_terms = (log_flipped_psis
                                   .sub(log_psis)
