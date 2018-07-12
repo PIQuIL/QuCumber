@@ -10,6 +10,7 @@ Welcome to QuCumber's documentation!
    callbacks
    observables
    theory
+   tutorial
    QuCumberTutorial
    QuCumberTutorialReal
    QuCumberTutorialComplex

@@ -237,7 +237,7 @@ class BinomialRBM:
             if ep % log_every == 0:
 
                 fidelity_ = self.fidelity(vis, psi)
-                print ('Epoch = ',ep,'\nFidelity = ',fidelity_)
+                print ('Epoch = ',ep,'\tFidelity = %.5f' %fidelity_.item())
                 fidelity_list.append(fidelity_)
                 epoch_list.append(ep)
            
