@@ -122,16 +122,16 @@ class TFIMChainEnergy(Observable):
 
     def apply(self, samples, sampler):
         samples = to_pm1(samples)
-        log_psis = sampler.free_energy(to_01(samples)).div(2.)
+        log_psis = sampler.rbm_module.effective_energy(to_01(samples)).div(2.)
 
         shape = log_psis.shape + (samples.shape[-1],)
         log_flipped_psis = torch.zeros(*shape,
                                        dtype=torch.double,
-                                       device=sampler.device)
+                                       device=sampler.rbm_module.device)
 
         for i in range(samples.shape[-1]):  # sum over spin sites
             self._flip_spin(i, samples)  # flip the spin at site i
-            log_flipped_psis[:, i] = sampler.free_energy(
+            log_flipped_psis[:, i] = sampler.rbm_module.effective_energy(
                 to_01(samples)
             ).div(2.)
             self._flip_spin(i, samples)  # flip it back
