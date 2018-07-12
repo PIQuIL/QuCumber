@@ -6,14 +6,14 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
-
-from qucumber import cplx
+from itertools import chain
+import cplx
+import unitaries
 
 __all__ = [
     "RBM_Module",
     "BinomialRBM"
 ]
-
 
 class RBM_Module(nn.Module):
 
@@ -44,12 +44,13 @@ class RBM_Module(nn.Module):
                                                      dtype=torch.double)),
                                         requires_grad=True)
         else:
+            
             self.weights = nn.Parameter(
                 (torch.randn(self.num_hidden, self.num_visible,
                              device=self.device, dtype=torch.double)
                  / np.sqrt(self.num_visible)),
                 requires_grad=True)
-
+                  
         self.visible_bias = nn.Parameter(torch.zeros(self.num_visible,
                                                      device=self.device,
                                                      dtype=torch.double),
@@ -58,34 +59,10 @@ class RBM_Module(nn.Module):
                                                     device=self.device,
                                                     dtype=torch.double),
                                         requires_grad=True)
-
+        
     def __repr__(self):
         return ("RBM_Module(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
-
-    def save(self, location, metadata={}):
-        """Saves the RBM parameters to the given location along with
-        any given metadata.
-        :param location: The location to save the RBM parameters + metadata
-        :type location: str or file-like
-        :param metadata: Any extra metadata to store alongside the RBM
-                         parameters
-        :type metadata: dict
-        """
-        # add extra metadata to dictionary before saving it to disk
-        rbm_data = {**self.state_dict(), **metadata}
-        torch.save(rbm_data, location)
-
-    def load(self, location):
-        """Loads the RBM parameters from the given location ignoring any
-        metadata stored in the file. Overwrites the RBM's parameters.
-        .. note:: The RBM object on which this function is called must
-                  have the same shape as the one who's parameters are being
-                  loaded.
-        :param location: The location to load the RBM parameters from
-        :type location: str or file-like
-        """
-        self.load_state_dict(torch.load(location), strict=False)
 
     def effective_energy(self, v):
         r"""The effective energies of the given visible states.
@@ -267,17 +244,31 @@ class RBM_Module(nn.Module):
         """
         return self.log_partition(visible_space).exp()
 
+    def probability(self, v, Z):
+        """Evaluates the probability of the given vector(s) of visible
+        units; NOT RECOMMENDED FOR RBMS WITH A LARGE # OF VISIBLE UNITS
+
+        :param v: The visible states.
+        :type v: torch.doubleTensor
+        :param Z: The partition function.
+        :type Z: float
+
+        :returns: The probability of the given vector(s) of visible units.
+        :rtype: torch.doubleTensor
+        """
+        return self.unnormalized_probability(v) / Z
 
 class BinomialRBM(nn.Module):
-    def __init__(self, num_visible, num_hidden, gpu=True, seed=1234):
+    def __init__(self, num_visible, num_hidden, save_psi, gpu=True, seed=1234):
         super(BinomialRBM, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
         self.rbm_module = RBM_Module(self.num_visible, self.num_hidden,
                                      gpu=gpu, seed=seed)
         self.stop_training = False
+        self.save_psi = save_psi
 
-    def save(self, location, metadata={}):
+    def save(self, location='saved_params.pkl', metadata={}, visible_space=None, Z=None):
         """Saves the RBM parameters to the given location along with
         any given metadata.
         :param location: The location to save the RBM parameters + metadata
@@ -285,10 +276,18 @@ class BinomialRBM(nn.Module):
         :param metadata: Any extra metadata to store alongside the RBM
                          parameters
         :type metadata: dict
+        :param visible_space: The entire visible_space.
+        :type visible_space: torch.doubleTensor
+        :param Z: The partition function.
+        :type Z: float
         """
+        if self.save_psi:
+            metadata["RBMpsi"]=self.rbm_module.probability(visible_space,
+                                                           Z).sqrt().data
+
         # add extra metadata to dictionary before saving it to disk
         data = {**self.state_dict(), **metadata}
-        torch.save(data, location)
+        torch.save(data, location)   
 
     def load(self, location):
         """Loads the RBM parameters from the given location ignoring any
@@ -301,45 +300,37 @@ class BinomialRBM(nn.Module):
         """
         self.load_state_dict(torch.load(location), strict=False)
 
-    def compute_batch_gradients(self, k, batch):
+    def compute_batch_gradients(self, k, pos_batch, neg_batch):
         """This function will compute the gradients of a batch of the training
         data (data_file) given the basis measurements (chars_file).
 
         :param k: Number of contrastive divergence steps in training.
         :type k: int
-        :param batch: Batch of the input data.
-        :type batch: torch.doubleTensor
-
-        :returns: Dictionary containing all the gradients.
+        :param pos_batch: Batch of the input data for the positive phase.
+        :type pos_batch: torch.doubleTensor
+        :param neg_batch: Batch of the input data for the negative phase.
+        :type neg_batch: torch.doubleTensor
+        
+        :returns: Dictionary containing all the gradients of the parameters.
         :rtype: dict
         """
-        if len(batch) == 0:
-            return (torch.zeros_like(self.rbm_module.weights,
-                                     device=self.self.rbm_module.device,
-                                     dtype=torch.double),
-                    torch.zeros_like(self.rbm_module.visible_bias,
-                                     device=self.rbm_module.device,
-                                     dtype=torch.double),
-                    torch.zeros_like(self.rbm_module.hidden_bias,
-                                     device=self.rbm_module.device,
-                                     dtype=torch.double))
 
-        v0, h0, vk, hk, phk = self.rbm_module.gibbs_sampling(k, batch)
+        v0, _, _, _, _    = self.rbm_module.gibbs_sampling(k, pos_batch)
+        _, _, vk, hk, phk = self.rbm_module.gibbs_sampling(k, neg_batch)
 
         prob = F.sigmoid(F.linear(v0, self.rbm_module.weights,
                                   self.rbm_module.hidden_bias))
 
-        w_grad = torch.einsum("ij,ik->jk", (prob, v0))
-        vb_grad = torch.einsum("ij->j", (v0,))
-        hb_grad = torch.einsum("ij->j", (prob,))
+        pos_batch_size = float(len(pos_batch))
+        neg_batch_size = float(len(neg_batch))
 
-        w_grad -= torch.einsum("ij,ik->jk", (phk, vk))
-        vb_grad -= torch.einsum("ij->j", (vk,))
-        hb_grad -= torch.einsum("ij->j", (phk,))
+        w_grad  = torch.einsum("ij,ik->jk", (prob, v0))/pos_batch_size
+        vb_grad = torch.einsum("ij->j", (v0,))/pos_batch_size
+        hb_grad = torch.einsum("ij->j", (prob,))/pos_batch_size
 
-        w_grad /= float(len(batch))
-        vb_grad /= float(len(batch))
-        hb_grad /= float(len(batch))
+        w_grad  -= torch.einsum("ij,ik->jk", (phk, vk))/neg_batch_size
+        vb_grad -= torch.einsum("ij->j", (vk,))/neg_batch_size
+        hb_grad -= torch.einsum("ij->j", (phk,))/neg_batch_size
 
         # Return negative gradients to match up nicely with the usual
         # parameter update rules, which *subtract* the gradient from
@@ -351,7 +342,7 @@ class BinomialRBM(nn.Module):
                                "visible_bias": -vb_grad,
                                "hidden_bias": -hb_grad}}
 
-    def fit(self, data, epochs, batch_size,
+    def fit(self, data, epochs, pos_batch_size, neg_batch_size,
             k=1, lr=1e-2, progbar=False, callbacks=[]):
         """Execute the training of the RBM.
 
@@ -360,8 +351,12 @@ class BinomialRBM(nn.Module):
         :param epochs: The number of parameter (i.e. weights and biases)
                        updates
         :type epochs: int
-        :param batch_size: The size of batches taken from the data
-        :type batch_size: int
+        :param pos_batch_size: The size of batches for the positive phase
+                               taken from the data.
+        :type pos_batch_size: int
+        :param neg_batch_size: The size of batches for the negative phase
+                               taken from the data
+        :type neg_batch_size: int
         :param k: The number of contrastive divergence steps
         :type k: int
         :param lr: Learning rate
@@ -370,41 +365,62 @@ class BinomialRBM(nn.Module):
                         is passed, will use a Jupyter notebook compatible
                         progress bar.
         :type progbar: bool or "notebook"
-        :param callbacks: Callbacks to run while training
+        :param callbacks: Callbacks to run while training.
         :type callbacks: [qucumber.Callback]
         """
 
         disable_progbar = (progbar is False)
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
 
-        data = torch.tensor(data).to(device=self.rbm_module.device,
-                                     dtype=torch.double)
+        data = torch.tensor(data, device=self.rbm_module.device, 
+                            dtype=torch.double)
         optimizer = torch.optim.SGD([self.rbm_module.weights,
                                      self.rbm_module.visible_bias,
                                      self.rbm_module.hidden_bias],
-                                    lr=lr)
+                                     lr=lr)
+
 
         for cb in callbacks:
             cb.on_train_start(self)
 
-        for ep in progress_bar(range(epochs), desc="Epochs ",
+        for ep in progress_bar(range(epochs+1), desc="Epochs ",
                                disable=disable_progbar):
-            batches = DataLoader(data, batch_size=batch_size, shuffle=True)
+            pos_batches = DataLoader(data, batch_size=pos_batch_size,
+                                     shuffle=True)
 
+            multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
+            neg_batches = [DataLoader(data, batch_size=neg_batch_size,
+                                      shuffle=True) for i in range(multiplier)]
+
+            neg_batches = chain(*neg_batches)        
+                
             for cb in callbacks:
                 cb.on_epoch_start(self, ep)
 
             if self.stop_training:  # check for stop_training signal
                 break
 
-            for batch in progress_bar(batches, desc="Batches",
-                                      leave=False, disable=True):
+            if ep == epochs:
+                print('Finished training. Saving results...')
+               
+                if self.save_psi:
+                    vis = self.rbm_module.generate_visible_space()
+                    Z = self.rbm_module.partition(vis)
+                    self.save(visible_space=vis, Z=Z)
+
+                else:
+                    self.save()
+
+                print('Done.')
+                break
+
+            for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
+                                                               neg_batches)):
 
                 for cb in callbacks:
-                    cb.on_batch_start(self, ep, batch)
+                    cb.on_batch_start(self, ep, batch_num)
 
-                all_grads = self.compute_batch_gradients(k, batch)
-
+                all_grads = self.compute_batch_gradients(k, pos_batch, neg_batch)
                 optimizer.zero_grad()  # clear any cached gradients
 
                 # assign all available gradients to the corresponding parameter
@@ -414,9 +430,9 @@ class BinomialRBM(nn.Module):
                         getattr(selected_RBM, param).grad = grads[param]
 
                 optimizer.step()  # tell the optimizer to apply the gradients
-
+                
                 for cb in callbacks:
-                    cb.on_batch_end(self, ep, batch)
+                    cb.on_batch_end(self, ep, batch_num)
 
             for cb in callbacks:
                 cb.on_epoch_end(self, ep)
@@ -430,32 +446,16 @@ class BinomialRBM(nn.Module):
         :type num_samples: int
         :param k: Number of Block Gibbs steps.
         :type k: int
-        :returns: Samples drawn from the RBM
+        :returns: Samples drawn from the RBM.
         :rtype: torch.doubleTensor
         """
         return self.rbm_module.sample(num_samples, k)
-
-    def save_params(self):
-        """A function that saves weights and biases individually."""
-        trained_params = [self.rbm_module.weights.data.numpy(),
-                          self.rbm_module.visible_bias.data.numpy(),
-                          self.rbm_module.hidden_bias.data.numpy()]
-
-        with open('trained_weights.csv', 'w') as csvfile1:
-            np.savetxt(csvfile1, trained_params[0], fmt='%.5f', delimiter=',')
-
-        with open('trained_visible_bias.csv', 'w') as csvfile2:
-            np.savetxt(csvfile2, trained_params[1], fmt='%.5f', delimiter=',')
-
-        with open('trained_hidden_bias.csv', 'w') as csvfile3:
-            np.savetxt(csvfile3, trained_params[2], fmt='%.5f', delimiter=',')
-
 
 class ComplexRBM:
     # NOTE: In development. Might be unstable.
     # NOTE: The 'full_unitaries' argument is not needed for training/sampling.
     # This is only here for debugging the gradients. Delete this argument when
-    # Gradients have been debugged.
+    # gradients have been debugged.
     def __init__(self, full_unitaries, psi_dictionary, num_visible,
                  num_hidden_amp, num_hidden_phase, test_grads, gpu=True,
                  seed=1234):
@@ -528,7 +528,7 @@ class ComplexRBM:
         r"""The effective energy of the phase RBM.
 
         :param v: Visible unit(s).
-        :type v:	def save_params(self):
+        :type v:    def save_params(self):
 
         :returns: :math:`p_{\mu}(\bm{v}) = e^{\mathcal{E}_{\mu}(\bm{v})}`
         :rtype: torch.doubleTensor
@@ -592,7 +592,7 @@ class ComplexRBM:
 
         return psi
 
-    def compute_batch_gradients(self, unitaries, k, batch, chars_batch):
+    def compute_batch_gradients(self, unitary_dict, k, batch, chars_batch):
         """This function will compute the gradients of a batch of the training
         data (data_file) given the basis measurements (chars_file).
 
@@ -660,7 +660,7 @@ class ComplexRBM:
                 # Compute the rotated gradients.
                 [L_weights_amp, L_vb_amp, L_hb_amp,
                  L_weights_phase, L_vb_phase, L_hb_phase] = \
-                    self.compute_rotated_grads(unitaries, k, v0,
+                    self.compute_rotated_grads(unitary_dict, k, v0,
                                                chars_batch[row_count],
                                                num_non_trivial_unitaries,
                                                z_indices, tau_indices)
@@ -703,7 +703,7 @@ class ComplexRBM:
             }
         }
 
-    def compute_rotated_grads(self, unitaries, k, v0, characters,
+    def compute_rotated_grads(self, unitary_dict, k, v0, characters,
                               num_non_trivial_unitaries,
                               z_indices, tau_indices):
         """Computes the rotated gradients.
@@ -783,7 +783,7 @@ class ComplexRBM:
                 # These are the sites that are NOT in the computational basis.
                 constructed_state[tau_indices[index]] = s[index]
 
-                aa = unitaries[characters[tau_indices[index]]]
+                aa = unitary_dict[characters[tau_indices[index]]]
                 bb = self.basis_state_generator(v0[tau_indices[index]])
                 cc = self.basis_state_generator(s[index])
 
@@ -856,8 +856,8 @@ class ComplexRBM:
         return [L_weights_amp, L_vb_amp, L_hb_amp, L_weights_phase, L_vb_phase,
                 L_hb_phase]
 
-    def fit(self, data, character_data, unitaries, epochs, batch_size,
-            k=1, lr=1e-2, progbar=False):
+    def fit(self, data, character_data, unitary_dict, epochs, batch_size,
+            k=1, lr=1e-2, log_every=0, progbar=False):
         """Execute the training of the RBM.
 
         :param data: The actual training data
@@ -896,10 +896,6 @@ class ComplexRBM:
 
         vis = self.rbm_amp.generate_visible_space()
 
-        # Empty lists to put calculated convergence quantities in.
-        # fidelity_list = []
-        # epoch_list = []
-
         for ep in progress_bar(range(0, epochs + 1),
                                desc="Epochs ", total=epochs,
                                disable=disable_progbar):
@@ -918,6 +914,11 @@ class ComplexRBM:
             char_batches = [shuffled_character_data[batch_start:(batch_start + batch_size)]
                             for batch_start in range(0, len(data), batch_size)]
 
+            # Calculate convergence quantities every "log-every" steps.
+            if ep % log_every == 0:
+                fidelity_ = self.fidelity(vis, 'Z' 'Z')
+                print ('Epoch = ',ep,'\nFidelity = ',fidelity_)
+
             # Save parameters at the end of training.
             if ep == epochs:
                 print('Finished training. Saving results...')
@@ -931,12 +932,12 @@ class ComplexRBM:
                                              desc="Batches",
                                              leave=False, disable=True):
 
-                all_grads = self.compute_batch_gradients(unitaries, k, batch,
+                all_grads = self.compute_batch_gradients(unitary_dict, k, batch,
                                                          char_batches[index])
 
                 if self.test_grads:
-                    self.test_gradients(vis, k, batches[index],
-                                        char_batches[index])
+                    self.test_gradients(unitary_dict, vis, k, batches[index],
+                                        char_batches[index], all_grads)
 
                 # Clear any cached gradients.
                 optimizer.zero_grad()
@@ -979,6 +980,48 @@ class ComplexRBM:
 
         with open('trained_hidden_bias_phase.csv', 'w') as csvfile:
             np.savetxt(csvfile, trained_params[5], fmt='%.5f', delimiter=',')
+
+    def get_true_psi(self, basis):
+        """Picks out the true psi in the correct basis.
+        
+        :param basis: E.g. XZZZX.
+        :type basis: str
+
+        :returns: The true wavefunction in the basis.
+        :rtype: torch.doubleTensor
+        """
+        key = ''
+        for i in range(len(basis)):
+            key += basis[i]
+        return self.psi_dictionary[key]
+
+    def overlap(self, visible_space, basis):
+        """Computes the overlap between the RBM and true wavefunctions.
+        
+        :param visible_space: An array of all possible spin configurations.
+        :type visible_space: torch.doubleTensor 
+        :param basis: E.g. XZZZX.
+        :type basis: str
+        
+        :returns: :math:`O = \\langle{\\psi_{true}}\\vert\\psi_{\\lambda\\mu}\\rangle`.
+        :rtype: double      
+        """
+        overlap_ = cplx.inner_prod(self.get_true_psi(basis),
+                           self.normalized_wavefunction(visible_space))
+        return overlap_
+
+    def fidelity(self, visible_space, basis):
+        """Computed the fidelity of the RBM and true wavefunctions. 
+    
+        :param visible_space: An array of all possible spin configurations.
+        :type visible_space: torch.doubleTensor 
+        :param basis: E.g. XZZZX.
+        :type basis: str
+        
+        :returns: :math:`F = |O|^2`.
+        :rtype: double      
+        """
+        return cplx.norm(self.overlap(visible_space, basis))
 
     def KL_divergence(self, visible_space):
         '''Computes the total KL divergence.
@@ -1033,6 +1076,7 @@ class ComplexRBM:
 
     def compute_numerical_gradient(self, visible_space, param, alg_grad):
         eps = 1.e-6
+        print("Numerical\t Exact\t\t Abs. Diff.")
 
         for i in range(len(param)):
 
@@ -1046,16 +1090,16 @@ class ComplexRBM:
 
             num_grad = (KL_pos - KL_neg) / (2*eps)
 
-            print('numerical:', num_grad)
-            print('algebraic: ', alg_grad[i], '\n')
+            print("{: 10.8f}\t{: 10.8f}\t{: 10.8f}\t"
+                  .format(num_grad, alg_grad[i],
+                          abs(num_grad - alg_grad[i])))
 
-    def test_gradients(self, visible_space, k, batch, chars_batch):
+    def test_gradients(self, unitary_dict, visible_space, k, batch, chars_batch, alg_grads):
         # Must have negative sign because the compute_batch_grads returns the neg of the grads.
-        alg_grads = self.compute_batch_gradients(k, batch, chars_batch)
         # key_list = ["weights_amp", "visible_bias_amp", "hidden_bias_amp", "weights_phase", "visible_bias_phase", "hidden_bias_phase"]
 
-        flat_weights_amp = self.rbm_amp.weights.view(-1)
-        flat_weights_phase = self.rbm_phase.weights.view(-1)
+        flat_weights_amp = self.rbm_amp.weights.data.view(-1)
+        flat_weights_phase = self.rbm_phase.weights.data.view(-1)
 
         flat_grad_weights_amp = alg_grads["rbm_amp"]["weights"].view(-1)
         flat_grad_weights_phase = alg_grads["rbm_phase"]["weights"].view(-1)
@@ -1065,23 +1109,28 @@ class ComplexRBM:
         print('Weights amp gradient')
         self.compute_numerical_gradient(
             visible_space, flat_weights_amp, -flat_grad_weights_amp)
+        print ('\n')
 
         print('Visible bias amp gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_amp.visible_bias, -alg_grads["rbm_amp"]["visible_bias"])
-
+        print ('\n')
+       
         print('Hidden bias amp gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_amp.hidden_bias, -alg_grads["rbm_amp"]["hidden_bias"])
-
+        print ('\n')
+       
         print('Weights phase gradient')
         self.compute_numerical_gradient(
             visible_space, flat_weights_phase, -flat_grad_weights_phase)
-
+        print ('\n')
+       
         print('Visible bias phase gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_phase.visible_bias, -alg_grads["rbm_phase"]["visible_bias"])
-
+        print ('\n')
+       
         print('Hidden bias phase gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_phase.hidden_bias, -alg_grads["rbm_phase"]["hidden_bias"])
