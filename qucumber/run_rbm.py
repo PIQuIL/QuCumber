@@ -1,9 +1,7 @@
 from rbm import RBM_Module, ComplexRBM, BinomialRBM
-import cplx
-import unitaries 
+from . import unitaries 
 import click
 import gzip
-import pickle
 import csv
 import numpy as np
 import torch

@@ -53,7 +53,9 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.linkcode',
     'sphinx.ext.githubpages',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'nbsphinx',
+    'nbsphinx_link'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -114,6 +116,9 @@ html_static_path = ['_static']
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
+
+
+autodoc_member_order = "bysource"
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'QuCumberdoc'
@@ -184,6 +189,8 @@ todo_include_todos = True
 imgmath_use_preview = True
 imgmath_latex_preamble = latex_elements['preamble']
 imgmath_image_format = 'svg'
+imgmath_font_size = 14
+imgmath_dvisvgm_args = ['--no-fonts', '-e', '-c', '100']
 
 
 # -- Options for napoleon ----------------------------------------------------

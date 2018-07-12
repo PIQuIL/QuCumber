@@ -20,4 +20,4 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 livehtml:
-	sphinx-autobuild -b html $(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
+	sphinx-autobuild -z ../qucumber -z ../examples -b html $(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
