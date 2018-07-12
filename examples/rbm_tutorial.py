@@ -79,7 +79,7 @@ class RBM_Module(nn.Module):
 
             if observable == 'Energy':
                 energy_list = [] 
-                energy_calc = TFIMChainEnergy(h=0.0)
+                energy_calc = TFIMChainEnergy(h=1.0)
                 energy_list.append(energy_calc.apply(v0, sampler).mean())
                 step_list.append(0)
                 for i in range(k):
