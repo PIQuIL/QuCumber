@@ -13,6 +13,7 @@ Welcome to QuCumber's documentation!
    rbm
    cplx
    theory
+   tutorial
 
 
 Indices and tables
