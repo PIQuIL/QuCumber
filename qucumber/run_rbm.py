@@ -13,6 +13,11 @@ def cli():
 	"""Simple tool for training an RBM"""
 	pass
 
+def load_params(param_file):
+    with open(param_file, 'rb+') as f:
+        param_dict = torch.load(f)
+    return param_dict
+
 @cli.command("train_real")
 @click.option('--train-path', default='tfim1d_N10_train_samples.txt',
 			  show_default=True, type=click.Path(exists=True),
@@ -21,7 +26,7 @@ def cli():
 			  show_default=True, type=click.Path(exists=True),
 			  help="path to the file containing the true wavefunctions in each basis.")
 @click.option('-n', '--num-hidden', default=None, type=int,
-			  help=("number of hidden units in the RBM; defaults to "
+			  help=("number of hidden units in thes['visible_bias'] RBM; defaults to "
 					"number of visible units"))
 @click.option('-e', '--epochs', default=1000, show_default=True, type=int)
 @click.option('-pb', '--pos-batch-size', default=100, show_default=True, type=int)
@@ -48,6 +53,30 @@ def train_real(train_path, true_psi_path, num_hidden, epochs, pos_batch_size,
 
 	rbm.fit(train_set, epochs, pos_batch_size, neg_batch_size, k=k, 
             lr=learning_rate, progbar=(not no_prog))	
+
+@cli.command("generate")
+@click.option('--param-path', default='saved_params.pkl',
+              show_default=True, type=click.Path(exists=True),
+			  help="path to the saved weights and biases")
+@click.option('--num-samples', default=1000, show_default=True, type=int,
+			  help="number of samples to be generated.")
+@click.option('-k', default=100, show_default=True, type=int,
+			  help="number of Contrastive Divergence steps.")
+
+def generate(param_path, num_samples, k):
+    """Generate new data from trained RBM parameters."""
+    params = load_params(param_path)
+
+    num_visible = params['rbm_module.visible_bias'].size()[0]
+    num_hidden  = params['rbm_module.hidden_bias'].size()[0]
+
+    rbm = BinomialRBM(num_visible=num_visible, num_hidden=num_hidden,
+                      save_psi=False, seed=None)
+
+    rbm.load(param_path)
+    new_data = (rbm.sample(num_samples, k)).data.numpy()
+
+    np.savetxt('generated_samples.txt', new_data, fmt='%d')
 
 # NOTE: TRAIN_COMPLEX IS CURRENTLY IN DEVELOPMENT. COULD BE UNSTABLE IF USED.
 @cli.command("train_complex")

@@ -262,9 +262,9 @@ class BinomialRBM(nn.Module):
     def __init__(self, num_visible, num_hidden, save_psi, gpu=True, seed=1234):
         super(BinomialRBM, self).__init__()
         self.num_visible = int(num_visible)
-        self.num_hidden = int(num_hidden)
-        self.rbm_module = RBM_Module(self.num_visible, self.num_hidden,
-                                     gpu=gpu, seed=seed)
+        self.num_hidden  = int(num_hidden)
+        self.rbm_module  = RBM_Module(self.num_visible, self.num_hidden,
+                                      gpu=gpu, seed=seed)
         self.stop_training = False
         self.save_psi = save_psi
 
