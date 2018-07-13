@@ -9,15 +9,22 @@ setuptools.setup(
       version=qucumber.__version__,
       description='Neural network quantum state tomography.',
       long_description=long_description,
+      long_description_content_type='text/markdown',
       classifiers=[
-        'License :: Apache License 2.0',
-        'Programming language :: Python :: 3',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 3',
         'Operating System :: OS Independent'
       ],
-      install_requires=['torch','tqdm'],
+      install_requires=[
+        'torch',
+        'tqdm',
+        'numpy'
+      ],
       include_package_data=True,
       url='http://github.com/MelkoCollective/QuCumber',
       author='PIQuIL',
+      author_email='piquildbeets@gmail.com',
       license='Apache License 2.0',
-      packages=setuptools.find_packages()
+      packages=setuptools.find_packages(),
+      zip_safe=False
 )
