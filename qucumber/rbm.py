@@ -8,12 +8,14 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 from itertools import chain
 from qucumber import cplx
-from qucumber import  unitaries
+# from qucumber import unitaries
+
 
 __all__ = [
     "RBM_Module",
     "BinomialRBM"
 ]
+
 
 class RBM_Module(nn.Module):
 
@@ -44,13 +46,13 @@ class RBM_Module(nn.Module):
                                                      dtype=torch.double)),
                                         requires_grad=True)
         else:
-            
+
             self.weights = nn.Parameter(
                 (torch.randn(self.num_hidden, self.num_visible,
                              device=self.device, dtype=torch.double)
                  / np.sqrt(self.num_visible)),
                 requires_grad=True)
-                  
+
         self.visible_bias = nn.Parameter(torch.zeros(self.num_visible,
                                                      device=self.device,
                                                      dtype=torch.double),
@@ -59,7 +61,7 @@ class RBM_Module(nn.Module):
                                                     device=self.device,
                                                     dtype=torch.double),
                                         requires_grad=True)
-        
+
     def __repr__(self):
         return ("RBM_Module(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
@@ -262,41 +264,35 @@ class BinomialRBM(nn.Module):
     def __init__(self, num_visible, num_hidden, save_psi, gpu=True, seed=1234):
         super(BinomialRBM, self).__init__()
         self.num_visible = int(num_visible)
-        self.num_hidden  = int(num_hidden)
-        self.rbm_module  = RBM_Module(self.num_visible, self.num_hidden,
-                                      gpu=gpu, seed=seed)
+        self.num_hidden = int(num_hidden)
+        self.rbm_module = RBM_Module(self.num_visible, self.num_hidden,
+                                     gpu=gpu, seed=seed)
         self.stop_training = False
         self.save_psi = save_psi
 
-    def save(self, location='saved_params.pkl', metadata={}, visible_space=None, Z=None):
+    def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
         any given metadata.
         :param location: The location to save the RBM parameters + metadata
-        :type location: str or file-like
-        :param metadata: Any extra metadata to store alongside the RBM
-                         parameters
+        :type location: str or file
+        :param metadata: Any extra metadata to store alongside the RBM parameters
         :type metadata: dict
-        :param visible_space: The entire visible_space.
-        :type visible_space: torch.doubleTensor
-        :param Z: The partition function.
-        :type Z: float
         """
-        if self.save_psi:
-            metadata["RBMpsi"]=self.rbm_module.probability(visible_space,
-                                                           Z).sqrt().data
-
         # add extra metadata to dictionary before saving it to disk
         data = {**self.state_dict(), **metadata}
-        torch.save(data, location)   
+        torch.save(data, location)
 
     def load(self, location):
         """Loads the RBM parameters from the given location ignoring any
         metadata stored in the file. Overwrites the RBM's parameters.
-        .. note:: The RBM object on which this function is called must
-                  have the same shape as the one who's parameters are being
-                  loaded.
+
+        .. note::
+            The RBM object on which this function is called must
+            have the same shape as the one who's parameters are being
+            loaded.
+
         :param location: The location to load the RBM parameters from
-        :type location: str or file-like
+        :type location: str or file
         """
         self.load_state_dict(torch.load(location), strict=False)
 
@@ -307,10 +303,10 @@ class BinomialRBM(nn.Module):
         :param k: Number of contrastive divergence steps in training.
         :type k: int
         :param pos_batch: Batch of the input data for the positive phase.
-        :type pos_batch: torch.doubleTensor
+        :type pos_batch: |DoubleTensor|
         :param neg_batch: Batch of the input data for the negative phase.
-        :type neg_batch: torch.doubleTensor
-        
+        :type neg_batch: |DoubleTensor|
+
         :returns: Dictionary containing all the gradients of the parameters.
         :rtype: dict
         """
@@ -347,7 +343,7 @@ class BinomialRBM(nn.Module):
         """Execute the training of the RBM.
 
         :param data: The actual training data
-        :type data: array_like of doubles
+        :type data: list(float)
         :param epochs: The number of parameter (i.e. weights and biases)
                        updates
         :type epochs: int
@@ -360,30 +356,29 @@ class BinomialRBM(nn.Module):
         :param k: The number of contrastive divergence steps
         :type k: int
         :param lr: Learning rate
-        :type lr: double
+        :type lr: float
         :param progbar: Whether or not to display a progress bar. If "notebook"
                         is passed, will use a Jupyter notebook compatible
                         progress bar.
-        :type progbar: bool or "notebook"
+        :type progbar: bool or str
         :param callbacks: Callbacks to run while training.
-        :type callbacks: [qucumber.Callback]
+        :type callbacks: list(qucumber.callbacks.Callback)
         """
 
         disable_progbar = (progbar is False)
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
 
-        data = torch.tensor(data, device=self.rbm_module.device, 
+        data = torch.tensor(data, device=self.rbm_module.device,
                             dtype=torch.double)
         optimizer = torch.optim.SGD([self.rbm_module.weights,
                                      self.rbm_module.visible_bias,
                                      self.rbm_module.hidden_bias],
                                      lr=lr)
 
-
         for cb in callbacks:
             cb.on_train_start(self)
 
-        for ep in progress_bar(range(epochs+1), desc="Epochs ",
+        for ep in progress_bar(range(epochs), desc="Epochs ",
                                disable=disable_progbar):
             pos_batches = DataLoader(data, batch_size=pos_batch_size,
                                      shuffle=True)
@@ -392,26 +387,12 @@ class BinomialRBM(nn.Module):
             neg_batches = [DataLoader(data, batch_size=neg_batch_size,
                                       shuffle=True) for i in range(multiplier)]
 
-            neg_batches = chain(*neg_batches)        
-                
+            neg_batches = chain(*neg_batches)
+
             for cb in callbacks:
                 cb.on_epoch_start(self, ep)
 
             if self.stop_training:  # check for stop_training signal
-                break
-
-            if ep == epochs:
-                print('Finished training. Saving results...')
-               
-                if self.save_psi:
-                    vis = self.rbm_module.generate_visible_space()
-                    Z = self.rbm_module.partition(vis)
-                    self.save(visible_space=vis, Z=Z)
-
-                else:
-                    self.save()
-
-                print('Done.')
                 break
 
             for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
@@ -430,7 +411,7 @@ class BinomialRBM(nn.Module):
                         getattr(selected_RBM, param).grad = grads[param]
 
                 optimizer.step()  # tell the optimizer to apply the gradients
-                
+
                 for cb in callbacks:
                     cb.on_batch_end(self, ep, batch_num)
 
@@ -477,7 +458,7 @@ class ComplexRBM:
         given a spin value (0 or 1).
 
         :param s: A spin's value (either 0 or 1).
-        :type s: double
+        :type s: float
 
         :returns: If s = 0, this is the (1,0) state in the basis of the
                   measurement. If s = 1, this is the (0,1) state in the basis
@@ -528,7 +509,7 @@ class ComplexRBM:
         r"""The effective energy of the phase RBM.
 
         :param v: Visible unit(s).
-        :type v:    def save_params(self):
+        :type v: torch.doubleTensor
 
         :returns: :math:`p_{\mu}(\bm{v}) = e^{\mathcal{E}_{\mu}(\bm{v})}`
         :rtype: torch.doubleTensor
@@ -602,7 +583,7 @@ class ComplexRBM:
         :type batch: torch.doubleTensor
         :param chars_batch: Batch of bases that correspondingly indicates the
                             basis each site in the batch was measured in.
-        :type chars_batch: array_like (str)
+        :type chars_batch: list(str)
 
         :returns: Dictionary containing all the gradients (negative): Gradient
                   of weights, visible bias and hidden bias for the amplitude,
@@ -718,10 +699,10 @@ class ComplexRBM:
         :type num_non_trivial_unitaries: int
         :param z_indices: A list of indices that correspond to sites of v0 that
                           are measured in the computational basis.
-        :type z_indices: list of ints
+        :type z_indices: list(int)
         :param tau_indices: A list of indices that correspond to sites of v0
                             that are not measured in the computational basis.
-        :type tau_indices: list of ints
+        :type tau_indices: list(int)
 
         :returns: Dictionary of the rotated gradients: L_weights_amp, L_vb_amp,
                   L_hb_amp, L_weights_phase, L_vb_phase, L_hb_phase
@@ -861,10 +842,10 @@ class ComplexRBM:
         """Execute the training of the RBM.
 
         :param data: The actual training data
-        :type data: array_like of doubles
+        :type data: list(float)
         :param character_data: The corresponding bases that each site in the
                                data has been measured in.
-        :type character_data: array_like of str's
+        :type character_data: list(str)
         :param epochs: The number of parameter (i.e. weights and biases)
                        updates
         :type epochs: int
@@ -873,11 +854,11 @@ class ComplexRBM:
         :param k: The number of contrastive divergence steps
         :type k: int
         :param lr: Learning rate
-        :type lr: double
+        :type lr: float
         :param progbar: Whether or not to display a progress bar. If "notebook"
                         is passed, will use a Jupyter notebook compatible
                         progress bar.
-        :type progbar: bool or "notebook"
+        :type progbar: bool or str
         """
         # Make data file into a torch tensor.
         data = torch.tensor(data, dtype=torch.double).to(device=self.device)
@@ -983,7 +964,7 @@ class ComplexRBM:
 
     def get_true_psi(self, basis):
         """Picks out the true psi in the correct basis.
-        
+
         :param basis: E.g. XZZZX.
         :type basis: str
 
@@ -997,29 +978,29 @@ class ComplexRBM:
 
     def overlap(self, visible_space, basis):
         """Computes the overlap between the RBM and true wavefunctions.
-        
+
         :param visible_space: An array of all possible spin configurations.
-        :type visible_space: torch.doubleTensor 
+        :type visible_space: torch.doubleTensor
         :param basis: E.g. XZZZX.
         :type basis: str
-        
+
         :returns: :math:`O = \\langle{\\psi_{true}}\\vert\\psi_{\\lambda\\mu}\\rangle`.
-        :rtype: double      
+        :rtype: float
         """
         overlap_ = cplx.inner_prod(self.get_true_psi(basis),
                            self.normalized_wavefunction(visible_space))
         return overlap_
 
     def fidelity(self, visible_space, basis):
-        """Computed the fidelity of the RBM and true wavefunctions. 
-    
+        """Computed the fidelity of the RBM and true wavefunctions.
+
         :param visible_space: An array of all possible spin configurations.
-        :type visible_space: torch.doubleTensor 
+        :type visible_space: torch.doubleTensor
         :param basis: E.g. XZZZX.
         :type basis: str
-        
+
         :returns: :math:`F = |O|^2`.
-        :rtype: double      
+        :rtype: float
         """
         return cplx.norm(self.overlap(visible_space, basis))
 
@@ -1115,22 +1096,22 @@ class ComplexRBM:
         self.compute_numerical_gradient(
             visible_space, self.rbm_amp.visible_bias, -alg_grads["rbm_amp"]["visible_bias"])
         print ('\n')
-       
+
         print('Hidden bias amp gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_amp.hidden_bias, -alg_grads["rbm_amp"]["hidden_bias"])
         print ('\n')
-       
+
         print('Weights phase gradient')
         self.compute_numerical_gradient(
             visible_space, flat_weights_phase, -flat_grad_weights_phase)
         print ('\n')
-       
+
         print('Visible bias phase gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_phase.visible_bias, -alg_grads["rbm_phase"]["visible_bias"])
         print ('\n')
-       
+
         print('Hidden bias phase gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_phase.hidden_bias, -alg_grads["rbm_phase"]["hidden_bias"])

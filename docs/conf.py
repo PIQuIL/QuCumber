@@ -219,6 +219,7 @@ napoleon_numpy_docstring = True
 
 
 intersphinx_mapping = {
+    'python': ('https://docs.python.org/', None),
     'torch': ('https://pytorch.org/docs/stable/', None)
 }
 
