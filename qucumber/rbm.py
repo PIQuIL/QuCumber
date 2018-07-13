@@ -7,8 +7,8 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 from itertools import chain
-from . import cplx
-from . import unitaries
+import cplx
+import unitaries
 
 __all__ = [
     "RBM_Module",
@@ -259,6 +259,7 @@ class RBM_Module(nn.Module):
         """
         return self.unnormalized_probability(v) / Z
 
+
 class BinomialRBM(nn.Module):
     def __init__(self, num_visible, num_hidden, save_psi, gpu=True, seed=1234):
         super(BinomialRBM, self).__init__()
@@ -272,9 +273,11 @@ class BinomialRBM(nn.Module):
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
         any given metadata.
+
         :param location: The location to save the RBM parameters + metadata
         :type location: str or file
-        :param metadata: Any extra metadata to store alongside the RBM parameters
+        :param metadata: Any extra metadata to store alongside the RBM
+                         parameters
         :type metadata: dict
         """
         # add extra metadata to dictionary before saving it to disk
@@ -310,7 +313,7 @@ class BinomialRBM(nn.Module):
         :rtype: dict
         """
 
-        v0, _, _, _, _    = self.rbm_module.gibbs_sampling(k, pos_batch)
+        v0, _, _, _, _ = self.rbm_module.gibbs_sampling(k, pos_batch)
         _, _, vk, hk, phk = self.rbm_module.gibbs_sampling(k, neg_batch)
 
         prob = F.sigmoid(F.linear(v0, self.rbm_module.weights,
@@ -319,11 +322,11 @@ class BinomialRBM(nn.Module):
         pos_batch_size = float(len(pos_batch))
         neg_batch_size = float(len(neg_batch))
 
-        w_grad  = torch.einsum("ij,ik->jk", (prob, v0))/pos_batch_size
+        w_grad = torch.einsum("ij,ik->jk", (prob, v0))/pos_batch_size
         vb_grad = torch.einsum("ij->j", (v0,))/pos_batch_size
         hb_grad = torch.einsum("ij->j", (prob,))/pos_batch_size
 
-        w_grad  -= torch.einsum("ij,ik->jk", (phk, vk))/neg_batch_size
+        w_grad -= torch.einsum("ij,ik->jk", (phk, vk))/neg_batch_size
         vb_grad -= torch.einsum("ij->j", (vk,))/neg_batch_size
         hb_grad -= torch.einsum("ij->j", (phk,))/neg_batch_size
 
@@ -372,7 +375,7 @@ class BinomialRBM(nn.Module):
         optimizer = torch.optim.SGD([self.rbm_module.weights,
                                      self.rbm_module.visible_bias,
                                      self.rbm_module.hidden_bias],
-                                     lr=lr)
+                                    lr=lr)
 
         for cb in callbacks:
             cb.on_train_start(self)
@@ -384,8 +387,8 @@ class BinomialRBM(nn.Module):
 
             multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
             neg_batches = [DataLoader(data, batch_size=neg_batch_size,
-                                      shuffle=True) for i in range(multiplier)]
-
+                                      shuffle=True)
+                           for i in range(multiplier)]
             neg_batches = chain(*neg_batches)
 
             for cb in callbacks:
@@ -396,11 +399,11 @@ class BinomialRBM(nn.Module):
 
             for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
                                                                neg_batches)):
-
                 for cb in callbacks:
                     cb.on_batch_start(self, ep, batch_num)
 
-                all_grads = self.compute_batch_gradients(k, pos_batch, neg_batch)
+                all_grads = self.compute_batch_gradients(k, pos_batch,
+                                                         neg_batch)
                 optimizer.zero_grad()  # clear any cached gradients
 
                 # assign all available gradients to the corresponding parameter
@@ -430,6 +433,7 @@ class BinomialRBM(nn.Module):
         :rtype: torch.doubleTensor
         """
         return self.rbm_module.sample(num_samples, k)
+
 
 class ComplexRBM:
     # NOTE: In development. Might be unstable.

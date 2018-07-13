@@ -19,10 +19,11 @@
 import inspect
 import sys
 import os
-import shutil
 import subprocess
 from operator import attrgetter
 import qucumber
+
+sys.path.insert(0, os.path.abspath('../qucumber'))
 
 # -- Project information -----------------------------------------------------
 
