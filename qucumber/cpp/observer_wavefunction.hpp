@@ -25,6 +25,7 @@ public:
     double KL_;
     double overlap_;
     double Z_;
+    double NLL_;
 
     ObserverPSI(Wavefunction &PSI,std::string &basis):PSI_(PSI){ 
         
@@ -71,9 +72,19 @@ public:
     // Compute the fidelity with the target wavefunction 
     void Fidelity(){
         Overlap();
-        return overlap*overlap;
+        return overlap_*overlap_;
     }
     
+    void NLL(Eigen::MatrixXd &data){
+        //TODO NOTE THIS IS ONLY FOR REFERENCE BASIS
+        NLL_ = 0.0;
+        for (int i=0;i<data.rows();i++){
+            NLL_ -= log(norm(PSI_.psi(data.row(i))));
+            NLL_ += log(Z_);
+        }
+        NLL_ /= float(data.rows());
+    }
+
     //Compute KL divergence exactly
     void ExactKL(){
         Eigen::VectorXcd rotated_psi(1<<N_);

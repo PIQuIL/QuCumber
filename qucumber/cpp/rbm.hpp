@@ -77,14 +77,14 @@ public:
                 W_(i,j)=distribution(generator);
             }
         }
-        b_.setZero();
-        c_.setZero();
-        //for(int j=0;j<nv_;j++){
-        //    b_(j)=distribution(generator);
-        //}
-        //for(int i=0;i<nh_;i++){
-        //    c_(i)=distribution(generator);
-        //}
+        //b_.setZero();
+        //c_.setZero();
+        for(int j=0;j<nv_;j++){
+            b_(j)=distribution(generator);
+        }
+        for(int i=0;i<nh_;i++){
+            c_(i)=distribution(generator);
+        }
     }
 
     // Compute derivative of the effective visible energy
@@ -196,6 +196,25 @@ public:
         for(int i=0;i<nh_;i++){
             fin >> c_(i);
         }
+    }
+
+    // Read weights from file 
+    void SaveWeights(std::ofstream &fout){
+        for(int i=0;i<nh_;i++){
+            for(int j=0;j<nv_;j++){
+                fout << W_(i,j) << " ";
+            }
+            fout << std::endl;
+        }
+        fout << std::endl;
+        for(int j=0;j<nv_;j++){
+            fout <<  b_(j) << " ";
+        }
+        fout << std::endl <<std::endl;
+        for(int i=0;i<nh_;i++){
+            fout << c_(i) << " ";
+        }
+        fout << std::endl <<std::endl;
     }
  
     // Functions 

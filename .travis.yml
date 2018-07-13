@@ -9,8 +9,7 @@ addons:
   apt:
     packages:
       - texlive-fonts-recommended
-      - texlive-latex-extra
-      - texlive-fonts-extra
+      - pandoc
       - dvipng
       - texlive-latex-recommended
       - texlive-science

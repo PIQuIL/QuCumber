@@ -104,7 +104,7 @@ void LoadBasesConfigurations(Parameters &par,std::string &basis_name,std::vector
 }
 
 void SetNumberOfBases(Parameters &par){
-    if (par.basis_ == "std")    par.nb_ = par.nv_;
+    if (par.basis_ == "std")    par.nb_ = 1;
     if (par.basis_ == "xy1")    par.nb_ = 2*par.nv_+1;
 }
 void GenerateUnitaryRotations(std::map<std::string,Eigen::MatrixXcd> & U){
