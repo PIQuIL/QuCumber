@@ -1,6 +1,7 @@
 import cplx
 import numpy as np
 from matplotlib import pyplot as plt
+from math import sqrt
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -73,24 +74,31 @@ class RBM_Module(nn.Module):
         v, h = v0, h0
 
         if sampler != None:
-            step_list   = []
+            step_list = np.zeros(k+1)
 
             if observable == 'Energy':
-                energy_list = []
-                true_energy = [-1.2785] 
+                energy_list = np.zeros(k+1)
+                energy_error = np.zeros(k+1)
+                true_energy = np.zeros(k+1)
+                true_energy[0] = -1.2785
                 energy_calc = TFIMChainEnergy(h=1.0)
-                energy_list.append(energy_calc.apply(v0, sampler).mean())
-                step_list.append(0)
+
+                temp1 = energy_calc.apply(v0, sampler)
+                energy_list[0] = temp1.mean().item()
+                energy_error[0] = (torch.std(temp1).data.numpy()/np.sqrt(v0.size()[0]))
                 for i in range(k):
                     pv, v = self.sample_v_given_h(h)
                     ph, h = self.sample_h_given_v(v)
-            
-                    energy_list.append(energy_calc.apply(v, sampler).mean())
-                    true_energy.append(-1.2785)
-                    step_list.append(i+1)
+
+                    temp2 = energy_calc.apply(v, sampler)
+                    energy_list[i+1] = temp2.mean().item()
+                    energy_error[i+1] = torch.std(temp2).data.numpy()/np.sqrt(v.size()[0])
+                    true_energy[i+1] = -1.2785
+                    step_list[i+1] = i+1
         
                 ax1 = plt.axes()
                 ax1.plot(step_list, energy_list, color='red')
+                ax1.fill_between(step_list, energy_list-energy_error, energy_list+energy_error, color='red', alpha=0.4) 
                 ax1.plot(step_list, true_energy, color='black')
                 ax1.grid()
                 ax1.set_xlim(0,k)
@@ -99,21 +107,28 @@ class RBM_Module(nn.Module):
                 return v0, h0, v, h, ph, step_list, energy_list
     
             if observable == 'Magnetization':
-                mag_list = []
-                true_mag = [0.7072]
+                mag_list = np.zeros(k+1)
+                mag_error = np.zeros(k+1)
+                true_mag = np.zeros(k+1)
+                true_mag[0] = 0.7072
                 mag_calc = TFIMChainMagnetization()
-                mag_list.append(mag_calc.apply(v0).mean())
-                step_list.append(0)
+
+                temp3 = mag_calc.apply(v0)
+                mag_list[0] = temp3.mean().item()
+                mag_error[0] = torch.std(temp3).data.numpy()/np.sqrt(v0.size()[0])
                 for i in range(k):
                     pv, v = self.sample_v_given_h(h)
                     ph, h = self.sample_h_given_v(v)
-                    
-                    mag_list.append(mag_calc.apply(v).mean())
-                    true_mag.append(0.7072)
-                    step_list.append(i+1)   
-                
+
+                    temp4 = mag_calc.apply(v)
+                    mag_list[i+1] = mag_calc.apply(v).mean().item()
+                    mag_error[i+1] = torch.std(temp4).data.numpy()/np.sqrt(v.size()[0])
+                    true_mag[i+1] = 0.7072
+                    step_list[i+1] = i+1
+
                 ax2 = plt.axes()
                 ax2.plot(step_list, mag_list, color='red')
+                ax2.fill_between(step_list, mag_list-mag_error, mag_list+mag_error, color='red', alpha=0.4) 
                 ax2.plot(step_list, true_mag, color='black')
                 ax2.grid()
                 ax2.set_xlim(0,k)
