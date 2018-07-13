@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>RBMs &mdash; QuCumber 0.1a documentation</title>
+  <title>RBMs &mdash; QuCumber 0.1 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.1a
+                0.1
               </div>
             
           
@@ -85,12 +85,19 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">RBMs</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-qucumber.rbm.rbm_vanilla">Real Positive Wavefunction RBM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-qucumber.rbm.rbm_complex">Complex Wavefunction RBM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rbm-module">RBM Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#real-positive-wavefunction-rbm">Real Positive Wavefunction RBM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#complex-wavefunction-rbm">Complex Wavefunction RBM</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorial.html">Getting started: quantum state reconstruction using QuCumber</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialReal.html">Part 1: Reconstruction of a positive wavefunction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Installation</a></li>
 </ul>
 
             
@@ -176,85 +183,21 @@
 </style>
 <div class="section" id="rbms">
 <h1>RBMs<a class="headerlink" href="#rbms" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-qucumber.rbm.rbm_vanilla">
-<span id="real-positive-wavefunction-rbm"></span><h2>Real Positive Wavefunction RBM<a class="headerlink" href="#module-qucumber.rbm.rbm_vanilla" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="rbm-module">
+<h2>RBM Module<a class="headerlink" href="#rbm-module" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="qucumber.rbm.rbm_vanilla.RBM">
-<em class="property">class </em><code class="descclassname">qucumber.rbm.rbm_vanilla.</code><code class="descname">RBM</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L11"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM" title="Permalink to this definition">¶</a></dt>
-<dd><p>Class to build the Restricted Boltzmann Machine.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first simple">
-<li><strong>num_visible</strong> (<em>int</em>) – Number of visible units
-(determined from the input training data).</li>
-<li><strong>num_hidden</strong> (<em>int</em>) – Number of hidden units to learn the amplitude
-(default = num_visible).</li>
-<li><strong>gpu</strong> (<em>bool</em>) – Should the GPU be used for the training (default = True).</li>
-<li><strong>seed</strong> (<em>int</em>) – Fix the random number seed to make results reproducable
-(default = 1234).</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>weights</strong> (<em>torch.doubleTensor</em>) – The weight matrix for the amplitude RBM
-(dims = num_hidden x num_visible).
-Initialized to random numbers sampled from a
-normal distribution.</li>
-<li><strong>visible_bias</strong> (<em>torch.doubleTensor</em>) – The visible bias vector for the amplitude RBM
-(size = num_visible). Initialized to zeros.</li>
-<li><strong>hidden_bias</strong> – The hidden bias vector for the amplitude RBM
-(size = num_hidden). Initialized to zeros.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>ResourceWarning</strong> – If a GPU could not be found;
-continue running the program on the CPU.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.compute_batch_gradients">
-<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>batch</em>, <em>persistent=False</em>, <em>pbatch=None</em>, <em>l1_reg=0.0</em>, <em>l2_reg=0.0</em>, <em>stddev=0.0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L223"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function will compute the gradients of a batch of the training
-data (data_file) given the basis measurements (chars_file).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>k</strong> (<em>int</em>) – Number of contrastive divergence steps in training.</li>
-<li><strong>batch</strong> (<em>torch.doubleTensor</em>) – Batch of the input data.</li>
-<li><strong>l1_reg</strong> (<em>double</em>) – L1 regularization hyperparameter (default = 0.0)</li>
-<li><strong>l2_reg</strong> (<em>double</em>) – L2 regularization hyperparameter (default = 0.0)</li>
-<li><strong>stddev</strong> (<em>double</em>) – Standard deviation of random noise that can be added to
-the weights.     This is also a hyperparameter.
-(default = 0.0)</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dictionary containing all the gradients.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.effective_energy">
-<code class="descname">effective_energy</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L396"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.effective_energy" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.rbm.RBM_Module">
+<em class="property">class </em><code class="descclassname">qucumber.rbm.</code><code class="descname">RBM_Module</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden</em>, <em>zero_weights=False</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L19"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="qucumber.rbm.RBM_Module.effective_energy">
+<code class="descname">effective_energy</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L68"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.effective_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energies of the given visible states.</p>
 <div class="math">
-<p><img src="_images/math/ee967ae1bdd60bd72cfbf81e19a566ef06a0e22c.svg" alt="\mathcal{E}(\bm{v}) &amp;= \sum_{j}b_j v_j
+<p><img src="_images/math/3c3d0fa994c0224799a3605978d128677a1002cd.svg" alt="\mathcal{E}(\bm{v}) &amp;= \sum_{j}b_j v_j
             + \sum_{i}\log
-                 \left\lbrack 1 +
-                       \exp\left(c_{i} + \sum_{j} W_{ij} v_j\right)
-                 \right\rbrack"/></p>
+                \left\lbrack 1 +
+                      \exp\left(c_{i} + \sum_{j} W_{ij} v_j\right)
+                \right\rbrack"/></p>
 </div><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -270,184 +213,8 @@ the weights.     This is also a hyperparameter.
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.generate_visible_space">
-<code class="descname">generate_visible_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L472"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.generate_visible_space" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates all possible visible states.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tensor of all possible spin configurations.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.gibbs_sampling">
-<code class="descname">gibbs_sampling</code><span class="sig-paren">(</span><em>k</em>, <em>v0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L157"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.gibbs_sampling" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs k steps of Block Gibbs sampling given an initial visible state v0.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>k</strong> (<em>int</em>) – Number of Block Gibbs steps.</li>
-<li><strong>v0</strong> (<em>torch.doubleTensor</em>) – The initial visible state.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tuple containing the initial visible state, v0,
-the hidden state sampled from v0,
-the visible state sampled after k steps,
-the hidden state sampled after k steps and its corresponding
-probability vector.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple(torch.doubleTensor, torch.doubleTensor,
-torch.doubleTensor, torch.doubleTensor,
-torch.doubleTensor)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.load">
-<code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L88"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads the RBM parameters from the given location ignoring any
-metadata stored in the file. Overwrites the RBM’s parameters.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The RBM object on which this function is called must
-have the same shape as the one who’s parameters are being
-loaded.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>location</strong> (<em>str</em><em> or </em><em>file-like</em>) – The location to load the RBM parameters from</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.log_partition">
-<code class="descname">log_partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L488"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.log_partition" title="Permalink to this definition">¶</a></dt>
-<dd><p>The natural logarithm of the partition function of the RBM.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – A rank 2 tensor of the entire visible space.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The natural log of the partition function.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.log_probability_ratio">
-<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L453"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
-<dd><p>The natural logarithm of the probability ratio of
-two sets of visible states</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><cite>a</cite> and <cite>b</cite> must be have the same shape</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>a</strong> (<em>torch.doubleTensor</em>) – The visible states for the numerator.</li>
-<li><strong>b</strong> (<em>torch.doubleTensor</em>) – The visible states for the denominator.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The log-probability ratios of the given visible states</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.nll">
-<code class="descname">nll</code><span class="sig-paren">(</span><em>data</em>, <em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L516"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.nll" title="Permalink to this definition">¶</a></dt>
-<dd><p>The negative log likelihood of the given data.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> (<em>torch.doubleTensor</em>) – A rank 2 tensor of visible states.</li>
-<li><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – A rank 2 tensor of the entire visible space.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The negative log likelihood of the given data.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.partition">
-<code class="descname">partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L505"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.partition" title="Permalink to this definition">¶</a></dt>
-<dd><p>The partition function of the RBM.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – A rank 2 tensor of the entire visible space.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The partition function.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.prob_h_given_v">
-<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L115"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a visible unit configuration, compute the probability
-vector of the hidden units being on.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<em>torch.doubleTensor</em>) – The hidden unit.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The probability of hidden units being active given the
-visible state.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.prob_v_given_h">
-<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L101"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.rbm.RBM_Module.prob_v_given_h">
+<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L94"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a hidden unit configuration, compute the probability
 vector of the visible units being on.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -466,62 +233,19 @@ hidden state.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.probability_ratio">
-<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L435"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.probability_ratio" title="Permalink to this definition">¶</a></dt>
-<dd><p>The probability ratio of two sets of visible states</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><cite>a</cite> and <cite>b</cite> must be have the same shape</p>
-</div>
+<dt id="qucumber.rbm.RBM_Module.prob_h_given_v">
+<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L108"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a visible unit configuration, compute the probability
+vector of the hidden units being on.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>a</strong> (<em>torch.doubleTensor</em>) – The visible states for the numerator.</li>
-<li><strong>b</strong> (<em>torch.doubleTensor</em>) – The visible states for the denominator.</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<em>torch.doubleTensor</em>) – The hidden unit.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The probability ratios of the given visible states</p>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The probability of hidden units being active given the
+visible state.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.regularize_weight_gradients">
-<code class="descname">regularize_weight_gradients</code><span class="sig-paren">(</span><em>w_grad</em>, <em>l1_reg</em>, <em>l2_reg</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L198"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.regularize_weight_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Applies regularization to the given weight gradient</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>w_grad</strong> (<em>torch.doubleTensor</em>) – The entire weight gradient matrix,
-<img class="math" src="_images/math/adb5e71a891004ad7bd73bf4e229901a32ac12a9.svg" alt="\nabla_{W}NLL"/></li>
-<li><strong>l1_reg</strong> (<em>double</em>) – l1 regularization hyperparameter (default = 0.0).</li>
-<li><strong>l2_reg</strong> (<em>double</em>) – l2 regularization hyperparameter (default = 0.0).</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="math">
-<p><img src="_images/math/46299c98a62fd55953617747c1798f5650cf4f56.svg" alt="[\nabla_{W_{\lambda}}NLL]_{i,j}
-    + l_1\sgn([W_{\lambda}]_{i,j})
-    + l_2\vert[W_{\lambda}]_{i,j}\vert"/></p>
-</div><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
 </tbody>
@@ -529,51 +253,8 @@ hidden state.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L181"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.sample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Samples from the RBM using k steps of Block Gibbs sampling.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>num_samples</strong> (<em>int</em>) – The number of samples to be generated</li>
-<li><strong>k</strong> (<em>int</em>) – Number of Block Gibbs steps.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Samples drawn from the RBM</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.sample_h_given_v">
-<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L143"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sample/generate a hidden state given a visible state.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<em>torch.doubleTensor</em>) – The visible state.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tuple containing prob_h_given_v(v) and the sampled hidden
-state.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple(torch.doubleTensor, torch.doubleTensor)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.sample_v_given_h">
-<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L129"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.rbm.RBM_Module.sample_v_given_h">
+<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L122"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample/generate a visible state given a hidden state.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -584,70 +265,57 @@ state.</td>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tuple containing prob_v_given_h(h) and the sampled visible
 state.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple(torch.doubleTensor, torch.doubleTensor)</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)">tuple</a>(torch.doubleTensor, torch.doubleTensor)</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>metadata={}</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L74"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Saves the RBM parameters to the given location along with
-any given metadata.</p>
+<dt id="qucumber.rbm.RBM_Module.sample_h_given_v">
+<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L136"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample/generate a hidden state given a visible state.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>location</strong> (<em>str</em><em> or </em><em>file-like</em>) – The location to save the RBM parameters + metadata</li>
-<li><strong>metadata</strong> (<em>dict</em>) – Any extra metadata to store alongside the RBM
-parameters</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<em>torch.doubleTensor</em>) – The visible state.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tuple containing prob_h_given_v(v) and the sampled hidden
+state.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)">tuple</a>(torch.doubleTensor, torch.doubleTensor)</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>data</em>, <em>epochs</em>, <em>batch_size</em>, <em>k=10</em>, <em>persistent=False</em>, <em>lr=0.001</em>, <em>momentum=0.0</em>, <em>l1_reg=0.0</em>, <em>l2_reg=0.0</em>, <em>initial_gaussian_noise=0.0</em>, <em>gamma=0.55</em>, <em>callbacks=[]</em>, <em>progbar=False</em>, <em>starting_epoch=0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L295"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.train" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute the training of the RBM.</p>
+<dt id="qucumber.rbm.RBM_Module.gibbs_sampling">
+<code class="descname">gibbs_sampling</code><span class="sig-paren">(</span><em>k</em>, <em>v0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L150"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.gibbs_sampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs k steps of Block Gibbs sampling given an initial visible
+state v0.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> (<em>array_like of doubles</em>) – The actual training data</li>
-<li><strong>epochs</strong> (<em>int</em>) – The number of parameter (i.e. weights and biases)
-updates (default = 100).</li>
-<li><strong>batch_size</strong> (<em>int</em>) – The size of batches taken from the data
-(default = 100).</li>
-<li><strong>k</strong> (<em>int</em>) – The number of contrastive divergence steps (default = 10).</li>
-<li><strong>persistent</strong> (<em>bool</em>) – Whether to use persistent contrastive divergence
-(aka. Stochastic Maximum Likelihood)
-(default = False).</li>
-<li><strong>lr</strong> (<em>double</em>) – Learning rate (default = 1.0e-3).</li>
-<li><strong>momentum</strong> (<em>double</em>) – Momentum hyperparameter (default = 0.0).</li>
-<li><strong>l1_reg</strong> (<em>double</em>) – L1 regularization hyperparameter (default = 0.0).</li>
-<li><strong>l2_reg</strong> (<em>double</em>) – L2 regularization hyperparameter (default = 0.0).</li>
-<li><strong>initial_gaussian_noise</strong> (<em>double</em>) – Initial gaussian noise used to calculate
-stddev of random noise added to weight
-gradients (default = 0.01).</li>
-<li><strong>gamma</strong> (<em>double</em>) – Parameter used to calculate stddev (default = 0.55).</li>
-<li><strong>callbacks</strong> (<em>[</em><em>Callback</em><em>]</em>) – A list of Callback functions to call at the beginning
-of each epoch</li>
-<li><strong>progbar</strong> (<em>bool</em><em> or </em><em>&quot;notebook&quot;</em>) – Whether or not to display a progress bar. If “notebook”
-is passed, will use a Jupyter notebook compatible
-progress bar.</li>
-<li><strong>starting_epoch</strong> – Which epoch to start from. Doesn’t actually
-affect the model, exists simply for book-keeping
-when restarting training.</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of Block Gibbs steps.</li>
+<li><strong>v0</strong> (<em>torch.doubleTensor</em>) – The initial visible state.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>Tuple containing the initial visible state, v0,
+the hidden state sampled from v0,
+the visible state sampled after k steps,
+the hidden state sampled after k steps and its corresponding</p>
+<p>probability vector.</p>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)">tuple</a>(torch.doubleTensor, torch.doubleTensor,
+torch.doubleTensor, torch.doubleTensor,
+torch.doubleTensor)</p>
 </td>
 </tr>
 </tbody>
@@ -655,11 +323,23 @@ when restarting training.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_vanilla.RBM.unnormalized_probability">
-<code class="descname">unnormalized_probability</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_vanilla.py#L422"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_vanilla.RBM.unnormalized_probability" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.rbm.RBM_Module.sample">
+<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k=10</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L176"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples from the RBM using k steps of Block Gibbs sampling.
+:param num_samples: The number of samples to be generated
+:type num_samples: int
+:param k: Number of Block Gibbs steps.
+:type k: int
+:returns: Samples drawn from the RBM
+:rtype: torch.doubleTensor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.RBM_Module.unnormalized_probability">
+<code class="descname">unnormalized_probability</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L191"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.unnormalized_probability" title="Permalink to this definition">¶</a></dt>
 <dd><p>The unnormalized probabilities of the given visible states.</p>
 <div class="math">
-<p><img src="_images/math/8685fa8a207da155f150b494d776c127fa762e32.svg" alt="p(v) = \exp{\mathcal{E}(\bm{v})}"/></p>
+<p><img src="_images/math/0e9b7a0159f5b6de66d991f573362b163c862b9a.svg" alt="p(\bm{v}) = e^{\mathcal{E}(\bm{v})}"/></p>
 </div><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -674,221 +354,15 @@ when restarting training.</li>
 </table>
 </dd></dl>
 
-</dd></dl>
-
-</div>
-<div class="section" id="module-qucumber.rbm.rbm_complex">
-<span id="complex-wavefunction-rbm"></span><h2>Complex Wavefunction RBM<a class="headerlink" href="#module-qucumber.rbm.rbm_complex" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex">
-<em class="property">class </em><code class="descclassname">qucumber.rbm.rbm_complex.</code><code class="descname">RBMcomplex</code><span class="sig-paren">(</span><em>unitaries</em>, <em>psi_dictionary</em>, <em>num_visible</em>, <em>num_hidden_amp</em>, <em>num_hidden_phase</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L12"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Class to build the Restricted Boltzmann Machine.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first simple">
-<li><strong>unitaries</strong> (<em>dict</em>) – Dictionary of unitary names (key) that correspond to
-(2x2) unitary matrices (value).</li>
-<li><strong>psi_dictionary</strong> (<em>dict</em>) – Dictionary of true wavefunctions of the system
-(value) in a particular basis (key).</li>
-<li><strong>num_visible</strong> (<em>int</em>) – Number of visible units (determined from the input
-training data).</li>
-<li><strong>num_hidden_amp</strong> (<em>int</em>) – Number of hidden units to learn the amplitude
-(default = num_visible).</li>
-<li><strong>num_hidden_phase</strong> (<em>int</em>) – Number of hidden units to learn the phase
-(default = num_visible).</li>
-<li><strong>gpu</strong> (<em>bool</em>) – Should the GPU be used for the training (default = True).</li>
-<li><strong>seed</strong> (<em>int</em>) – Fix the random number seed to make results reproducable
-(default = 1234).</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>weights_amp</strong> (<em>torch.doubleTensor</em>) – (<img class="math" src="_images/math/58d5d921ce1c0f7c16c57fc995df8932b1219e90.svg" alt="W_{\lambda}"/>) The weight matrix for the
-amplitude RBM (dims = num_hidden_amp x num_visible).
-Initialized to random numbers sampled from a normal
-distribution.</li>
-<li><strong>visible_bias_amp</strong> (<em>torch.doubleTensor</em>) – (<img class="math" src="_images/math/3bc05bb48b70e3a574f60e84b274b5ca5004e3a2.svg" alt="b_{\lambda}"/>) The visible bias vector for
-the amplitude RBM (size = num_visible). Initialized
-to zeros.</li>
-<li><strong>hidden_bias_amp</strong> – (<img class="math" src="_images/math/78591a38ec4e0601309561195870dcde926c475d.svg" alt="c_{\lambda}"/>) The hidden bias vector for
-the amplitude RBM (size = num_hidden_amp).
-Initialized to zeros.</li>
-<li><strong>weights_phase</strong> (<em>torch.doubleTensor</em>) – (<img class="math" src="_images/math/81c31a5e7542720854dba24ff37f08c1cd41fc0d.svg" alt="W_{\mu}"/>) The weight matrix for the phase RBM
-(dims = num_hidden_phase x num_visible). Initialized
-to zeros.</li>
-<li><strong>visible_bias_phase</strong> (<em>torch.doubleTensor</em>) – (<img class="math" src="_images/math/baf59ca2c66312b7ddc074ba94f02428a2957222.svg" alt="b_{\mu}"/>) The visible bias vector for
-the phase RBM (size = num_visible). Initialized
-to zeros.</li>
-<li><strong>hidden_bias_phase</strong> – (<img class="math" src="_images/math/f7557bc3ca2919aec85ce55b212f3ad43159b7f9.svg" alt="c_{\mu}"/>) The hidden bias vector for the
-phase RBM (size = num_hidden_phase). Initialized
-to zeros.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>ResourceWarning</strong> – If a GPU could not be found, continue running the
-program on the CPU.</p>
-</td>
-</tr>
-</tbody>
-</table>
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.basis_state_generator">
-<code class="descname">basis_state_generator</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L828"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.basis_state_generator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Only works for binary visible units at the moment. Generates a vector
-given a spin value (0 or 1).</p>
+<dt id="qucumber.rbm.RBM_Module.generate_visible_space">
+<code class="descname">generate_visible_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L204"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.generate_visible_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates all possible visible states.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>s</strong> (<em>double</em>) – A spin’s value (either 0 or 1).</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">If s = 0, this is the (1,0) state in the basis of the
-measurement. If s = 1, this is the (0,1) state in the basis of
-the measurement.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.compute_batch_gradients">
-<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>batch</em>, <em>chars_batch</em>, <em>l1_reg</em>, <em>l2_reg</em>, <em>stddev=0.0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L111"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function will compute the gradients of a batch of the training
-data (data_file) given the basis measurements (chars_file).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>k</strong> (<em>int</em>) – Number of contrastive divergence steps in amplitude training.</li>
-<li><strong>batch</strong> (<em>torch.doubleTensor</em>) – Batch of the input data.</li>
-<li><strong>chars_batch</strong> (<em>array_like</em><em> (</em><em>str</em><em>)</em>) – Batch of bases that correspondingly indicates the
-basis each site in the batch was measured in.</li>
-<li><strong>l1_reg</strong> (<em>double</em>) – L1 regularization hyperparameter (default = 0.0)</li>
-<li><strong>l2_reg</strong> (<em>double</em>) – L2 regularization hyperparameter (default = 0.0)</li>
-<li><strong>stddev</strong> (<em>double</em>) – Standard deviation of random noise that can be added to
-the weights.     This is also a hyperparamter. (default = 0.0)</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dictionary containing all the gradients (negative): Gradient
-of weights, visible bias and hidden bias for the amplitude,
-Gradients of weights, visible bias and hidden bias for the
-phase.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.compute_rotated_grads">
-<code class="descname">compute_rotated_grads</code><span class="sig-paren">(</span><em>v0</em>, <em>characters</em>, <em>num_non_trivial_unitaries</em>, <em>z_indices</em>, <em>tau_indices</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L249"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.compute_rotated_grads" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the rotated gradients.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>v0</strong> (<em>torch.doubleTensor</em>) – A visible unit.</li>
-<li><strong>characters</strong> (<em>str</em>) – A string of characters corresponding to the basis
-that each site in v0 was measured in.</li>
-<li><strong>num_non_trivial_unitaries</strong> (<em>int</em>) – The number of sites in v0 that are not
-measured in the computational basis.</li>
-<li><strong>z_indices</strong> (<em>list of ints</em>) – A list of indices that correspond to sites of v0 that
-are measured in the computational basis.</li>
-<li><strong>tau_indices</strong> (<em>list of ints</em>) – A list of indices that correspond to sites of v0
-that are not measured in the computational basis.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dictionary of the rotated gradients: L_weights_amp, L_vb_amp,
-L_hb_amp, L_weights_phase, L_vb_phase, L_hb_phase</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_amp">
-<code class="descname">eff_energy_amp</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L615"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_amp" title="Permalink to this definition">¶</a></dt>
-<dd><p>The effective energy of the amplitude RBM. <img class="math" src="_images/math/6dc81e77cf49d06e3bb1686260e7187f5ca83245.svg" alt="E_{\lambda} = b^{\lambda}v + \sum_{i}\log\sum_{h_{i}^{\lambda}}e^{h_{i}^{\lambda}\left(c_{i}^{\lambda} + W_{i}^{\lambda}v\right)}"/>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – A visible unit(s).</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The effective energy of the amplitude RBM.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">double</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_phase">
-<code class="descname">eff_energy_phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L633"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_phase" title="Permalink to this definition">¶</a></dt>
-<dd><p>The effective energy of the phase RBM.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – A visible unit(s).</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The effective energy of the phase RBM. <img class="math" src="_images/math/d76449e8d0b52f7c6819c9906982a0a17a676e13.svg" alt="E_{\mu} = b^{\mu}v + \sum_{i}\log\sum_{h_{i}^{\mu}}e^{h_{i}^{\mu}\left(c_{i}^{\mu} + W_{i}^{\mu}v\right)}"/>.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">double</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.fidelity">
-<code class="descname">fidelity</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L748"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.fidelity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computed the fidelity of the RBM and true wavefunctions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – An array of all possible spin configurations.</li>
-<li><strong>basis</strong> (<em>str</em>) – E.g. XZZZX.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/5b18b94fcf09986fb25e71cd5fc2420df2931db3.svg" alt="F = |O|^2"/>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">double</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.generate_visible_space">
-<code class="descname">generate_visible_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L761"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.generate_visible_space" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates all possible spin configurations of “num_visible” spins.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">An array of all possible spin configurations.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tensor of all possible spin configurations.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
@@ -897,80 +371,17 @@ L_hb_amp, L_weights_phase, L_vb_phase, L_hb_phase</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.get_true_psi">
-<code class="descname">get_true_psi</code><span class="sig-paren">(</span><em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L719"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.get_true_psi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Picks out the true psi in the correct basis.</p>
+<dt id="qucumber.rbm.RBM_Module.log_partition">
+<code class="descname">log_partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L220"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.log_partition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The natural logarithm of the partition function of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>basis</strong> (<em>str</em>) – E.g. XZZZX.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The true wavefunction in the basis.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.gibbs_sampling">
-<code class="descname">gibbs_sampling</code><span class="sig-paren">(</span><em>k</em>, <em>v0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L560"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.gibbs_sampling" title="Permalink to this definition">¶</a></dt>
-<dd><p>Contrastive divergence/gibbs sampling algorithm for generating samples
-from the RBM.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>k</strong> (<em>int</em>) – Number of contrastive divergence iterations.</li>
-<li><strong>v0</strong> (<em>torch.doubleTensor</em>) – A visible unit from the data.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Quintuple containing the intial visible unit, v0, the hidden
-unit sampled from v0, the visible unit sampled after k steps,
-the hidden unit sampled after k steps and prob_h_given_v.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Quintuple of 5 torch.doubleTensor’s</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.log_partition">
-<code class="descname">log_partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L777"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.log_partition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the natural log of the partition function.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – An array of all possible spin configurations.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – A rank 2 tensor of the entire visible space.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The natural log of the partition function.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">double</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.normalized_wavefunction">
-<code class="descname">normalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L673"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.normalized_wavefunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>The RBM wavefunction.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – Visible unit(s).</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/1d14353d7928522e7e112a0e0873bf5f8a7e8225.svg" alt="\psi_{\lambda\mu} = \sqrt{\frac{p_{\lambda}}{Z_{\lambda}}}e^{\frac{i\log(p_{\mu})}{2}}"/>.</td>
-</tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
 </tbody>
@@ -978,60 +389,17 @@ the hidden unit sampled after k steps and prob_h_given_v.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.overlap">
-<code class="descname">overlap</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L733"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.overlap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the overlap between the RBM and true wavefunctions.</p>
+<dt id="qucumber.rbm.RBM_Module.partition">
+<code class="descname">partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L237"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.partition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The partition function of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – An array of all possible spin configurations.</li>
-<li><strong>basis</strong> (<em>str</em>) – E.g. XZZZX.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/f407c3600010e67f05db42078b64e822fa7c579b.svg" alt="O = \langle{\psi_{true}}\vert\psi_{\lambda\mu}\rangle"/>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">double</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.partition">
-<code class="descname">partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L795"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.partition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the partition function.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – An array of all possible spin configurations.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – A rank 2 tensor of the entire visible space.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The partition function.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">double</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.prob_h_given_v">
-<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L521"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a visible unit, what’s the probability of a hidden amplitude unit.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – The visible unit.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The probability of a hidden unit (amplitude RBM) given the
-visible unit.</td>
-</tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
 </tbody>
@@ -1039,39 +407,21 @@ visible unit.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.prob_v_given_h">
-<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L509"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a hidden amplitude unit, what’s the probability of a visible unit.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<em>torch.doubleTensor</em>) – The hidden unit (amplitude RBM).</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The probability of a visible unit given the hidden unit.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_amp">
-<code class="descname">regularize_weight_gradients_amp</code><span class="sig-paren">(</span><em>w_grad</em>, <em>l1_reg</em>, <em>l2_reg</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L581"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_amp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Weight gradient regularization.</p>
+<dt id="qucumber.rbm.RBM_Module.probability">
+<code class="descname">probability</code><span class="sig-paren">(</span><em>v</em>, <em>Z</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L248"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.RBM_Module.probability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates the probability of the given vector(s) of visible
+units; NOT RECOMMENDED FOR RBMS WITH A LARGE # OF VISIBLE UNITS</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>w_grad</strong> (<em>torch.doubleTensor</em>) – The entire weight gradient (amplitude) matrix, <img class="math" src="_images/math/533bea8ee978bfaf664d84adb1cb6665bff6a1d2.svg" alt="\nabla_{W_{\lambda}}NLL"/>.</li>
-<li><strong>l1_reg</strong> (<em>double</em>) – L1 regularization hyperparameter (default = 0.0).</li>
-<li><strong>l2_reg</strong> (<em>double</em>) – L2 regularization hyperparameter (default = 0.0).</li>
+<li><strong>v</strong> (<em>torch.doubleTensor</em>) – The visible states.</li>
+<li><strong>Z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The partition function.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/b8e0080fc8ccbf17e92391835c86fa9be473132c.svg" alt="[\nabla_{W_{\lambda}}NLL]_{i,j} = [\nabla_{W_{\lambda}}NLL]_{i,j} + L_1sign([W_{\lambda}]_{i,j}) + L_2\vert[W_{\lambda}]_{i,j}\vert^2"/>.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The probability of the given vector(s) of visible units.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
@@ -1081,25 +431,75 @@ visible unit.</td>
 </table>
 </dd></dl>
 
+</dd></dl>
+
+</div>
+<div class="section" id="real-positive-wavefunction-rbm">
+<h2>Real Positive Wavefunction RBM<a class="headerlink" href="#real-positive-wavefunction-rbm" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qucumber.rbm.BinomialRBM">
+<em class="property">class </em><code class="descclassname">qucumber.rbm.</code><code class="descname">BinomialRBM</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden=None</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L263"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="qucumber.rbm.BinomialRBM.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>metadata={}</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L272"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the RBM parameters to the given location along with
+any given metadata.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>file</em>) – The location to save the RBM parameters + metadata</li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Any extra metadata to store alongside the RBM
+parameters</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_phase">
-<code class="descname">regularize_weight_gradients_phase</code><span class="sig-paren">(</span><em>w_grad</em>, <em>l1_reg</em>, <em>l2_reg</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L598"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_phase" title="Permalink to this definition">¶</a></dt>
-<dd><p>Weight gradient regularization.</p>
+<dt id="qucumber.rbm.BinomialRBM.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L286"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the RBM parameters from the given location ignoring any
+metadata stored in the file. Overwrites the RBM’s parameters.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The RBM object on which this function is called must
+have the same shape as the one who’s parameters are being
+loaded.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>file</em>) – The location to load the RBM parameters from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.BinomialRBM.compute_batch_gradients">
+<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>pos_batch</em>, <em>neg_batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L300"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will compute the gradients of a batch of the training
+data (data_file) given the basis measurements (chars_file).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>w_grad</strong> (<em>torch.doubleTensor</em>) – The entire weight gradient (phase) matrix, <img class="math" src="_images/math/cd4071df06ada2a4cab88c1fd1e8986de0724baf.svg" alt="\nabla_{W_{\mu}}NLL"/>.</li>
-<li><strong>l1_reg</strong> (<em>double</em>) – L1 regularization hyperparameter (default = 0.0).</li>
-<li><strong>l2_reg</strong> (<em>double</em>) – L2 regularization hyperparameter (default = 0.0).</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of contrastive divergence steps in training.</li>
+<li><strong>pos_batch</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.0 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.DoubleTensor</span></code></a>) – Batch of the input data for the positive phase.</li>
+<li><strong>neg_batch</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.0 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.DoubleTensor</span></code></a>) – Batch of the input data for the negative phase.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/2cb51c68626f78d9a5cbadca122ddf5b4448d8d2.svg" alt="[\nabla_{W_{\mu}}NLL]_{i,j} = [\nabla_{W_{\mu}}NLL]_{i,j} + L_1sign([W_{\mu}]_{i,j}) + L_2\vert[W_{\mu}]_{i,j}\vert^2"/>.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dictionary containing all the gradients of the parameters.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
 </td>
 </tr>
 </tbody>
@@ -1107,51 +507,89 @@ visible unit.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.sample_h_given_v">
-<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L547"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sample/generate a hidden amplitude unit given a visible unit.</p>
+<dt id="qucumber.rbm.BinomialRBM.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>data</em>, <em>epochs=100</em>, <em>pos_batch_size=100</em>, <em>neg_batch_size=200</em>, <em>k=1</em>, <em>lr=0.01</em>, <em>progbar=False</em>, <em>callbacks=[]</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L342"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the training of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – The visible unit.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tuple containing prob_h_given_v(v) and the sampled hidden unit.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Tuple containing 2 torch.doubleTensor’s.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>)</em>) – The actual training data</li>
+<li><strong>epochs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of parameter (i.e. weights and biases)
+updates</li>
+<li><strong>pos_batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The size of batches for the positive phase
+taken from the data.</li>
+<li><strong>neg_batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The size of batches for the negative phase
+taken from the data</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of contrastive divergence steps</li>
+<li><strong>lr</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Learning rate</li>
+<li><strong>progbar</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Whether or not to display a progress bar. If “notebook”
+is passed, will use a Jupyter notebook compatible
+progress bar.</li>
+<li><strong>callbacks</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>(</em><a class="reference internal" href="callbacks.html#qucumber.callbacks.Callback" title="qucumber.callbacks.Callback"><em>qucumber.callbacks.Callback</em></a><em>)</em>) – Callbacks to run while training.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.sample_v_given_h">
-<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L534"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sample/generate a visible unit given a hidden amplitude unit.</p>
+<dt id="qucumber.rbm.BinomialRBM.sample">
+<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L425"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples from the RBM using k steps of Block Gibbs sampling.
+:param num_samples: The number of samples to be generated
+:type num_samples: int
+:param k: Number of Block Gibbs steps.
+:type k: int
+:returns: Samples drawn from the RBM.
+:rtype: torch.doubleTensor</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="complex-wavefunction-rbm">
+<h2>Complex Wavefunction RBM<a class="headerlink" href="#complex-wavefunction-rbm" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Currently under development, use at own risk</p>
+</div>
+<dl class="class">
+<dt id="qucumber.rbm.ComplexRBM">
+<em class="property">class </em><code class="descclassname">qucumber.rbm.</code><code class="descname">ComplexRBM</code><span class="sig-paren">(</span><em>full_unitaries</em>, <em>psi_dictionary</em>, <em>num_visible</em>, <em>num_hidden_amp</em>, <em>num_hidden_phase</em>, <em>test_grads</em>, <em>gpu=True</em>, <em>seed=1234</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L437"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.basis_state_generator">
+<code class="descname">basis_state_generator</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L458"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.basis_state_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only works for binary visible units at the moment. Generates a vector
+given a spin value (0 or 1).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<em>torch.doubleTensor</em>) – The hidden unit.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>s</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – A spin’s value (either 0 or 1).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tuple containing prob_v_given_h(h) and the sampled visible unit.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">If s = 0, this is the (1,0) state in the basis of the
+measurement. If s = 1, this is the (0,1) state in the basis
+of the measurement.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Tuple containing 2 torch.doubleTensor’s.</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.state_generator">
-<code class="descname">state_generator</code><span class="sig-paren">(</span><em>num_non_trivial_unitaries</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L806"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.state_generator" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.rbm.ComplexRBM.state_generator">
+<code class="descname">state_generator</code><span class="sig-paren">(</span><em>num_non_trivial_unitaries</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L475"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.state_generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that returns all possible configurations of
 ‘num_non_trivial_unitaries’ spins. Similar to generate_visible_space.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_non_trivial_unitaries</strong> (<em>int</em>) – The number of sites measured in the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_non_trivial_unitaries</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of sites measured in the
 non-computational basis.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An array of all possible spin configurations of
@@ -1164,44 +602,8 @@ non-computational basis.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>data</em>, <em>character_data</em>, <em>epochs</em>, <em>batch_size</em>, <em>k=1</em>, <em>lr=0.001</em>, <em>l1_reg=0.0</em>, <em>l2_reg=0.0</em>, <em>initial_gaussian_noise=0.01</em>, <em>gamma=0.55</em>, <em>log_every=50</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L396"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.train" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute the training of the RBM.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> (<em>array_like of doubles</em>) – The actual training data</li>
-<li><strong>character_data</strong> (<em>array_like of str's</em>) – The corresponding bases that each site in the
-data has been measured in.</li>
-<li><strong>epochs</strong> (<em>int</em>) – The number of parameter (i.e. weights and biases) updates
-(default = 100).</li>
-<li><strong>batch_size</strong> (<em>int</em>) – The size of batches taken from the data (default = 100).</li>
-<li><strong>k</strong> (<em>int</em>) – The number of contrastive divergence steps (default = 1).</li>
-<li><strong>lr</strong> (<em>double</em>) – Learning rate (default = 1.0e-3).</li>
-<li><strong>l1_reg</strong> (<em>double</em>) – L1 regularization hyperparameter (default = 0.0).</li>
-<li><strong>l2_reg</strong> (<em>double</em>) – L2 regularization hyperparameter (default = 0.0).</li>
-<li><strong>initial_gaussian_noise</strong> (<em>double</em>) – Initial gaussian noise used to calculate
-stddev of random noise added to weight gradients (default = 0.01).</li>
-<li><strong>gamma</strong> (<em>double</em>) – Parameter used to calculate stddev (default = 0.55).</li>
-<li><strong>log_every</strong> (<em>int</em>) – Indicates how often (i.e. after how many epochs) to
-calculate convergence parameters (e.g. fidelity,
-energy, etc.).</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Currently returns nothing. Just calculates fidelity. Will
-eventually need to return weights and biases (and save them).</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_amp">
-<code class="descname">unnormalized_probability_amp</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L651"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_amp" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.rbm.ComplexRBM.unnormalized_probability_amp">
+<code class="descname">unnormalized_probability_amp</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L498"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.unnormalized_probability_amp" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energy of the phase RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1209,7 +611,7 @@ eventually need to return weights and biases (and save them).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – Visible unit(s).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/02d58509ec038da447c7716395519024de959953.svg" alt="p_{\lambda} = e^{E_{\lambda}}"/>.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/620b6b18f9f20df483231397af7dc29bea41e2e9.svg" alt="p_{\lambda}(\bm{v}) = e^{\mathcal{E}_{\lambda}(\bm{v})}"/></td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
@@ -1218,8 +620,8 @@ eventually need to return weights and biases (and save them).</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_phase">
-<code class="descname">unnormalized_probability_phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L662"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_phase" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.rbm.ComplexRBM.unnormalized_probability_phase">
+<code class="descname">unnormalized_probability_phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L510"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.unnormalized_probability_phase" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energy of the phase RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1227,7 +629,7 @@ eventually need to return weights and biases (and save them).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – Visible unit(s).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/cdb3690996b5ae676c5f6f824ec35c31bdd1569d.svg" alt="p_{\mu} = e^{E_{\mu}}"/>.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/8adb2aced389bfe51d76bb63fec34ca7797fcc0e.svg" alt="p_{\mu}(\bm{v}) = e^{\mathcal{E}_{\mu}(\bm{v})}"/></td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
@@ -1236,8 +638,36 @@ eventually need to return weights and biases (and save them).</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_wavefunction">
-<code class="descname">unnormalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/NNQuST/blob/b660fa9/qucumber/rbm/rbm_complex.py#L697"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_wavefunction" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.rbm.ComplexRBM.normalized_wavefunction">
+<code class="descname">normalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L521"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.normalized_wavefunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>The RBM wavefunction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – Visible unit(s).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="math">
+<p><img src="_images/math/f36f3af95c6f3baf98352992082000893d1da8cb.svg" alt="\psi_{\lambda\mu} =
+\sqrt{\frac{p_{\lambda}}{Z_{\lambda}}}
+\exp\left(\frac{i\log(p_{\mu})}{2}\right)"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.unnormalized_wavefunction">
+<code class="descname">unnormalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L551"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.unnormalized_wavefunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>The unnormalized RBM wavefunction.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1245,12 +675,196 @@ eventually need to return weights and biases (and save them).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.doubleTensor</em>) – Visible unit(s).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/201b2c157644bbd3bf73db8c3f86087798c4d5a2.svg" alt="\tilde{\psi}_{\lambda\mu} =\sqrt{p_{\lambda}}e^{\frac{i\log(p_{\mu})}{2}}"/>.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="math">
+<p><img src="_images/math/3476b607c78724597171e25996784c3f83ae3486.svg" alt="\tilde{\psi}_{\lambda\mu} =
+\sqrt{p_{\lambda}}
+\exp\left(\frac{i\log(p_{\mu})}{2}\right)"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.compute_batch_gradients">
+<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>unitary_dict</em>, <em>k</em>, <em>batch</em>, <em>chars_batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L578"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will compute the gradients of a batch of the training
+data (data_file) given the basis measurements (chars_file).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of contrastive divergence steps in amplitude training.</li>
+<li><strong>batch</strong> (<em>torch.doubleTensor</em>) – Batch of the input data.</li>
+<li><strong>chars_batch</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>)</em>) – Batch of bases that correspondingly indicates the
+basis each site in the batch was measured in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dictionary containing all the gradients (negative): Gradient
+of weights, visible bias and hidden bias for the amplitude,
+Gradients of weights, visible bias and hidden bias for the
+phase.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.compute_rotated_grads">
+<code class="descname">compute_rotated_grads</code><span class="sig-paren">(</span><em>unitary_dict</em>, <em>k</em>, <em>v0</em>, <em>characters</em>, <em>num_non_trivial_unitaries</em>, <em>z_indices</em>, <em>tau_indices</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L689"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.compute_rotated_grads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the rotated gradients.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>v0</strong> (<em>torch.doubleTensor</em>) – A visible unit.</li>
+<li><strong>characters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A string of characters corresponding to the basis
+that each site in v0 was measured in.</li>
+<li><strong>num_non_trivial_unitaries</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of sites in v0 that aren’t
+measured in the computational basis.</li>
+<li><strong>z_indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>)</em>) – A list of indices that correspond to sites of v0 that
+are measured in the computational basis.</li>
+<li><strong>tau_indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>)</em>) – A list of indices that correspond to sites of v0
+that are not measured in the computational basis.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dictionary of the rotated gradients: L_weights_amp, L_vb_amp,
+L_hb_amp, L_weights_phase, L_vb_phase, L_hb_phase</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>data</em>, <em>character_data</em>, <em>unitary_dict</em>, <em>epochs</em>, <em>batch_size</em>, <em>k=1</em>, <em>lr=0.01</em>, <em>log_every=0</em>, <em>progbar=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L842"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the training of the RBM.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>)</em>) – The actual training data</li>
+<li><strong>character_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>)</em>) – The corresponding bases that each site in the
+data has been measured in.</li>
+<li><strong>epochs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of parameter (i.e. weights and biases)
+updates</li>
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The size of batches taken from the data</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of contrastive divergence steps</li>
+<li><strong>lr</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Learning rate</li>
+<li><strong>progbar</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Whether or not to display a progress bar. If “notebook”
+is passed, will use a Jupyter notebook compatible
+progress bar.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.save_params">
+<code class="descname">save_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L939"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.save_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that saves the weights and biases for the amplitude and
+phase individually.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.get_true_psi">
+<code class="descname">get_true_psi</code><span class="sig-paren">(</span><em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L967"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.get_true_psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Picks out the true psi in the correct basis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>basis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – E.g. XZZZX.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The true wavefunction in the basis.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.overlap">
+<code class="descname">overlap</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L981"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the overlap between the RBM and true wavefunctions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – An array of all possible spin configurations.</li>
+<li><strong>basis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – E.g. XZZZX.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/6fc0be294baa888e014325e5146deab5b2806311.svg" alt="O = \langle{\psi_{true}}\vert\psi_{\lambda\mu}\rangle"/>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.fidelity">
+<code class="descname">fidelity</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L996"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.fidelity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computed the fidelity of the RBM and true wavefunctions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>visible_space</strong> (<em>torch.doubleTensor</em>) – An array of all possible spin configurations.</li>
+<li><strong>basis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – E.g. XZZZX.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/1a05322eb2d6fc4b5709cb171dfef031925f5853.svg" alt="F = |O|^2"/>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.KL_divergence">
+<code class="descname">KL_divergence</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L1009"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.KL_divergence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the total KL divergence.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.rbm.ComplexRBM.state_to_index">
+<code class="descname">state_to_index</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/f8b420d/qucumber/rbm.py#L1121"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.state_to_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only for debugging how the unitary is applied to the unnormalized wavefunction - the ‘B’ term in alg 4.2.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1300,7 +914,7 @@ eventually need to return weights and biases (and save them).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1a',
+            VERSION:'0.1',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

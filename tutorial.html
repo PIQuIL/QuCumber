@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; QuCumber 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Part 2: Training an RBM with a phase" href="_examples/QuCumberTutorialComplex.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuCumber
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorial.html">Getting started: quantum state reconstruction using QuCumber</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialReal.html">Part 1: Reconstruction of a positive wavefunction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#windows">Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#linux-macos">Linux / MacOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operation">Operation</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">QuCumber</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Installation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>QuCumber only supports Python 3, not Python 2. If you are using Python 2, please update! You will also want to install the following packages if you have not already.</p>
+<ol class="arabic simple">
+<li>Pytorch (<a class="reference external" href="https://pytorch.org/">https://pytorch.org/</a>)</li>
+<li>tqdm (<a class="reference external" href="https://github.com/tqdm/tqdm">https://github.com/tqdm/tqdm</a>)</li>
+</ol>
+<div class="section" id="windows">
+<h2>Windows<a class="headerlink" href="#windows" title="Permalink to this headline">¶</a></h2>
+<p>Navigate to the directory (through command prompt) where pip.exe is installed (usually C:\Python\Scripts\pip.exe) and type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span><span class="o">.</span><span class="n">exe</span> <span class="n">install</span> <span class="n">qucumber</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="linux-macos">
+<h2>Linux / MacOS<a class="headerlink" href="#linux-macos" title="Permalink to this headline">¶</a></h2>
+<p>Open up a terminal, then type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">qucumber</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="operation">
+<h2>Operation<a class="headerlink" href="#operation" title="Permalink to this headline">¶</a></h2>
+<p>To make sure everything is installed correctly, open a python shell / document and type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qucumber</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>To begin training an RBM on your data, you must initialize a BinomialRBM object with the number of visible units (i.e. sites). For example, given the number of sites, <em>num_visible</em>,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rbm</span> <span class="o">=</span> <span class="n">BinomialRBM</span><span class="p">(</span><span class="n">num_visible</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, one can now train with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rbm</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">your_datafile</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Please ensure that your input data is a numpy array or torch tensor. Additional arguments to <em>fit</em> can be found here <a class="reference internal" href="rbm.html#qucumber.rbm.BinomialRBM.fit" title="qucumber.rbm.BinomialRBM.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">qucumber.rbm.BinomialRBM.fit()</span></code></a>.</p>
+<p>Once your RBM has been trained, you can generate more data by doing the following.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rbm</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;saved_params.pkl&#39;</span><span class="p">)</span>
+<span class="n">num_samples</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">new_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">rbm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">num_samples</span><span class="p">))</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="s1">&#39;generated_samples.txt&#39;</span><span class="p">,</span> <span class="n">new_data</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>An additional argument to the <em>sample</em> function is the number of Gibbs steps, <em>k</em>. The default value of <em>k</em> is 10. See <a class="reference internal" href="rbm.html#qucumber.rbm.BinomialRBM.sample" title="qucumber.rbm.BinomialRBM.sample"><code class="xref py py-meth docutils literal notranslate"><span class="pre">qucumber.rbm.BinomialRBM.sample()</span></code></a> for more information.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="_examples/QuCumberTutorialComplex.html" class="btn btn-neutral" title="Part 2: Training an RBM with a phase" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, PIQuIL.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

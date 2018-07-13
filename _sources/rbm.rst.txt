@@ -3,14 +3,20 @@
 RBMs
 ==============================
 
+RBM Module
+------------------------------
+.. autoclass:: qucumber.rbm.RBM_Module
+    :members:
+
 Real Positive Wavefunction RBM
 ------------------------------
 
-.. automodule:: qucumber.rbm.rbm_vanilla
-   :members:
+.. autoclass:: qucumber.rbm.BinomialRBM
+    :members:
 
 Complex Wavefunction RBM
-------------------------------
+-----------------------------
+.. note:: Currently under development, use at own risk
 
-.. automodule:: qucumber.rbm.rbm_complex
-   :members:
+.. autoclass:: qucumber.rbm.ComplexRBM
+    :members:

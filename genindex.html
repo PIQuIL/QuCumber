@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; QuCumber 0.1a documentation</title>
+  <title>Index &mdash; QuCumber 0.1 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.1a
+                0.1
               </div>
             
           
@@ -85,7 +85,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorial.html">Getting started: quantum state reconstruction using QuCumber</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialReal.html">Part 1: Reconstruction of a positive wavefunction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Installation</a></li>
 </ul>
 
             
@@ -152,7 +158,9 @@
 <h1 id="index">Index</h1>
 
 <div class="genindex-jumpbox">
- <a href="#B"><strong>B</strong></a>
+ <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
@@ -172,10 +180,36 @@
  | <a href="#V"><strong>V</strong></a>
  
 </div>
+<h2 id="_">_</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="callbacks.html#qucumber.callbacks.MetricEvaluator.__len__">__len__() (qucumber.callbacks.MetricEvaluator method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="observables.html#qucumber.observables.Observable.apply">apply() (qucumber.observables.Observable method)</a>
+
+      <ul>
+        <li><a href="observables.html#qucumber.observables.TFIMChainEnergy.apply">(qucumber.observables.TFIMChainEnergy method)</a>
+</li>
+        <li><a href="observables.html#qucumber.observables.TFIMChainMagnetization.apply">(qucumber.observables.TFIMChainMagnetization method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.basis_state_generator">basis_state_generator() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.basis_state_generator">basis_state_generator() (qucumber.rbm.ComplexRBM method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="rbm.html#qucumber.rbm.BinomialRBM">BinomialRBM (class in qucumber.rbm)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -183,19 +217,23 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cplx.html#qucumber.cplx.compT_matrix">compT_matrix() (in module qucumber.cplx)</a>
+      <li><a href="callbacks.html#qucumber.callbacks.Callback">Callback (class in qucumber.callbacks)</a>
 </li>
-      <li><a href="cplx.html#qucumber.cplx.compT_vector">compT_vector() (in module qucumber.cplx)</a>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM">ComplexRBM (class in qucumber.rbm)</a>
+</li>
+      <li><a href="cplx.html#qucumber.cplx.compT_matrix">compT_matrix() (in module qucumber.cplx)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.compute_batch_gradients">compute_batch_gradients() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="cplx.html#qucumber.cplx.compT_vector">compT_vector() (in module qucumber.cplx)</a>
+</li>
+      <li><a href="rbm.html#qucumber.rbm.BinomialRBM.compute_batch_gradients">compute_batch_gradients() (qucumber.rbm.BinomialRBM method)</a>
 
       <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.compute_batch_gradients">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+        <li><a href="rbm.html#qucumber.rbm.ComplexRBM.compute_batch_gradients">(qucumber.rbm.ComplexRBM method)</a>
 </li>
       </ul></li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.compute_rotated_grads">compute_rotated_grads() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.compute_rotated_grads">compute_rotated_grads() (qucumber.rbm.ComplexRBM method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -203,13 +241,13 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_amp">eff_energy_amp() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="callbacks.html#qucumber.callbacks.EarlyStopping">EarlyStopping (class in qucumber.callbacks)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.eff_energy_phase">eff_energy_phase() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.effective_energy">effective_energy() (qucumber.rbm.RBM_Module method)</a>
 </li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.effective_energy">effective_energy() (qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="observables.html#qucumber.observables.Observable.expected_value">expected_value() (qucumber.observables.Observable method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -217,30 +255,32 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.fidelity">fidelity() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.fidelity">fidelity() (qucumber.rbm.ComplexRBM method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="rbm.html#qucumber.rbm.BinomialRBM.fit">fit() (qucumber.rbm.BinomialRBM method)</a>
+
+      <ul>
+        <li><a href="rbm.html#qucumber.rbm.ComplexRBM.fit">(qucumber.rbm.ComplexRBM method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.generate_visible_space">generate_visible_space() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
-
-      <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.generate_visible_space">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.generate_visible_space">generate_visible_space() (qucumber.rbm.RBM_Module method)</a>
 </li>
-      </ul></li>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.get_true_psi">get_true_psi() (qucumber.rbm.ComplexRBM method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.get_true_psi">get_true_psi() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="callbacks.html#qucumber.callbacks.MetricEvaluator.get_value">get_value() (qucumber.callbacks.MetricEvaluator method)</a>
 </li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.gibbs_sampling">gibbs_sampling() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
-
-      <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.gibbs_sampling">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.gibbs_sampling">gibbs_sampling() (qucumber.rbm.RBM_Module method)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -255,6 +295,10 @@
 <h2 id="K">K</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.KL_divergence">KL_divergence() (qucumber.rbm.ComplexRBM method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cplx.html#qucumber.cplx.kronecker_prod">kronecker_prod() (in module qucumber.cplx)</a>
 </li>
   </ul></td>
@@ -263,17 +307,15 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.load">load() (qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="callbacks.html#qucumber.callbacks.LambdaCallback">LambdaCallback (class in qucumber.callbacks)</a>
 </li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.log_partition">log_partition() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
-
-      <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.log_partition">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.BinomialRBM.load">load() (qucumber.rbm.BinomialRBM method)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.log_probability_ratio">log_probability_ratio() (qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.log_partition">log_partition() (qucumber.rbm.RBM_Module method)</a>
+</li>
+      <li><a href="callbacks.html#qucumber.callbacks.Logger">Logger (class in qucumber.callbacks)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -285,10 +327,14 @@
 </li>
       <li><a href="cplx.html#qucumber.cplx.make_complex_vector">make_complex_vector() (in module qucumber.cplx)</a>
 </li>
+      <li><a href="callbacks.html#qucumber.callbacks.MetricEvaluator">MetricEvaluator (class in qucumber.callbacks)</a>
+</li>
       <li><a href="cplx.html#qucumber.cplx.MM_mult">MM_mult() (in module qucumber.cplx)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="callbacks.html#qucumber.callbacks.ModelSaver">ModelSaver (class in qucumber.callbacks)</a>
+</li>
       <li><a href="cplx.html#qucumber.cplx.MS_divide">MS_divide() (in module qucumber.cplx)</a>
 </li>
       <li><a href="cplx.html#qucumber.cplx.MS_mult">MS_mult() (in module qucumber.cplx)</a>
@@ -301,13 +347,11 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.nll">nll() (qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="cplx.html#qucumber.cplx.norm">norm() (in module qucumber.cplx)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cplx.html#qucumber.cplx.norm">norm() (in module qucumber.cplx)</a>
-</li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.normalized_wavefunction">normalized_wavefunction() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.normalized_wavefunction">normalized_wavefunction() (qucumber.rbm.ComplexRBM method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -315,11 +359,25 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cplx.html#qucumber.cplx.outer_prod">outer_prod() (in module qucumber.cplx)</a>
+      <li><a href="observables.html#qucumber.observables.Observable">Observable (class in qucumber.observables)</a>
+</li>
+      <li><a href="callbacks.html#qucumber.callbacks.Callback.on_batch_end">on_batch_end() (qucumber.callbacks.Callback method)</a>
+</li>
+      <li><a href="callbacks.html#qucumber.callbacks.Callback.on_batch_start">on_batch_start() (qucumber.callbacks.Callback method)</a>
+</li>
+      <li><a href="callbacks.html#qucumber.callbacks.Callback.on_epoch_end">on_epoch_end() (qucumber.callbacks.Callback method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.overlap">overlap() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="callbacks.html#qucumber.callbacks.Callback.on_epoch_start">on_epoch_start() (qucumber.callbacks.Callback method)</a>
+</li>
+      <li><a href="callbacks.html#qucumber.callbacks.Callback.on_train_end">on_train_end() (qucumber.callbacks.Callback method)</a>
+</li>
+      <li><a href="callbacks.html#qucumber.callbacks.Callback.on_train_start">on_train_start() (qucumber.callbacks.Callback method)</a>
+</li>
+      <li><a href="cplx.html#qucumber.cplx.outer_prod">outer_prod() (in module qucumber.cplx)</a>
+</li>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.overlap">overlap() (qucumber.rbm.ComplexRBM method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -327,27 +385,15 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.partition">partition() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
-
-      <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.partition">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.partition">partition() (qucumber.rbm.RBM_Module method)</a>
 </li>
-      </ul></li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.prob_h_given_v">prob_h_given_v() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
-
-      <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.prob_h_given_v">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.prob_h_given_v">prob_h_given_v() (qucumber.rbm.RBM_Module method)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.prob_v_given_h">prob_v_given_h() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
-
-      <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.prob_v_given_h">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.prob_v_given_h">prob_v_given_h() (qucumber.rbm.RBM_Module method)</a>
 </li>
-      </ul></li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.probability_ratio">probability_ratio() (qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.probability">probability() (qucumber.rbm.RBM_Module method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -359,9 +405,7 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#module-qucumber.rbm.rbm_complex">qucumber.rbm.rbm_complex (module)</a>
-</li>
-      <li><a href="rbm.html#module-qucumber.rbm.rbm_vanilla">qucumber.rbm.rbm_vanilla (module)</a>
+      <li><a href="observables.html#module-qucumber.observables">qucumber.observables (module)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -369,17 +413,7 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM">RBM (class in qucumber.rbm.rbm_vanilla)</a>
-</li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex">RBMcomplex (class in qucumber.rbm.rbm_complex)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.regularize_weight_gradients">regularize_weight_gradients() (qucumber.rbm.rbm_vanilla.RBM method)</a>
-</li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_amp">regularize_weight_gradients_amp() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
-</li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.regularize_weight_gradients_phase">regularize_weight_gradients_phase() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module">RBM_Module (class in qucumber.rbm)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -387,27 +421,31 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.sample">sample() (qucumber.rbm.rbm_vanilla.RBM method)</a>
-</li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.sample_h_given_v">sample_h_given_v() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="observables.html#qucumber.observables.Observable.sample">sample() (qucumber.observables.Observable method)</a>
 
       <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.sample_h_given_v">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+        <li><a href="rbm.html#qucumber.rbm.BinomialRBM.sample">(qucumber.rbm.BinomialRBM method)</a>
+</li>
+        <li><a href="rbm.html#qucumber.rbm.RBM_Module.sample">(qucumber.rbm.RBM_Module method)</a>
 </li>
       </ul></li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.sample_v_given_h">sample_v_given_h() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
-
-      <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.sample_v_given_h">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.sample_h_given_v">sample_h_given_v() (qucumber.rbm.RBM_Module method)</a>
 </li>
-      </ul></li>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.sample_v_given_h">sample_v_given_h() (qucumber.rbm.RBM_Module method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.save">save() (qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.BinomialRBM.save">save() (qucumber.rbm.BinomialRBM method)</a>
+</li>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.save_params">save_params() (qucumber.rbm.ComplexRBM method)</a>
 </li>
       <li><a href="cplx.html#qucumber.cplx.scalar_mult">scalar_mult() (in module qucumber.cplx)</a>
 </li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.state_generator">state_generator() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.state_generator">state_generator() (qucumber.rbm.ComplexRBM method)</a>
+</li>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.state_to_index">state_to_index() (qucumber.rbm.ComplexRBM method)</a>
+</li>
+      <li><a href="observables.html#qucumber.observables.Observable.statistics">statistics() (qucumber.observables.Observable method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -415,27 +453,27 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.train">train() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
-
-      <ul>
-        <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.train">(qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="observables.html#qucumber.observables.TFIMChainEnergy">TFIMChainEnergy (class in qucumber.observables)</a>
 </li>
-      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="observables.html#qucumber.observables.TFIMChainMagnetization">TFIMChainMagnetization (class in qucumber.observables)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_vanilla.RBM.unnormalized_probability">unnormalized_probability() (qucumber.rbm.rbm_vanilla.RBM method)</a>
+      <li><a href="rbm.html#qucumber.rbm.RBM_Module.unnormalized_probability">unnormalized_probability() (qucumber.rbm.RBM_Module method)</a>
 </li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_amp">unnormalized_probability_amp() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.unnormalized_probability_amp">unnormalized_probability_amp() (qucumber.rbm.ComplexRBM method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_probability_phase">unnormalized_probability_phase() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.unnormalized_probability_phase">unnormalized_probability_phase() (qucumber.rbm.ComplexRBM method)</a>
 </li>
-      <li><a href="rbm.html#qucumber.rbm.rbm_complex.RBMcomplex.unnormalized_wavefunction">unnormalized_wavefunction() (qucumber.rbm.rbm_complex.RBMcomplex method)</a>
+      <li><a href="rbm.html#qucumber.rbm.ComplexRBM.unnormalized_wavefunction">unnormalized_wavefunction() (qucumber.rbm.ComplexRBM method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -443,10 +481,14 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cplx.html#qucumber.cplx.VS_divide">VS_divide() (in module qucumber.cplx)</a>
+      <li><a href="observables.html#qucumber.observables.Observable.variance">variance() (qucumber.observables.Observable method)</a>
+</li>
+      <li><a href="callbacks.html#qucumber.callbacks.VarianceBasedEarlyStopping">VarianceBasedEarlyStopping (class in qucumber.callbacks)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cplx.html#qucumber.cplx.VS_divide">VS_divide() (in module qucumber.cplx)</a>
+</li>
       <li><a href="cplx.html#qucumber.cplx.VS_mult">VS_mult() (in module qucumber.cplx)</a>
 </li>
   </ul></td>
@@ -486,7 +528,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1a',
+            VERSION:'0.1',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
