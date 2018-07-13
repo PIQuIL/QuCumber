@@ -19,6 +19,7 @@
 import inspect
 import sys
 import os
+import shutil
 import subprocess
 from operator import attrgetter
 import qucumber
@@ -54,8 +55,7 @@ extensions = [
     'sphinx.ext.linkcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
-    'nbsphinx',
-    'nbsphinx_link'
+    'nbsphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -80,10 +80,27 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
+                    '**.ipynb_checkpoints']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+
+
+# Things that nitpick mode should ignore.
+nitpick_ignore = [
+    ('py:class', 'int'),
+    ('py:class', 'float'),
+    ('py:class', 'bool'),
+    ('py:class', 'dict'),
+    ('py:class', 'list'),
+    ('py:class', 'tuple'),
+    ('py:class', 'str'),
+    ('py:class', 'file'),
+    ('py:obj', 'None'),
+    ('py:exc', 'ValueError'),
+    ('py:class', 'callable')
+]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -189,8 +206,8 @@ todo_include_todos = True
 imgmath_use_preview = True
 imgmath_latex_preamble = latex_elements['preamble']
 imgmath_image_format = 'svg'
-imgmath_font_size = 14
-imgmath_dvisvgm_args = ['--no-fonts', '-e', '-c', '100']
+imgmath_font_size = 13
+imgmath_dvisvgm_args = ['--no-fonts', '-e']
 
 
 # -- Options for napoleon ----------------------------------------------------
@@ -198,6 +215,12 @@ imgmath_dvisvgm_args = ['--no-fonts', '-e', '-c', '100']
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 
+# -- Options for intersphinx -------------------------------------------------
+
+
+intersphinx_mapping = {
+    'torch': ('https://pytorch.org/docs/stable/', None)
+}
 
 # -- Options for linkcode extension ------------------------------------------
 
@@ -255,3 +278,8 @@ def linkcode_resolve(domain, info):
             .format(revision=revision,
                     file_name=file_name,
                     line_number=line_number))
+
+# -- Options for nbsphinx ----------------------------------------------------
+
+
+nbsphinx_execute = 'never'

@@ -1,3 +1,5 @@
+.. include:: macros.hrst
+
 Complex Algebra
 ===============
 

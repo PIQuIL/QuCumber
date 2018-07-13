@@ -360,17 +360,18 @@ class VarianceBasedEarlyStopping(Callback):
 
 
 class MetricEvaluator(Callback):
-    r"""Evaluate and hold on to the results of the given metric(s).
+    """Evaluate and hold on to the results of the given metric(s).
 
     This Callback is called at the end of each epoch.
 
     .. note::
-        Since Callbacks are given to :func:`fit` as a list, they will be
-        called in a deterministic order. It is therefore recommended that
-        instances of :class:`MetricEvaluator<MetricEvaluator>` be the first
-        callbacks in the list passed to :func:`fit`, as one would often use
-        it in conjunction with other callbacks like
-        :class:`EarlyStopping<EarlyStopping>` which depend on
+        Since Callbacks are given to :func:`fit<qucumber.rbm.BinomialRBM.fit>`
+        as a list, they will be called in a deterministic order. It is
+        therefore recommended that instances of
+        :class:`MetricEvaluator<MetricEvaluator>` be the first callbacks in
+        the list passed to :func:`fit<qucumber.rbm.BinomialRBM.fit>`,
+        as one would often use it in conjunction with other callbacks like
+        :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`MetricEvaluator<MetricEvaluator>` having been called.
 
     :param period: Frequency with which the callback evaluates the given

@@ -1,5 +1,6 @@
 Welcome to QuCumber's documentation!
 ====================================
+Version: |release|
 
 .. toctree::
    :maxdepth: 3
@@ -10,10 +11,9 @@ Welcome to QuCumber's documentation!
    callbacks
    observables
    theory
-   tutorial
-   QuCumberTutorial
-   QuCumberTutorialReal
-   QuCumberTutorialComplex
+   _examples/QuCumberTutorial.ipynb
+   _examples/QuCumberTutorialReal.ipynb
+   _examples/QuCumberTutorialComplex.ipynb
 
 
 Indices and tables
