@@ -1,0 +1,44 @@
+dist: trusty
+sudo: false
+language: python
+
+git:
+  depth: false
+
+addons:
+  apt:
+    packages:
+      - texlive-fonts-recommended
+      - texlive-latex-extra
+      - texlive-fonts-extra
+      - dvipng
+      - texlive-latex-recommended
+      - texlive-science
+
+python:
+- '3.6'
+
+install:
+- pip install sphinx sphinx_rtd_theme nbsphinx
+- pip install numpy scipy click tqdm
+- pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl
+- pip install torchvision
+
+script:
+- cd docs
+- mkdir -p _static _templates
+- PYTHONPATH=../ make html
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: "$GITHUB_PAGES_TOKEN"
+  keep-history: true
+  local-dir: docs/_build/html
+  verbose: true
+  on:
+    branch: master
+
+notifications:
+  slack:
+    secure: NGwO+vs8qKLpadLzpzLRucD2EIyr2SX7/NWxRZm2Th6PdV8vEue8rW4hwsu0x/dR9Jpjg5unSy1NWnLxeJvqzYIY3brvDb50xJcCovpQO1XvIdYCWSOeaWo7Lkf2AJ5l2OB59LWxO1lIPXdpbMZiIHecSX5edOWs2Xou1DCgXajbUTuRDX1oY5IcgRiUMBWuR7s/+bjTDAKqUylK11MBrfzyCjB4opOF/KtKTpwAnjItgyKd1XCOqg5dywTqvpSorI2lwbmwvIbSV0RM5TuvFPCsDI/MiJfn0krGjW0ip8KxCXLERen4zR9C2/BCYnyPNPMTW4I0cQp525jzIomsZpjx5kY/5h9XWtadzzUNId7HUu/RxdWuAd49T84TI4IuzJrhHo4ErdJ/rD0AZyHD+yTy2K2B9pwwWJnE22e3QjeF/pm8m7wP/NkyETmN7eeEzzMiUucC88sk+HY/UZSpvRwNSdt9Vvt0TP0oOOlYYUASojZHnD7JtyYkOM/zEQ3SmzNdxOkzlrrOeLo07FkpSYJv6j03xd7kUXF4AvbXoGSQBXPPZytfVll7++nD6lkgayf/S4XBiUC9YF7vSp+jfnrI5wNAXkRebhUa2BJK2JyDxo9Xr9NPsjDvCGMcJbqJ3pW+iAN35at5LmQoVNupzDFfrBQCKGiP2PLCb7Jim9U=

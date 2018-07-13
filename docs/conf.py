@@ -17,10 +17,11 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 import inspect
-import sys
 import os
 import subprocess
+import sys
 from operator import attrgetter
+
 import qucumber
 
 sys.path.insert(0, os.path.abspath('../qucumber'))
@@ -53,6 +54,7 @@ extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.ifconfig',
     'sphinx.ext.linkcode',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
     'nbsphinx'
@@ -274,7 +276,7 @@ def linkcode_resolve(domain, info):
     except Exception:
         line_number = ''
 
-    return ('https://github.com/MelkoCollective/NNQuST/blob'
+    return ('https://github.com/MelkoCollective/QuCumber/blob'
             '/{revision}/qucumber/{file_name}#L{line_number}'
             .format(revision=revision,
                     file_name=file_name,
