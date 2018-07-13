@@ -173,7 +173,7 @@ class RBM_Module(nn.Module):
             ph, h = self.sample_h_given_v(v)
         return v0, h0, v, h, ph
 
-    def sample(self, num_samples, k):
+    def sample(self, num_samples, k=10):
         """Samples from the RBM using k steps of Block Gibbs sampling.
         :param num_samples: The number of samples to be generated
         :type num_samples: int
@@ -261,14 +261,13 @@ class RBM_Module(nn.Module):
 
 
 class BinomialRBM(nn.Module):
-    def __init__(self, num_visible, num_hidden, save_psi, gpu=True, seed=1234):
+    def __init__(self, num_visible, num_hidden=None, gpu=True, seed=1234):
         super(BinomialRBM, self).__init__()
         self.num_visible = int(num_visible)
-        self.num_hidden = int(num_hidden)
+        self.num_hidden = int(num_hidden) if num_hidden is not None else self.num_visible
         self.rbm_module = RBM_Module(self.num_visible, self.num_hidden,
                                      gpu=gpu, seed=seed)
         self.stop_training = False
-        self.save_psi = save_psi
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
@@ -340,7 +339,7 @@ class BinomialRBM(nn.Module):
                                "visible_bias": -vb_grad,
                                "hidden_bias": -hb_grad}}
 
-    def fit(self, data, epochs, pos_batch_size, neg_batch_size,
+    def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=200,
             k=1, lr=1e-2, progbar=False, callbacks=[]):
         """Execute the training of the RBM.
 
