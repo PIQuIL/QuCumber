@@ -189,8 +189,8 @@ todo_include_todos = True
 imgmath_use_preview = True
 imgmath_latex_preamble = latex_elements['preamble']
 imgmath_image_format = 'svg'
-imgmath_font_size = 14
-imgmath_dvisvgm_args = ['--no-fonts', '-e', '-c', '100']
+imgmath_font_size = 13
+imgmath_dvisvgm_args = ['--no-fonts']
 
 
 # -- Options for napoleon ----------------------------------------------------

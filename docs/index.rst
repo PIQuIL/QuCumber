@@ -10,10 +10,10 @@ Welcome to QuCumber's documentation!
    callbacks
    observables
    theory
-   tutorial
    QuCumberTutorial
    QuCumberTutorialReal
    QuCumberTutorialComplex
+   tutorial
 
 
 Indices and tables
