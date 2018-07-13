@@ -1,13 +1,11 @@
 import cplx
 import numpy as np
 from matplotlib import pyplot as plt
-plt.style.use('classic')
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.nn import functional as F
 import warnings
-from tqdm import tqdm, tqdm_notebook
 import csv
 import unitary_library
 from observables_tutorial import TFIMChainEnergy, TFIMChainMagnetization
@@ -78,7 +76,8 @@ class RBM_Module(nn.Module):
             step_list   = []
 
             if observable == 'Energy':
-                energy_list = [] 
+                energy_list = []
+                true_energy = [-1.2785] 
                 energy_calc = TFIMChainEnergy(h=1.0)
                 energy_list.append(energy_calc.apply(v0, sampler).mean())
                 step_list.append(0)
@@ -87,17 +86,21 @@ class RBM_Module(nn.Module):
                     ph, h = self.sample_h_given_v(v)
             
                     energy_list.append(energy_calc.apply(v, sampler).mean())
+                    true_energy.append(-1.2785)
                     step_list.append(i+1)
         
                 ax1 = plt.axes()
-                ax1.plot(step_list, energy_list)
+                ax1.plot(step_list, energy_list, color='red')
+                ax1.plot(step_list, true_energy, color='black')
                 ax1.grid()
+                ax1.set_xlim(0,k)
                 ax1.set_xlabel('k')
                 ax1.set_ylabel('Energy')
                 return v0, h0, v, h, ph, step_list, energy_list
     
             if observable == 'Magnetization':
                 mag_list = []
+                true_mag = [0.7072]
                 mag_calc = TFIMChainMagnetization()
                 mag_list.append(mag_calc.apply(v0).mean())
                 step_list.append(0)
@@ -106,11 +109,14 @@ class RBM_Module(nn.Module):
                     ph, h = self.sample_h_given_v(v)
                     
                     mag_list.append(mag_calc.apply(v).mean())
+                    true_mag.append(0.7072)
                     step_list.append(i+1)   
                 
                 ax2 = plt.axes()
-                ax2.plot(step_list, mag_list)
+                ax2.plot(step_list, mag_list, color='red')
+                ax2.plot(step_list, true_mag, color='black')
                 ax2.grid()
+                ax2.set_xlim(0,k)
                 ax2.set_xlabel('k')
                 ax2.set_ylabel('Magnetization')
                 return v0, h0, v, h, ph, step_list, mag_list
@@ -217,8 +223,6 @@ class BinomialRBM:
 
     def fit(self, data, psi, epochs, batch_size, k, lr, log_every):
 
-        progress_bar = tqdm_notebook
-
         data = torch.tensor(data, device=self.rbm_module.device, dtype=torch.double)
         optimizer = torch.optim.SGD([self.rbm_module.weights,
                                      self.rbm_module.visible_bias,
@@ -230,7 +234,7 @@ class BinomialRBM:
         fidelity_list = []
         epoch_list = []
 
-        for ep in progress_bar(range(0, epochs + 1), desc="Training: ", total=epochs):
+        for ep in range(0, epochs + 1):
             
             batches = DataLoader(data, batch_size=batch_size, shuffle=True)
 
@@ -246,8 +250,9 @@ class BinomialRBM:
                 print ('Finished training.' )               
 
                 ax = plt.axes()
-                ax.plot(epoch_list, fidelity_list)
+                ax.plot(epoch_list, fidelity_list, color='blue')
                 ax.grid()
+                ax.set_xlim(0,epochs)
                 ax.set_xlabel('Epochs')
                 ax.set_ylabel('Fidelity')
 

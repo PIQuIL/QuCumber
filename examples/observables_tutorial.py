@@ -138,9 +138,10 @@ class TFIMChainEnergy(Observable):
         log_flipped_psis = log_sum_exp(
             log_flipped_psis, keepdim=True).squeeze()
 
-        interaction_terms = ((samples[:, :-1] * samples[:, 1:])
-                             .sum(1))      # sum over spin sites
-
+        interaction_terms = ((samples[:, :-1] * samples[:,1:]).sum(1) +
+                            samples[:,0] * samples[:,samples.shape[-1]-1])
+                            # sum over spin sites
+        
         transverse_field_terms = (log_flipped_psis
                                   .sub(log_psis)
                                   .exp())  # convert to ratio of probabilities
