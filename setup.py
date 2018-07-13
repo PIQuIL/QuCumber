@@ -8,7 +8,7 @@ setuptools.setup(
       name='qucumber',
       version=qucumber.__version__,
       description='Neural network quantum state tomography.',
-      long_description=log_description,
+      long_description=long_description,
       classifiers=[
         'License :: Apache License 2.0',
         'Programming language :: Python :: 3',
