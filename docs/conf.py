@@ -17,11 +17,14 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 import inspect
-import sys
 import os
 import subprocess
+import sys
 from operator import attrgetter
+
 import qucumber
+
+sys.path.insert(0, os.path.abspath('../qucumber'))
 
 # -- Project information -----------------------------------------------------
 
@@ -33,7 +36,6 @@ author = 'PIQuIL'
 version = qucumber.__version__
 # The full version, including alpha/beta/rc tags
 release = qucumber.__version__
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -87,6 +89,22 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
 pygments_style = 'sphinx'
 
 
+# Things that nitpick mode should ignore.
+nitpick_ignore = [
+    ('py:class', 'int'),
+    ('py:class', 'float'),
+    ('py:class', 'bool'),
+    ('py:class', 'dict'),
+    ('py:class', 'list'),
+    ('py:class', 'tuple'),
+    ('py:class', 'str'),
+    ('py:class', 'file'),
+    ('py:obj', 'None'),
+    ('py:exc', 'ValueError'),
+    ('py:class', 'callable')
+]
+
+
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -117,6 +135,9 @@ html_static_path = ['_static']
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
+
+
+autodoc_member_order = "bysource"
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'QuCumberdoc'
@@ -187,6 +208,8 @@ todo_include_todos = True
 imgmath_use_preview = True
 imgmath_latex_preamble = latex_elements['preamble']
 imgmath_image_format = 'svg'
+imgmath_font_size = 13
+imgmath_dvisvgm_args = ['--no-fonts', '-e']
 
 
 # -- Options for napoleon ----------------------------------------------------
@@ -196,10 +219,11 @@ napoleon_numpy_docstring = True
 
 # -- Options for intersphinx -------------------------------------------------
 
+
 intersphinx_mapping = {
+    'python': ('https://docs.python.org/', None),
     'torch': ('https://pytorch.org/docs/stable/', None)
 }
-
 
 # -- Options for linkcode extension ------------------------------------------
 
@@ -252,8 +276,13 @@ def linkcode_resolve(domain, info):
     except Exception:
         line_number = ''
 
-    return ('https://github.com/MelkoCollective/NNQuST/blob'
+    return ('https://github.com/MelkoCollective/QuCumber/blob'
             '/{revision}/qucumber/{file_name}#L{line_number}'
             .format(revision=revision,
                     file_name=file_name,
                     line_number=line_number))
+
+# -- Options for nbsphinx ----------------------------------------------------
+
+
+nbsphinx_execute = 'never'

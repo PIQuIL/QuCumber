@@ -66,6 +66,10 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/_examples/
+
+# Example csvs
+examples/*.csv
 
 # PyBuilder
 target/
