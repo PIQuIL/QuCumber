@@ -1,1 +1,2 @@
+.. |Tensor| replace:: :class:`torch.Tensor<torch:torch.Tensor>`
 .. |DoubleTensor| replace:: :class:`torch.DoubleTensor<torch:torch.Tensor>`
