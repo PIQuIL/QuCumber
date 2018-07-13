@@ -14,6 +14,7 @@ Version: |release|
    _examples/QuCumberTutorial.ipynb
    _examples/QuCumberTutorialReal.ipynb
    _examples/QuCumberTutorialComplex.ipynb
+   tutorial
 
 
 Indices and tables

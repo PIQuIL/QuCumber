@@ -108,13 +108,12 @@ class Observable:
 
 
 class TFIMChainEnergy(Observable):
-    def __init__(self, h, density=True, boundary_conditions="open",
-                 name="Energy", variance_name="Heat Capacity", **kwargs):
+    def __init__(self, h, density=True, name="Energy",
+                 variance_name="Heat Capacity", **kwargs):
         super(TFIMChainEnergy, self).__init__(name=name,
                                               variance_name=variance_name)
         self.h = h
         self.density = density
-        self.boundary_conditions = boundary_conditions
 
     @staticmethod
     def _flip_spin(i, s):
@@ -139,15 +138,10 @@ class TFIMChainEnergy(Observable):
         log_flipped_psis = log_sum_exp(
             log_flipped_psis, keepdim=True).squeeze()
 
-        if self.boundary_conditions == "periodic":
-            perm_indices = list(range(sampler.shape[-1]))
-            perm_indices = perm_indices[1:] + [0]
-            interaction_terms = ((samples * samples[:, perm_indices])
-                                 .sum(1))
-        else:
-            interaction_terms = ((samples[:, :-1] * samples[:, 1:])
-                                 .sum(1))      # sum over spin sites
-
+        interaction_terms = ((samples[:, :-1] * samples[:,1:]).sum(1) +
+                            samples[:,0] * samples[:,samples.shape[-1]-1])
+                            # sum over spin sites
+        
         transverse_field_terms = (log_flipped_psis
                                   .sub(log_psis)
                                   .exp())  # convert to ratio of probabilities
