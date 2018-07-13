@@ -7,8 +7,8 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 from itertools import chain
-from qucumber import cplx
-from qucumber import  unitaries
+from . import cplx
+from . import unitaries
 
 __all__ = [
     "RBM_Module",

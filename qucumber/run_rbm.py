@@ -1,4 +1,4 @@
-from rbm import RBM_Module, ComplexRBM, BinomialRBM
+from .rbm import RBM_Module, ComplexRBM, BinomialRBM
 from . import unitaries 
 import click
 import gzip
