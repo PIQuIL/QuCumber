@@ -1,8 +1,8 @@
 .. include:: macros.hrst
 
-Observables
-===========
+Samplers
+========
 
-.. automodule:: qucumber.observables
+.. automodule:: qucumber.samplers
     :members:
     :show-inheritance:

@@ -8,26 +8,29 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 from itertools import chain
 import qucumber.cplx as cplx
+from qucumber.samplers import Sampler
 
 
 __all__ = [
-    "RBM_Module",
+    "BinomialRBMModule",
     "BinomialRBM"
 ]
 
 
-class RBM_Module(nn.Module):
+def _warn_on_missing_gpu(gpu):
+    if gpu and not torch.cuda.is_available():
+        warnings.warn("Could not find GPU: will continue with CPU.",
+                      ResourceWarning)
 
+
+class BinomialRBMModule(nn.Module, Sampler):
     def __init__(self, num_visible, num_hidden, zero_weights=False,
                  gpu=True, seed=1234):
-        super(RBM_Module, self).__init__()
+        super(BinomialRBMModule, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
 
-        if gpu and not torch.cuda.is_available():
-            warnings.warn("Could not find GPU: will continue with CPU.",
-                          ResourceWarning)
-
+        _warn_on_missing_gpu(gpu)
         self.gpu = gpu and torch.cuda.is_available()
 
         if seed:
@@ -62,7 +65,7 @@ class RBM_Module(nn.Module):
                                         requires_grad=True)
 
     def __repr__(self):
-        return ("RBM_Module(num_visible={}, num_hidden={}, gpu={})"
+        return ("BinomialRBMModule(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
 
     def effective_energy(self, v):
@@ -77,10 +80,10 @@ class RBM_Module(nn.Module):
                             \right\rbrack
 
         :param v: The visible states.
-        :type v: torch.doubleTensor
+        :type v: torch.Tensor
 
         :returns: The effective energies of the given visible states.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         if len(v.shape) < 2:
             v = v.view(1, -1)
@@ -96,11 +99,11 @@ class RBM_Module(nn.Module):
         vector of the visible units being on.
 
         :param h: The hidden unit
-        :type h: torch.doubleTensor
+        :type h: torch.Tensor
 
         :returns: The probability of visible units being active given the
                   hidden state.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         p = F.sigmoid(F.linear(h, self.weights.t(), self.visible_bias))
         return p
@@ -110,11 +113,11 @@ class RBM_Module(nn.Module):
         vector of the hidden units being on.
 
         :param h: The hidden unit.
-        :type h: torch.doubleTensor
+        :type h: torch.Tensor
 
         :returns: The probability of hidden units being active given the
                   visible state.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         p = F.sigmoid(F.linear(v, self.weights, self.hidden_bias))
         return p
@@ -123,11 +126,11 @@ class RBM_Module(nn.Module):
         """Sample/generate a visible state given a hidden state.
 
         :param h: The hidden state.
-        :type h: torch.doubleTensor
+        :type h: torch.Tensor
 
         :returns: Tuple containing prob_v_given_h(h) and the sampled visible
                   state.
-        :rtype: tuple(torch.doubleTensor, torch.doubleTensor)
+        :rtype: tuple(torch.Tensor, torch.Tensor)
         """
         p = self.prob_v_given_h(h)
         v = p.bernoulli()
@@ -137,11 +140,11 @@ class RBM_Module(nn.Module):
         """Sample/generate a hidden state given a visible state.
 
         :param h: The visible state.
-        :type h: torch.doubleTensor
+        :type h: torch.Tensor
 
         :returns: Tuple containing prob_h_given_v(v) and the sampled hidden
                   state.
-        :rtype: tuple(torch.doubleTensor, torch.doubleTensor)
+        :rtype: tuple(torch.Tensor, torch.Tensor)
         """
         p = self.prob_h_given_v(v)
         h = p.bernoulli()
@@ -154,7 +157,7 @@ class RBM_Module(nn.Module):
         :param k: Number of Block Gibbs steps.
         :type k: int
         :param v0: The initial visible state.
-        :type v0: torch.doubleTensor
+        :type v0: torch.Tensor
 
         :returns: Tuple containing the initial visible state, v0,
                   the hidden state sampled from v0,
@@ -162,9 +165,9 @@ class RBM_Module(nn.Module):
                   the hidden state sampled after k steps and its corresponding
 
                   probability vector.
-        :rtype: tuple(torch.doubleTensor, torch.doubleTensor,
-                      torch.doubleTensor, torch.doubleTensor,
-                      torch.doubleTensor)
+        :rtype: tuple(torch.Tensor, torch.Tensor,
+                      torch.Tensor, torch.Tensor,
+                      torch.Tensor)
         """
         ph, h0 = self.sample_h_given_v(v0)
         v, h = v0, h0
@@ -180,7 +183,7 @@ class RBM_Module(nn.Module):
         :param k: Number of Block Gibbs steps.
         :type k: int
         :returns: Samples drawn from the RBM
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
         v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
@@ -194,18 +197,24 @@ class RBM_Module(nn.Module):
         .. math:: p(\bm{v}) = e^{\mathcal{E}(\bm{v})}
 
         :param v: The visible states.
-        :type v: torch.doubleTensor
+        :type v: torch.Tensor
 
         :returns: The unnormalized probability of the given visible state(s).
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         return self.effective_energy(v).exp()
+
+    def probability_ratio(self, a, b):
+        return self.log_probability_ratio(a, b).exp()
+
+    def log_probability_ratio(self, a, b):
+        return self.effective_energy(a).sub(self.effective_energy(b))
 
     def generate_visible_space(self):
         """Generates all possible visible states.
 
         :returns: A tensor of all possible spin configurations.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         space = torch.zeros((1 << self.num_visible, self.num_visible),
                             device=self.device, dtype=torch.double)
@@ -221,10 +230,10 @@ class RBM_Module(nn.Module):
         """The natural logarithm of the partition function of the RBM.
 
         :param visible_space: A rank 2 tensor of the entire visible space.
-        :type visible_space: torch.doubleTensor
+        :type visible_space: torch.Tensor
 
         :returns: The natural log of the partition function.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         free_energies = self.effective_energy(visible_space)
         max_free_energy = free_energies.max()
@@ -238,10 +247,10 @@ class RBM_Module(nn.Module):
         """The partition function of the RBM.
 
         :param visible_space: A rank 2 tensor of the entire visible space.
-        :type visible_space: torch.doubleTensor
+        :type visible_space: torch.Tensor
 
         :returns: The partition function.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         return self.log_partition(visible_space).exp()
 
@@ -250,23 +259,25 @@ class RBM_Module(nn.Module):
         units; NOT RECOMMENDED FOR RBMS WITH A LARGE # OF VISIBLE UNITS
 
         :param v: The visible states.
-        :type v: torch.doubleTensor
+        :type v: torch.Tensor
         :param Z: The partition function.
         :type Z: float
 
         :returns: The probability of the given vector(s) of visible units.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         return self.unnormalized_probability(v) / Z
 
 
-class BinomialRBM(nn.Module):
+class BinomialRBM(Sampler):
     def __init__(self, num_visible, num_hidden=None, gpu=True, seed=1234):
         super(BinomialRBM, self).__init__()
         self.num_visible = int(num_visible)
-        self.num_hidden = int(num_hidden) if num_hidden is not None else self.num_visible
-        self.rbm_module = RBM_Module(self.num_visible, self.num_hidden,
-                                     gpu=gpu, seed=seed)
+        self.num_hidden = (int(num_hidden)
+                           if num_hidden is not None
+                           else self.num_visible)
+        self.rbm_module = BinomialRBMModule(self.num_visible, self.num_hidden,
+                                            gpu=gpu, seed=seed)
         self.stop_training = False
 
     def save(self, location, metadata={}):
@@ -280,7 +291,7 @@ class BinomialRBM(nn.Module):
         :type metadata: dict
         """
         # add extra metadata to dictionary before saving it to disk
-        data = {**self.state_dict(), **metadata}
+        data = {**self.rbm_module.state_dict(), **metadata}
         torch.save(data, location)
 
     def load(self, location):
@@ -295,7 +306,40 @@ class BinomialRBM(nn.Module):
         :param location: The location to load the RBM parameters from
         :type location: str or file
         """
-        self.load_state_dict(torch.load(location), strict=False)
+
+        try:
+            state_dict = torch.load(location)
+        except AssertionError as e:
+            state_dict = torch.load(location, lambda storage, loc: 'cpu')
+
+        self.rbm_module.load_state_dict(state_dict, strict=False)
+
+    @staticmethod
+    def autoload(location, gpu=True):
+        """Initializes an RBM from the parameters in the given location,
+        ignoring any metadata stored in the file.
+
+        :param location: The location to load the RBM parameters from
+        :type location: str or file
+
+        :returns: A new RBM initialized from the given parameters
+        :rtype: BinomialRBM
+        """
+        _warn_on_missing_gpu(gpu)
+        gpu = gpu and torch.cuda.is_available()
+
+        if gpu:
+            state_dict = torch.load(location, lambda storage, loc: 'cuda')
+        else:
+            state_dict = torch.load(location, lambda storage, loc: 'cpu')
+
+        rbm = BinomialRBM(num_visible=len(state_dict['visible_bias']),
+                          num_hidden=len(state_dict['hidden_bias']),
+                          gpu=gpu,
+                          seed=None)
+        rbm.rbm_module.load_state_dict(state_dict, strict=False)
+
+        return rbm
 
     def compute_batch_gradients(self, k, pos_batch, neg_batch):
         """This function will compute the gradients of a batch of the training
@@ -304,9 +348,9 @@ class BinomialRBM(nn.Module):
         :param k: Number of contrastive divergence steps in training.
         :type k: int
         :param pos_batch: Batch of the input data for the positive phase.
-        :type pos_batch: |DoubleTensor|
+        :type pos_batch: torch.Tensor
         :param neg_batch: Batch of the input data for the negative phase.
-        :type neg_batch: |DoubleTensor|
+        :type neg_batch: torch.Tensor
 
         :returns: Dictionary containing all the gradients of the parameters.
         :rtype: dict
@@ -429,9 +473,16 @@ class BinomialRBM(nn.Module):
         :param k: Number of Block Gibbs steps.
         :type k: int
         :returns: Samples drawn from the RBM.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         return self.rbm_module.sample(num_samples, k)
+
+    def probability_ratio(self, a, b):
+        return self.rbm_module.log_probability_ratio(a, b).exp()
+
+    def log_probability_ratio(self, a, b):
+        return self.rbm_module.effective_energy(a) \
+                              .sub(self.effective_energy(b))
 
 
 class ComplexRBM:
@@ -448,10 +499,11 @@ class ComplexRBM:
         self.num_hidden_phase = int(num_hidden_phase)
         self.full_unitaries = full_unitaries
         self.psi_dictionary = psi_dictionary
-        self.rbm_amp = RBM_Module(num_visible, num_hidden_amp, gpu=gpu,
-                                  seed=seed)
-        self.rbm_phase = RBM_Module(num_visible, num_hidden_phase,
-                                    zero_weights=True, gpu=gpu, seed=None)
+        self.rbm_amp = BinomialRBMModule(num_visible, num_hidden_amp, gpu=gpu,
+                                         seed=seed)
+        self.rbm_phase = BinomialRBMModule(num_visible, num_hidden_phase,
+                                           zero_weights=True,
+                                           gpu=gpu, seed=None)
         self.device = self.rbm_amp.device
         self.test_grads = test_grads
 
@@ -465,7 +517,7 @@ class ComplexRBM:
         :returns: If s = 0, this is the (1,0) state in the basis of the
                   measurement. If s = 1, this is the (0,1) state in the basis
                   of the measurement.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         if s == 0.:
             return torch.tensor([[1., 0.], [0., 0.]], dtype=torch.double)
@@ -482,7 +534,7 @@ class ComplexRBM:
 
         :returns: An array of all possible spin configurations of
                   'num_non_trivial_unitaries' spins.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         states = torch.zeros((2**num_non_trivial_unitaries,
                               num_non_trivial_unitaries),
@@ -499,11 +551,11 @@ class ComplexRBM:
         r"""The effective energy of the phase RBM.
 
         :param v: Visible unit(s).
-        :type v: torch.doubleTensor
+        :type v: torch.Tensor
 
         :returns:
             :math:`p_{\lambda}(\bm{v}) = e^{\mathcal{E}_{\lambda}(\bm{v})}`
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         return self.rbm_amp.unnormalized_probability(v)
 
@@ -511,10 +563,10 @@ class ComplexRBM:
         r"""The effective energy of the phase RBM.
 
         :param v: Visible unit(s).
-        :type v: torch.doubleTensor
+        :type v: torch.Tensor
 
         :returns: :math:`p_{\mu}(\bm{v}) = e^{\mathcal{E}_{\mu}(\bm{v})}`
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         return self.rbm_phase.unnormalized_probability(v)
 
@@ -522,7 +574,7 @@ class ComplexRBM:
         r"""The RBM wavefunction.
 
         :param v: Visible unit(s).
-        :type v: torch.doubleTensor
+        :type v: torch.Tensor
 
         :returns:
 
@@ -530,7 +582,7 @@ class ComplexRBM:
                     \sqrt{\frac{p_{\lambda}}{Z_{\lambda}}}
                     \exp\left(\frac{i\log(p_{\mu})}{2}\right)
 
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         v_prime = v.view(-1, self.num_visible)
         temp1 = (self.unnormalized_probability_amp(v_prime)).sqrt()
@@ -552,7 +604,7 @@ class ComplexRBM:
         r"""The unnormalized RBM wavefunction.
 
         :param v: Visible unit(s).
-        :type v: torch.doubleTensor
+        :type v: torch.Tensor
 
         :returns:
 
@@ -560,7 +612,7 @@ class ComplexRBM:
                         \sqrt{p_{\lambda}}
                         \exp\left(\frac{i\log(p_{\mu})}{2}\right)
 
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         v_prime = v.view(-1, self.num_visible)
         temp1 = (self.unnormalized_probability_amp(v_prime)).sqrt()
@@ -582,7 +634,7 @@ class ComplexRBM:
         :param k: Number of contrastive divergence steps in amplitude training.
         :type k: int
         :param batch: Batch of the input data.
-        :type batch: torch.doubleTensor
+        :type batch: torch.Tensor
         :param chars_batch: Batch of bases that correspondingly indicates the
                             basis each site in the batch was measured in.
         :type chars_batch: list(str)
@@ -692,7 +744,7 @@ class ComplexRBM:
         """Computes the rotated gradients.
 
         :param v0: A visible unit.
-        :type v0: torch.doubleTensor
+        :type v0: torch.Tensor
         :param characters: A string of characters corresponding to the basis
                            that each site in v0 was measured in.
         :type characters: str
@@ -887,20 +939,21 @@ class ComplexRBM:
             random_permutation = torch.randperm(data.shape[0])
 
             shuffled_data = data[random_permutation]
-            shuffled_character_data = character_data[random_permutation]
+            shuffled_char_data = character_data[random_permutation]
 
             # List of all the batches.
             batches = [shuffled_data[batch_start:(batch_start + batch_size)]
                        for batch_start in range(0, len(data), batch_size)]
 
             # List of all the bases.
-            char_batches = [shuffled_character_data[batch_start:(batch_start + batch_size)]
-                            for batch_start in range(0, len(data), batch_size)]
+            char_batches = \
+                [shuffled_char_data[batch_start:(batch_start + batch_size)]
+                 for batch_start in range(0, len(data), batch_size)]
 
             # Calculate convergence quantities every "log-every" steps.
             if ep % log_every == 0:
                 fidelity_ = self.fidelity(vis, 'Z' 'Z')
-                print ('Epoch = ',ep,'\nFidelity = ',fidelity_)
+                print('Epoch = ', ep, '\nFidelity = ', fidelity_)
 
             # Save parameters at the end of training.
             if ep == epochs:
@@ -915,7 +968,8 @@ class ComplexRBM:
                                              desc="Batches",
                                              leave=False, disable=True):
 
-                all_grads = self.compute_batch_gradients(unitary_dict, k, batch,
+                all_grads = self.compute_batch_gradients(unitary_dict,
+                                                         k, batch,
                                                          char_batches[index])
 
                 if self.test_grads:
@@ -971,7 +1025,7 @@ class ComplexRBM:
         :type basis: str
 
         :returns: The true wavefunction in the basis.
-        :rtype: torch.doubleTensor
+        :rtype: torch.Tensor
         """
         key = ''
         for i in range(len(basis)):
@@ -982,7 +1036,7 @@ class ComplexRBM:
         """Computes the overlap between the RBM and true wavefunctions.
 
         :param visible_space: An array of all possible spin configurations.
-        :type visible_space: torch.doubleTensor
+        :type visible_space: torch.Tensor
         :param basis: E.g. XZZZX.
         :type basis: str
 
@@ -990,14 +1044,14 @@ class ComplexRBM:
         :rtype: float
         """
         overlap_ = cplx.inner_prod(self.get_true_psi(basis),
-                           self.normalized_wavefunction(visible_space))
+                                   self.normalized_wavefunction(visible_space))
         return overlap_
 
     def fidelity(self, visible_space, basis):
         """Computed the fidelity of the RBM and true wavefunctions.
 
         :param visible_space: An array of all possible spin configurations.
-        :type visible_space: torch.doubleTensor
+        :type visible_space: torch.Tensor
         :param basis: E.g. XZZZX.
         :type basis: str
 
@@ -1092,27 +1146,27 @@ class ComplexRBM:
         print('Weights amp gradient')
         self.compute_numerical_gradient(
             visible_space, flat_weights_amp, -flat_grad_weights_amp)
-        print ('\n')
+        print('\n')
 
         print('Visible bias amp gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_amp.visible_bias, -alg_grads["rbm_amp"]["visible_bias"])
-        print ('\n')
+        print('\n')
 
         print('Hidden bias amp gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_amp.hidden_bias, -alg_grads["rbm_amp"]["hidden_bias"])
-        print ('\n')
+        print('\n')
 
         print('Weights phase gradient')
         self.compute_numerical_gradient(
             visible_space, flat_weights_phase, -flat_grad_weights_phase)
-        print ('\n')
+        print('\n')
 
         print('Visible bias phase gradient')
         self.compute_numerical_gradient(
             visible_space, self.rbm_phase.visible_bias, -alg_grads["rbm_phase"]["visible_bias"])
-        print ('\n')
+        print('\n')
 
         print('Hidden bias phase gradient')
         self.compute_numerical_gradient(

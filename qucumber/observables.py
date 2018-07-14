@@ -14,7 +14,7 @@ def to_pm1(samples):
 
     :param samples: A tensor of spins to convert.
                     Must be using the :math:`\sigma_i = 0, 1` convention.
-    :type samples: |Tensor|
+    :type samples: torch.Tensor
     """
     return samples.mul(2.).sub(1.)
 
@@ -25,7 +25,7 @@ def to_01(samples):
 
     :param samples: A tensor of spins to convert.
                     Must be using the :math:`\sigma_i = -1, +1` convention.
-    :type samples: |Tensor|
+    :type samples: torch.Tensor
     """
     return samples.add(1.).div(2.)
 
@@ -38,8 +38,9 @@ class Observable:
         samples. Must be implemented by any subclasses.
 
         :param samples: A batch of samples to calculate the observable on.
-        :type samples: |Tensor|
+        :type samples: torch.Tensor
         :param sampler: The sampler that drew the samples.
+        :type sampler: qucumber.samplers.Sampler
         """
         pass
 
@@ -47,8 +48,9 @@ class Observable:
         """Draws samples of the *observable* using the given sampler.
 
         :param sampler: The sampler to draw samples from.
+        :type sampler: qucumber.samplers.Sampler
         :param num_samples: The number of samples to draw.
-        :type num_samples: :class:`int`
+        :type num_samples: int
         :param \**kwargs: Keyword arguments to pass to the sampler's `sample`
                           function.
         """
@@ -62,6 +64,7 @@ class Observable:
         can be performed in batches.
 
         :param sampler: The sampler to draw samples from.
+        :type sampler: qucumber.samplers.Sampler
         :param num_samples: The number of samples to draw.
         :type num_samples: int
         :param batch_size: The size of the batches; if 0, will use one
@@ -82,6 +85,7 @@ class Observable:
         can be performed in batches.
 
         :param sampler: The sampler to draw samples from.
+        :type sampler: qucumber.samplers.Sampler
         :param num_samples: The number of samples to draw.
         :type num_samples: int
         :param batch_size: The size of the batches; if 0, will use one
@@ -103,6 +107,7 @@ class Observable:
         `Chan et al. (1979)`_.
 
         :param sampler: The sampler to draw samples from.
+        :type sampler: qucumber.samplers.Sampler
         :param num_samples: The number of samples to draw.
         :type num_samples: int
         :param batch_size: The size of the batches; if 0, will only use one
@@ -110,7 +115,8 @@ class Observable:
         :param \**kwargs: Keyword arguments to pass to the sampler's `sample`
                           function.
         :returns: A dictionary containing both the (estimated) expected value
-                  and variance of the observable.
+                  (key: "mean") and variance (key: "variance") of the
+                  observable.
         :rtype: dict(str, float)
 
         .. _Chan et al. \(1979\):
@@ -191,11 +197,12 @@ class TFIMChainEnergy(Observable):
 
         :param samples: A batch of samples to calculate the observable on.
                         Must be using the :math:`\sigma_i = 0, 1` convention.
-        :type samples: |Tensor|
+        :type samples: torch.Tensor
         :param sampler: The sampler that drew the samples. Must implement
                         the function :func:`effective_energy`, giving the
                         log probability of its inputs (up to an additive
                         constant).
+        :type sampler: qucumber.samplers.Sampler
         """
         samples = to_pm1(samples)
         log_psis = sampler.effective_energy(to_01(samples)).div(2.)
@@ -255,8 +262,9 @@ class TFIMChainMagnetization(Observable):
 
         :param samples: A batch of samples to calculate the observable on.
                         Must be using the :math:`\sigma_i = 0, 1` convention.
-        :type samples: |Tensor|
+        :type samples: torch.Tensor
         :param sampler: The sampler that drew the samples. Will be ignored.
+        :type sampler: qucumber.samplers.Sampler
         """
         return (to_pm1(samples)
                 .mean(1)
