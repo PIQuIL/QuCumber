@@ -1,6 +1,12 @@
+from collections import Counter, OrderedDict
+from operator import itemgetter
+
+import torch
+
 __all__ = [
     "Sampler",
-    "TractableSampler"
+    "TractableSampler",
+    "DataSampler"
 ]
 
 
@@ -91,3 +97,60 @@ class TractableSampler(Sampler):
 
     def log_probability_ratio(self, a, b):
         return self.log_probability(a).sub(self.log_probability(b))
+
+
+class DataSampler(TractableSampler):
+    """Concrete TractableSampler Class which samples from the given dataset
+
+    :param data: The dataset to sample from
+    :type data: torch.Tensor
+    """
+    def __init__(self, data):
+        freq = Counter()
+        data = torch.tensor(data)
+
+        self.device = data.device
+        self.dtype = data.dtype
+        self.sample_size = data.size()[-1]
+
+        for row in data:
+            freq.update({
+                tuple(row.numpy()): 1
+            })
+        total = float(sum(freq.values()))
+        freq = sorted([(k, v) for k, v in freq.items()], key=itemgetter(1))
+        self.probs = OrderedDict([(k, v/total) for k, v in freq])
+
+        self.cdf = OrderedDict()
+        for i, (ki, pi) in enumerate(self.probs.items()):
+            cumulative_prob = 0.0
+            for j, (kj, pj) in enumerate(self.probs.items()):
+                cumulative_prob += pj
+                if i == j:
+                    break
+            self.cdf[ki] = cumulative_prob
+
+    def sample(self, num_samples):
+        unif = torch.rand(num_samples, device=self.device, dtype=self.dtype)
+        samples = torch.zeros(num_samples, self.sample_size,
+                              device=self.device, dtype=self.dtype)
+
+        for i in range(num_samples):
+            for k, p in self.cdf.items():
+                if unif[i] < p:
+                    samples[i] = torch.tensor(k, device=self.device,
+                                              dtype=self.dtype)
+                    break
+
+        return samples
+
+    def probability(self, samples):
+        sample_probs = torch.zeros(samples.size()[0],
+                                   device=samples.device,
+                                   dtype=samples.dtype)
+
+        for i, sample in enumerate(samples):
+            key = tuple(sample.numpy())
+            sample_probs[i] = self.probs.get(key, 0.0)
+
+        return sample_probs
