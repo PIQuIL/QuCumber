@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Callbacks &mdash; QuCumber 0.1 documentation</title>
+  <title>Callbacks &mdash; QuCumber 0.1.2 documentation</title>
   
 
   
@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Observables" href="observables.html" />
-    <link rel="prev" title="Complex Algebra" href="cplx.html" /> 
+    <link rel="prev" title="Samplers" href="samplers.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.1
+                0.1.2
               </div>
             
           
@@ -82,17 +82,21 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Callbacks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorial.html">Getting started: quantum state reconstruction using QuCumber</a></li>
 <li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialReal.html">Part 1: Reconstruction of a positive wavefunction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samplers.html">Samplers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
 </ul>
 
             
@@ -180,11 +184,11 @@
 <h1>Callbacks<a class="headerlink" href="#callbacks" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="qucumber.callbacks.Callback">
-<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">Callback</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L19"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">Callback</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L19"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base class for callbacks.</p>
 <dl class="method">
 <dt id="qucumber.callbacks.Callback.on_train_start">
-<code class="descname">on_train_start</code><span class="sig-paren">(</span><em>rbm</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L22"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_train_start" title="Permalink to this definition">¶</a></dt>
+<code class="descname">on_train_start</code><span class="sig-paren">(</span><em>rbm</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L22"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_train_start" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the start of the training cycle.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -198,7 +202,7 @@
 
 <dl class="method">
 <dt id="qucumber.callbacks.Callback.on_train_end">
-<code class="descname">on_train_end</code><span class="sig-paren">(</span><em>rbm</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L30"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_train_end" title="Permalink to this definition">¶</a></dt>
+<code class="descname">on_train_end</code><span class="sig-paren">(</span><em>rbm</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L30"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_train_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of the training cycle.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -212,7 +216,7 @@
 
 <dl class="method">
 <dt id="qucumber.callbacks.Callback.on_epoch_start">
-<code class="descname">on_epoch_start</code><span class="sig-paren">(</span><em>rbm</em>, <em>epoch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L38"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_epoch_start" title="Permalink to this definition">¶</a></dt>
+<code class="descname">on_epoch_start</code><span class="sig-paren">(</span><em>rbm</em>, <em>epoch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L38"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_epoch_start" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the start of each epoch.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -230,7 +234,7 @@
 
 <dl class="method">
 <dt id="qucumber.callbacks.Callback.on_epoch_end">
-<code class="descname">on_epoch_end</code><span class="sig-paren">(</span><em>rbm</em>, <em>epoch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L48"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_epoch_end" title="Permalink to this definition">¶</a></dt>
+<code class="descname">on_epoch_end</code><span class="sig-paren">(</span><em>rbm</em>, <em>epoch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L48"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_epoch_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of each epoch.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -248,7 +252,7 @@
 
 <dl class="method">
 <dt id="qucumber.callbacks.Callback.on_batch_start">
-<code class="descname">on_batch_start</code><span class="sig-paren">(</span><em>rbm</em>, <em>epoch</em>, <em>batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L58"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_batch_start" title="Permalink to this definition">¶</a></dt>
+<code class="descname">on_batch_start</code><span class="sig-paren">(</span><em>rbm</em>, <em>epoch</em>, <em>batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L58"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_batch_start" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the start of each batch.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -267,7 +271,7 @@
 
 <dl class="method">
 <dt id="qucumber.callbacks.Callback.on_batch_end">
-<code class="descname">on_batch_end</code><span class="sig-paren">(</span><em>rbm</em>, <em>epoch</em>, <em>batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L70"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_batch_end" title="Permalink to this definition">¶</a></dt>
+<code class="descname">on_batch_end</code><span class="sig-paren">(</span><em>rbm</em>, <em>epoch</em>, <em>batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L70"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Callback.on_batch_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called at the end of each batch.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -288,7 +292,7 @@
 
 <dl class="class">
 <dt id="qucumber.callbacks.LambdaCallback">
-<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">LambdaCallback</code><span class="sig-paren">(</span><em>on_train_start=None</em>, <em>on_train_end=None</em>, <em>on_epoch_start=None</em>, <em>on_epoch_end=None</em>, <em>on_batch_start=None</em>, <em>on_batch_end=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L83"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.LambdaCallback" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">LambdaCallback</code><span class="sig-paren">(</span><em>on_train_start=None</em>, <em>on_train_end=None</em>, <em>on_epoch_start=None</em>, <em>on_epoch_end=None</em>, <em>on_batch_start=None</em>, <em>on_batch_end=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L83"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.LambdaCallback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for creating simple callbacks.</p>
 <p>This callback is constructed using the passed functions that will be called
 at the appropriate time.</p>
@@ -324,7 +328,7 @@ Must follow the same signature as
 
 <dl class="class">
 <dt id="qucumber.callbacks.ModelSaver">
-<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">ModelSaver</code><span class="sig-paren">(</span><em>period</em>, <em>folder_path</em>, <em>file_name</em>, <em>save_initial=True</em>, <em>metadata=None</em>, <em>metadata_only=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L151"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.ModelSaver" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">ModelSaver</code><span class="sig-paren">(</span><em>period</em>, <em>folder_path</em>, <em>file_name</em>, <em>save_initial=True</em>, <em>metadata=None</em>, <em>metadata_only=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L151"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.ModelSaver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Callback which allows model parameters (along with some metadata)
 to be saved to disk at regular intervals.</p>
 <p>This Callback is called at the end of each epoch. If <cite>save_initial</cite> is
@@ -355,7 +359,7 @@ containing the metadata to be saved.</li>
 
 <dl class="class">
 <dt id="qucumber.callbacks.Logger">
-<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">Logger</code><span class="sig-paren">(</span><em>period</em>, <em>logger_fn=&lt;built-in function print&gt;</em>, <em>msg_gen=None</em>, <em>**msg_gen_kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L215"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Logger" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">Logger</code><span class="sig-paren">(</span><em>period</em>, <em>logger_fn=&lt;built-in function print&gt;</em>, <em>msg_gen=None</em>, <em>**msg_gen_kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L215"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.Logger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Callback which logs output at regular intervals.</p>
 <p>This Callback is called at the end of each epoch.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -380,7 +384,7 @@ keyword arguments.</li>
 
 <dl class="class">
 <dt id="qucumber.callbacks.EarlyStopping">
-<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">EarlyStopping</code><span class="sig-paren">(</span><em>period</em>, <em>tolerance</em>, <em>patience</em>, <em>metric_callback</em>, <em>metric_name</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L248"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.EarlyStopping" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">EarlyStopping</code><span class="sig-paren">(</span><em>period</em>, <em>tolerance</em>, <em>patience</em>, <em>metric_callback</em>, <em>metric_name</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L248"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.EarlyStopping" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop training once the model stops improving.
 The specific criterion for stopping is:</p>
 <div class="math">
@@ -413,7 +417,7 @@ that we want to check for convergence.</li>
 
 <dl class="class">
 <dt id="qucumber.callbacks.VarianceBasedEarlyStopping">
-<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">VarianceBasedEarlyStopping</code><span class="sig-paren">(</span><em>period</em>, <em>tolerance</em>, <em>patience</em>, <em>metric_callback</em>, <em>metric_name</em>, <em>variance_name</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L303"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.VarianceBasedEarlyStopping" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">VarianceBasedEarlyStopping</code><span class="sig-paren">(</span><em>period</em>, <em>tolerance</em>, <em>patience</em>, <em>metric_callback</em>, <em>metric_name</em>, <em>variance_name</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L303"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.VarianceBasedEarlyStopping" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stop training once the model stops improving. This is a variation
 on the <a class="reference internal" href="#qucumber.callbacks.EarlyStopping" title="qucumber.callbacks.EarlyStopping"><code class="xref py py-class docutils literal notranslate"><span class="pre">EarlyStopping</span></code></a> class which takes the variance
 of the metric into account.
@@ -450,7 +454,7 @@ that we want to check for convergence.</li>
 
 <dl class="class">
 <dt id="qucumber.callbacks.MetricEvaluator">
-<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">MetricEvaluator</code><span class="sig-paren">(</span><em>period</em>, <em>metrics</em>, <em>**metric_kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L362"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.MetricEvaluator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.callbacks.</code><code class="descname">MetricEvaluator</code><span class="sig-paren">(</span><em>period</em>, <em>metrics</em>, <em>**metric_kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L362"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.MetricEvaluator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate and hold on to the results of the given metric(s).</p>
 <p>This Callback is called at the end of each epoch.</p>
 <div class="admonition note">
@@ -487,13 +491,13 @@ and will be merged with the metric dictionary.</li>
 </table>
 <dl class="method">
 <dt id="qucumber.callbacks.MetricEvaluator.__len__">
-<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L398"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.MetricEvaluator.__len__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L398"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.MetricEvaluator.__len__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the number of timesteps that metrics have been evaluated for.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="qucumber.callbacks.MetricEvaluator.get_value">
-<code class="descname">get_value</code><span class="sig-paren">(</span><em>name</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/callbacks.py#L403"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.MetricEvaluator.get_value" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_value</code><span class="sig-paren">(</span><em>name</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/callbacks.py#L403"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.callbacks.MetricEvaluator.get_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the value of the desired metric from the given timestep.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -526,7 +530,7 @@ the most recent value.</li>
         <a href="observables.html" class="btn btn-neutral float-right" title="Observables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="cplx.html" class="btn btn-neutral" title="Complex Algebra" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="samplers.html" class="btn btn-neutral" title="Samplers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -557,7 +561,7 @@ the most recent value.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1',
+            VERSION:'0.1.2',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

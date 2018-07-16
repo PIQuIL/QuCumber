@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Observables &mdash; QuCumber 0.1 documentation</title>
+  <title>Observables &mdash; QuCumber 0.1.2 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Theory" href="theory.html" />
+    <link rel="next" title="Complex Algebra" href="cplx.html" />
     <link rel="prev" title="Callbacks" href="callbacks.html" /> 
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.1
+                0.1.2
               </div>
             
           
@@ -82,17 +82,21 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
-<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Observables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorial.html">Getting started: quantum state reconstruction using QuCumber</a></li>
 <li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialReal.html">Part 1: Reconstruction of a positive wavefunction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samplers.html">Samplers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Observables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
 </ul>
 
             
@@ -180,11 +184,12 @@
 <span id="observables"></span><h1>Observables<a class="headerlink" href="#module-qucumber.observables" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="qucumber.observables.Observable">
-<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">Observable</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L33"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base class for observables.</p>
+<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">Observable</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L33"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for observables.</p>
 <dl class="method">
 <dt id="qucumber.observables.Observable.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L36"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L36"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the value of the observable, row-wise, on a batch of
 samples. Must be implemented by any subclasses.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -192,8 +197,8 @@ samples. Must be implemented by any subclasses.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>samples</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.0 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>) – A batch of samples to calculate the observable on.</li>
-<li><strong>sampler</strong> – The sampler that drew the samples.</li>
+<li><strong>samples</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.0 ))"><em>torch.Tensor</em></a>) – A batch of samples to calculate the observable on.</li>
+<li><strong>sampler</strong> (<a class="reference internal" href="samplers.html#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><em>qucumber.samplers.Sampler</em></a>) – The sampler that drew the samples.</li>
 </ul>
 </td>
 </tr>
@@ -203,15 +208,15 @@ samples. Must be implemented by any subclasses.</p>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L46"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.sample" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L47"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draws samples of the <em>observable</em> using the given sampler.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sampler</strong> – The sampler to draw samples from.</li>
-<li><strong>num_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – The number of samples to draw.</li>
+<li><strong>sampler</strong> (<a class="reference internal" href="samplers.html#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><em>qucumber.samplers.Sampler</em></a>) – The sampler to draw samples from.</li>
+<li><strong>num_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of samples to draw.</li>
 <li><strong>**kwargs</strong> – Keyword arguments to pass to the sampler’s <cite>sample</cite>
 function.</li>
 </ul>
@@ -223,7 +228,7 @@ function.</li>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.expected_value">
-<code class="descname">expected_value</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L57"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.expected_value" title="Permalink to this definition">¶</a></dt>
+<code class="descname">expected_value</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L59"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.expected_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates the expected value of the observable over the distribution
 defined by the sampler.</p>
 <p>In order to avoid running out of memory, the expected value computation
@@ -233,7 +238,7 @@ can be performed in batches.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sampler</strong> – The sampler to draw samples from.</li>
+<li><strong>sampler</strong> (<a class="reference internal" href="samplers.html#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><em>qucumber.samplers.Sampler</em></a>) – The sampler to draw samples from.</li>
 <li><strong>num_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of samples to draw.</li>
 <li><strong>batch_size</strong> – The size of the batches; if 0, will use one
 batch containing all drawn samples.</li>
@@ -254,7 +259,7 @@ function.</li>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.variance">
-<code class="descname">variance</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L77"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.variance" title="Permalink to this definition">¶</a></dt>
+<code class="descname">variance</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L80"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.variance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates the variance (using the sample variance) of the observable
 over the distribution defined by the sampler.</p>
 <p>In order to avoid running out of memory, the variance computation
@@ -264,7 +269,7 @@ can be performed in batches.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sampler</strong> – The sampler to draw samples from.</li>
+<li><strong>sampler</strong> (<a class="reference internal" href="samplers.html#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><em>qucumber.samplers.Sampler</em></a>) – The sampler to draw samples from.</li>
 <li><strong>num_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of samples to draw.</li>
 <li><strong>batch_size</strong> – The size of the batches; if 0, will use one
 batch containing all drawn samples.</li>
@@ -285,7 +290,7 @@ function.</li>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.statistics">
-<code class="descname">statistics</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L97"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.statistics" title="Permalink to this definition">¶</a></dt>
+<code class="descname">statistics</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L101"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.statistics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates both the expected value and variance of the observable
 over the distribution defined by the sampler.</p>
 <p>In order to avoid running out of memory, the computations can be
@@ -296,7 +301,7 @@ performed in batches using the pairwise algorithm detailed in
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sampler</strong> – The sampler to draw samples from.</li>
+<li><strong>sampler</strong> (<a class="reference internal" href="samplers.html#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><em>qucumber.samplers.Sampler</em></a>) – The sampler to draw samples from.</li>
 <li><strong>num_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of samples to draw.</li>
 <li><strong>batch_size</strong> – The size of the batches; if 0, will only use one
 batch containing all drawn samples.</li>
@@ -306,7 +311,8 @@ function.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A dictionary containing both the (estimated) expected value
-and variance of the observable.</p>
+(key: “mean”) and variance (key: “variance”) of the
+observable.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a>)</p>
@@ -320,8 +326,9 @@ and variance of the observable.</p>
 
 <dl class="class">
 <dt id="qucumber.observables.TFIMChainEnergy">
-<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">TFIMChainEnergy</code><span class="sig-paren">(</span><em>h</em>, <em>density=True</em>, <em>periodic_bcs=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L161"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainEnergy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Observable defining the energy of a Transverse Field Ising Model (TFIM)
+<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">TFIMChainEnergy</code><span class="sig-paren">(</span><em>h</em>, <em>density=True</em>, <em>periodic_bcs=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L167"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainEnergy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qucumber.observables.Observable" title="qucumber.observables.Observable"><code class="xref py py-class docutils literal notranslate"><span class="pre">qucumber.observables.Observable</span></code></a></p>
+<p>Observable defining the energy of a Transverse Field Ising Model (TFIM)
 spin chain with nearest neighbour interactions, and <img class="math" src="_images/math/41c5efb9cecde64ead7bdd66655740dd91c0802b.svg" alt="J=1"/>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -339,7 +346,7 @@ otherwise use open boundary conditions.</li>
 </table>
 <dl class="method">
 <dt id="qucumber.observables.TFIMChainEnergy.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L188"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainEnergy.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L194"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainEnergy.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the energy of each sample given a batch of
 samples.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -347,9 +354,9 @@ samples.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>samples</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.0 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>) – A batch of samples to calculate the observable on.
+<li><strong>samples</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.0 ))"><em>torch.Tensor</em></a>) – A batch of samples to calculate the observable on.
 Must be using the <img class="math" src="_images/math/71a3f06f5c296b83ee3c428ae14857176208c13e.svg" alt="\sigma_i = 0, 1"/> convention.</li>
-<li><strong>sampler</strong> – The sampler that drew the samples. Must implement
+<li><strong>sampler</strong> (<a class="reference internal" href="samplers.html#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><em>qucumber.samplers.Sampler</em></a>) – The sampler that drew the samples. Must implement
 the function <code class="xref py py-func docutils literal notranslate"><span class="pre">effective_energy()</span></code>, giving the
 log probability of its inputs (up to an additive
 constant).</li>
@@ -364,21 +371,22 @@ constant).</li>
 
 <dl class="class">
 <dt id="qucumber.observables.TFIMChainMagnetization">
-<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">TFIMChainMagnetization</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L242"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainMagnetization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Observable defining the magnetization of a Transverse Field Ising Model
+<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">TFIMChainMagnetization</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L249"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainMagnetization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qucumber.observables.Observable" title="qucumber.observables.Observable"><code class="xref py py-class docutils literal notranslate"><span class="pre">qucumber.observables.Observable</span></code></a></p>
+<p>Observable defining the magnetization of a Transverse Field Ising Model
 (TFIM) spin chain.</p>
 <dl class="method">
 <dt id="qucumber.observables.TFIMChainMagnetization.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a9f8912/qucumber/observables.py#L253"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainMagnetization.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/cc785c5/qucumber/observables.py#L260"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainMagnetization.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the magnetization of each sample given a batch of samples.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>samples</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.0 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>) – A batch of samples to calculate the observable on.
+<li><strong>samples</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.0 ))"><em>torch.Tensor</em></a>) – A batch of samples to calculate the observable on.
 Must be using the <img class="math" src="_images/math/71a3f06f5c296b83ee3c428ae14857176208c13e.svg" alt="\sigma_i = 0, 1"/> convention.</li>
-<li><strong>sampler</strong> – The sampler that drew the samples. Will be ignored.</li>
+<li><strong>sampler</strong> (<a class="reference internal" href="samplers.html#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><em>qucumber.samplers.Sampler</em></a>) – The sampler that drew the samples. Will be ignored.</li>
 </ul>
 </td>
 </tr>
@@ -398,7 +406,7 @@ Must be using the <img class="math" src="_images/math/71a3f06f5c296b83ee3c428ae1
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="theory.html" class="btn btn-neutral float-right" title="Theory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="cplx.html" class="btn btn-neutral float-right" title="Complex Algebra" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="callbacks.html" class="btn btn-neutral" title="Callbacks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -432,7 +440,7 @@ Must be using the <img class="math" src="_images/math/71a3f06f5c296b83ee3c428ae1
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1',
+            VERSION:'0.1.2',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
