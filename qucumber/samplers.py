@@ -130,8 +130,8 @@ class DataSampler(TractableSampler):
                     break
             self.cdf[ki] = cumulative_prob
 
-    def sample(self, num_samples):
-        unif = torch.rand(num_samples, device=self.device, dtype=self.dtype)
+    def sample(self, num_samples, dtype=torch.float):
+        unif = torch.rand(num_samples, device=self.device, dtype=dtype)
         samples = torch.zeros(num_samples, self.sample_size,
                               device=self.device, dtype=self.dtype)
 
