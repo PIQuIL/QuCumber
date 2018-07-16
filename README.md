@@ -34,4 +34,4 @@ Python 3. QuCumber is written in PyTorch, with CPU and GPU support.  See https:/
 
 ## Documentation
 
-Documentation can be found [here](https://melkocollective.github.io/QuCumber/).
+Documentation can be found [here](https://piquil.github.io/QuCumber/).
