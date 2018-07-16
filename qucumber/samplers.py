@@ -154,3 +154,6 @@ class DataSampler(TractableSampler):
             sample_probs[i] = self.probs.get(key, 0.0)
 
         return sample_probs
+
+    def log_probability(self, samples):
+        return self.probability(samples).log()
