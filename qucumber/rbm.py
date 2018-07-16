@@ -1,4 +1,5 @@
 import warnings
+from itertools import chain
 
 import numpy as np
 import torch
@@ -6,10 +7,9 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
-from itertools import chain
+
 import qucumber.cplx as cplx
 from qucumber.samplers import Sampler
-
 
 __all__ = [
     "BinomialRBMModule",
@@ -25,7 +25,7 @@ def _warn_on_missing_gpu(gpu):
 
 class BinomialRBMModule(nn.Module, Sampler):
     def __init__(self, num_visible, num_hidden, zero_weights=False,
-                 gpu=True, seed=1234):
+                 gpu=True, seed=None):
         super(BinomialRBMModule, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
@@ -270,7 +270,7 @@ class BinomialRBMModule(nn.Module, Sampler):
 
 
 class BinomialRBM(Sampler):
-    def __init__(self, num_visible, num_hidden=None, gpu=True, seed=1234):
+    def __init__(self, num_visible, num_hidden=None, gpu=True, seed=None):
         super(BinomialRBM, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = (int(num_hidden)
@@ -492,7 +492,7 @@ class ComplexRBM:
     # gradients have been debugged.
     def __init__(self, full_unitaries, psi_dictionary, num_visible,
                  num_hidden_amp, num_hidden_phase, test_grads, gpu=True,
-                 seed=1234):
+                 seed=None):
 
         self.num_visible = int(num_visible)
         self.num_hidden_amp = int(num_hidden_amp)
