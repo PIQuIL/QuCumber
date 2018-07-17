@@ -5,6 +5,9 @@ language: python
 git:
   depth: false
 
+matrix:
+  fast_finish: true
+
 addons:
   apt:
     packages:
@@ -16,28 +19,46 @@ addons:
       - texlive-science
 
 python:
-- '3.6'
+  - '3.6'
 
 install:
-- pip install sphinx sphinx_rtd_theme nbsphinx ipython
-- pip install numpy scipy click tqdm
-- pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl
-- pip install torchvision
+  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy click tqdm setuptools wheel flake8 radon
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp35-cp35m-linux_x86_64.whl; fi
+  - travis_retry pip install torchvision
 
 script:
-- cd docs
-- mkdir -p _static _templates
-- PYTHONPATH=../ make html
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then cd docs && mkdir -p _static _templates && PYTHONPATH=../ make html && cd ../; fi
+  - python setup.py sdist bdist_wheel
+# TODO: add flake8 --radon-max-cc 10 once code formatting's done
 
 deploy:
-  provider: pages
-  skip-cleanup: true
-  github-token: "$GITHUB_PAGES_TOKEN"
-  keep-history: true
-  local-dir: docs/_build/html
-  verbose: true
-  on:
-    branch: master
+  - provider: pages
+    skip-cleanup: true
+    github-token: "$GITHUB_TOKEN"
+    keep-history: true
+    local-dir: docs/_build/html
+    verbose: true
+    on:
+      repo: PIQuIL/QuCumber
+      branch: master
+  - provider: releases
+    skip-cleanup: true
+    github-token: "$GITHUB_TOKEN"
+    file:
+      - dist/*.whl
+      - dist/*.tar.gz
+    file_glob: true
+    on:
+      repo: PIQuIL/QuCumber
+      tags: true
+  - provider: pypi
+    user: PIQuIL
+    password:
+      secure: ANzomjrVPkzLO7MG9Zekl1Tz/GiO6rJyqZSWlWxF5a8M0+ZBJsFb7Do6kxPNulkEFwEnvjnJpzpY2ryWlhrXnzGZitzWIa5IDLRRHmSQ3GRNPHMIRqf1xle+8/0IwDBuC/eTsOkit7WU1j9lgurCj8snXuTLUVEqf/SecAcLpmLrelRFvz//ZcOopIbwD66RJWT8pYGBH/L3MMIDFj1bIf0UIpXdBXgeTJhxW054+BhdFPGI66IvWU/kOlOcE606wqRqI9bdvop34OewJFnOQ9Elii7LKUPNXoWmq1PrvXCIc1c50BGcLoWFM2CDiOiirzhvvUymtT/Na2BUqPpmnkbi+iRMyaIa6FOa8UIP4TCGuFd4JJlYxaq84bAmikI+1LOOGhfJ0+LACaJaqEM3WRL8VfP/xjWF9GzOuE5W8/fQQUntZaHkqQi4VV2wzULSkc5CpbrR2iX71dROWO4ETzz1wGXmO0dTVfCWMbqk7dT8OPft+tHsWWJqqeCEL3wj1uYEIYpCwLo9oSyVXwrhzRW0dysZfTCx/XfDaws3eFA6iMg6dUoBt12kwGZ5vCbgjBwPOmQrRMUEmYoyZz8n20HKojoxzUpwueFN/nbLv76arJbN8bLeb/GyE6r1Rw0DEzs8f0fBtv5agUnIpMh6EPOFYN4rwHMxt52HU7BB/Kg=
+    on:
+      repo: PIQuIL/QuCumber
+      tags: true
 
 notifications:
   slack:

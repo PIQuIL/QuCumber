@@ -1,6 +1,26 @@
+# Copyright 2018 PIQuIL - All Rights Reserved
+
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+
+#   http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
 import os.path
 from pathlib import Path
 from inspect import signature
+from collections.abc import MutableSequence
 
 import torch
 import numpy as np
@@ -8,6 +28,7 @@ import numpy as np
 
 __all__ = [
     "Callback",
+    "CallbackList",
     "ModelSaver",
     "Logger",
     "EarlyStopping",
@@ -78,6 +99,51 @@ class Callback:
         :type batch: int
         """
         pass
+
+
+class CallbackList(Callback, MutableSequence):
+    def __init__(self, callbacks):
+        super(CallbackList, self).__init__()
+        self.callbacks = list(callbacks)
+
+    def __len__(self):
+        return len(self.callbacks)
+
+    def __getitem__(self, key):
+        return self.callbacks[key]
+
+    def __setitem__(self, key, value):
+        self.callbacks[key] = value
+
+    def __iter__(self):
+        return iter(self.callbacks)
+
+    def __add__(self, other):
+        return CallbackList(self.callbacks + other.callbacks)
+
+    def on_train_start(self, rbm):
+        for cb in self.callbacks:
+            cb.on_train_start(rbm)
+
+    def on_train_end(self, rbm):
+        for cb in self.callbacks:
+            cb.on_train_end(rbm)
+
+    def on_epoch_start(self, rbm, epoch):
+        for cb in self.callbacks:
+            cb.on_epoch_start(rbm, epoch)
+
+    def on_epoch_end(self, rbm, epoch):
+        for cb in self.callbacks:
+            cb.on_epoch_end(rbm, epoch)
+
+    def on_batch_start(self, rbm, epoch, batch):
+        for cb in self.callbacks:
+            cb.on_batch_start(rbm, epoch, batch)
+
+    def on_batch_end(self, rbm, epoch, batch):
+        for cb in self.callbacks:
+            cb.on_batch_end(rbm, epoch, batch)
 
 
 class LambdaCallback(Callback):
@@ -203,8 +269,10 @@ class ModelSaver(Callback):
             rbm.save(save_path, metadata)
 
     def on_train_start(self, rbm):
-        save_path = os.path.join(self.path, self.file_name.format("initial"))
-        self._save(rbm, 0, save_path)
+        if self.save_initial:
+            save_path = os.path.join(self.path,
+                                     self.file_name.format("initial"))
+            self._save(rbm, 0, save_path)
 
     def on_epoch_end(self, rbm, epoch):
         if epoch % self.period == 0:

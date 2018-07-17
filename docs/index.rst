@@ -4,17 +4,24 @@ Version: |release|
 
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
+   :caption: Introduction
 
-   rbm
-   cplx
-   callbacks
-   observables
-   theory
+   tutorial
    _examples/QuCumberTutorial.ipynb
    _examples/QuCumberTutorialReal.ipynb
    _examples/QuCumberTutorialComplex.ipynb
-   tutorial
+   theory
+
+
+.. toctree::
+   :maxdepth: 3
+   :caption: API Reference
+
+   rbm
+   samplers
+   callbacks
+   observables
+   cplx
 
 
 Indices and tables

@@ -1,5 +1,6 @@
 # QuCumber
-[![Build Status](https://travis-ci.org/MelkoCollective/QuCumber.svg?branch=master)](https://travis-ci.org/MelkoCollective/QuCumber)
+[![Build Status](https://travis-ci.com/PIQuIL/QuCumber.svg?branch=master)](https://travis-ci.com/PIQuIL/QuCumber)
+[![PyPI version](https://badge.fury.io/py/qucumber.svg)](https://badge.fury.io/py/qucumber)
 
 A Quantum Calculator Used for Many-body Eigenstate Reconstruction.
 
