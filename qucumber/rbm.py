@@ -10,6 +10,7 @@ from tqdm import tqdm, tqdm_notebook
 
 import qucumber.cplx as cplx
 from qucumber.samplers import Sampler
+from qucumber.callbacks import CallbackList
 
 __all__ = [
     "BinomialRBMModule",
@@ -412,6 +413,7 @@ class BinomialRBM(Sampler):
 
         disable_progbar = (progbar is False)
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
+        callbacks = CallbackList(callbacks)
 
         data = torch.tensor(data, device=self.rbm_module.device,
                             dtype=torch.double)
@@ -420,8 +422,7 @@ class BinomialRBM(Sampler):
                                      self.rbm_module.hidden_bias],
                                     lr=lr)
 
-        for cb in callbacks:
-            cb.on_train_start(self)
+        callbacks.on_train_start(self)
 
         for ep in progress_bar(range(epochs), desc="Epochs ",
                                disable=disable_progbar):
@@ -434,16 +435,14 @@ class BinomialRBM(Sampler):
                            for i in range(multiplier)]
             neg_batches = chain(*neg_batches)
 
-            for cb in callbacks:
-                cb.on_epoch_start(self, ep)
+            callbacks.on_epoch_start(self, ep)
 
             if self.stop_training:  # check for stop_training signal
                 break
 
             for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
                                                                neg_batches)):
-                for cb in callbacks:
-                    cb.on_batch_start(self, ep, batch_num)
+                callbacks.on_batch_start(self, ep, batch_num)
 
                 all_grads = self.compute_batch_gradients(k, pos_batch,
                                                          neg_batch)
@@ -457,14 +456,11 @@ class BinomialRBM(Sampler):
 
                 optimizer.step()  # tell the optimizer to apply the gradients
 
-                for cb in callbacks:
-                    cb.on_batch_end(self, ep, batch_num)
+                callbacks.on_batch_end(self, ep, batch_num)
 
-            for cb in callbacks:
-                cb.on_epoch_end(self, ep)
+            callbacks.on_epoch_end(self, ep)
 
-        for cb in callbacks:
-            cb.on_train_end(self)
+        callbacks.on_train_end(self)
 
     def sample(self, num_samples, k):
         """Samples from the RBM using k steps of Block Gibbs sampling.
