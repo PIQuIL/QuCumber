@@ -16,12 +16,12 @@ setuptools.setup(
         'Operating System :: OS Independent'
       ],
       install_requires=[
-        'torch',
-        'tqdm',
-        'numpy'
+        'torch>=0.4,<=0.5',
+        'tqdm>=4.23',
+        'numpy>=1.14'
       ],
       include_package_data=True,
-      url='http://github.com/MelkoCollective/QuCumber',
+      url='http://github.com/PIQuIL/QuCumber',
       author='PIQuIL',
       author_email='piquildbeets@gmail.com',
       license='Apache License 2.0',
