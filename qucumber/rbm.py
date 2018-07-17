@@ -199,10 +199,12 @@ class BinomialRBMModule(nn.Module, Sampler):
 
     def sample(self, num_samples, k=10):
         """Samples from the RBM using k steps of Block Gibbs sampling.
+
         :param num_samples: The number of samples to be generated
         :type num_samples: int
         :param k: Number of Block Gibbs steps.
         :type k: int
+
         :returns: Samples drawn from the RBM
         :rtype: torch.Tensor
         """
@@ -524,36 +526,36 @@ class ComplexRBM:
         self.test_grads = test_grads
 
         self.rbm_amp.weights        = nn.Parameter((torch.tensor(
-                                             [[-0.8,0.3],[0.5,-0.2]], 
-                                             device=self.rbm_amp.device, 
-                                             dtype = torch.double)), 
+                                             [[-0.8,0.3],[0.5,-0.2]],
+                                             device=self.rbm_amp.device,
+                                             dtype = torch.double)),
                                             requires_grad = True)
 
         self.rbm_phase.weights      = nn.Parameter((torch.tensor(
-                                             [[-1.0, 0.1],[-0.5,0.48]], 
-                                             device = self.rbm_amp.device, 
-                                             dtype = torch.double)), 
-                                            requires_grad = True)   
+                                             [[-1.0, 0.1],[-0.5,0.48]],
+                                             device = self.rbm_amp.device,
+                                             dtype = torch.double)),
+                                            requires_grad = True)
 
-        self.rbm_amp.visible_bias   = nn.Parameter((torch.tensor([0.1, -0.74], 
+        self.rbm_amp.visible_bias   = nn.Parameter((torch.tensor([0.1, -0.74],
                                                   device=self.rbm_amp.device,
-                                                  dtype = torch.double)), 
+                                                  dtype = torch.double)),
                                                  requires_grad = True)
 
-        self.rbm_phase.visible_bias = nn.Parameter((torch.tensor([0.31, -0.4], 
+        self.rbm_phase.visible_bias = nn.Parameter((torch.tensor([0.31, -0.4],
                                                   device=self.rbm_amp.device,
-                                                  dtype = torch.double)), 
-                                                 requires_grad = True)     
-
-        self.rbm_amp.hidden_bias    = nn.Parameter((torch.tensor([-0.4, -1.2], 
-                                                  device=self.rbm_amp.device,
-                                                  dtype = torch.double)), 
+                                                  dtype = torch.double)),
                                                  requires_grad = True)
 
-        self.rbm_phase.hidden_bias  = nn.Parameter((torch.tensor([-0.45, -0.2], 
+        self.rbm_amp.hidden_bias    = nn.Parameter((torch.tensor([-0.4, -1.2],
                                                   device=self.rbm_amp.device,
-                                                  dtype = torch.double)), 
-                                                 requires_grad = True)   
+                                                  dtype = torch.double)),
+                                                 requires_grad = True)
+
+        self.rbm_phase.hidden_bias  = nn.Parameter((torch.tensor([-0.45, -0.2],
+                                                  device=self.rbm_amp.device,
+                                                  dtype = torch.double)),
+                                                 requires_grad = True)
 
 
     def basis_state_generator(self, s):
@@ -633,7 +635,7 @@ class ComplexRBM:
 
         :rtype: torch.doubleTensor
         """
-        return (self.unnormalized_wavefunction(v) / Z.sqrt()) 
+        return (self.unnormalized_wavefunction(v) / Z.sqrt())
 
     def unnormalized_wavefunction(self, v):
         r"""The unnormalized RBM wavefunction.
@@ -937,9 +939,9 @@ class ComplexRBM:
         batch_size = len(batch)
 
         for i in range(len(batch)):
-            NLL -= (self.rbm_amp.probability(batch[i], Z)).log().item()/batch_size       
+            NLL -= (self.rbm_amp.probability(batch[i], Z)).log().item()/batch_size
 
-        return NLL 
+        return NLL
 
     def compute_exact_gradients_NLL(self, unitary_dict, k, pos_batch, neg_batch,
                                 pos_chars_batch, neg_chars_batch, visible_space, Z):
@@ -955,9 +957,7 @@ class ComplexRBM:
         :type chars_batch: list(str)
 
         :returns: Dictionary containing all the gradients (negative): Gradient
-                  of weights, visible bias and hidden bias for the amplitude,compute_exact_gradients_NLL(self, unitary_dict, k, pos_batch, neg_batch,
-                                pos_chars_batch, neg_chars_batch, visible_space, Z):
-
+                  of weights, visible bias and hidden bias for the amplitude,
                   Gradients of weights, visible bias and hidden bias for the
                   phase.
         :rtype: dict
@@ -1035,11 +1035,11 @@ class ComplexRBM:
             temp_weights_amp = (torch.einsum('i,j->ij',(prob2_amp, visible_space[j])))/neg_batch_size
             temp_vb_amp      = (visible_space[j])/neg_batch_size
             temp_hb_amp      = (prob2_amp)/neg_batch_size
-  
+
             g_weights_amp   += (self.rbm_amp.probability(visible_space[j], Z))*temp_weights_amp
             g_vb_amp        += (self.rbm_amp.probability(visible_space[j], Z))*temp_vb_amp
             g_hb_amp        += (self.rbm_amp.probability(visible_space[j], Z))*temp_hb_amp
- 
+
         """Return negative gradients to match up nicely with the usual
         parameter update rules, which *subtract* the gradient from
         the parameters. This is in contrast with the RBM update
@@ -1301,7 +1301,7 @@ class ComplexRBM:
 
             # Loop through all of the batches and calculate the batch
             # gradients.
-            for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches, neg_batches)): 
+            for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches, neg_batches)):
 
                 #alg_grads = self.compute_batch_gradients(unitary_dict, k, pos_batch, neg_batch, pos_char_batches[batch_num], neg_char_batches[batch_num])
 
@@ -1423,7 +1423,7 @@ class ComplexRBM:
 
                 elementof_rotated_true_psi = torch.tensor(
                                               [rotated_true_psi[0][j],
-                                               rotated_true_psi[1][j]] 
+                                               rotated_true_psi[1][j]]
                                               ).view(2, 1)
 
                 norm_true_psi = cplx.norm(cplx.inner_prod(
