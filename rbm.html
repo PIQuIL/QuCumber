@@ -191,11 +191,11 @@
 <h2>RBM Module<a class="headerlink" href="#rbm-module" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="qucumber.rbm.BinomialRBMModule">
-<em class="property">class </em><code class="descclassname">qucumber.rbm.</code><code class="descname">BinomialRBMModule</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden</em>, <em>zero_weights=False</em>, <em>gpu=True</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L46"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.rbm.</code><code class="descname">BinomialRBMModule</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden</em>, <em>zero_weights=False</em>, <em>gpu=True</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L46"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code>, <a class="reference internal" href="samplers.html#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">qucumber.samplers.Sampler</span></code></a></p>
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.effective_energy">
-<code class="descname">effective_energy</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L91"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.effective_energy" title="Permalink to this definition">¶</a></dt>
+<code class="descname">effective_energy</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L91"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.effective_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energies of the given visible states.</p>
 <div class="math">
 <p><img src="_images/math/3c3d0fa994c0224799a3605978d128677a1002cd.svg" alt="\mathcal{E}(\bm{v}) &amp;= \sum_{j}b_j v_j
@@ -219,7 +219,7 @@
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.prob_v_given_h">
-<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L117"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
+<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L117"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a hidden unit configuration, compute the probability
 vector of the visible units being on.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -239,7 +239,7 @@ hidden state.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.prob_h_given_v">
-<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L131"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
+<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L131"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a visible unit configuration, compute the probability
 vector of the hidden units being on.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -259,7 +259,7 @@ visible state.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.sample_v_given_h">
-<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L145"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L145"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample/generate a visible state given a hidden state.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -278,7 +278,7 @@ state.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.sample_h_given_v">
-<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L159"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L159"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample/generate a hidden state given a visible state.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -297,7 +297,7 @@ state.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.gibbs_sampling">
-<code class="descname">gibbs_sampling</code><span class="sig-paren">(</span><em>k</em>, <em>v0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L173"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.gibbs_sampling" title="Permalink to this definition">¶</a></dt>
+<code class="descname">gibbs_sampling</code><span class="sig-paren">(</span><em>k</em>, <em>v0</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L173"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.gibbs_sampling" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs k steps of Block Gibbs sampling given an initial visible
 state v0.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -329,7 +329,7 @@ the hidden state sampled after k steps and its corresponding</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k=10</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L199"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.sample" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k=10</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L199"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Samples from the RBM using k steps of Block Gibbs sampling.
 :param num_samples: The number of samples to be generated
 :type num_samples: int
@@ -341,7 +341,7 @@ the hidden state sampled after k steps and its corresponding</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.unnormalized_probability">
-<code class="descname">unnormalized_probability</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L214"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.unnormalized_probability" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unnormalized_probability</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L214"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.unnormalized_probability" title="Permalink to this definition">¶</a></dt>
 <dd><p>The unnormalized probabilities of the given visible states.</p>
 <div class="math">
 <p><img src="_images/math/0e9b7a0159f5b6de66d991f573362b163c862b9a.svg" alt="p(\bm{v}) = e^{\mathcal{E}(\bm{v})}"/></p>
@@ -361,7 +361,7 @@ the hidden state sampled after k steps and its corresponding</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.probability_ratio">
-<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L227"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L227"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the ratio of the probabilities of <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>:</p>
 <div class="math">
 <p><img src="_images/math/a695d163f54641fffebc979f7f9a95a165c460ad.svg" alt="\frac{p(a)}{p(b)}"/></p>
@@ -389,7 +389,7 @@ denominator. Must be the same shape as <code class="docutils literal notranslate
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.log_probability_ratio">
-<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L230"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L230"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the (natural) logarithm of the ratio of the probabilities
 of <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>:</p>
 <div class="math">
@@ -419,7 +419,7 @@ inputs.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.generate_visible_space">
-<code class="descname">generate_visible_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L233"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.generate_visible_space" title="Permalink to this definition">¶</a></dt>
+<code class="descname">generate_visible_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L233"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.generate_visible_space" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates all possible visible states.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -435,7 +435,7 @@ inputs.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.log_partition">
-<code class="descname">log_partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L249"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.log_partition" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L249"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.log_partition" title="Permalink to this definition">¶</a></dt>
 <dd><p>The natural logarithm of the partition function of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -453,7 +453,7 @@ inputs.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.partition">
-<code class="descname">partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L266"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.partition" title="Permalink to this definition">¶</a></dt>
+<code class="descname">partition</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L266"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.partition" title="Permalink to this definition">¶</a></dt>
 <dd><p>The partition function of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -471,7 +471,7 @@ inputs.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBMModule.probability">
-<code class="descname">probability</code><span class="sig-paren">(</span><em>v</em>, <em>Z</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L277"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.probability" title="Permalink to this definition">¶</a></dt>
+<code class="descname">probability</code><span class="sig-paren">(</span><em>v</em>, <em>Z</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L277"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBMModule.probability" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluates the probability of the given vector(s) of visible
 units; NOT RECOMMENDED FOR RBMS WITH A LARGE # OF VISIBLE UNITS</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -501,11 +501,11 @@ units; NOT RECOMMENDED FOR RBMS WITH A LARGE # OF VISIBLE UNITS</p>
 <h2>Real Positive Wavefunction RBM<a class="headerlink" href="#real-positive-wavefunction-rbm" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="qucumber.rbm.BinomialRBM">
-<em class="property">class </em><code class="descclassname">qucumber.rbm.</code><code class="descname">BinomialRBM</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden=None</em>, <em>gpu=True</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L292"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.rbm.</code><code class="descname">BinomialRBM</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden=None</em>, <em>gpu=True</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L292"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="samplers.html#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">qucumber.samplers.Sampler</span></code></a></p>
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBM.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>metadata={}</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L303"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.save" title="Permalink to this definition">¶</a></dt>
+<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>metadata={}</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L303"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the RBM parameters to the given location along with
 any given metadata.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -525,7 +525,7 @@ parameters</li>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBM.load">
-<code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L317"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.load" title="Permalink to this definition">¶</a></dt>
+<code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L317"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the RBM parameters from the given location ignoring any
 metadata stored in the file. Overwrites the RBM’s parameters.</p>
 <div class="admonition note">
@@ -546,7 +546,7 @@ loaded.</p>
 
 <dl class="staticmethod">
 <dt id="qucumber.rbm.BinomialRBM.autoload">
-<em class="property">static </em><code class="descname">autoload</code><span class="sig-paren">(</span><em>location</em>, <em>gpu=True</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L337"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.autoload" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">autoload</code><span class="sig-paren">(</span><em>location</em>, <em>gpu=True</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L337"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.autoload" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes an RBM from the parameters in the given location,
 ignoring any metadata stored in the file.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -565,7 +565,7 @@ ignoring any metadata stored in the file.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBM.compute_batch_gradients">
-<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>pos_batch</em>, <em>neg_batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L364"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k</em>, <em>pos_batch</em>, <em>neg_batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L364"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will compute the gradients of a batch of the training
 data (data_file) given the basis measurements (chars_file).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -591,7 +591,7 @@ data (data_file) given the basis measurements (chars_file).</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBM.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>data</em>, <em>epochs=100</em>, <em>pos_batch_size=100</em>, <em>neg_batch_size=200</em>, <em>k=1</em>, <em>lr=0.01</em>, <em>progbar=False</em>, <em>callbacks=[]</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L406"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>data</em>, <em>epochs=100</em>, <em>pos_batch_size=100</em>, <em>neg_batch_size=200</em>, <em>k=1</em>, <em>lr=0.01</em>, <em>progbar=False</em>, <em>callbacks=[]</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L406"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the training of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -620,7 +620,7 @@ progress bar.</li>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBM.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L484"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.sample" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L484"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Samples from the RBM using k steps of Block Gibbs sampling.
 :param num_samples: The number of samples to be generated
 :type num_samples: int
@@ -632,7 +632,7 @@ progress bar.</li>
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBM.probability_ratio">
-<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L495"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L495"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the ratio of the probabilities of <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>:</p>
 <div class="math">
 <p><img src="_images/math/a695d163f54641fffebc979f7f9a95a165c460ad.svg" alt="\frac{p(a)}{p(b)}"/></p>
@@ -660,7 +660,7 @@ denominator. Must be the same shape as <code class="docutils literal notranslate
 
 <dl class="method">
 <dt id="qucumber.rbm.BinomialRBM.log_probability_ratio">
-<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L498"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L498"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.BinomialRBM.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the (natural) logarithm of the ratio of the probabilities
 of <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>:</p>
 <div class="math">
@@ -699,11 +699,11 @@ inputs.</p>
 </div>
 <dl class="class">
 <dt id="qucumber.rbm.ComplexRBM">
-<em class="property">class </em><code class="descclassname">qucumber.rbm.</code><code class="descname">ComplexRBM</code><span class="sig-paren">(</span><em>full_unitaries</em>, <em>psi_dictionary</em>, <em>num_visible</em>, <em>num_hidden_amp</em>, <em>num_hidden_phase</em>, <em>test_grads</em>, <em>gpu=True</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L503"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.rbm.</code><code class="descname">ComplexRBM</code><span class="sig-paren">(</span><em>full_unitaries</em>, <em>psi_dictionary</em>, <em>num_visible</em>, <em>num_hidden_amp</em>, <em>num_hidden_phase</em>, <em>test_grads</em>, <em>gpu=True</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L503"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.basis_state_generator">
-<code class="descname">basis_state_generator</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L525"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.basis_state_generator" title="Permalink to this definition">¶</a></dt>
+<code class="descname">basis_state_generator</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L525"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.basis_state_generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Only works for binary visible units at the moment. Generates a vector
 given a spin value (0 or 1).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -724,7 +724,7 @@ of the measurement.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.state_generator">
-<code class="descname">state_generator</code><span class="sig-paren">(</span><em>num_non_trivial_unitaries</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L542"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.state_generator" title="Permalink to this definition">¶</a></dt>
+<code class="descname">state_generator</code><span class="sig-paren">(</span><em>num_non_trivial_unitaries</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L542"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.state_generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that returns all possible configurations of
 ‘num_non_trivial_unitaries’ spins. Similar to generate_visible_space.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -745,7 +745,7 @@ non-computational basis.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.unnormalized_probability_amp">
-<code class="descname">unnormalized_probability_amp</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L565"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.unnormalized_probability_amp" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unnormalized_probability_amp</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L565"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.unnormalized_probability_amp" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energy of the phase RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -763,7 +763,7 @@ non-computational basis.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.unnormalized_probability_phase">
-<code class="descname">unnormalized_probability_phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L577"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.unnormalized_probability_phase" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unnormalized_probability_phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L577"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.unnormalized_probability_phase" title="Permalink to this definition">¶</a></dt>
 <dd><p>The effective energy of the phase RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -781,7 +781,7 @@ non-computational basis.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.normalized_wavefunction">
-<code class="descname">normalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L588"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.normalized_wavefunction" title="Permalink to this definition">¶</a></dt>
+<code class="descname">normalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L588"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.normalized_wavefunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>The RBM wavefunction.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -809,7 +809,7 @@ non-computational basis.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.unnormalized_wavefunction">
-<code class="descname">unnormalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L618"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.unnormalized_wavefunction" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unnormalized_wavefunction</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L618"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.unnormalized_wavefunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>The unnormalized RBM wavefunction.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -837,7 +837,7 @@ non-computational basis.</td>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.compute_batch_gradients">
-<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>unitary_dict</em>, <em>k</em>, <em>batch</em>, <em>chars_batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L645"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>unitary_dict</em>, <em>k</em>, <em>batch</em>, <em>chars_batch</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L645"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will compute the gradients of a batch of the training
 data (data_file) given the basis measurements (chars_file).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -867,7 +867,7 @@ phase.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.compute_rotated_grads">
-<code class="descname">compute_rotated_grads</code><span class="sig-paren">(</span><em>unitary_dict</em>, <em>k</em>, <em>v0</em>, <em>characters</em>, <em>num_non_trivial_unitaries</em>, <em>z_indices</em>, <em>tau_indices</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L756"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.compute_rotated_grads" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_rotated_grads</code><span class="sig-paren">(</span><em>unitary_dict</em>, <em>k</em>, <em>v0</em>, <em>characters</em>, <em>num_non_trivial_unitaries</em>, <em>z_indices</em>, <em>tau_indices</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L756"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.compute_rotated_grads" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the rotated gradients.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -899,7 +899,7 @@ L_hb_amp, L_weights_phase, L_vb_phase, L_hb_phase</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>data</em>, <em>character_data</em>, <em>unitary_dict</em>, <em>epochs</em>, <em>batch_size</em>, <em>k=1</em>, <em>lr=0.01</em>, <em>log_every=0</em>, <em>progbar=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L909"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>data</em>, <em>character_data</em>, <em>unitary_dict</em>, <em>epochs</em>, <em>batch_size</em>, <em>k=1</em>, <em>lr=0.01</em>, <em>log_every=0</em>, <em>progbar=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L909"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the training of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -926,14 +926,14 @@ progress bar.</li>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.save_params">
-<code class="descname">save_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L1008"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.save_params" title="Permalink to this definition">¶</a></dt>
+<code class="descname">save_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L1008"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.save_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that saves the weights and biases for the amplitude and
 phase individually.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.get_true_psi">
-<code class="descname">get_true_psi</code><span class="sig-paren">(</span><em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L1036"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.get_true_psi" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_true_psi</code><span class="sig-paren">(</span><em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L1036"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.get_true_psi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Picks out the true psi in the correct basis.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -951,7 +951,7 @@ phase individually.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.overlap">
-<code class="descname">overlap</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L1050"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.overlap" title="Permalink to this definition">¶</a></dt>
+<code class="descname">overlap</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L1050"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.overlap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the overlap between the RBM and true wavefunctions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -975,7 +975,7 @@ phase individually.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.fidelity">
-<code class="descname">fidelity</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L1065"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.fidelity" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fidelity</code><span class="sig-paren">(</span><em>visible_space</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L1065"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.fidelity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computed the fidelity of the RBM and true wavefunctions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -999,13 +999,13 @@ phase individually.</p>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.KL_divergence">
-<code class="descname">KL_divergence</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L1078"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.KL_divergence" title="Permalink to this definition">¶</a></dt>
+<code class="descname">KL_divergence</code><span class="sig-paren">(</span><em>visible_space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L1078"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.KL_divergence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the total KL divergence.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="qucumber.rbm.ComplexRBM.state_to_index">
-<code class="descname">state_to_index</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/fe633b6/qucumber/rbm.py#L1190"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.state_to_index" title="Permalink to this definition">¶</a></dt>
+<code class="descname">state_to_index</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/25aa8f3/qucumber/rbm.py#L1190"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.rbm.ComplexRBM.state_to_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Only for debugging how the unitary is applied to the unnormalized wavefunction - the ‘B’ term in alg 4.2.</p>
 </dd></dl>
 
