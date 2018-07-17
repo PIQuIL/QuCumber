@@ -113,13 +113,27 @@ class CallbackList(Callback, MutableSequence):
         return self.callbacks[key]
 
     def __setitem__(self, key, value):
-        self.callbacks[key] = value
+        if isinstance(value, Callback):
+            self.callbacks[key] = value
+        else:
+            raise TypeError("value must be an instance of "
+                            "qucumber.callbacks.Callback")
+
+    def __delitem__(self, index):
+        del self.callbacks[index]
 
     def __iter__(self):
         return iter(self.callbacks)
 
     def __add__(self, other):
         return CallbackList(self.callbacks + other.callbacks)
+
+    def insert(self, index, value):
+        if isinstance(value, Callback):
+            self.callbacks.insert(index, value)
+        else:
+            raise TypeError("value must be an instance of "
+                            "qucumber.callbacks.Callback")
 
     def on_train_start(self, rbm):
         for cb in self.callbacks:
