@@ -20,7 +20,6 @@ addons:
 
 python:
   - '3.6'
-  - '3.5'
 
 install:
   - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy click tqdm setuptools wheel flake8 radon
