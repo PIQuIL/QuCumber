@@ -487,10 +487,12 @@ class BinomialRBM(Sampler):
 
     def sample(self, num_samples, k):
         """Samples from the RBM using k steps of Block Gibbs sampling.
+
         :param num_samples: The number of samples to be generated
         :type num_samples: int
         :param k: Number of Block Gibbs steps.
         :type k: int
+
         :returns: Samples drawn from the RBM.
         :rtype: torch.Tensor
         """
