@@ -32,6 +32,10 @@ import qucumber.cplx as cplx
 from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
 
+#import qucumber.cplx as cplx
+#from qucumber.samplers import Sampler
+#from qucumber.callbacks import CallbackList
+
 __all__ = [
     "BinomialRBMModule",
     "BinomialRBM"
@@ -336,7 +340,7 @@ class BinomialRBM(Sampler):
         self.rbm_module.load_state_dict(state_dict, strict=False)
 
     @staticmethod
-    def autoload(location, gpu=True):
+    def autoload(location, gpu=False):
         """Initializes an RBM from the parameters in the given location,
         ignoring any metadata stored in the file.
 
@@ -346,6 +350,7 @@ class BinomialRBM(Sampler):
         :returns: A new RBM initialized from the given parameters
         :rtype: BinomialRBM
         """
+        '''
         _warn_on_missing_gpu(gpu)
         gpu = gpu and torch.cuda.is_available()
 
@@ -353,7 +358,9 @@ class BinomialRBM(Sampler):
             state_dict = torch.load(location, lambda storage, loc: 'cuda')
         else:
             state_dict = torch.load(location, lambda storage, loc: 'cpu')
-
+        '''
+        state_dict = torch.load(location)
+        
         rbm = BinomialRBM(num_visible=len(state_dict['visible_bias']),
                           num_hidden=len(state_dict['hidden_bias']),
                           gpu=gpu,
@@ -508,7 +515,7 @@ class ComplexRBM:
     # This is only here for debugging the gradients. Delete this argument when
     # gradients have been debugged.
     def __init__(self, full_unitaries, psi_dictionary, num_visible,
-                 num_hidden_amp, num_hidden_phase, test_grads, gpu=True,
+                 num_hidden_amp, num_hidden_phase, gpu=True,
                  seed=1234):
 
         self.num_visible = int(num_visible)
@@ -516,12 +523,11 @@ class ComplexRBM:
         self.num_hidden_phase = int(num_hidden_phase)
         self.full_unitaries = full_unitaries
         self.psi_dictionary = psi_dictionary
-        self.rbm_amp = RBM_Module(num_visible, num_hidden_amp, gpu=gpu,
+        self.rbm_amp = BinomialRBMModule(num_visible, num_hidden_amp, gpu=gpu,
                                   seed=seed)
-        self.rbm_phase = RBM_Module(num_visible, num_hidden_phase,
+        self.rbm_phase = BinomialRBMModule(num_visible, num_hidden_phase,
                                     zero_weights=True, gpu=gpu, seed=None)
         self.device = self.rbm_amp.device
-        self.test_grads = test_grads
 
         self.rbm_amp.weights        = nn.Parameter((torch.tensor(
                                              [[-0.8,0.3],[0.5,-0.2]], 
@@ -932,15 +938,6 @@ class ComplexRBM:
 ############################# EXACT GRADIENTS ##################################
 ################################################################################
 
-    def compute_numerical_NLL(self, batch, Z):
-        NLL = 0.0
-        batch_size = len(batch)
-
-        for i in range(len(batch)):
-            NLL -= (self.rbm_amp.probability(batch[i], Z)).log().item()/batch_size       
-
-        return NLL 
-
     def compute_exact_gradients_NLL(self, unitary_dict, k, pos_batch, neg_batch,
                                 pos_chars_batch, neg_chars_batch, visible_space, Z):
         """This function will compute the gradients of a batch of the training
@@ -955,9 +952,7 @@ class ComplexRBM:
         :type chars_batch: list(str)
 
         :returns: Dictionary containing all the gradients (negative): Gradient
-                  of weights, visible bias and hidden bias for the amplitude,compute_exact_gradients_NLL(self, unitary_dict, k, pos_batch, neg_batch,
-                                pos_chars_batch, neg_chars_batch, visible_space, Z):
-
+                  of weights, visible bias and hidden bias for the amplitude,
                   Gradients of weights, visible bias and hidden bias for the
                   phase.
         :rtype: dict
@@ -1303,13 +1298,9 @@ class ComplexRBM:
             # gradients.
             for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches, neg_batches)): 
 
-                #alg_grads = self.compute_batch_gradients(unitary_dict, k, pos_batch, neg_batch, pos_char_batches[batch_num], neg_char_batches[batch_num])
+                alg_grads = self.compute_batch_gradients(unitary_dict, k, pos_batch, neg_batch, pos_char_batches[batch_num], neg_char_batches[batch_num])
 
-                alg_grads = self.compute_exact_gradients_NLL(unitary_dict, k, pos_batch, neg_batch,
-                            pos_char_batches[batch_num], neg_char_batches[batch_num], vis, Z)
-
-                if self.test_grads:
-                    self.test_gradients(pos_batch, vis, k, alg_grads, Z)
+                #alg_grads = self.compute_exact_gradients_NLL(unitary_dict, k, pos_batch, neg_batch, pos_char_batches[batch_num], neg_char_batches[batch_num], vis, Z)
 
                 # Clear any cached gradients.
                 optimizer.zero_grad()

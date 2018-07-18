@@ -1,5 +1,5 @@
-from .rbm import RBM_Module, ComplexRBM, BinomialRBM
-from . import unitaries 
+from qucumber.rbm import ComplexRBM, BinomialRBM
+import qucumber.unitaries as unitaries
 import click
 import numpy as np
 import torch
@@ -17,10 +17,10 @@ def load_params(param_file):
 
 
 @cli.command("train_real")
-@click.option('--train-path', default='tfim1d_N10_train_samples.txt',
+@click.option('--train-path', default='examples/tfim1d_N10_train_samples.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the training data")
-@click.option('--true-psi-path', default='tfim1d_N10_psi.txt',
+@click.option('--true-psi-path', default='examples/tfim1d_N10_psi.txt',
               show_default=True, type=click.Path(exists=True),
               help=("path to the file containing the true wavefunctions "
                     "in each basis."))
@@ -38,10 +38,9 @@ def load_params(param_file):
               show_default=True, type=float)
 @click.option('--seed', default=1234, show_default=True, type=int,
               help="random seed to initialize the RBM with")
-@click.option('--save-psi', is_flag=True)
 @click.option('--no-prog', is_flag=True)
 def train_real(train_path, true_psi_path, num_hidden, epochs, pos_batch_size,
-               neg_batch_size, k, learning_rate, seed, save_psi, no_prog):
+               neg_batch_size, k, learning_rate, seed, no_prog):
     """Train an RBM without any phase."""
 
     train_set = np.loadtxt(train_path, dtype='float32')
@@ -49,22 +48,13 @@ def train_real(train_path, true_psi_path, num_hidden, epochs, pos_batch_size,
     num_hidden = train_set.shape[-1] if num_hidden is None else num_hidden
 
     rbm = BinomialRBM(num_visible=train_set.shape[-1],
-                      num_hidden=num_hidden, save_psi=save_psi, seed=seed)
+                      num_hidden=num_hidden, seed=seed)
 
     rbm.fit(train_set, epochs, pos_batch_size, neg_batch_size, k=k,
             lr=learning_rate, progbar=(not no_prog))
 
     print('Finished training. Saving results...')
-
-    if save_psi:
-        vis = rbm.rbm_module.generate_visible_space()
-        Z = rbm.rbm_module.partition(vis)
-        rbm.save(location='saved_params.pkl',
-                 metadata={
-                    "RBMpsi": rbm.rbm_module.probability(vis, Z).sqrt().data
-                 })
-    else:
-        rbm.save(location='saved_params.pkl')
+    rbm.save('saved_params_real.pkl')
 
     print('Done.')
 
@@ -95,24 +85,27 @@ def generate(param_path, num_samples, k):
 
 # NOTE: TRAIN_COMPLEX IS CURRENTLY IN DEVELOPMENT. COULD BE UNSTABLE IF USED.
 @cli.command("train_complex")
-@click.option('--train-path', default='2qubits_train_samples.txt',
+@click.option('--train-path', default='tools/benchmarks/data/2qubits_complex_RBMlike/2qubits_train_samples.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the training data")
-@click.option('--basis-path', default='2qubits_train_bases.txt',
+@click.option('--basis-path', default='tools/benchmarks/data/2qubits_complex_RBMlike/2qubits_train_bases.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the basis data")
-@click.option('--true-psi-path', default='2qubits_psi.txt',
+@click.option('--true-psi-path', default='tools/benchmarks/data/2qubits_complex_RBMlike/2qubits_psi.txt',
               show_default=True, type=click.Path(exists=True),
               help=("path to the file containing the true wavefunctions "
                     "in each basis."))
-@click.option('-nha', '--num-hidden-amp', default=None, type=int,
+@click.option('-nha', '--num-hidden-amp', default=2, type=int,
               help=("number of hidden units in the amp RBM; defaults to "
                     "number of visible units"))
-@click.option('-nhp', '--num-hidden-phase', default=None, type=int,
+@click.option('-nhp', '--num-hidden-phase', default=2, type=int,
               help=("number of hidden units in the phase RBM; defaults to "
                     "number of visible units"))
+@click.option('-pb', '--pos-batch-size', default=100,
+              show_default=True, type=int)
+@click.option('-nb', '--neg-batch-size', default=200,
+              show_default=True, type=int)
 @click.option('-e', '--epochs', default=100, show_default=True, type=int)
-@click.option('-b', '--batch-size', default=100, show_default=True, type=int)
 @click.option('-k', default=1, show_default=True, type=int,
               help="number of Contrastive Divergence steps")
 @click.option('-lr', '--learning-rate', default=1e-3,
@@ -124,8 +117,9 @@ def generate(param_path, num_samples, k):
               help="random seed to initialize the RBM with")
 @click.option('--test-grads', is_flag=True)
 @click.option('--no-prog', is_flag=True)
+
 def train_complex(train_path, basis_path, true_psi_path, num_hidden_amp,
-                  num_hidden_phase, epochs, batch_size, k, learning_rate,
+                  num_hidden_phase, epochs, pos_batch_size, neg_batch_size, k, learning_rate,
                   log_every, seed, test_grads, no_prog):
     """Train an RBM with a phase."""
 
@@ -134,7 +128,7 @@ def train_complex(train_path, basis_path, true_psi_path, num_hidden_amp,
 
     unitary_dict = unitaries.create_dict()
 
-    full_unitary_file = np.loadtxt('2qubits_unitaries.txt')
+    full_unitary_file = np.loadtxt('tools/benchmarks/data/2qubits_complex/2qubits_unitaries.txt')
     full_unitary_dictionary = {}
 
     # Dictionary for true wavefunctions
@@ -176,7 +170,7 @@ def train_complex(train_path, basis_path, true_psi_path, num_hidden_amp,
                      num_hidden_phase=num_hidden_phase,
                      test_grads=test_grads)
 
-    rbm.fit(train_set, basis_set, unitary_dict, epochs, batch_size,
+    rbm.fit(train_set, basis_set, unitary_dict, epochs, pos_batch_size, neg_batch_size,
             k=k, lr=learning_rate, log_every=log_every, progbar=(not no_prog))
 
 
