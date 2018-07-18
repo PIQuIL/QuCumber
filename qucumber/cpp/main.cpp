@@ -64,17 +64,17 @@ int main(int argc, char* argv[]){
         obs.setRotatedWavefunctions(rotated_target_psi);
     } 
     ////---- TOMOGRAPHY ----//
-    qst::Tomography<NNState,Observer,Optimizer> tomo(opt,nn,obs,par);
-    tomo.setBasisRotations(UnitaryRotations);
-    tomo.Run(training_samples,training_bases);
+    //qst::Tomography<NNState,Observer,Optimizer> tomo(opt,nn,obs,par);
+    //tomo.setBasisRotations(UnitaryRotations);
+    //tomo.Run(training_samples,training_bases);
     
     ////---- TEST ----// 
-    //qst::Test<NNState,Observer> test(nn,obs,par);
-    //test.setWavefunction(target_psi);
-    //if (par.basis_.compare("std")!=0){
-    //    test.setBasisRotations(UnitaryRotations);
-    //    test.setBasis(basisSet);
-    //    test.setRotatedWavefunctions(rotated_target_psi);
-    //}
-    //test.DerKL(0.000001);
+    qst::Test<NNState,Observer> test(nn,obs,par);
+    test.setWavefunction(target_psi);
+    if (par.basis_.compare("std")!=0){
+        test.setBasisRotations(UnitaryRotations);
+        test.setBasis(basisSet);
+        test.setRotatedWavefunctions(rotated_target_psi);
+    }
+    test.DerKL(0.000001);
 }

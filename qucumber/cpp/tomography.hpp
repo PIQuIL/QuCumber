@@ -31,7 +31,7 @@ template<class NNState,class Observer,class Optimizer> class Tomography {
     double l2_;                                 // L2 regularization constant
 
     Eigen::VectorXd grad_;                      // Gradients 
-    Eigen::VectorXcd rotated_grad_;             // Rotated gradients
+    Eigen::VectorXd rotated_grad_;             // Rotated gradients
     std::mt19937 rgen_;                         // Random number generator
     std::map<std::string,Eigen::MatrixXcd> U_;  // Structure containin the single unitary rotations
 public:
@@ -70,9 +70,9 @@ public:
             }
             else { // Positive phase - Lambda and Mu gradients for non-trivial bases
                 NNstate_.rotatedGrad(batchBases[k],batchSamples.row(k),U_,rotated_grad_);
-                //getRotatedGradient(batchBases[k],batchSamples.row(k),rotated_grad_);
-                grad_.head(nparLambda_) += rotated_grad_.head(nparLambda_).real()/double(bs_);
-                grad_.tail(nparMu_) -= rotated_grad_.tail(nparMu_).imag()/double(bs_);
+                grad_ += rotated_grad_/double(bs_);
+                //grad_.head(nparLambda_) += rotated_grad_.head(nparLambda_).real()/double(bs_);
+                //grad_.tail(nparMu_) -= rotated_grad_.tail(nparMu_).imag()/double(bs_);
             }
         }
         

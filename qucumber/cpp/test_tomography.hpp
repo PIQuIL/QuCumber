@@ -25,7 +25,7 @@ template<class NNState,class Observer> class Test{
     int nparMu_;
     std::string basis_;
     Eigen::VectorXd grad_;         // Gradient 
-    Eigen::VectorXcd rotated_grad_;
+    Eigen::VectorXd rotated_grad_;
     std::mt19937 rgen_;                 // Random number generator
     std::map<std::string,Eigen::MatrixXcd> U_;
     Eigen::MatrixXd basis_states_;   
@@ -59,7 +59,6 @@ public:
     void DerKL(double eps=1.0e-4){
         auto pars = NNstate_.GetParameters();
         obs_.ExactPartitionFunction();
-        Eigen::VectorXcd derKL(npar_);
         Eigen::VectorXd ders(npar_);
         ders.setZero(npar_);
 
@@ -76,11 +75,12 @@ public:
             //Rotated Basis
             for(int b=1;b<basisSet_.size();b++){
                 for(int j=0;j<1<<N_;j++){
-                    NNstate_.rotatedGrad(basisSet_[b],basis_states_.row(j),U_,derKL);
+                    NNstate_.rotatedGrad(basisSet_[b],basis_states_.row(j),U_,rotated_grad_);
+                    ders += norm(rotated_wf_[b-1](j))*rotated_grad_;
                     //Positive phase - Lambda gradient in basis b
-                    ders.head(nparLambda_) += norm(rotated_wf_[b-1](j))*derKL.head(nparLambda_).real();
+                    //ders.head(nparLambda_) += norm(rotated_wf_[b-1](j))*derKL.head(nparLambda_).real();
                     //Positive phase - Mu gradient in basis b
-                    ders.tail(nparMu_) -= norm(rotated_wf_[b-1](j))*derKL.tail(nparMu_).imag();
+                    //ders.tail(nparMu_) -= norm(rotated_wf_[b-1](j))*derKL.tail(nparMu_).imag();
                     //Negative phase - Lambda gradient in basis b (identical to the reference basis
                     ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
                 }
