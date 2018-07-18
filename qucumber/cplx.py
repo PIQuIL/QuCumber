@@ -240,7 +240,7 @@ def outer_prod(x, y):
 def compT_matrix(x):
     """A function that returns the complex transpose of a complex tensor, x.
 
-    :param x: A complex matri.
+    :param x: A complex matrix.
     :type x: torch.doubleTensor
 
     :raises ValueError:	If x does not have 3 dimensions and its first dimension isn't 2, the function cannot execute.

@@ -21,7 +21,6 @@ import warnings
 from itertools import chain
 
 import numpy as np
-from math import sqrt
 import torch
 from torch import nn
 from torch.nn import functional as F
