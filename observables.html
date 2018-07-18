@@ -184,12 +184,12 @@
 <span id="observables"></span><h1>Observables<a class="headerlink" href="#module-qucumber.observables" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="qucumber.observables.Observable">
-<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">Observable</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L52"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">Observable</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L52"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Base class for observables.</p>
 <dl class="method">
 <dt id="qucumber.observables.Observable.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L55"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L55"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the value of the observable, row-wise, on a batch of
 samples. Must be implemented by any subclasses.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -208,7 +208,7 @@ samples. Must be implemented by any subclasses.</p>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L66"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.sample" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L66"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draws samples of the <em>observable</em> using the given sampler.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -228,7 +228,7 @@ function.</li>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.expected_value">
-<code class="descname">expected_value</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L78"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.expected_value" title="Permalink to this definition">¶</a></dt>
+<code class="descname">expected_value</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L78"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.expected_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates the expected value of the observable over the distribution
 defined by the sampler.</p>
 <p>In order to avoid running out of memory, the expected value computation
@@ -259,7 +259,7 @@ function.</li>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.variance">
-<code class="descname">variance</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L99"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.variance" title="Permalink to this definition">¶</a></dt>
+<code class="descname">variance</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L99"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.variance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates the variance (using the sample variance) of the observable
 over the distribution defined by the sampler.</p>
 <p>In order to avoid running out of memory, the variance computation
@@ -290,7 +290,7 @@ function.</li>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.statistics">
-<code class="descname">statistics</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L120"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.statistics" title="Permalink to this definition">¶</a></dt>
+<code class="descname">statistics</code><span class="sig-paren">(</span><em>sampler</em>, <em>num_samples</em>, <em>batch_size</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L120"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.statistics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates both the expected value and variance of the observable
 over the distribution defined by the sampler.</p>
 <p>In order to avoid running out of memory, the computations can be
@@ -326,7 +326,7 @@ observable.</p>
 
 <dl class="class">
 <dt id="qucumber.observables.TFIMChainEnergy">
-<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">TFIMChainEnergy</code><span class="sig-paren">(</span><em>h</em>, <em>density=True</em>, <em>periodic_bcs=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L186"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainEnergy" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">TFIMChainEnergy</code><span class="sig-paren">(</span><em>h</em>, <em>density=True</em>, <em>periodic_bcs=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L186"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainEnergy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qucumber.observables.Observable" title="qucumber.observables.Observable"><code class="xref py py-class docutils literal notranslate"><span class="pre">qucumber.observables.Observable</span></code></a></p>
 <p>Observable defining the energy of a Transverse Field Ising Model (TFIM)
 spin chain with nearest neighbour interactions, and <img class="math" src="_images/math/41c5efb9cecde64ead7bdd66655740dd91c0802b.svg" alt="J=1"/>.</p>
@@ -346,7 +346,7 @@ otherwise use open boundary conditions.</li>
 </table>
 <dl class="method">
 <dt id="qucumber.observables.TFIMChainEnergy.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L213"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainEnergy.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L213"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainEnergy.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the energy of each sample given a batch of
 samples.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -371,13 +371,13 @@ constant).</li>
 
 <dl class="class">
 <dt id="qucumber.observables.TFIMChainMagnetization">
-<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">TFIMChainMagnetization</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L268"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainMagnetization" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">TFIMChainMagnetization</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L268"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainMagnetization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qucumber.observables.Observable" title="qucumber.observables.Observable"><code class="xref py py-class docutils literal notranslate"><span class="pre">qucumber.observables.Observable</span></code></a></p>
 <p>Observable defining the magnetization of a Transverse Field Ising Model
 (TFIM) spin chain.</p>
 <dl class="method">
 <dt id="qucumber.observables.TFIMChainMagnetization.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5bb81cc/qucumber/observables.py#L279"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainMagnetization.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>sampler=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/92a2223/qucumber/observables.py#L279"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.TFIMChainMagnetization.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the magnetization of each sample given a batch of samples.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
