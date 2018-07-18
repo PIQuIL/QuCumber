@@ -97,7 +97,7 @@ public:
         int index;
         int counter = 0;
         int trainSize = trainData.rows();
-        int saveFrequency =  int(trainSize / bs_);
+        int saveFrequency =  50;//int(trainSize / bs_);
         Eigen::MatrixXd batch_samples;
         std::vector<std::vector<std::string> > batch_bases;
         std::uniform_int_distribution<int> distribution(0,trainSize-1);

@@ -26,6 +26,7 @@ public:
     double overlap_;
     double Z_;
     double NLL_;
+    double E_;
 
     ObserverPSI(Wavefunction &PSI,std::string &basis):PSI_(PSI){ 
         
@@ -49,6 +50,7 @@ public:
         ExactPartitionFunction();
         ExactKL(); 
         Overlap();
+        //Energy();
         PrintStats(i);
     }
 
@@ -75,6 +77,31 @@ public:
         return overlap_*overlap_;
     }
     
+    //void Energy(){
+    //    double en = 0.0;
+    //    double tmp;
+    //    double psi,psiflip;
+    //    for (int i=0;i<basis_states_.rows();i++){
+    //        tmp = 0.0;
+    //        psi = (PSI_.psi(basis_states_.row(i))/std::sqrt(Z_)).real();
+    //        for(int j=0;j<N_-1;j++){
+    //            tmp += -(1.0-2.0*basis_states_(i,j))*(1.0-2.0*basis_states_(i,j+1));
+    //            basis_states_(i,j) = 1.0 - basis_states_(i,j);
+    //            psiflip = (PSI_.psi(basis_states_.row(i))/std::sqrt(Z_)).real();
+    //            basis_states_(i,j) = 1.0 - basis_states_(i,j);
+    //            tmp += -psiflip/psi;
+    //        }
+    //        tmp += -(1.0-2.0*basis_states_(i,N_-1))*(1.0-2.0*basis_states_(i,0));
+    //        basis_states_(i,N_-1) = 1.0-basis_states_(i,N_-1);
+    //        psiflip = (PSI_.psi(basis_states_.row(i))/std::sqrt(Z_)).real();
+    //        basis_states_(i,N_-1) = 1.0-basis_states_(i,N_-1);
+    //        tmp += -psiflip/psi;
+
+    //        en += tmp*psi*psi;
+    //    }
+    //    E_ = en/N_; 
+    //}
+        
     void NLL(Eigen::MatrixXd &data){
         //TODO NOTE THIS IS ONLY FOR REFERENCE BASIS
         NLL_ = 0.0;
@@ -115,8 +142,9 @@ public:
     //Print observer
     void PrintStats(int i){
         std::cout << "Epoch: " << i << "\t";     
-        std::cout << "KL = " << std::setprecision(10) << KL_ << "\t";
-        std::cout << "Overlap = " << std::setprecision(10) << overlap_<< "\t";//<< Fcheck_;
+        //std::cout << "KL = " << std::setprecision(10) << KL_ << "       ";
+        //std::cout << "Overlap = " << std::setprecision(10) << overlap_<< "      ";//<< Fcheck_;
+        //std::cout << "Energy = " << std::setprecision(10) << E_<< " ";//<< Fcheck_;
         std::cout << std::endl;
     } 
 
