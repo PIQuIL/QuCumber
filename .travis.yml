@@ -30,7 +30,6 @@ install:
 script:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then cd docs && mkdir -p _static _templates && PYTHONPATH=../ make html && cd ../; fi
   - python setup.py sdist bdist_wheel
-# TODO: add flake8 --radon-max-cc 10 once code formatting's done
 
 deploy:
   - provider: pages
@@ -62,4 +61,4 @@ deploy:
 
 notifications:
   slack:
-    secure: NGwO+vs8qKLpadLzpzLRucD2EIyr2SX7/NWxRZm2Th6PdV8vEue8rW4hwsu0x/dR9Jpjg5unSy1NWnLxeJvqzYIY3brvDb50xJcCovpQO1XvIdYCWSOeaWo7Lkf2AJ5l2OB59LWxO1lIPXdpbMZiIHecSX5edOWs2Xou1DCgXajbUTuRDX1oY5IcgRiUMBWuR7s/+bjTDAKqUylK11MBrfzyCjB4opOF/KtKTpwAnjItgyKd1XCOqg5dywTqvpSorI2lwbmwvIbSV0RM5TuvFPCsDI/MiJfn0krGjW0ip8KxCXLERen4zR9C2/BCYnyPNPMTW4I0cQp525jzIomsZpjx5kY/5h9XWtadzzUNId7HUu/RxdWuAd49T84TI4IuzJrhHo4ErdJ/rD0AZyHD+yTy2K2B9pwwWJnE22e3QjeF/pm8m7wP/NkyETmN7eeEzzMiUucC88sk+HY/UZSpvRwNSdt9Vvt0TP0oOOlYYUASojZHnD7JtyYkOM/zEQ3SmzNdxOkzlrrOeLo07FkpSYJv6j03xd7kUXF4AvbXoGSQBXPPZytfVll7++nD6lkgayf/S4XBiUC9YF7vSp+jfnrI5wNAXkRebhUa2BJK2JyDxo9Xr9NPsjDvCGMcJbqJ3pW+iAN35at5LmQoVNupzDFfrBQCKGiP2PLCb7Jim9U=
+    secure: GGx0vOR2mg0EofSxv/u7hloC5FKMza7AtyE+Y2wMA506fi+fL9tp4CO2NxhwYjHrvyZu//alLvtrr87GlP2bi62yzfK3JB2Pk1LHFP+EpKclSCmHwURgnwPlb6SfOp45QxFEj+WkJGDkAZOEUkKyqS1/KMj7bg83ca5toXz1npYuCccsYNzM3CuPmM/hOWBuRWzalWo0gQ5nwWC2ptlq62Mjouba89VikTrQ16V6lADDuhod5EUzIdIGTAp4AtKbBUrplMB4wWisVF7UYmTAitsFUAzI+liJMuX9YcsxA/EQHD2m4xvDWQb1uEOONivyNwI7PRwxsp3VSAWqiHuX78i7ABPIstTf78hSzMIpW2VPC9xZuWSz5YJR5VE/yui4VQHQ6ADNm3g5HCrHiAw143rHjkSYFTg9tW0RRcZOXhPIJtdnfY8xMeANKkFU87AtmpPyVtuuMKDE56ECg7BVE9V1RhvGKIP54lRIT9OCLfQ1zJORkmlqZPd3KwSdalqGlzcabsmN6RKvmssHJlv2iq5rpYtXB3yfjiCyGmF3ofqco2CMEO0ZqM3mJD3FKEvudh2a+ZdRff4FG3CydliW9ReerXpBo4Sm8z42XqrxkVnZ51cDD3x394c+8CROQIczMq/K9RQyTHJUyNyFIKHT0ac4J2COkTgg1MVbePchtvg=
