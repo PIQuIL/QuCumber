@@ -31,7 +31,7 @@
 % TODO: write your article's title here.
 % The article title is centered, Large boldface, and should fit in two lines
 \begin{center}{\Large \textbf{
-QuCumber: neural network based generative modelling for wavefunction reconstruction
+QuCumber: neural network based generative modelling for quantum wavefunction reconstruction
 }}\end{center}
 
 % TODO: write the author list here. Use initials + surname format.
@@ -119,11 +119,26 @@ E_{\lambda}(v,h) = - \sum\limits_{i=1}^V b_i v_i - \sum\limits_{j=1}^H c_j h_j -
 
 \item {\it Hidden Units}.  There are $H$ units in the second layer of the RBM, denoted by the vector $h=(h_1, ..., h_H)$, representing latent variables and are referred to as ``hidden".  The number of hidden units $H$ can be adjusted to tune the representational capacity of the RBM.
 
+\item {\it Joint distribution}.  The RBM assigns a probability to each joint configuration $(v,h)$ according to the Boltzmann distribution of the energy,
+\begin{equation}
+    p_{\lambda}(v,h) = \frac{1}{Z} e^{-E_{\lambda}(v,h)},
+\end{equation}
+
+\item {\it Marginal distribution}.  Obtained by marginalizing the joint distribution, e.g.
+\begin{equation}
+    p_{\lambda}(v) = \frac{1}{Z} \sum\limits_{h\in \mathcal{H}} e^{-E_{\lambda}(v,h)}.
+\end{equation}
+
 \item {\it QuCumber}. A quantum calculator used for many-body eigenstate reconstruction.
 
 \item {\it Parameters}.  An RBM's energy is defined via a set of neural network parameters $\lambda = \{b,c,W\}$, consisting of weights and biases.
 
-\item {\it Restricted Boltzmann Machine}.  An RBM is a two-layer network with bidirectionally connected stochastic processing units.  The term ``restricted" refers to the connections (or weights) between the visible and hidden units. Each visible unit is connected with each hidden unit, but there are no connections between units of the same kind.
+\item {\it Partition function}. The normalizing constant of the Boltzmann distribution.  It is obtained by summing over all possible pairs of visible and hidden vectors,
+\begin{equation}
+    Z = \sum\limits_{v\in \mathcal{V}}\sum\limits_{h\in \mathcal{H}} e^{-E_{\lambda}(v,h)}.
+\end{equation}
+
+\item {\it Restricted Boltzmann Machine}.  A two-layer network with bidirectionally connected stochastic processing units.  ``Restricted" refers to the connections (or weights) between the visible and hidden units. Each visible unit is connected with each hidden unit, but there are no intra-layer connections.
 
 \item {\it Visible Units}.  There are $V$ units in the first layer of the RBM, denoted by the vector $v=(v_1, ..., v_V)$, which correspond to the experimental data and are therefore called ``visible".  The number of visible units $V$ is fixed to the number of physical qubits.
 
@@ -133,9 +148,9 @@ E_{\lambda}(v,h) = - \sum\limits_{i=1}^V b_i v_i - \sum\limits_{j=1}^H c_j h_j -
 
 
 
-\section{How to use NNQuST}
+\section{How to use QuCumber}
 
-We will guide the user through short snippets of our code for different assumptions about the wave function.
+Below, we give examples of how to use QuCumber for typical cases in the reconstruction of quantum wavefunctions.  The following code snippets are written in Python 3, using PyTorch with CPU and GPU support.  We refer the reader to the full code documentation for further information on the code structure and operation.
 
 \subsection{Training the NNQuST for a real positive wave function}
 
