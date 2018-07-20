@@ -16,6 +16,8 @@ import os.path
 
 
 def load_train(N, h):
+    N = int(N)
+    h = float(h)
     data = np.loadtxt(
         f"/home/ejaazm/projects/def-rgmelko/ejaazm/"
         f"tfim1d/datasets/tfim1d_N{N}_h{h:.2f}_train.txt")
@@ -23,7 +25,7 @@ def load_train(N, h):
 
 
 CB_PERIOD = 100
-SAVE_PATH = ("/home/ejaazm/projects/scratch/"
+SAVE_PATH = ("/home/ejaazm/scratch/"
              "tfim1d_dataset_scaling/model_snapshots")
 RBM_NAME = "tmp"  # should get overwritten
 
@@ -60,6 +62,11 @@ def extract_config(path):
             if part.startswith(k):
                 config[k] = st
                 break
+    
+    config["N"] = int(config["N"])
+    config["h"] = float(config["h"])
+    config["dataset_size"] = int(config["dataset_size"])
+    config["rep"] = int(config["rep"])
 
     return config
 
@@ -70,7 +77,7 @@ def make_rbm_path(N, h, dataset_size, rep):
 
 def scan_for_incomplete():
     px = Path(SAVE_PATH)
-    all_runs = set(map(lambda p: p.parent, px.glob("./**/epoch_*.params")))q
+    all_runs = set(map(lambda p: p.parent, px.glob("./**/epoch_*.params")))
     all_complete = set(map(lambda p: p.parent, px.glob("./**/done")))
     return all_runs - all_complete
 
@@ -174,15 +181,17 @@ def continue_dataset_scaling(path, starting_epoch_path):
     epoch_paths = Path(path).glob("./epoch_*.metrics")
     for ep in epoch_paths:
         stats = torch.load(ep)
-        callbacks[0].metric_values.append(stats)
+        callbacks[0].metric_values.append((ep, stats))
         callbacks[0].last = stats.copy()
-
+    
+    print("Begin training...")
     model.train(data,
                 starting_epoch=starting_epoch,
                 callbacks=callbacks,
                 **TRAINING_CONFIG)
 
     delete_old_params(save_dir_path)
+    open(os.path.join(save_dir_path, "done"), "w").close()
 
 
 @click.command()
@@ -194,12 +203,16 @@ def main(task_id, rerun):
         config = POSSIBLE_CONFIGS[task_id]
         dataset_scaling(**config)
     else:
-        incomplete_runs = scan_for_incomplete()
+        incomplete_runs = list(scan_for_incomplete())
+        index = task_id if task_id is not None and task_id < len(incomplete_runs) else 0
+        if task_id > len(incomplete_runs):
+            print("No more incomplete runs")
+            return
         print(f"Found {len(incomplete_runs)} incomplete runs.")
         if len(incomplete_runs) > 0:
             continue_dataset_scaling(
-                incomplete_runs[0],
-                starting_epoch_path=get_last_epoch_params(incomplete_runs[0]))
+                incomplete_runs[index],
+                starting_epoch_path=get_last_epoch_params(incomplete_runs[index]))
 
 
 if __name__ == '__main__':
