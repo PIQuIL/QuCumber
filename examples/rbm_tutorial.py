@@ -10,6 +10,9 @@ import warnings
 import csv
 import unitary_library
 from observables_tutorial import TFIMChainEnergy, TFIMChainMagnetization
+from IPython import display
+import matplotlib
+matplotlib.style.use('classic')
 
 class RBM_Module(nn.Module):
     def __init__(self, num_visible, num_hidden, seed=1234, zero_weights=False):
@@ -248,33 +251,50 @@ class BinomialRBM:
 
         fidelity_list = []
         epoch_list = []
+        plt.ion()
+        #plt.figure(figsize=(12,9), facecolor='w', edgecolor='k')
 
         for ep in range(0, epochs + 1):
             
             batches = DataLoader(data, batch_size=batch_size, shuffle=True)
-
             if ep % log_every == 0:
 
                 fidelity_ = self.fidelity(vis, psi)
-                print ('Epoch = ',ep,'\tFidelity = %.5f' %fidelity_.item())
+                #print ('Epoch = ',ep,'\tFidelity = %.5f' %fidelity_.item())
                 fidelity_list.append(fidelity_)
                 epoch_list.append(ep)
-           
-            # Save fidelities at the end of training.
-            if ep == epochs:
-                print ('Finished training.' )               
+                
+                plt.clf()
+                plt.title('Fidelity',fontsize=28)        
+                plt.plot(epoch_list, fidelity_list, color='#fdae61',marker='o',markeredgewidth=1.5,markersize=8,linewidth=2.5)
+                plt.axhline(y=1.0, xmin=0, xmax=epochs+1, linewidth=1, color = 'k',linestyle='--')
+                plt.xlim([-1.0,epochs+1])
+                plt.ylim([0.0,1.05])
+                plt.xlabel("epoch",fontsize=20)
+                #plt.ylabel("F",fontsize=20)
+                plt.xticks(fontsize=20)
+                plt.yticks(fontsize=20)
+                plt.gca().text(0.95, 0.2, 'F = '+"{:.3}".format(fidelity_.item()),
+                        verticalalignment='bottom', horizontalalignment='right',
+                        color='k', fontsize=20,transform=plt.gca().transAxes)
+                #plt.pause(0.05)
+                display.clear_output(wait=True)
+                display.display(plt.gcf())
+            
+            #Save fidelities at the end of training.
+            #if ep == epochs:
+            #    print ('Finished training.' )               
 
-                ax = plt.axes()
-                ax.plot(epoch_list, fidelity_list, color='blue')
-                ax.grid()
-                ax.set_xlim(0,epochs)
-                ax.set_xlabel('Epochs')
-                ax.set_ylabel('Fidelity')
+            #    ax = plt.axes()
+            #    ax.plot(epoch_list, fidelity_list, color='blue')
+            #    ax.grid()
+            #    ax.set_xlim(0,epochs)
+            #    ax.set_xlabel('Epochs')
+            #    ax.set_ylabel('Fidelity')
 
-                self.save_params()
-                print ('Saved weights and biases.')
-                break
-
+            #    self.save_params()
+            #    print ('Saved weights and biases.')
+            #    break
             for batch in batches:
                 all_grads = self.compute_batch_gradients(k, batch)
 
@@ -287,7 +307,8 @@ class BinomialRBM:
                         getattr(selected_RBM, param).grad = grads[param]
                 
                 optimizer.step()  # tell the optimizer to apply the gradients
-
+        #print('\n\t\tFidelity = %.8f' % fidelity_.item())
+        display.clear_output(wait=True) 
     def save_params(self):
         """A function that saves weights and biases individually."""
         trained_params = [self.rbm_module.weights.data.numpy(), 
