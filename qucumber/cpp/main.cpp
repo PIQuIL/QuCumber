@@ -12,35 +12,34 @@ int main(int argc, char* argv[]){
     //---- SPECIFIC PARAMETERS ----/
     
     // TFIM1d with 10 SPINS
-    //typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
-    //par.basis_ = "std";
-    //std::string model = "tfim1d_N10";
-    //par.nv_=10;
-    //par.nh_=10;
+    typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
+    par.basis_ = "std";
+    std::string model = "tfim1d_N10";
+    par.nv_=10;
+    par.nh_=10;
     
     // 2qubits complex 
-    typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
-    par.basis_ = "xy1";
-    std::string model = "2qubits";
-    par.nv_=2;
-    par.nh_=2;
+    //typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
+    //par.basis_ = "xy1";
+    //std::string model = "2qubits";
+    //par.nv_=2;
+    //par.nh_=2;
 
     typedef qst::Sgd Optimizer;                     //Stochastic gradient descent
     typedef qst::ObserverPSI<NNState> Observer;              //Observer for Wavefunction
 
-
-    //Load the data
+    ////Load the data
     std::string fileName; 
     std::string baseName = "data/"+model+"_";
     qst::SetNumberOfBases(par);
-    Eigen::VectorXcd target_psi(1<<par.nv_);                //Target wavefunction
+    Eigen::VectorXcd target_psi;                //Target wavefunction
     std::vector<Eigen::VectorXcd> rotated_target_psi;       //Vector with the target wavefunctions in different basis
     std::vector<std::vector<std::string> > basisSet;        //Set of bases available
     std::map<std::string,Eigen::MatrixXcd> UnitaryRotations;//Container of the of 1-local unitary rotations
     Eigen::MatrixXd training_samples(par.ns_,par.nv_);      //Training samples matrix
     std::vector<std::vector<std::string> > training_bases;  //Training bases matrix
 
-    //Load data
+    ////Load data
     qst::GenerateUnitaryRotations(UnitaryRotations);        //Generate the unitary rotations
     fileName = baseName + "psi.txt";            
     qst::LoadWavefunction(par,fileName,target_psi,rotated_target_psi);
@@ -63,6 +62,8 @@ int main(int argc, char* argv[]){
         obs.setBasis(basisSet);
         obs.setRotatedWavefunctions(rotated_target_psi);
     } 
+    
+    
     ////---- TOMOGRAPHY ----//
     qst::Tomography<NNState,Observer,Optimizer> tomo(opt,nn,obs,par);
     tomo.setBasisRotations(UnitaryRotations);

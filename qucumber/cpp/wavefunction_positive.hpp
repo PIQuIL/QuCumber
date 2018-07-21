@@ -96,7 +96,7 @@ public:
     void rotatedGrad(const std::vector<std::string> & basis,
                             const Eigen::VectorXd & state,//VectorRbmT & gradR){
                             std::map<std::string,Eigen::MatrixXcd> & Unitaries,
-                            Eigen::VectorXcd &gradR ){
+                            Eigen::VectorXd &gradR ){
     }
 
     //---- UTILITIES ----//

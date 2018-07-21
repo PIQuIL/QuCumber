@@ -11,29 +11,37 @@
 #include <boost/format.hpp>
 #include <fstream>
 #include "parameters.hpp"
-
+#include <stdexcept>
 namespace qst{
 
-void LoadTrainingData(std::string &baseName, Parameters &par,Eigen::MatrixXd & trainSamples,std::vector<std::vector<std::string> >& trainBases) 
-{
+void LoadTrainingData(std::string &baseName, Parameters &par,Eigen::MatrixXd & trainSamples,std::vector<std::vector<std::string> >& trainBases){
+    /*  Load the training datasets
+        :param baseName: path to the training directory + model identifier
+        :param par: parameter object containing parameters values
+        :param trainSamples: matrix of training configurations
+        :param trainBases: matrix of training bases
+    */
+  
+    // Setup
     int trainSize = par.nb_ * par.ns_;
-    std::string fileName;
-
     trainSamples.resize(trainSize,par.nv_);
     trainBases.resize(trainSize,std::vector<std::string>(par.nv_));
 
-    fileName = baseName + "train_samples.txt";
+    // Open the training samples file
+    std::string fileName = baseName + "train_samples.txt";
     std::ifstream fin_samples(fileName);
-    
+   
+    // Load the training samples in the reference basis
     for (int n=0; n<trainSize; n++) {
         for (int j=0; j<par.nv_; j++) {
             fin_samples>> trainSamples(n,j);
         }
     }
+
+    // If more basis are needed, load the additional data 
     if (par.basis_.compare("std")!=0){
         fileName = baseName + "train_bases.txt";
         std::ifstream fin_bases(fileName);
-        
         for (int n=0; n<trainSize; n++) {
             for (int j=0; j<par.nv_; j++) {
                 fin_samples>> trainSamples(n,j);
@@ -41,6 +49,7 @@ void LoadTrainingData(std::string &baseName, Parameters &par,Eigen::MatrixXd & t
             }
         }
     }
+    // If Z is the only basis, generate bases matrix
     else {
         for (int n=0; n<trainSize; n++) {
             for (int j=0; j<par.nv_; j++) {
@@ -51,19 +60,29 @@ void LoadTrainingData(std::string &baseName, Parameters &par,Eigen::MatrixXd & t
 }
 
 void LoadWavefunction(Parameters & par,std::string &wf_fileName,Eigen::VectorXd & wf){
+    /*  Load a wavefunction
+        :param ddbaseName: path to the training directory + model identifier
+        :param wf_fileName: filename of the wavefunction
+        :param wf: wavefunction vector
+    */
     std::ifstream fin(wf_fileName);
-    wf.resize(1<<par.nv_);
-    for(int i=0;i<1<<par.nv_;i++){
-        fin >> wf(i);
+    if (par.nv_ > 8) {
+        std::cout << "BLA" << std::endl;
+        //throw std::string( "Hilbert space too large");
+    }
+    else {
+        wf.resize(1<<par.nv_);
+        for(int i=0;i<1<<par.nv_;i++){
+            fin >> wf(i);
+        }
     }
 }
 
 void LoadWavefunction(Parameters & par,std::string &wf_fileName,Eigen::VectorXcd & wf,std::vector<Eigen::VectorXcd> & rotated_wf){
 
     std::ifstream fin(wf_fileName);
-    wf.resize(1<<par.nv_);
     double x_in;
-   
+    wf.resize(1<<par.nv_);
     if (par.basis_.compare("std")!=0){
         for(int i=0;i<1<<par.nv_;i++){
             fin >> x_in;
@@ -88,8 +107,6 @@ void LoadWavefunction(Parameters & par,std::string &wf_fileName,Eigen::VectorXcd
             wf.real()(i)=x_in;
             wf.imag()(i)=0.0;
         }
-
-
     }
 }
 void LoadBasesConfigurations(Parameters &par,std::string &basis_name,std::vector<std::vector<std::string> > &basis) {

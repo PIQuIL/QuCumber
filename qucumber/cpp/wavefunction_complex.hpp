@@ -101,18 +101,18 @@ public:
     }
     //Compute the gradient of the effective energy in an arbitrary basis given by U
     void rotatedGrad(const std::vector<std::string> & basis,
-                            const Eigen::VectorXd & state,//VectorRbmT & gradR){
+                            const Eigen::VectorXd & state,
                             std::map<std::string,Eigen::MatrixXcd> & Unitaries,
-                            Eigen::VectorXcd &gradR ){
+                            Eigen::VectorXd &rotated_gradient ){
         int t=0,counter=0;
-        std::complex<double> U=1.0,den=0.0;
+        std::complex<double> U=1.0;
+        std::complex<double> rotated_psi = 0.0;
         std::bitset<16> bit;
         std::bitset<16> st;
         std::vector<int> basisIndex;
         Eigen::VectorXd v(N_);
-        Eigen::VectorXcd num(npar_);
-        //Eigen::VectorXcd gradR(npar_);
-        num.setZero(); 
+        Eigen::VectorXcd rotated_psiGrad(npar_);
+        rotated_psiGrad.setZero(); 
         basisIndex.clear();
         // Extract the sites where the rotation is non-trivial
         for(int j=0;j<N_;j++){
@@ -138,10 +138,11 @@ public:
             for(int ii=0;ii<t;ii++){
                 U = U * Unitaries[basis[basisIndex[ii]]](int(state(basisIndex[ii])),int(v(basisIndex[ii])));
             }
-            num += U*Grad(v)*psi(v); 
-            den += U*psi(v);
+            rotated_psiGrad += U*Grad(v)*psi(v);
+            rotated_psi += U*psi(v);
         }
-        gradR = num/den;
+        rotated_gradient.head(nparLambda_)=(rotated_psiGrad.head(nparLambda_)/rotated_psi).real();
+        rotated_gradient.tail(nparMu_)=-(rotated_psiGrad.tail(nparMu_)/rotated_psi).imag();
     }
 
     

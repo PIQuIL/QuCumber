@@ -33,9 +33,9 @@ public:
         N_ = PSI_.N();
         npar_ = PSI_.Npar();
         basis_ = basis;
-        basis_states_.resize(1<<N_,N_);
-        std::bitset<10> bit;
+        std::bitset<16> bit;
         // Create the basis of the Hilbert space
+        basis_states_.resize(1<<N_,N_);
         for(int i=0;i<1<<N_;i++){
             bit = i;
             for(int j=0;j<N_;j++){

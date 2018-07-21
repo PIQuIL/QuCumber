@@ -10,33 +10,33 @@ class Parameters{
 
 public:
    
-    int nh_;     // Number of hidden units 
-    int nv_;     // Number of visible units
-    double w_;   // Width of normal distribution for initial weights
-    int cd_;     // Order of contrastive divergence
-    int nc_;     // Number of chains
-    double lr_;  // Learning rate
-    double l2_;  // L2 normalization
-    int bs_;     // Batch size
-    int ep_;     // Training iterations
-    int ns_;     // Number of training samples
-    int nb_;     // Number of bases
-    std::string basis_;
+    int nh_;            // Number of hidden units 
+    int nv_;            // Number of visible units
+    double w_;          // Width of normal distribution for initial parameters
+    int cd_;            // Number of sampling steps in contrastive divergence
+    int nc_;            // Number of sampling chains
+    double lr_;         // Learning rate
+    double l2_;         // L2 normalization
+    int bs_;            // Batch size
+    int ep_;            // Training epochs 
+    int ns_;            // Number of training samples
+    int nb_;            // Number of bases
+    std::string basis_; // Basis code
 
     // Constructor
     Parameters() {
         // Default values
-        nv_ = 2;
-        nh_ = 2;
-        w_  = 0.1;
-        cd_ = 2;
-        nc_ = 10;
-        lr_ = 0.1;
+        nv_ = 10;
+        nh_ = 10;
+        w_  = 0.01;
+        cd_ = 10;
+        nc_ = 100;
+        lr_ = 0.01;
         l2_ = 0.0001;
-        bs_ = 10;
-        ep_ = 1000000;
-        ns_ = 100;
-        nb_ = 5;
+        bs_ = 100;
+        ep_ = 1000;
+        ns_ = 10000;
+        nb_ = 1;
         basis_ = "std";
     }
     
