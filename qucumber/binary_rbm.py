@@ -89,7 +89,11 @@ class BinaryRBM(nn.Module, Sampler):
                                                     device=self.device,
                                                     dtype=torch.double),
                                         requires_grad=True)
-
+        self.parameters = {}
+        self.parameters['weights'] = self.weights
+        self.parameters['visible_bias'] = self.visible_bias
+        self.parameters['hidden_bias'] = self.hidden_bias
+    
     def __repr__(self):
         return ("BinaryRBM(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
@@ -130,7 +134,15 @@ class BinaryRBM(nn.Module, Sampler):
                   visible states.
         :rtype: torch.Tensor
         """
+        prob = F.sigmoid(F.linear(v, self.weights,self.hidden_bias))     
         
+        
+        W_grad = torch.einsum("ij,ik->jk", (prob, v))
+        b_grad = torch.einsum("ij->j", (v,))
+        c_grad = torch.einsum("ij->j", (prob,))
+        
+        return {'weights':-W_grad,'visible_bias':-b_grad,'hidden_bias':-c_grad}
+    
     
     def prob_v_given_h(self, h):
         """Given a hidden unit configuration, compute the probability

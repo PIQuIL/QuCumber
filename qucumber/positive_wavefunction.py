@@ -49,7 +49,6 @@ class PositiveWavefunction(Sampler):
         self.num_hidden = (int(num_hidden)
                            if num_hidden is not None
                            else self.num_visible)
-        #self.rbm_module = BinomialRBMModule(self.num_visible, self.num_hidden,
         self.rbm = BinaryRBM(self.num_visible, self.num_hidden,
                                             gpu=gpu, seed=seed)
         self.stop_training = False
@@ -132,34 +131,39 @@ class PositiveWavefunction(Sampler):
         :returns: Dictionary containing all the gradients of the parameters.
         :rtype: dict
         """
-
-        v0, _, _, _, _ = self.rbm.gibbs_sampling(k, pos_batch)
-        _, _, vk, hk, phk = self.rbm.gibbs_sampling(k, neg_batch)
-
-        prob = F.sigmoid(F.linear(v0, self.rbm.weights,
-                                  self.rbm.hidden_bias))
-
+        #NOTE Old function
+        #_, _, vk, hk, phk = self.rbm.gibbs_sampling(k, neg_batch)
+        #prob = F.sigmoid(F.linear(v0, self.rbm.weights,
+        #                          self.rbm.hidden_bias))
+        #pos_batch_size = float(len(pos_batch))
+        #neg_batch_size = float(len(neg_batch))
+        #w_grad = torch.einsum("ij,ik->jk", (prob, v0))/pos_batch_size
+        #vb_grad = torch.einsum("ij->j", (v0,))/pos_batch_size
+        #hb_grad = torch.einsum("ij->j", (prob,))/pos_batch_size
+        #w_grad -= torch.einsum("ij,ik->jk", (phk, vk))/neg_batch_size
+        #vb_grad -= torch.einsum("ij->j", (vk,))/neg_batch_size
+        #hb_grad -= torch.einsum("ij->j", (phk,))/neg_batch_size
+        
+        grad = {}
         pos_batch_size = float(len(pos_batch))
+        grad_data = self.rbm.effective_energy_gradients(pos_batch)
+
+        _, _, vk, hk, phk = self.rbm.gibbs_sampling(k, neg_batch)
         neg_batch_size = float(len(neg_batch))
-
-
-        w_grad = torch.einsum("ij,ik->jk", (prob, v0))/pos_batch_size
-        vb_grad = torch.einsum("ij->j", (v0,))/pos_batch_size
-        hb_grad = torch.einsum("ij->j", (prob,))/pos_batch_size
-
-        w_grad -= torch.einsum("ij,ik->jk", (phk, vk))/neg_batch_size
-        vb_grad -= torch.einsum("ij->j", (vk,))/neg_batch_size
-        hb_grad -= torch.einsum("ij->j", (phk,))/neg_batch_size
+        grad_model = self.rbm.effective_energy_gradients(vk)
+        
+        for par in grad_data.keys():
+            grad[par] = grad_data[par]/pos_batch_size - grad_model[par]/neg_batch_size 
 
         # Return negative gradients to match up nicely with the usual
         # parameter update rules, which *subtract* the gradient from
         # the parameters. This is in contrast with the RBM update
         # rules which ADD the gradients (scaled by the learning rate)
         # to the parameters.
-
-        return {"rbm": {"weights": -w_grad,
-                               "visible_bias": -vb_grad,
-                               "hidden_bias": -hb_grad}}
+        return {"rbm": grad}
+        #return {"rbm": {"weights": -w_grad,
+        #                       "visible_bias": -vb_grad,
+        #                       "hidden_bias": -hb_grad}}
 
     def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=200,
             k=1, lr=1e-2, progbar=False, callbacks=[]):
