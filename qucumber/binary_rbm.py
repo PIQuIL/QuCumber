@@ -120,6 +120,18 @@ class BinaryRBM(nn.Module, Sampler):
 
         return visible_bias_term + hidden_bias_term
 
+    def effective_energy_gradients(self,v):
+        """The gradients of the effective energies for the given visible states.
+
+        :param v: The visible states.
+        :type v: torch.Tensor
+
+        :returns: The gradients of the effective energies for the given 
+                  visible states.
+        :rtype: torch.Tensor
+        """
+        
+    
     def prob_v_given_h(self, h):
         """Given a hidden unit configuration, compute the probability
         vector of the visible units being on.

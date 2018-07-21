@@ -50,7 +50,7 @@ class PositiveWavefunction(Sampler):
                            if num_hidden is not None
                            else self.num_visible)
         #self.rbm_module = BinomialRBMModule(self.num_visible, self.num_hidden,
-        self.rbm_module = BinaryRBM(self.num_visible, self.num_hidden,
+        self.rbm = BinaryRBM(self.num_visible, self.num_hidden,
                                             gpu=gpu, seed=seed)
         self.stop_training = False
 
@@ -65,7 +65,7 @@ class PositiveWavefunction(Sampler):
         :type metadata: dict
         """
         # add extra metadata to dictionary before saving it to disk
-        data = {**self.rbm_module.state_dict(), **metadata}
+        data = {**self.rbm.state_dict(), **metadata}
         torch.save(data, location)
 
     def load(self, location):
@@ -86,37 +86,37 @@ class PositiveWavefunction(Sampler):
         except AssertionError as e:
             state_dict = torch.load(location, lambda storage, loc: 'cpu')
 
-        self.rbm_module.load_state_dict(state_dict, strict=False)
+        self.rbm.load_state_dict(state_dict, strict=False)
 
-    @staticmethod
-    def autoload(location, gpu=False):
-        """Initializes an RBM from the parameters in the given location,
-        ignoring any metadata stored in the file.
+    #@staticmethod
+    #def autoload(location, gpu=False):
+    #    """Initializes an RBM from the parameters in the given location,
+    #    ignoring any metadata stored in the file.
 
-        :param location: The location to load the RBM parameters from
-        :type location: str or file
+    #    :param location: The location to load the RBM parameters from
+    #    :type location: str or file
 
-        :returns: A new RBM initialized from the given parameters
-        :rtype: BinomialRBM
-        """
-        '''
-        _warn_on_missing_gpu(gpu)
-        gpu = gpu and torch.cuda.is_available()
+    #    :returns: A new RBM initialized from the given parameters
+    #    :rtype: BinomialRBM
+    #    """
+    #    '''
+    #    _warn_on_missing_gpu(gpu)
+    #    gpu = gpu and torch.cuda.is_available()
 
-        if gpu:
-            state_dict = torch.load(location, lambda storage, loc: 'cuda')
-        else:
-            state_dict = torch.load(location, lambda storage, loc: 'cpu')
-        '''
-        state_dict = torch.load(location)
-        
-        rbm = BinomialRBM(num_visible=len(state_dict['visible_bias']),
-                          num_hidden=len(state_dict['hidden_bias']),
-                          gpu=gpu,
-                          seed=None)
-        rbm.rbm_module.load_state_dict(state_dict, strict=False)
+    #    if gpu:
+    #        state_dict = torch.load(location, lambda storage, loc: 'cuda')
+    #    else:
+    #        state_dict = torch.load(location, lambda storage, loc: 'cpu')
+    #    '''
+    #    state_dict = torch.load(location)
+    #    
+    #    rbm = BinomialRBM(num_visible=len(state_dict['visible_bias']),
+    #                      num_hidden=len(state_dict['hidden_bias']),
+    #                      gpu=gpu,
+    #                      seed=None)
+    #    rbm.rbm.load_state_dict(state_dict, strict=False)
 
-        return rbm
+    #    return rbm
 
     def compute_batch_gradients(self, k, pos_batch, neg_batch):
         """This function will compute the gradients of a batch of the training
@@ -133,11 +133,11 @@ class PositiveWavefunction(Sampler):
         :rtype: dict
         """
 
-        v0, _, _, _, _ = self.rbm_module.gibbs_sampling(k, pos_batch)
-        _, _, vk, hk, phk = self.rbm_module.gibbs_sampling(k, neg_batch)
+        v0, _, _, _, _ = self.rbm.gibbs_sampling(k, pos_batch)
+        _, _, vk, hk, phk = self.rbm.gibbs_sampling(k, neg_batch)
 
-        prob = F.sigmoid(F.linear(v0, self.rbm_module.weights,
-                                  self.rbm_module.hidden_bias))
+        prob = F.sigmoid(F.linear(v0, self.rbm.weights,
+                                  self.rbm.hidden_bias))
 
         pos_batch_size = float(len(pos_batch))
         neg_batch_size = float(len(neg_batch))
@@ -157,7 +157,7 @@ class PositiveWavefunction(Sampler):
         # rules which ADD the gradients (scaled by the learning rate)
         # to the parameters.
 
-        return {"rbm_module": {"weights": -w_grad,
+        return {"rbm": {"weights": -w_grad,
                                "visible_bias": -vb_grad,
                                "hidden_bias": -hb_grad}}
 
@@ -192,11 +192,11 @@ class PositiveWavefunction(Sampler):
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
         callbacks = CallbackList(callbacks)
 
-        data = torch.tensor(data, device=self.rbm_module.device,
+        data = torch.tensor(data, device=self.rbm.device,
                             dtype=torch.double)
-        optimizer = torch.optim.SGD([self.rbm_module.weights,
-                                     self.rbm_module.visible_bias,
-                                     self.rbm_module.hidden_bias],
+        optimizer = torch.optim.SGD([self.rbm.weights,
+                                     self.rbm.visible_bias,
+                                     self.rbm.hidden_bias],
                                     lr=lr)
 
         callbacks.on_train_start(self)
@@ -248,14 +248,14 @@ class PositiveWavefunction(Sampler):
         :returns: Samples drawn from the RBM.
         :rtype: torch.Tensor
         """
-        return self.rbm_module.sample(num_samples, k)
+        return self.rbm.sample(num_samples, k)
 
-    def probability_ratio(self, a, b):
-        return self.rbm_module.log_probability_ratio(a, b).exp()
-
-    def log_probability_ratio(self, a, b):
-        return self.rbm_module.effective_energy(a) \
-                              .sub(self.effective_energy(b))
+#    def probability_ratio(self, a, b):
+#        return self.rbm.log_probability_ratio(a, b).exp()
+#
+#    def log_probability_ratio(self, a, b):
+#        return self.rbm_module.effective_energy(a) \
+#                              .sub(self.effective_energy(b))
 
 
 #class ComplexRBM:
