@@ -114,7 +114,7 @@ class BinomialRBMModule(nn.Module, Sampler):
 
         return visible_bias_term + hidden_bias_term
 
-    def prob_v_given_h(self, h):
+    def prob_v_given_h(self, h, out=None):
         """Given a hidden unit configuration, compute the probability
         vector of the visible units being on.
 
@@ -125,10 +125,11 @@ class BinomialRBMModule(nn.Module, Sampler):
                   hidden state.
         :rtype: torch.Tensor
         """
-        p = F.sigmoid(F.linear(h, self.weights.t(), self.visible_bias))
+        p = torch.addmm(self.visible_bias.data, h, self.weights.data, out=out)\
+                 .sigmoid_()
         return p
 
-    def prob_h_given_v(self, v):
+    def prob_h_given_v(self, v, out=None):
         """Given a visible unit configuration, compute the probability
         vector of the hidden units being on.
 
@@ -139,7 +140,8 @@ class BinomialRBMModule(nn.Module, Sampler):
                   visible state.
         :rtype: torch.Tensor
         """
-        p = F.sigmoid(F.linear(v, self.weights, self.hidden_bias))
+        p = torch.addmm(self.hidden_bias.data, v, self.weights.data.t(), out=out) \
+                 .sigmoid_()
         return p
 
     def sample_v_given_h(self, h):
@@ -183,18 +185,21 @@ class BinomialRBMModule(nn.Module, Sampler):
                   the hidden state sampled from v0,
                   the visible state sampled after k steps,
                   the hidden state sampled after k steps and its corresponding
-
                   probability vector.
         :rtype: tuple(torch.Tensor, torch.Tensor,
                       torch.Tensor, torch.Tensor,
                       torch.Tensor)
         """
-        ph, h0 = self.sample_h_given_v(v0)
-        v, h = v0, h0
+        ph0 = self.prob_h_given_v(v0)
+        v, h = torch.zeros_like(v0), torch.zeros_like(ph0)
+        v.copy_(v0)
+        h.copy_(ph0)
         for _ in range(k):
-            pv, v = self.sample_v_given_h(h)
-            ph, h = self.sample_h_given_v(v)
-        return v0, h0, v, h, ph
+            self.prob_v_given_h(h.bernoulli_(), out=v)
+            self.prob_h_given_v(v.bernoulli_(), out=h)
+        if self.gpu:
+            torch.cuda.empty_cache()
+        return v0, ph0, v, h
 
     def sample(self, num_samples, k=10):
         """Samples from the RBM using k steps of Block Gibbs sampling.
@@ -210,7 +215,7 @@ class BinomialRBMModule(nn.Module, Sampler):
         dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
         v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
                   .to(device=self.device, dtype=torch.double))
-        _, _, v, _, _ = self.gibbs_sampling(k, v0)
+        _, _, v, _ = self.gibbs_sampling(k, v0)
         return v
 
     def unnormalized_probability(self, v):
@@ -378,19 +383,15 @@ class BinomialRBM(Sampler):
         :rtype: dict
         """
 
-        v0, _, _, _, _ = self.rbm_module.gibbs_sampling(k, pos_batch)
-        _, _, vk, hk, phk = self.rbm_module.gibbs_sampling(k, neg_batch)
-
-        prob = F.sigmoid(F.linear(v0, self.rbm_module.weights,
-                                  self.rbm_module.hidden_bias))
+        v0, ph0, _, _ = self.rbm_module.gibbs_sampling(k, pos_batch)
+        _, _, vk, phk = self.rbm_module.gibbs_sampling(k, neg_batch)
 
         pos_batch_size = float(len(pos_batch))
         neg_batch_size = float(len(neg_batch))
 
-
-        w_grad = torch.einsum("ij,ik->jk", (prob, v0))/pos_batch_size
+        w_grad = torch.einsum("ij,ik->jk", (ph0, v0))/pos_batch_size
         vb_grad = torch.einsum("ij->j", (v0,))/pos_batch_size
-        hb_grad = torch.einsum("ij->j", (prob,))/pos_batch_size
+        hb_grad = torch.einsum("ij->j", (ph0,))/pos_batch_size
 
         w_grad -= torch.einsum("ij,ik->jk", (phk, vk))/neg_batch_size
         vb_grad -= torch.einsum("ij->j", (vk,))/neg_batch_size
@@ -463,7 +464,7 @@ class BinomialRBM(Sampler):
                 break
 
             for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
-                                                               neg_batches)):
+                                                                   neg_batches)):
                 callbacks.on_batch_start(self, ep, batch_num)
 
                 all_grads = self.compute_batch_gradients(k, pos_batch,
