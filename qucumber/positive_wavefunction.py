@@ -153,10 +153,10 @@ class PositiveWavefunction(Sampler):
         w_grad -= torch.einsum("ij,ik->jk", (phk, vk))/neg_batch_size
         vb_grad -= torch.einsum("ij->j", (vk,))/neg_batch_size
         hb_grad -= torch.einsum("ij->j", (phk,))/neg_batch_size
-        return {"weights": -w_grad,"visible_bias": -vb_grad,"hidden_bias": -hb_grad}
-        #return {"rbm": {"weights": -w_grad,
-        #                       "visible_bias": -vb_grad,
-        #                       "hidden_bias": -hb_grad}}
+        #return {"weights": -w_grad,"visible_bias": -vb_grad,"hidden_bias": -hb_grad}
+        return {"rbm_am": {"weights": -w_grad,
+                               "visible_bias": -vb_grad,
+                               "hidden_bias": -hb_grad}}
         
         #grad = {}
         #pos_batch_size = float(len(pos_batch))
@@ -179,84 +179,84 @@ class PositiveWavefunction(Sampler):
         #return grad
         #return {"rbm": grad}
 
-#    def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=200,
-#            k=1, lr=1e-2, progbar=False, callbacks=[]):
-#        """Execute the training of the RBM.
-#
-#        :param data: The actual training data
-#        :type data: list(float)
-#        :param epochs: The number of parameter (i.e. weights and biases)
-#                       updates
-#        :type epochs: int
-#        :param pos_batch_size: The size of batches for the positive phase
-#                               taken from the data.
-#        :type pos_batch_size: int
-#        :param neg_batch_size: The size of batches for the negative phase
-#                               taken from the data
-#        :type neg_batch_size: int
-#        :param k: The number of contrastive divergence steps
-#        :type k: int
-#        :param lr: Learning rate
-#        :type lr: float
-#        :param progbar: Whether or not to display a progress bar. If "notebook"
-#                        is passed, will use a Jupyter notebook compatible
-#                        progress bar.
-#        :type progbar: bool or str
-#        :param callbacks: Callbacks to run while training.
-#        :type callbacks: list(qucumber.callbacks.Callback)
-#        """
-#
-#        disable_progbar = (progbar is False)
-#        progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
-#        callbacks = CallbackList(callbacks)
-#
-#        data = torch.tensor(data, device=self.rbm.device,
-#                            dtype=torch.double)
-#        optimizer = torch.optim.SGD([self.rbm.weights,
-#                                     self.rbm.visible_bias,
-#                                     self.rbm.hidden_bias],
-#                                    lr=lr)
-#
-#        callbacks.on_train_start(self)
-#
-#        for ep in progress_bar(range(epochs), desc="Epochs ",
-#                               disable=disable_progbar):
-#            pos_batches = DataLoader(data, batch_size=pos_batch_size,
-#                                     shuffle=True)
-#
-#            multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
-#            neg_batches = [DataLoader(data, batch_size=neg_batch_size,
-#                                      shuffle=True)
-#                           for i in range(multiplier)]
-#            neg_batches = chain(*neg_batches)
-#
-#            callbacks.on_epoch_start(self, ep)
-#
-#            if self.stop_training:  # check for stop_training signal
-#                break
-#
-#            for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
-#                                                               neg_batches)):
-#                callbacks.on_batch_start(self, ep, batch_num)
-#
-#                all_grads = self.compute_batch_gradients(k, pos_batch,
-#                                                         neg_batch)
-#                optimizer.zero_grad()  # clear any cached gradients
-#
-#                # assign all available gradients to the corresponding parameter
-#                for name, grads in all_grads.items():
-#                    selected_RBM = getattr(self, name)
-#                    for param in grads.keys():
-#                        getattr(selected_RBM, param).grad = grads[param]
-#
-#                optimizer.step()  # tell the optimizer to apply the gradients
-#
-#                callbacks.on_batch_end(self, ep, batch_num)
-#
-#            callbacks.on_epoch_end(self, ep)
-#
-#        callbacks.on_train_end(self)
-#
+    def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=200,
+            k=1, lr=1e-2, progbar=False, callbacks=[]):
+        """Execute the training of the RBM.
+
+        :param data: The actual training data
+        :type data: list(float)
+        :param epochs: The number of parameter (i.e. weights and biases)
+                       updates
+        :type epochs: int
+        :param pos_batch_size: The size of batches for the positive phase
+                               taken from the data.
+        :type pos_batch_size: int
+        :param neg_batch_size: The size of batches for the negative phase
+                               taken from the data
+        :type neg_batch_size: int
+        :param k: The number of contrastive divergence steps
+        :type k: int
+        :param lr: Learning rate
+        :type lr: float
+        :param progbar: Whether or not to display a progress bar. If "notebook"
+                        is passed, will use a Jupyter notebook compatible
+                        progress bar.
+        :type progbar: bool or str
+        :param callbacks: Callbacks to run while training.
+        :type callbacks: list(qucumber.callbacks.Callback)
+        """
+
+        disable_progbar = (progbar is False)
+        progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
+        callbacks = CallbackList(callbacks)
+
+        data = torch.tensor(data, device=self.rbm.device,
+                            dtype=torch.double)
+        optimizer = torch.optim.SGD([self.rbm.weights,
+                                     self.rbm.visible_bias,
+                                     self.rbm.hidden_bias],
+                                    lr=lr)
+
+        callbacks.on_train_start(self)
+
+        for ep in progress_bar(range(epochs), desc="Epochs ",
+                               disable=disable_progbar):
+            pos_batches = DataLoader(data, batch_size=pos_batch_size,
+                                     shuffle=True)
+
+            multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
+            neg_batches = [DataLoader(data, batch_size=neg_batch_size,
+                                      shuffle=True)
+                           for i in range(multiplier)]
+            neg_batches = chain(*neg_batches)
+
+            callbacks.on_epoch_start(self, ep)
+
+            if self.stop_training:  # check for stop_training signal
+                break
+
+            for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
+                                                               neg_batches)):
+                callbacks.on_batch_start(self, ep, batch_num)
+
+                all_grads = self.compute_batch_gradients(k, pos_batch,
+                                                         neg_batch)
+                optimizer.zero_grad()  # clear any cached gradients
+
+                # assign all available gradients to the corresponding parameter
+                for name, grads in all_grads.items():
+                    selected_RBM = getattr(self, name)
+                    for param in grads.keys():
+                        getattr(selected_RBM, param).grad = grads[param]
+
+                optimizer.step()  # tell the optimizer to apply the gradients
+
+                callbacks.on_batch_end(self, ep, batch_num)
+
+            callbacks.on_epoch_end(self, ep)
+
+        callbacks.on_train_end(self)
+
 #    def sample(self, num_samples, k):
 #        """Samples from the RBM using k steps of Block Gibbs sampling.
 #        :param num_samples: The number of samples to be generated

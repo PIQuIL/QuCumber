@@ -251,20 +251,20 @@ class BinaryRBM(nn.Module, Sampler):
             ph, h = self.sample_h_given_v(v)
         return v0, h0, v, h, ph
     
-    #def sample(self, num_samples, k=10):
-    #    """Samples from the RBM using k steps of Block Gibbs sampling.
-    #    :param num_samples: The number of samples to be generated
-    #    :type num_samples: int
-    #    :param k: Number of Block Gibbs steps.
-    #    :type k: int
-    #    :returns: Samples drawn from the RBM
-    #    :rtype: torch.Tensor
-    #    """
-    #    dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
-    #    v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
-    #              .to(device=self.device, dtype=torch.double))
-    #    _, _, v, _, _ = self.gibbs_sampling(k, v0)
-    #    return v
+    def sample(self, num_samples, k=10):
+        """Samples from the RBM using k steps of Block Gibbs sampling.
+        :param num_samples: The number of samples to be generated
+        :type num_samples: int
+        :param k: Number of Block Gibbs steps.
+        :type k: int
+        :returns: Samples drawn from the RBM
+        :rtype: torch.Tensor
+        """
+        dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
+        v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
+                  .to(device=self.device, dtype=torch.double))
+        _, _, v, _, _ = self.gibbs_sampling(k, v0)
+        return v
 
     #def unnormalized_probability(self, v):
     #    r"""The unnormalized probabilities of the given visible states.
