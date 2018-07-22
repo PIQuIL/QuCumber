@@ -29,7 +29,7 @@ def partition(nn_state,visible_space):
     :returns: The natural log of the partition function.
     :rtype: torch.Tensor
     """
-    free_energies = nn_state.rbm.effective_energy(visible_space)
+    free_energies = -nn_state.rbm.effective_energy(visible_space)
     max_free_energy = free_energies.max()
 
     f_reduced = free_energies - max_free_energy

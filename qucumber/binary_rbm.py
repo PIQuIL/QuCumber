@@ -124,7 +124,7 @@ class BinaryRBM(nn.Module, Sampler):
             F.linear(v, self.weights, self.hidden_bias)
         ).sum(1)
 
-        return visible_bias_term + hidden_bias_term
+        return -(visible_bias_term + hidden_bias_term)
 
     def effective_energy_gradient(self,v):
         """The gradients of the effective energies for the given visible states.

@@ -50,7 +50,7 @@ class PositiveWavefunction(Sampler):
         self.num_pars = self.rbm.num_pars
 
     def psi(self,v):
-        return self.rbm.effective_energy(v).exp().sqrt()
+        return (-self.rbm.effective_energy(v)).exp().sqrt()
         #return self.rbm.unnormalized_probability(v)
 
     def gradient(self,v):
