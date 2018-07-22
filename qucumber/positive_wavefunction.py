@@ -17,28 +17,23 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import warnings
-from itertools import chain
-
-import numpy as np
-from math import sqrt
-import torch
-from torch import nn
-from torch.nn import functional as F
-from torch.utils.data import DataLoader
-from tqdm import tqdm, tqdm_notebook
+#import warnings
+#from itertools import chain
+#
+#import numpy as np
+#from math import sqrt
+#import torch
+#from torch import nn
+#from torch.nn import functional as F
+#from torch.utils.data import DataLoader
+#from tqdm import tqdm, tqdm_notebook
 
 import qucumber.cplx as cplx
 from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
 from binary_rbm import BinaryRBM
-#import qucumber.cplx as cplx
-#from qucumber.samplers import Sampler
-#from qucumber.callbacks import CallbackList
 
 __all__ = [
-#    "BinomialRBMModule",
-    #"BinomialRBM"
     "PositiveWavefunction"
 ]
 
@@ -61,6 +56,8 @@ class PositiveWavefunction(Sampler):
     def gradient(self,v):
         return {"rbm_am": self.rbm.effective_energy_gradient(v)} 
 
+    def sample(self,k,v0):
+        return self.rbm.gibbs_sampling(k,v0)
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
@@ -140,36 +137,15 @@ class PositiveWavefunction(Sampler):
         :returns: Dictionary containing all the gradients of the parameters.
         :rtype: dict
         """
-        #NOTE Old function
-        v0, _, _, _, _ = self.rbm.gibbs_sampling(k, pos_batch)
-        _, _, vk, hk, phk = self.rbm.gibbs_sampling(k, neg_batch)
-        prob = F.sigmoid(F.linear(v0, self.rbm.weights,
-                                  self.rbm.hidden_bias))
+        grad = {}
         pos_batch_size = float(len(pos_batch))
         neg_batch_size = float(len(neg_batch))
-        w_grad = torch.einsum("ij,ik->jk", (prob, v0))/pos_batch_size
-        vb_grad = torch.einsum("ij->j", (v0,))/pos_batch_size
-        hb_grad = torch.einsum("ij->j", (prob,))/pos_batch_size
-        w_grad -= torch.einsum("ij,ik->jk", (phk, vk))/neg_batch_size
-        vb_grad -= torch.einsum("ij->j", (vk,))/neg_batch_size
-        hb_grad -= torch.einsum("ij->j", (phk,))/neg_batch_size
-        #return {"weights": -w_grad,"visible_bias": -vb_grad,"hidden_bias": -hb_grad}
-        return {"rbm_am": {"weights": -w_grad,
-                               "visible_bias": -vb_grad,
-                               "hidden_bias": -hb_grad}}
+        grad_data = self.gradient(pos_batch)
+        self.sample(k,neg_batch)
+        grad_model =self.gradient(self.rbm.visible_state)
         
-        #grad = {}
-        #pos_batch_size = float(len(pos_batch))
-        #grad_data = self.rbm.effective_energy_gradients(pos_batch)
-
-        #_, _, vk, hk, phk = self.rbm.gibbs_sampling(k, neg_batch)
-        ##self.rbm.gibbs_sampling(k, neg_batch)
-        #neg_batch_size = float(len(neg_batch))
-        #grad_model = self.rbm.effective_energy_gradients(vk)
-        ##grad_model = self.rbm.effective_energy_gradients(self.rbm.visible_state)
-        #
-        #for par in grad_data.keys():
-        #    grad[par] = grad_data[par]/pos_batch_size - grad_model[par]/neg_batch_size 
+        for par in grad_data['rbm_am'].keys():
+            grad[par] = grad_data['rbm_am'][par]/pos_batch_size - grad_model['rbm_am'][par]/neg_batch_size 
 
         # Return negative gradients to match up nicely with the usual
         # parameter update rules, which *subtract* the gradient from
@@ -177,7 +153,7 @@ class PositiveWavefunction(Sampler):
         # rules which ADD the gradients (scaled by the learning rate)
         # to the parameters.
         #return grad
-        #return {"rbm": grad}
+        return {"rbm_am": grad}
 
     def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=200,
             k=1, lr=1e-2, progbar=False, callbacks=[]):
@@ -256,23 +232,5 @@ class PositiveWavefunction(Sampler):
             callbacks.on_epoch_end(self, ep)
 
         callbacks.on_train_end(self)
-
-#    def sample(self, num_samples, k):
-#        """Samples from the RBM using k steps of Block Gibbs sampling.
-#        :param num_samples: The number of samples to be generated
-#        :type num_samples: int
-#        :param k: Number of Block Gibbs steps.
-#        :type k: int
-#        :returns: Samples drawn from the RBM.
-#        :rtype: torch.Tensor
-#        """
-#        return self.rbm.sample(num_samples, k)
-#
-#    def probability_ratio(self, a, b):
-#        return self.rbm.log_probability_ratio(a, b).exp()
-#
-#    def log_probability_ratio(self, a, b):
-#        return self.rbm_module.effective_energy(a) \
-#                              .sub(self.effective_energy(b))
 
 

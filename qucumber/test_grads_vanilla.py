@@ -2,9 +2,7 @@ from qucumber.rbm import BinomialRBM
 
 import torch
 import numpy as np
-#from  binary_rbm import BinaryRBM
 from positive_wavefunction import PositiveWavefunction
-#rbm_real   = BinomialRBM.autoload('saved_params_real.pkl')
 
 def generate_visible_space(num_visible):
     """Generates all possible visible states.
@@ -151,7 +149,7 @@ def test_gradients(nn_state,target_psi,data, vis, eps,k):
     num_grad_KL = numeric_gradKL(nn_state,target_psi,flat_weights,vis)
     num_grad_NLL = numeric_gradNLL(nn_state,flat_weights,data)
     print("\nTesting weights...")
-    print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg KL")
+    print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
     for i in range(len(flat_weights)):
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],flat_weights_grad_KL[i]),end="", flush=True)
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],flat_weights_grad_NLL[i]))
@@ -159,7 +157,7 @@ def test_gradients(nn_state,target_psi,data, vis, eps,k):
     num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm.visible_bias,vis)
     num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm.visible_bias,data)
     print("\nTesting visible bias...")
-    print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg KL")
+    print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
     for i in range(len(nn_state.rbm.visible_bias)):
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL["rbm_am"]["visible_bias"][i]),end="", flush=True)
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["visible_bias"][i]))
@@ -167,7 +165,7 @@ def test_gradients(nn_state,target_psi,data, vis, eps,k):
     num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm.hidden_bias,vis)
     num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm.hidden_bias,data)
     print("\nTesting hidden bias...")
-    print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg KL")
+    print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
     for i in range(len(nn_state.rbm.hidden_bias)):
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL["rbm_am"]["hidden_bias"][i]),end="", flush=True)
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["hidden_bias"][i]))
@@ -188,7 +186,7 @@ nn_state = PositiveWavefunction(num_visible=data.shape[-1],
                                 num_hidden=nh, seed=seed)
 
 vis        = generate_visible_space(data.shape[-1])
-k          = 10
+k          = 100
 eps        = 1.e-8
 
 #alg_grads  = nn_state.compute_batch_gradients(k, data, data)

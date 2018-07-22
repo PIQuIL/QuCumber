@@ -33,8 +33,6 @@ from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
 
 __all__ = [
-    #"BinomialRBMModule",
-    #"BinomialRBM"
     "BinaryRBM"
 ]
 
@@ -47,7 +45,7 @@ def _warn_on_missing_gpu(gpu):
 
 class BinaryRBM(nn.Module, Sampler):
     def __init__(self, num_visible, num_hidden, zero_weights=False,
-                 gpu=True, seed=None, num_chains = 200):
+                 gpu=True, seed=None, num_chains = 10):
         super(BinaryRBM, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
@@ -70,37 +68,31 @@ class BinaryRBM(nn.Module, Sampler):
                                                      device=self.device,
                                                      dtype=torch.double)),
                                         requires_grad=True)
+            self.visible_bias = nn.Parameter(torch.zeros(self.num_visible,
+                                                         device=self.device,
+                                                         dtype=torch.double),
+                                             requires_grad=True)
+            self.hidden_bias = nn.Parameter(torch.zeros(self.num_hidden,
+                                                        device=self.device,
+                                                        dtype=torch.double),
+                                            requires_grad=True)
         else:
             self.weights = nn.Parameter(
                 (torch.randn(self.num_hidden, self.num_visible,
                              device=self.device, dtype=torch.double)
                  / np.sqrt(self.num_visible)),requires_grad=True)
 
-        self.visible_bias = nn.Parameter(
-                (torch.randn(self.num_visible,device=self.device, 
-                 dtype=torch.double)/np.sqrt(self.num_visible)),requires_grad=True)
-        self.hidden_bias = nn.Parameter(
-                (torch.randn(self.num_hidden,device=self.device, 
-                 dtype=torch.double)/np.sqrt(self.num_hidden)),requires_grad=True)
-        #self.visible_bias = nn.Parameter(torch.zeros(self.num_visible,
-        #                                             device=self.device,
-        #                                             dtype=torch.double),
-        #                                 requires_grad=True)
-        #self.hidden_bias = nn.Parameter(torch.zeros(self.num_hidden,
-        #                                            device=self.device,
-        #                                            dtype=torch.double),
-        #                                requires_grad=True)
+            self.visible_bias = nn.Parameter(
+                    (torch.randn(self.num_visible,device=self.device, 
+                     dtype=torch.double)/np.sqrt(self.num_visible)),requires_grad=True)
+            self.hidden_bias = nn.Parameter(
+                    (torch.randn(self.num_hidden,device=self.device, 
+                     dtype=torch.double)/np.sqrt(self.num_hidden)),requires_grad=True)
         
         self.visible_state = torch.zeros(self.num_chains,self.num_visible,
                                          device=self.device,
                                          dtype=torch.double)
         self.hidden_state = torch.zeros(self.num_chains,self.num_hidden,
-                                         device=self.device,
-                                         dtype=torch.double)
-        self.visible_prob = torch.zeros(self.num_chains,self.num_visible,
-                                         device=self.device,
-                                         dtype=torch.double)
-        self.hidden_prob = torch.zeros(self.num_chains,self.num_hidden,
                                          device=self.device,
                                          dtype=torch.double)
     
@@ -146,13 +138,14 @@ class BinaryRBM(nn.Module, Sampler):
         """
         prob = F.sigmoid(F.linear(v, self.weights,self.hidden_bias))     
         
-        
-        #W_grad = torch.einsum("ij,ik->jk", (prob, v))
-        #b_grad = torch.einsum("ij->j", (v,))
-        #c_grad = torch.einsum("ij->j", (prob,))
-        W_grad = -torch.einsum("j,k->jk", (prob, v))
-        b_grad = -v
-        c_grad = -prob
+        if len(v.shape) < 2:
+            W_grad = -torch.einsum("j,k->jk", (prob, v))
+            b_grad = -v
+            c_grad = -prob
+        else:        
+            W_grad = -torch.einsum("ij,ik->jk", (prob, v))
+            b_grad = -torch.einsum("ij->j", (v,))
+            c_grad = -torch.einsum("ij->j", (prob,))
         
         return {'weights':W_grad,'visible_bias':b_grad,'hidden_bias':c_grad}
     
@@ -198,7 +191,7 @@ class BinaryRBM(nn.Module, Sampler):
         """
         p = self.prob_v_given_h(h)
         v = p.bernoulli()
-        return p, v
+        return v
 
     def sample_h_given_v(self, v):
         """Sample/generate a hidden state given a visible state.
@@ -212,11 +205,7 @@ class BinaryRBM(nn.Module, Sampler):
         """
         p = self.prob_h_given_v(v)
         h = p.bernoulli()
-        return p, h
-
-    def sample_layer(self,prob_hv):
-        hv = prob_hv.bernoulli()
-        return hv
+        return h
 
     def gibbs_sampling(self, k, v0):
         """Performs k steps of Block Gibbs sampling given an initial visible
@@ -237,108 +226,11 @@ class BinaryRBM(nn.Module, Sampler):
                       torch.Tensor, torch.Tensor,
                       torch.Tensor)
         """
-        #self.visible_state = v0
-        #for _ in range(k):
-        #    self.hidden_prob = self.prob_h_given_v(self.visible_state)
-        #    self.sample_layer(self.hidden_prob)
-        #    self.visible_prob = self.prob_v_given_h(self.hidden_state)
-        #    self.sample_layer(self.visible_prob)
-        
-        ph, h0 = self.sample_h_given_v(v0)
-        v, h = v0, h0
+        self.visible_state.resize_(v0.shape)
+        self.hidden_state.resize_(v0.shape[0],self.num_hidden)
+        self.visible_state = v0
         for _ in range(k):
-            pv, v = self.sample_v_given_h(h)
-            ph, h = self.sample_h_given_v(v)
-        return v0, h0, v, h, ph
-    
-    def sample(self, num_samples, k=10):
-        """Samples from the RBM using k steps of Block Gibbs sampling.
-        :param num_samples: The number of samples to be generated
-        :type num_samples: int
-        :param k: Number of Block Gibbs steps.
-        :type k: int
-        :returns: Samples drawn from the RBM
-        :rtype: torch.Tensor
-        """
-        dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
-        v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
-                  .to(device=self.device, dtype=torch.double))
-        _, _, v, _, _ = self.gibbs_sampling(k, v0)
-        return v
+            self.hidden_state = self.sample_h_given_v(self.visible_state)
+            self.visible_state = self.sample_v_given_h(self.hidden_state)
 
-    #def unnormalized_probability(self, v):
-    #    r"""The unnormalized probabilities of the given visible states.
 
-    #    .. math:: p(\bm{v}) = e^{\mathcal{E}(\bm{v})}
-
-    #    :param v: The visible states.
-    #    :type v: torch.Tensor
-
-    #    :returns: The unnormalized probability of the given visible state(s).
-    #    :rtype: torch.Tensor
-    #    """
-    #    return self.effective_energy(v).exp()
-
-    #def probability_ratio(self, a, b):
-    #    return self.log_probability_ratio(a, b).exp()
-
-    #def log_probability_ratio(self, a, b):
-    #    return self.effective_energy(a).sub(self.effective_energy(b))
-
-    #def generate_visible_space(self):
-    #    """Generates all possible visible states.
-
-    #    :returns: A tensor of all possible spin configurations.
-    #    :rtype: torch.Tensor
-    #    """
-    #    space = torch.zeros((1 << self.num_visible, self.num_visible),
-    #                        device=self.device, dtype=torch.double)
-    #    for i in range(1 << self.num_visible):
-    #        d = i
-    #        for j in range(self.num_visible):
-    #            d, r = divmod(d, 2)
-    #            space[i, self.num_visible - j - 1] = int(r)
-
-    #    return space
-
-    #def log_partition(self, visible_space):
-    #    """The natural logarithm of the partition function of the RBM.
-
-    #    :param visible_space: A rank 2 tensor of the entire visible space.
-    #    :type visible_space: torch.Tensor
-
-    #    :returns: The natural log of the partition function.
-    #    :rtype: torch.Tensor
-    #    """
-    #    free_energies = self.effective_energy(visible_space)
-    #    max_free_energy = free_energies.max()
-
-    #    f_reduced = free_energies - max_free_energy
-    #    logZ = max_free_energy + f_reduced.exp().sum().log()
-
-    #    return logZ
-
-    #def partition(self, visible_space):
-    #    """The partition function of the RBM.
-
-    #    :param visible_space: A rank 2 tensor of the entire visible space.
-    #    :type visible_space: torch.Tensor
-
-    #    :returns: The partition function.
-    #    :rtype: torch.Tensor
-    #    """
-    #    return self.log_partition(visible_space).exp()
-
-    #def probability(self, v, Z):
-    #    """Evaluates the probability of the given vector(s) of visible
-    #    units; NOT RECOMMENDED FOR RBMS WITH A LARGE # OF VISIBLE UNITS
-
-    #    :param v: The visible states.
-    #    :type v: torch.Tensor
-    #    :param Z: The partition function.
-    #    :type Z: float
-
-    #    :returns: The probability of the given vector(s) of visible units.
-    #    :rtype: torch.Tensor
-    #    """
-    #    return self.unnormalized_probability(v) / Z
