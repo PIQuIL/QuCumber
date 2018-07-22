@@ -2,23 +2,64 @@ from qucumber.rbm import BinomialRBM
 
 import torch
 import numpy as np
+#from  binary_rbm import BinaryRBM
+from positive_wavefunction import PositiveWavefunction
+#rbm_real   = BinomialRBM.autoload('saved_params_real.pkl')
 
-rbm_real   = BinomialRBM.autoload('saved_params_real.pkl')
-data       = torch.tensor(np.loadtxt(
-                          'examples/tfim1d_N10_train_samples.txt'), 
-                          dtype = torch.double)
-target_psi = torch.tensor(np.loadtxt('examples/tfim1d_N10_psi.txt'), 
-                          dtype = torch.double)
-vis        = rbm_real.rbm_module.generate_visible_space()
-k          = 100
-eps        = 1.e-8
-alg_grads  = rbm_real.compute_batch_gradients(k, data, data)
+def generate_visible_space(num_visible):
+    """Generates all possible visible states.
+
+    :returns: A tensor of all possible spin configurations.
+    :rtype: torch.Tensor
+    """
+    space = torch.zeros((1 << num_visible, num_visible),
+                        device="cpu", dtype=torch.double)
+    for i in range(1 << num_visible):
+        d = i
+        for j in range(num_visible):
+            d, r = divmod(d, 2)
+            space[i, nn_state.num_visible - j - 1] = int(r)
+
+    return space
+
+def partition(nn_state,visible_space):
+    """The natural logarithm of the partition function of the RBM.
+
+    :param visible_space: A rank 2 tensor of the entire visible space.
+    :type visible_space: torch.Tensor
+
+    :returns: The natural log of the partition function.
+    :rtype: torch.Tensor
+    """
+    free_energies = nn_state.rbm.effective_energy(visible_space)
+    max_free_energy = free_energies.max()
+
+    f_reduced = free_energies - max_free_energy
+    logZ = max_free_energy + f_reduced.exp().sum().log()
+    return logZ.exp()
+    
+    #return logZ
+
+def probability(nn_state,v, Z):
+    """Evaluates the probability of the given vector(s) of visible
+    units; NOT RECOMMENDED FOR RBMS WITH A LARGE # OF VISIBLE UNITS
+
+    :param v: The visible states.
+    :type v: torch.Tensor
+    :param Z: The partition function.
+    :type Z: float
+
+    :returns: The probability of the given vector(s) of visible units.
+    :rtype: torch.Tensor
+    """
+    return (nn_state.psi(v))**2 / Z
+
 
 def compute_numerical_kl(target_psi, vis, Z):
     KL = 0.0
     for i in range(len(vis)):
         KL += ((target_psi[i])**2)*((target_psi[i])**2).log()
-        KL -= ((target_psi[i])**2)*(rbm_real.rbm_module.probability(vis[i], Z)).log().item()
+        KL -= ((target_psi[i])**2)*(probability(nn_state,vis[i], Z)).log().item()
 
     return KL
 
@@ -27,48 +68,84 @@ def compute_numerical_NLL(data, Z):
     batch_size = len(data)
 
     for i in range(batch_size):
-        NLL -= (rbm_real.rbm_module.probability(data[i], Z)).log().item()/batch_size
+        NLL -= (probability(nn_state,data[i], Z)).log().item()/batch_size
 
     return NLL
 
-def test_gradient(target_psi, param, alg_grad, vis, data, Z):
-    print("Numerical NLL\t Numerical KL\t Alg")
+def algorithmic_gradKL(nn_state,target_psi,vis):
+    grad_KL={}
+    for rbmType in nn_state.gradient(vis[0]):
+        grad_KL[rbmType] = {}
+        for pars in nn_state.gradient(vis[0])[rbmType]:
+            grad_KL[rbmType][pars]=0
+    Z = partition(nn_state,vis)
+    for i in range(len(vis)):
+        for rbmType in nn_state.gradient(vis[i]):
+            for pars in nn_state.gradient(vis[i])[rbmType]:    
+                grad_KL[rbmType][pars] += ((target_psi[i])**2)*nn_state.gradient(vis[i])[rbmType][pars]            
+                grad_KL[rbmType][pars] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])[rbmType][pars]
+    return grad_KL            
+    
+def numeric_gradKL(nn_state,target_psi, param, vis):
+    num_gradKL = []
     for i in range(len(param)):
         param[i] += eps
         
-        Z     = rbm_real.rbm_module.partition(vis)
+        Z     = partition(nn_state,vis)
         KL_p  = compute_numerical_kl(target_psi, vis, Z)
-        NLL_p = compute_numerical_NLL(data, Z)
+        #NLL_p = compute_numerical_NLL(data, Z)
 
         param[i] -= 2*eps
 
-        Z     = rbm_real.rbm_module.partition(vis)
+        Z     = partition(nn_state,vis)
         KL_m  = compute_numerical_kl(target_psi, vis, Z)
-        NLL_m = compute_numerical_NLL(data, Z)
+        #NLL_m = compute_numerical_NLL(data, Z)
 
         param[i] += eps
 
-        num_gradKL  = (KL_p - KL_m) / (2*eps)
-        num_gradNLL = (NLL_p - NLL_m) / (2*eps)
+        num_gradKL.append( (KL_p - KL_m) / (2*eps) )
+        #num_gradNLL = (NLL_p - NLL_m) / (2*eps)
+    return num_gradKL
 
-        print("{: 10.8f}\t{: 10.8f}\t{: 10.8f}"
-              .format(num_gradNLL, num_gradKL, alg_grad[i]))
-
-def test_gradients(data, vis, eps):
-    w_grad   = alg_grads['rbm_module']['weights']
-    v_b_grad = alg_grads['rbm_module']['visible_bias']
-    h_b_grad = alg_grads['rbm_module']['hidden_bias']
-
-    Z = rbm_real.rbm_module.partition(vis)
-
-    flat_weights      = rbm_real.rbm_module.weights.data.view(-1)
-    flat_weights_grad = w_grad.view(-1)
-
-    print("Testing visible bias...")
-    test_gradient(target_psi, rbm_real.rbm_module.visible_bias, v_b_grad, vis, data, Z)
-    print("\nTesting hidden bias...")
-    test_gradient(target_psi, rbm_real.rbm_module.hidden_bias, h_b_grad, vis, data, Z)
+def test_gradients(nn_state,target_psi,data, vis, eps,alg_grads):
+    alg_grad = algorithmic_gradKL(nn_state,target_psi,vis)
+    flat_weights      = nn_state.rbm.weights.data.view(-1)
+    flat_weights_grad = alg_grad["rbm_am"]["weights"].view(-1)
+    num_grad = numeric_gradKL(nn_state,target_psi,flat_weights,vis)
     print("\nTesting weights...")
-    test_gradient(target_psi, flat_weights, flat_weights_grad, vis, data, Z)
+    print("Numerical KL\t Alg")
+    for i in range(len(flat_weights)):
+        print("{: 10.8f}\t{: 10.8f}".format(num_grad[i],flat_weights_grad[i]))
+    num_grad = numeric_gradKL(nn_state,target_psi,nn_state.rbm.visible_bias,vis)
+    print("\nTesting visible bias...")
+    print("Numerical KL\t Alg")
+    for i in range(len(nn_state.rbm.visible_bias)):
+        print("{: 10.8f}\t{: 10.8f}".format(num_grad[i],alg_grad["rbm_am"]["visible_bias"][i]))
+    num_grad = numeric_gradKL(nn_state,target_psi,nn_state.rbm.hidden_bias,vis)
+    print("\nTesting visible bias...")
+    print("Numerical KL\t Alg")
+    for i in range(len(nn_state.rbm.hidden_bias)):
+        print("{: 10.8f}\t{: 10.8f}".format(num_grad[i],alg_grad["rbm_am"]["hidden_bias"][i]))
 
-test_gradients(data, vis, eps)
+    print('')
+
+
+# MAIN
+data       = torch.tensor(np.loadtxt(
+                          '../examples/tfim1d_N10_train_samples.txt'), 
+                          dtype = torch.double)
+target_psi = torch.tensor(np.loadtxt('../examples/tfim1d_N10_psi.txt'), 
+                          dtype = torch.double)
+
+nh = 2
+seed=1234
+nn_state = PositiveWavefunction(num_visible=data.shape[-1],
+                                num_hidden=nh, seed=seed)
+
+vis        = generate_visible_space(data.shape[-1])
+k          = 10
+eps        = 1.e-8
+
+alg_grads  = nn_state.compute_batch_gradients(k, data, data)
+algorithmic_gradKL(nn_state,target_psi,vis)
+test_gradients(nn_state,target_psi,data, vis, eps,alg_grads)
