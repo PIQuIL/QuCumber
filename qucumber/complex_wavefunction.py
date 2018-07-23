@@ -69,9 +69,18 @@ class ComplexWavefunction(Sampler):
         #self.visible_state.resize_(v.shape)
         #self.hidden_state.resize_(v.shape[0],self.num_hidden)
         self.visible_state = v
-    
-    def psi(self,v):
+   
+    def amplitude(self,v):
         return (-self.rbm_am.effective_energy(v)).exp().sqrt()
+    
+    def phase(self,v):
+        return self.rbm_am.effective_energy(v)
+   
+    def gradient(self,v):
+        return {'rbm_am': self.rbm_am.effective_energy_gradient(v),'rbm_ph': self.rbm_am.effective_energy_gradient(v)}
+
+    #def psi(self,v):
+    #    return (-self.rbm_am.effective_energy(v)).exp().sqrt()
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
