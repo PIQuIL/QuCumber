@@ -18,15 +18,15 @@
 # under the License.
 
 #import warnings
-#from itertools import chain
+from itertools import chain
 #
 #import numpy as np
 #from math import sqrt
-#import torch
+import torch
 #from torch import nn
 #from torch.nn import functional as F
-#from torch.utils.data import DataLoader
-#from tqdm import tqdm, tqdm_notebook
+from torch.utils.data import DataLoader
+from tqdm import tqdm, tqdm_notebook
 
 import qucumber.cplx as cplx
 from qucumber.samplers import Sampler
@@ -40,16 +40,9 @@ __all__ = [
 class QuantumReconstruction(Sampler):
     def __init__(self, nn_state):
         super(QuantumReconstruction, self).__init__()
-        #self.num_visible = int(num_visible)
-        #self.num_hidden = (int(num_hidden)
-        #                   if num_hidden is not None
-        #                   else self.num_visible)
         self.nn_state = nn_state 
         self.num_visible = nn_state.num_visible
-        #self.rbm = BinaryRBM(self.num_visible, self.num_hidden,
-                                            #gpu=gpu, seed=seed)
         self.stop_training = False
-        #self.num_pars = self.rbm.num_pars
 
     def compute_batch_gradients(self, k, pos_batch, neg_batch):
         """This function will compute the gradients of a batch of the training
@@ -84,82 +77,84 @@ class QuantumReconstruction(Sampler):
             grad[net] = tmp
         return grad
 
-    #def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=200,
-    #        k=1, lr=1e-2, progbar=False, callbacks=[]):
-    #    """Execute the training of the RBM.
+    def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=200,
+            k=1, lr=1e-2, progbar=False, callbacks=[]):
+        """Execute the training of the RBM.
 
-    #    :param data: The actual training data
-    #    :type data: list(float)
-    #    :param epochs: The number of parameter (i.e. weights and biases)
-    #                   updates
-    #    :type epochs: int
-    #    :param pos_batch_size: The size of batches for the positive phase
-    #                           taken from the data.
-    #    :type pos_batch_size: int
-    #    :param neg_batch_size: The size of batches for the negative phase
-    #                           taken from the data
-    #    :type neg_batch_size: int
-    #    :param k: The number of contrastive divergence steps
-    #    :type k: int
-    #    :param lr: Learning rate
-    #    :type lr: float
-    #    :param progbar: Whether or not to display a progress bar. If "notebook"
-    #                    is passed, will use a Jupyter notebook compatible
-    #                    progress bar.
-    #    :type progbar: bool or str
-    #    :param callbacks: Callbacks to run while training.
-    #    :type callbacks: list(qucumber.callbacks.Callback)
-    #    """
+        :param data: The actual training data
+        :type data: list(float)
+        :param epochs: The number of parameter (i.e. weights and biases)
+                       updates
+        :type epochs: int
+        :param pos_batch_size: The size of batches for the positive phase
+                               taken from the data.
+        :type pos_batch_size: int
+        :param neg_batch_size: The size of batches for the negative phase
+                               taken from the data
+        :type neg_batch_size: int
+        :param k: The number of contrastive divergence steps
+        :type k: int
+        :param lr: Learning rate
+        :type lr: float
+        :param progbar: Whether or not to display a progress bar. If "notebook"
+                        is passed, will use a Jupyter notebook compatible
+                        progress bar.
+        :type progbar: bool or str
+        :param callbacks: Callbacks to run while training.
+        :type callbacks: list(qucumber.callbacks.Callback)
+        """
 
-    #    disable_progbar = (progbar is False)
-    #    progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
-    #    callbacks = CallbackList(callbacks)
+        disable_progbar = (progbar is False)
+        progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
+        callbacks = CallbackList(callbacks)
 
-    #    data = torch.tensor(data, device=self.rbm.device,
-    #                        dtype=torch.double)
-    #    optimizer = torch.optim.SGD([self.rbm.weights,
-    #                                 self.rbm.visible_bias,
-    #                                 self.rbm.hidden_bias],
-    #                                lr=lr)
+        data = torch.tensor(data, device=self.nn_state.device,
+                            dtype=torch.double)
+        optimizer = torch.optim.SGD([self.nn_state.rbm_am.weights,
+                                     self.nn_state.rbm_am.visible_bias,
+                                     self.nn_state.rbm_am.hidden_bias],
+                                    lr=lr)
 
-    #    callbacks.on_train_start(self)
+        callbacks.on_train_start(self)
 
-    #    for ep in progress_bar(range(epochs), desc="Epochs ",
-    #                           disable=disable_progbar):
-    #        pos_batches = DataLoader(data, batch_size=pos_batch_size,
-    #                                 shuffle=True)
+        for ep in progress_bar(range(epochs), desc="Epochs ",
+                               disable=disable_progbar):
+            pos_batches = DataLoader(data, batch_size=pos_batch_size,
+                                     shuffle=True)
 
-    #        multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
-    #        neg_batches = [DataLoader(data, batch_size=neg_batch_size,
-    #                                  shuffle=True)
-    #                       for i in range(multiplier)]
-    #        neg_batches = chain(*neg_batches)
+            multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
+            neg_batches = [DataLoader(data, batch_size=neg_batch_size,
+                                      shuffle=True)
+                           for i in range(multiplier)]
+            neg_batches = chain(*neg_batches)
 
-    #        callbacks.on_epoch_start(self, ep)
+            callbacks.on_epoch_start(self, ep)
 
-    #        if self.stop_training:  # check for stop_training signal
-    #            break
+            if self.stop_training:  # check for stop_training signal
+                break
 
-    #        for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
-    #                                                           neg_batches)):
-    #            callbacks.on_batch_start(self, ep, batch_num)
+            for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
+                                                               neg_batches)):
+                callbacks.on_batch_start(self, ep, batch_num)
 
-    #            all_grads = self.compute_batch_gradients(k, pos_batch,
-    #                                                     neg_batch)
-    #            optimizer.zero_grad()  # clear any cached gradients
+                all_grads = self.compute_batch_gradients(k, pos_batch,
+                                                         neg_batch)
+                optimizer.zero_grad()  # clear any cached gradients
 
-    #            # assign all available gradients to the corresponding parameter
-    #            for name, grads in all_grads.items():
-    #                selected_RBM = getattr(self, name)
-    #                for param in grads.keys():
-    #                    getattr(selected_RBM, param).grad = grads[param]
+                # assign all available gradients to the corresponding parameter
+                #self.nn_state.rbm_am.weights.grad = all_grads['rbm_am']['weights']
+                #self.nn_state.rbm_am.visible_bias.grad = all_grads['rbm_am']['visible_bias']
+                #self.nn_state.rbm_am.hidden_bias.grad = all_grads['rbm_am']['hidden_bias']
+                for net in self.nn_state.networks:
+                    selected_RBM = getattr(self.nn_state, net)
+                    for param in all_grads[net].keys():
+                        getattr(selected_RBM, param).grad = all_grads[net][param]
 
-    #            optimizer.step()  # tell the optimizer to apply the gradients
+                optimizer.step()  # tell the optimizer to apply the gradients
 
-    #            callbacks.on_batch_end(self, ep, batch_num)
+                callbacks.on_batch_end(self, ep, batch_num)
 
-    #        callbacks.on_epoch_end(self, ep)
+            callbacks.on_epoch_end(self, ep)
 
-    #    callbacks.on_train_end(self)
-
+        callbacks.on_train_end(self)
 

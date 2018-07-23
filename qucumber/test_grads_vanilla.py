@@ -3,6 +3,7 @@ from qucumber.rbm import BinomialRBM
 import torch
 import numpy as np
 from positive_wavefunction import PositiveWavefunction
+from quantum_reconstruction import QuantumReconstruction
 
 def generate_visible_space(num_visible):
     """Generates all possible visible states.
@@ -84,9 +85,9 @@ def algorithmic_gradKL(nn_state,target_psi,vis):
                 grad_KL[rbmType][pars] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])[rbmType][pars]
     return grad_KL            
 
-def algorithmic_gradNLL(nn_state,data,k):
+def algorithmic_gradNLL(qr,data,k):
    
-    grad_NLL = nn_state.compute_batch_gradients(k, data, data)
+    grad_NLL = qr.compute_batch_gradients(k, data, data)
     #for rbmType in nn_state.gradient(vis[0]):
     #    grad_KL[rbmType] = {}
     #    for pars in nn_state.gradient(vis[0])[rbmType]:
@@ -139,9 +140,10 @@ def numeric_gradNLL(nn_state, param,data):
         num_gradNLL.append( (NLL_p - NLL_m) / (2*eps) )
     return num_gradNLL
 
-def test_gradients(nn_state,target_psi,data, vis, eps,k):
+def test_gradients(qr,target_psi,data, vis, eps,k):
+    nn_state = qr.nn_state
     alg_grad_KL = algorithmic_gradKL(nn_state,target_psi,vis)
-    alg_grad_NLL = algorithmic_gradNLL(nn_state,data,k)
+    alg_grad_NLL = algorithmic_gradNLL(qr,data,k)
     
     flat_weights      = nn_state.rbm.weights.data.view(-1)
     flat_weights_grad_KL = alg_grad_KL["rbm_am"]["weights"].view(-1)
@@ -185,10 +187,12 @@ seed=1234
 nn_state = PositiveWavefunction(num_visible=data.shape[-1],
                                 num_hidden=nh, seed=seed)
 
+qr = QuantumReconstruction(nn_state)
+
 vis        = generate_visible_space(data.shape[-1])
 k          = 100
 eps        = 1.e-8
 
 #alg_grads  = nn_state.compute_batch_gradients(k, data, data)
 algorithmic_gradKL(nn_state,target_psi,vis)
-test_gradients(nn_state,target_psi,data[0:1000], vis, eps,k)#,alg_grads)
+test_gradients(qr,target_psi,data[0:1000], vis, eps,k)#,alg_grads)
