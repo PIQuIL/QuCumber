@@ -62,7 +62,6 @@ public:
     inline Eigen::VectorXd VisibleStateRow(int s){
         return v_.row(s);
     }
-    
     // Set the visible layer state
     inline void SetVisibleLayer(Eigen::MatrixXd v){
         v_=v;
@@ -241,6 +240,26 @@ public:
         for(int i=0;i<x.size();i++){
             y(i)=ln1pexp(x(i));
         }
+    }
+    void PrintParameters(){
+        std::cout << "Weights" <<std::endl<<std::endl;
+        for(int i=0;i<nh_;i++){
+            for(int j=0;j<nv_;j++){
+                std::cout << W_(i,j) << " ";
+            }
+            std::cout<<std::endl;
+        }
+        std::cout<<std::endl;
+        std::cout << "Visible bias" <<std::endl<<std::endl;
+        for(int j=0;j<nv_;j++){
+            std::cout << b_(j) << " ";
+        }
+        std::cout<<std::endl;
+        std::cout << "Hidden bias" <<std::endl<<std::endl;
+        for(int i=0;i<nh_;i++){
+            std::cout << c_(i) << " ";
+        } 
+        std::cout<<std::endl;
     }
 
  };

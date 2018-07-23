@@ -63,48 +63,50 @@ public:
         Eigen::VectorXd ders(npar_);
         ders.setZero(npar_);
 
+        //std::cout << NNstate_.LambdaGrad(basis_states_.row(150)) << std::endl;
         //-- ALGORITHMIC DERIVATIVES --//
         //Standard Basis
         for(int j=0;j<1<<N_;j++){
             //Positive phase - Lambda gradient in reference basis
             ders.head(nparLambda_) +=  norm(target_psi_(j))*NNstate_.LambdaGrad(basis_states_.row(j));
-            //Negative phase - Lambda gradient in reference basis
+            //Negative phase - Lambda gradient in reference basis       
             ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
-            //std::cout << (NNstate_.LambdaGrad(basis_states_.row(j)).head(10)).transpose() << std::endl<<std::endl;
         }
-        if (basis_.compare("std")!=0){
-            //Rotated Basis
-            for(int b=1;b<basisSet_.size();b++){
-                for(int j=0;j<1<<N_;j++){
-                    NNstate_.rotatedGrad(basisSet_[b],basis_states_.row(j),U_,derKL);
-                    ////Positive phase - Lambda gradient in basis b
-                    //ders.head(nparLambda_) += norm(rotated_wf_[b-1](j))*derKL.head(nparLambda_).real();
-                    ////Positive phase - Mu gradient in basis b
-                    //ders.tail(nparMu_) -= norm(rotated_wf_[b-1](j))*derKL.tail(nparMu_).imag();
-                    ders += norm(rotated_wf_[b-1](j))*derKL; 
-                    //Negative phase - Lambda gradient in basis b (identical to the reference basis
-                    ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
-                }
-            }
-        }
-        //-- NUMERICAL DERIVATIVES --//
-        for(int p=0;p<npar_;p++){
-            pars(p)+=eps;
-            NNstate_.SetParameters(pars);
-            double valp=0.0;
-            obs_.ExactPartitionFunction();
-            obs_.ExactKL();
-            valp = obs_.KL_;
-            pars(p)-=2*eps;
-            NNstate_.SetParameters(pars);
-            double valm=0.0;
-            obs_.ExactPartitionFunction();
-            obs_.ExactKL();
-            valm = obs_.KL_;
-            pars(p)+=eps;
-            double numder=(-valm+valp)/(eps*2);
-            std::cout<<"Derivative wrt par "<<p<<". Grad =: "<<ders(p)<<" Numerical = : "<<numder<<std::endl;
-        }
+        std::cout <<ders << std::endl;
+            
+        //if (basis_.compare("std")!=0){
+        //    //Rotated Basis
+        //    for(int b=1;b<basisSet_.size();b++){
+        //        for(int j=0;j<1<<N_;j++){
+        //            NNstate_.rotatedGrad(basisSet_[b],basis_states_.row(j),U_,derKL);
+        //            ////Positive phase - Lambda gradient in basis b
+        //            //ders.head(nparLambda_) += norm(rotated_wf_[b-1](j))*derKL.head(nparLambda_).real();
+        //            ////Positive phase - Mu gradient in basis b
+        //            //ders.tail(nparMu_) -= norm(rotated_wf_[b-1](j))*derKL.tail(nparMu_).imag();
+        //            ders += norm(rotated_wf_[b-1](j))*derKL; 
+        //            //Negative phase - Lambda gradient in basis b (identical to the reference basis
+        //            ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
+        //        }
+        //    }
+        //}
+        ////-- NUMERICAL DERIVATIVES --//
+        //for(int p=0;p<npar_;p++){
+        //    pars(p)+=eps;
+        //    NNstate_.SetParameters(pars);
+        //    double valp=0.0;
+        //    obs_.ExactPartitionFunction();
+        //    obs_.ExactKL();
+        //    valp = obs_.KL_;
+        //    pars(p)-=2*eps;
+        //    NNstate_.SetParameters(pars);
+        //    double valm=0.0;
+        //    obs_.ExactPartitionFunction();
+        //    obs_.ExactKL();
+        //    valm = obs_.KL_;
+        //    pars(p)+=eps;
+        //    double numder=(-valm+valp)/(eps*2);
+        //    std::cout<<"Derivative wrt par "<<p<<". Grad =: "<<ders(p)<<" Numerical = : "<<numder<<std::endl;
+        //}
     }
 
     // Test the derivatives of the KL divergence
@@ -117,7 +119,7 @@ public:
 
         //-- ALGORITHMIC DERIVATIVES --//
         //Standard Basis
-        std::cout << data.rows() <<std::endl;
+        //std::cout << data.rows() <<std::endl;
         for(int j=0;j<data.rows();j++){
             //Positive phase - Lambda gradient in reference basis
             ders.head(nparLambda_) +=  NNstate_.LambdaGrad(data.row(j))/float(data.rows());

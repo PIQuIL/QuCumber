@@ -175,6 +175,10 @@ public:
         rbmAm_.LoadWeights(fin);
         rbmPh_.LoadWeights(fin);
     }
+    void PrintParameters(){
+        rbmAm_.PrintParameters();
+        rbmPh_.PrintParameters();
+    }
 };
 }
 

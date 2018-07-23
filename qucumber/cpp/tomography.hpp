@@ -110,12 +110,13 @@ public:
             ComputeGradient(batch_samples,batch_bases);
             UpdateParameters();
             //Compute stuff and print
-            if (counter == saveFrequency){
-                epoch += 1;
-                obs_.Scan(epoch);
-                counter = 0;
-            }
-            counter++;
+            //if (counter == saveFrequency){
+            //    epoch += 1;
+            //    //obs_.Scan(epoch);
+            //    std::cout << "Epoch: " << epoch << std::endl;
+            //    counter = 0;
+            //}
+            //counter++;
         }
     }
     

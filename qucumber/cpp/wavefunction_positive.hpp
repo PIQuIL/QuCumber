@@ -120,6 +120,10 @@ public:
         std::ofstream fout(fileName);
         rbmAm_.SaveWeights(fout);
     }
+    
+    void PrintParameters(){
+        rbmAm_.PrintParameters();
+    }
 };
 }
 
