@@ -156,45 +156,45 @@ class PositiveWavefunction(Sampler):
 
     #    return rbm
 
-    def compute_batch_gradients(self, k, pos_batch, neg_batch):
-        """This function will compute the gradients of a batch of the training
-        data (data_file) given the basis measurements (chars_file).
-
-        :param k: Number of contrastive divergence steps in training.
-        :type k: int
-        :param pos_batch: Batch of the input data for the positive phase.
-        :type pos_batch: torch.Tensor
-        :param neg_batch: Batch of the input data for the negative phase.
-        :type neg_batch: torch.Tensor
-
-        :returns: Dictionary containing all the gradients of the parameters.
-        :rtype: dict
-        """
-        grad = {}
-        pos_batch_size = float(len(pos_batch))
-        neg_batch_size = float(len(neg_batch))
-        
-        # Positive Phase
-        grad_data = self.gradient(pos_batch)
-        
-        # Negative Phase
-        self.set_visible_layer(neg_batch)
-        self.sample(k)
-        grad_model =self.gradient(self.visible_state)
-       
-        for net in self.networks:
-            tmp = {}
-            for par in grad_data[net].keys():
-                tmp[par] = grad_data[net][par]/pos_batch_size - grad_model[net][par]/neg_batch_size
-            grad[net] = tmp
-        
-        # Return negative gradients to match up nicely with the usual
-        # parameter update rules, which *subtract* the gradient from
-        # the parameters. This is in contrast with the RBM update
-        # rules which ADD the gradients (scaled by the learning rate)
-        # to the parameters.
-        return grad
-
+#    def compute_batch_gradients(self, k, pos_batch, neg_batch):
+#        """This function will compute the gradients of a batch of the training
+#        data (data_file) given the basis measurements (chars_file).
+#
+#        :param k: Number of contrastive divergence steps in training.
+#        :type k: int
+#        :param pos_batch: Batch of the input data for the positive phase.
+#        :type pos_batch: torch.Tensor
+#        :param neg_batch: Batch of the input data for the negative phase.
+#        :type neg_batch: torch.Tensor
+#
+#        :returns: Dictionary containing all the gradients of the parameters.
+#        :rtype: dict
+#        """
+#        grad = {}
+#        pos_batch_size = float(len(pos_batch))
+#        neg_batch_size = float(len(neg_batch))
+#        
+#        # Positive Phase
+#        grad_data = self.gradient(pos_batch)
+#        
+#        # Negative Phase
+#        self.set_visible_layer(neg_batch)
+#        self.sample(k)
+#        grad_model =self.gradient(self.visible_state)
+#       
+#        for net in self.networks:
+#            tmp = {}
+#            for par in grad_data[net].keys():
+#                tmp[par] = grad_data[net][par]/pos_batch_size - grad_model[net][par]/neg_batch_size
+#            grad[net] = tmp
+#        
+#        # Return negative gradients to match up nicely with the usual
+#        # parameter update rules, which *subtract* the gradient from
+#        # the parameters. This is in contrast with the RBM update
+#        # rules which ADD the gradients (scaled by the learning rate)
+#        # to the parameters.
+#        return grad
+#
     def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=200,
             k=1, lr=1e-2, progbar=False, callbacks=[]):
         """Execute the training of the RBM.
