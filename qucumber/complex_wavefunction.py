@@ -74,13 +74,21 @@ class ComplexWavefunction(Sampler):
         return (-self.rbm_am.effective_energy(v)).exp().sqrt()
     
     def phase(self,v):
-        return self.rbm_am.effective_energy(v)
+        return -self.rbm_ph.effective_energy(v)
    
     def gradient(self,v):
         return {'rbm_am': self.rbm_am.effective_energy_gradient(v),'rbm_ph': self.rbm_am.effective_energy_gradient(v)}
 
-    #def psi(self,v):
-    #    return (-self.rbm_am.effective_energy(v)).exp().sqrt()
+    def psi(self,v):
+        #v_prime = v.view(-1, self.num_visible)
+        #temp1 = (self.unnormalized_probability_amp(v_prime)).sqrt()
+        cos_phase = (0.5*self.phase(v)).cos() 
+        sin_phase = (0.5*self.phase(v)).sin() 
+        #temp2 = ((self.unnormalized_probability_phase(v_prime)).log())*0.5
+        psi = torch.zeros(2, dtype=torch.double)
+        psi[0] = self.amplitude(v)*cos_phase 
+        psi[1] = self.amplitude(v)*sin_phase
+        return psi
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
