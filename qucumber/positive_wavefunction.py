@@ -22,7 +22,7 @@
 #
 #import numpy as np
 #from math import sqrt
-#import torch
+import torch
 #from torch import nn
 #from torch.nn import functional as F
 #from torch.utils.data import DataLoader
@@ -46,18 +46,51 @@ class PositiveWavefunction(Sampler):
                            else self.num_visible)
         self.rbm = BinaryRBM(self.num_visible, self.num_hidden,
                                             gpu=gpu, seed=seed)
+        self.networks = ["rbm_am"]
         self.stop_training = False
         self.num_pars = self.rbm.num_pars
+        
+        self.visible_state = torch.zeros(1,self.num_visible,
+                                         device=self.rbm.device,
+                                         dtype=torch.double)
+        self.hidden_state = torch.zeros(1,self.num_hidden,
+                                         device=self.rbm.device,
+                                         dtype=torch.double)
+
+
+    def set_visible_layer(self,v):
+        self.visible_state.resize_(v.shape)
+        self.hidden_state.resize_(v.shape[0],self.num_hidden)
+        self.visible_state = v
 
     def psi(self,v):
         return (-self.rbm.effective_energy(v)).exp().sqrt()
-        #return self.rbm.unnormalized_probability(v)
 
     def gradient(self,v):
         return {"rbm_am": self.rbm.effective_energy_gradient(v)} 
 
-    def sample(self,k,v0):
-        return self.rbm.gibbs_sampling(k,v0)
+    def sample(self, k):
+        """Performs k steps of Block Gibbs sampling given an initial visible
+        state v0.
+
+        :param k: Number of Block Gibbs steps.
+        :type k: int
+        :param v0: The initial visible state.
+        :type v0: torch.Tensor
+
+        :returns: Tuple containing the initial visible state, v0,
+                  the hidden state sampled from v0,
+                  the visible state sampled after k steps,
+                  the hidden state sampled after k steps and its corresponding
+
+                  probability vector.
+        :rtype: tuple(torch.Tensor, torch.Tensor,
+                      torch.Tensor, torch.Tensor,
+                      torch.Tensor)
+        """
+        for _ in range(k):
+            self.hidden_state = self.rbm.sample_h_given_v(self.visible_state)
+            self.visible_state = self.rbm.sample_v_given_h(self.hidden_state)
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
@@ -140,20 +173,27 @@ class PositiveWavefunction(Sampler):
         grad = {}
         pos_batch_size = float(len(pos_batch))
         neg_batch_size = float(len(neg_batch))
-        grad_data = self.gradient(pos_batch)
-        self.sample(k,neg_batch)
-        grad_model =self.gradient(self.rbm.visible_state)
         
-        for par in grad_data['rbm_am'].keys():
-            grad[par] = grad_data['rbm_am'][par]/pos_batch_size - grad_model['rbm_am'][par]/neg_batch_size 
-
+        # Positive Phase
+        grad_data = self.gradient(pos_batch)
+        
+        # Negative Phase
+        self.set_visible_layer(neg_batch)
+        self.sample(k)
+        grad_model =self.gradient(self.visible_state)
+       
+        for net in self.networks:
+            tmp = {}
+            for par in grad_data[net].keys():
+                tmp[par] = grad_data[net][par]/pos_batch_size - grad_model[net][par]/neg_batch_size
+            grad[net] = tmp
+        
         # Return negative gradients to match up nicely with the usual
         # parameter update rules, which *subtract* the gradient from
         # the parameters. This is in contrast with the RBM update
         # rules which ADD the gradients (scaled by the learning rate)
         # to the parameters.
-        #return grad
-        return {"rbm_am": grad}
+        return grad
 
     def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=200,
             k=1, lr=1e-2, progbar=False, callbacks=[]):

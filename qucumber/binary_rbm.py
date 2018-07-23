@@ -89,12 +89,6 @@ class BinaryRBM(nn.Module, Sampler):
                     (torch.randn(self.num_hidden,device=self.device, 
                      dtype=torch.double)/np.sqrt(self.num_hidden)),requires_grad=True)
         
-        self.visible_state = torch.zeros(self.num_chains,self.num_visible,
-                                         device=self.device,
-                                         dtype=torch.double)
-        self.hidden_state = torch.zeros(self.num_chains,self.num_hidden,
-                                         device=self.device,
-                                         dtype=torch.double)
     
     def __repr__(self):
         return ("BinaryRBM(num_visible={}, num_hidden={}, gpu={})"
@@ -206,31 +200,5 @@ class BinaryRBM(nn.Module, Sampler):
         p = self.prob_h_given_v(v)
         h = p.bernoulli()
         return h
-
-    def gibbs_sampling(self, k, v0):
-        """Performs k steps of Block Gibbs sampling given an initial visible
-        state v0.
-
-        :param k: Number of Block Gibbs steps.
-        :type k: int
-        :param v0: The initial visible state.
-        :type v0: torch.Tensor
-
-        :returns: Tuple containing the initial visible state, v0,
-                  the hidden state sampled from v0,
-                  the visible state sampled after k steps,
-                  the hidden state sampled after k steps and its corresponding
-
-                  probability vector.
-        :rtype: tuple(torch.Tensor, torch.Tensor,
-                      torch.Tensor, torch.Tensor,
-                      torch.Tensor)
-        """
-        self.visible_state.resize_(v0.shape)
-        self.hidden_state.resize_(v0.shape[0],self.num_hidden)
-        self.visible_state = v0
-        for _ in range(k):
-            self.hidden_state = self.sample_h_given_v(self.visible_state)
-            self.visible_state = self.sample_v_given_h(self.hidden_state)
 
 
