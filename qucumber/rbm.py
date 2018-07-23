@@ -120,12 +120,15 @@ class BinomialRBMModule(nn.Module, Sampler):
 
         :param h: The hidden unit
         :type h: torch.Tensor
+        :param out: The output tensor to write to
+        :type out: torch.Tensor
 
         :returns: The probability of visible units being active given the
                   hidden state.
         :rtype: torch.Tensor
         """
-        p = torch.addmm(self.visible_bias.data, h, self.weights.data, out=out)\
+        p = torch.addmm(self.visible_bias.data, h,
+                        self.weights.data, out=out)\
                  .sigmoid_()
         return p
 
@@ -135,12 +138,15 @@ class BinomialRBMModule(nn.Module, Sampler):
 
         :param h: The hidden unit.
         :type h: torch.Tensor
+        :param out: The output tensor to write to
+        :type out: torch.Tensor
 
         :returns: The probability of hidden units being active given the
                   visible state.
         :rtype: torch.Tensor
         """
-        p = torch.addmm(self.hidden_bias.data, v, self.weights.data.t(), out=out) \
+        p = torch.addmm(self.hidden_bias.data, v,
+                        self.weights.data.t(), out=out) \
                  .sigmoid_()
         return p
 
@@ -383,7 +389,7 @@ class BinomialRBM(Sampler):
         :rtype: dict
         """
 
-        v0, ph0, _, _ = self.rbm_module.gibbs_sampling(k, pos_batch)
+        v0, ph0, _, _ = self.rbm_module.gibbs_sampling(0, pos_batch)
         _, _, vk, phk = self.rbm_module.gibbs_sampling(k, neg_batch)
 
         pos_batch_size = float(len(pos_batch))
