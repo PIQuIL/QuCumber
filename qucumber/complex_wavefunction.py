@@ -57,6 +57,7 @@ class ComplexWavefunction(Sampler):
                                   seed=seed)
         self.rbm_ph = BinaryRBM(num_visible, num_hidden, gpu=gpu,
                                   seed=seed+72938)
+        self.networks = ["rbm_am","rbm_ph"]
         self.device = self.rbm_am.device
 
         self.visible_state = torch.zeros(1,self.num_visible,
