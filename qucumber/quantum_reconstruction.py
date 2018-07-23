@@ -142,13 +142,10 @@ class QuantumReconstruction(Sampler):
                 optimizer.zero_grad()  # clear any cached gradients
 
                 # assign all available gradients to the corresponding parameter
-                #self.nn_state.rbm_am.weights.grad = all_grads['rbm_am']['weights']
-                #self.nn_state.rbm_am.visible_bias.grad = all_grads['rbm_am']['visible_bias']
-                #self.nn_state.rbm_am.hidden_bias.grad = all_grads['rbm_am']['hidden_bias']
                 for net in self.nn_state.networks:
-                    selected_RBM = getattr(self.nn_state, net)
+                    rbm = getattr(self.nn_state, net)
                     for param in all_grads[net].keys():
-                        getattr(selected_RBM, param).grad = all_grads[net][param]
+                        getattr(rbm, param).grad = all_grads[net][param]
 
                 optimizer.step()  # tell the optimizer to apply the gradients
 

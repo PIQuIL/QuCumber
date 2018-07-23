@@ -200,5 +200,3 @@ class BinaryRBM(nn.Module, Sampler):
         p = self.prob_h_given_v(v)
         h = p.bernoulli()
         return h
-
-
