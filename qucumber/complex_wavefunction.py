@@ -33,26 +33,21 @@ from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
 from binary_rbm import BinaryRBM
 import qucumber.cplx as cplx
-#from qucumber.samplers import Sampler
-#from qucumber.callbacks import CallbackList
+from qucumber.samplers import Sampler
+from qucumber.callbacks import CallbackList
 
 __all__ = [
     "ComplexWavefunction"
 ]
 
 class ComplexWavefunction(Sampler):
-    # NOTE: In development. Might be unstable.
-    # NOTE: The 'full_unitaries' argument is not needed for training/sampling.
-    # This is only here for debugging the gradients. Delete this argument when
-    # gradients have been debugged.
-    def __init__(self, full_unitaries, psi_dictionary, num_visible,
+    
+    def __init__(self,num_visible,
                  num_hidden, gpu=True,
                  seed=1234):
         super(ComplexWavefunction, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
-        #self.full_unitaries = full_unitaries
-        #self.psi_dictionary = psi_dictionary
         self.rbm_am = BinaryRBM(num_visible, num_hidden, gpu=gpu,
                                   seed=seed)
         self.rbm_ph = BinaryRBM(num_visible, num_hidden, gpu=gpu,
@@ -77,19 +72,90 @@ class ComplexWavefunction(Sampler):
     def phase(self,v):
         return -self.rbm_ph.effective_energy(v)
    
-    def gradient(self,v):
-        return {'rbm_am': self.rbm_am.effective_energy_gradient(v),'rbm_ph': self.rbm_am.effective_energy_gradient(v)}
-
     def psi(self,v):
         #v_prime = v.view(-1, self.num_visible)
-        #temp1 = (self.unnormalized_probability_amp(v_prime)).sqrt()
         cos_phase = (0.5*self.phase(v)).cos() 
         sin_phase = (0.5*self.phase(v)).sin() 
-        #temp2 = ((self.unnormalized_probability_phase(v_prime)).log())*0.5
         psi = torch.zeros(2, dtype=torch.double)
         psi[0] = self.amplitude(v)*cos_phase 
         psi[1] = self.amplitude(v)*sin_phase
         return psi
+
+    def gradient(self,v):
+        return {'rbm_am': self.rbm_am.effective_energy_gradient(v),'rbm_ph': self.rbm_ph.effective_energy_gradient(v)}
+
+    def rotate_grad(self,basis,v_state,unitary_dict):
+        
+        v = torch.zeros(self.num_visible, dtype=torch.double)
+        grad = {}
+        rotated_grad = {}
+        final_grad = {}
+        for net in self.networks:
+            rbm = getattr(self, net)
+            tmp = {}
+            for par in rbm.state_dict():
+                tmp[par] = 0
+            rotated_grad[net] = tmp
+            final_grad[net] = tmp
+        Upsi = torch.zeros(2, dtype=torch.double)
+        num_nontrivial_U = 0
+        nontrivial_sites = []
+        for j in range(self.num_visible):
+            if (basis[j] is not 'Z'):
+                num_nontrivial_U += 1
+                nontrivial_sites.append(j)
+        sub_state = generate_visible_space(num_nontrivial_U)
+    
+        for x in range(1<<num_nontrivial_U):
+            cnt = 0
+            for j in range(self.num_visible):
+                if (basis[j] is not 'Z'):
+                    v[j]=sub_state[x][cnt]
+                    cnt += 1
+                else:
+                    v[j]=v_state[j]
+            U = torch.tensor([1., 0.], dtype=torch.double)
+            for ii in range(num_nontrivial_U):
+                tmp = unitary_dict[basis[nontrivial_sites[ii]]][:,int(v_state[nontrivial_sites[ii]]),int(v[nontrivial_sites[ii]])]
+                U = cplx.scalar_mult(U,tmp)
+            
+            grad = self.gradient(v)
+            Upsi += cplx.scalar_mult(U,self.psi(v))             
+            
+            for net in self.networks:
+                Upsi_v = cplx.scalar_mult(U,self.psi(v))
+                tmp = cplx.make_complex_matrix(grad[net]['weights'],torch.zeros(grad[net]['weights'].shape[0],grad[net]['weights'].shape[1],dtype=torch.double))
+                rotated_grad[net]['weights']+=cplx.MS_mult(Upsi_v,tmp)
+                tmp = cplx.make_complex_vector(grad[net]['visible_bias'],torch.zeros(grad[net]['visible_bias'].shape[0],dtype=torch.double))
+                rotated_grad[net]['visible_bias']+=cplx.VS_mult(Upsi_v,tmp)
+                tmp = cplx.make_complex_vector(grad[net]['hidden_bias'],torch.zeros(grad[net]['hidden_bias'].shape[0],dtype=torch.double))
+                rotated_grad[net]['hidden_bias']+=cplx.VS_mult(Upsi_v,tmp)
+
+        final_grad['rbm_am']['weights'] = cplx.MS_divide(rotated_grad['rbm_am']['weights'],Upsi)[0,:,:] 
+        final_grad['rbm_am']['visible_bias'] = cplx.VS_divide(rotated_grad['rbm_am']['visible_bias'],Upsi)[0,:]  
+        final_grad['rbm_am']['hidden_bias'] = cplx.VS_divide(rotated_grad['rbm_am']['hidden_bias'],Upsi)[0,:]  
+        final_grad['rbm_ph']['weights'] = -cplx.MS_divide(rotated_grad['rbm_ph']['weights'],Upsi)[1,:,:] 
+        final_grad['rbm_ph']['visible_bias'] = -cplx.VS_divide(rotated_grad['rbm_ph']['visible_bias'],Upsi)[1,:]  
+        final_grad['rbm_ph']['hidden_bias'] = -cplx.VS_divide(rotated_grad['rbm_ph']['hidden_bias'],Upsi)[1,:]  
+
+        return final_grad
+
+
+def generate_visible_space(size):
+    """Generates all possible visible states.
+
+    :returns: A tensor of all possible spin configurations.
+    :rtype: torch.Tensor
+    """
+    space = torch.zeros((1 << size, size),
+                        device="cpu", dtype=torch.double)
+    for i in range(1 << size):
+        d = i
+        for j in range(size):
+            d, r = divmod(d, 2)
+            space[i, size - j - 1] = int(r)
+    
+    return space
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with

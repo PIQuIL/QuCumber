@@ -123,6 +123,20 @@ def rotate_psi(nn_state,basis,unitary_dict):
     return psi_r
 
 
+#def test_psi_rotations(bases,unitary_dict,fullunitary_dict,psi_dict,vis):
+#    for b in range(1,len(bases)):
+#        psi_r = rotate_psi_full(bases[b],fullunitary_dict,psi_dict['ZZ'])
+#        print("\n\nBases: %s\n" % bases[b])
+#        D = 1 << len(bases[b])
+#        psi_alg = rotate_psi(bases[b],unitary_dict,psi_dict['ZZ'])
+#        print('\t   Exact \t\t\t\tFullRotation \t\t\t\tAlgorithmic')
+#        for j in range(D):
+#            print("{: 10.8f}  +  {: 10.8f}\t\t".format(psi_dict[bases[b]][0][j].item(),psi_dict[bases[b]][1][j].item()),end="", flush=True)
+#            print("{: 10.8f}  +  {: 10.8f}\t\t".format(psi_r[0][j].item(),psi_r[1][j].item()),end="", flush=True)
+#            print("{: 10.8f}  +  {: 10.8f}\t\t".format(psi_alg[0][j].item(),psi_alg[1][j].item()))
+#        
+#
+#
 def compute_numerical_kl(nn_state,psi_dict,vis,Z,unitary_dict,bases):
     N=nn_state.num_visible 
     psi_r = torch.zeros(2,1<<N,dtype=torch.double)
@@ -148,96 +162,102 @@ def numeric_gradKL(param,nn_state,psi_dict,vis,unitary_dict,bases):
         
         Z     = partition(nn_state,vis)
         KL_p  = compute_numerical_kl(nn_state,psi_dict, vis, Z,unitary_dict,bases)
-        #NLL_p = compute_numerical_NLL(data, Z)
 
         param[i] -= 2*eps
 
         Z     = partition(nn_state,vis)
         KL_m  = compute_numerical_kl(nn_state,psi_dict, vis, Z,unitary_dict,bases)
-        #NLL_m = compute_numerical_NLL(data, Z)
 
         param[i] += eps
 
         num_gradKL.append( (KL_p - KL_m) / (2*eps) )
-        #num_gradNLL = (NLL_p - NLL_m) / (2*eps)
     return num_gradKL
 
-#def algorithmic_gradKL(nn_state,target_psi,vis):
-#    grad_KL={}
-#    for rbmType in nn_state.gradient(vis[0]):
-#        grad_KL[rbmType] = {}
-#        for pars in nn_state.gradient(vis[0])[rbmType]:
-#            grad_KL[rbmType][pars]=0
-#    Z = partition(nn_state,vis)
-#    for i in range(len(vis)):
-#        for rbmType in nn_state.gradient(vis[i]):
-#            for pars in nn_state.gradient(vis[i])[rbmType]:    
-#                grad_KL[rbmType][pars] += ((target_psi[i])**2)*nn_state.gradient(vis[i])[rbmType][pars]            
-#                grad_KL[rbmType][pars] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])[rbmType][pars]
-#    return grad_KL            
+def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
+    grad_KL={}
+    for net in nn_state.networks:
+        tmp = {}
+        rbm = getattr(nn_state, net)
+        for par in rbm.state_dict():
+            tmp[par]=0.0    
+        grad_KL[net] = tmp
+    Z = partition(nn_state,vis)
+    
+    for i in range(len(vis)):
+        for par in rbm.state_dict():
+            grad_KL['rbm_am'][par] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.gradient(vis[i])['rbm_am'][par]
+            grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]
+
+    for b in range(1,len(bases)):
+        psi_r = rotate_psi(nn_state,bases[b],unitary_dict)
+        for i in range(len(vis)):
+            rotated_grad = nn_state.rotate_grad(bases[b],vis[i],unitary_dict)
+            for net in nn_state.networks:
+                for par in rbm.state_dict():
+                    grad_KL[net][par] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[net][par]
+            for par in rbm.state_dict():
+                grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]
+    return grad_KL            
+
+
+#def compute_numerical_NLL(batch, Z):
+#    NLL = 0.0
+#    batch_size = len(batch)
+#
+#    for i in range(len(batch)):
+#        NLL -= (rbm_complex.rbm_amp.probability(batch[i], Z)).log().item()/batch_size       
+#
+#    return NLL 
 #
 
 
 #def test_gradients(qr,target_psi,data, vis, eps,k):
 def test_gradients(nn_state,psi_dict,unitary_dict,bases,vis,eps):
-    #nn_state = qr.nn_state
-    #alg_grad_KL = algorithmic_gradKL(nn_state,target_psi,vis)
     #alg_grad_NLL = algorithmic_gradNLL(qr,data,k)
+    alg_grad_KL = algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases)
     for net in nn_state.networks:
         print('\n\nRBM: %s' %net) 
+        #alg_grad_KL = algorithmic_gradKL(nn_state,net,psi_dict,vis,unitary_dict,bases)
         rbm = getattr(nn_state, net)
         flat_weights = rbm.weights.data.view(-1)
-        #flat_weights_grad_KL = alg_grad_KL["rbm_am"]["weights"].view(-1)
+        #print(alg_grad_KL[net])
+        flat_weights_grad_KL = alg_grad_KL[net]["weights"].view(-1)
         #flat_weights_grad_NLL = alg_grad_NLL["rbm_am"]["weights"].view(-1)
         num_grad_KL=numeric_gradKL(flat_weights,nn_state,psi_dict,vis,unitary_dict,bases)
-        #num_grad_KL = numeric_gradKL(nn_state,target_psi,flat_weights,vis)
         #num_grad_NLL = numeric_gradNLL(nn_state,flat_weights,data)
         print("\nTesting weights...")
         print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
         for i in range(len(flat_weights)):
-            print("{: 10.8f}".format(num_grad_KL[i]))
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],flat_weights_grad_KL[i]),end="", flush=True)
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],flat_weights_grad_NLL[i]))
-        
+            print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],flat_weights_grad_KL[i]))#,end="", flush=True)
+        ##    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],flat_weights_grad_NLL[i]))
+        #
         num_grad_KL=numeric_gradKL(rbm.visible_bias,nn_state,psi_dict,vis,unitary_dict,bases)
-#num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm_am.visible_bias,vis)
-        #num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.visible_bias,data)
+        ##num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.visible_bias,data)
         print("\nTesting visible bias...")
-        #print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
+        print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
+        ##for i in range(len(rbm.visible_bias)):
+        ##    print("{: 10.8f}".format(num_grad_KL[i]))
         for i in range(len(rbm.visible_bias)):
-            print("{: 10.8f}".format(num_grad_KL[i]))
-        #for i in range(len(nn_state.rbm_am.visible_bias)):
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL["rbm_am"]["visible_bias"][i]),end="", flush=True)
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["visible_bias"][i]))
+            print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL[net]["visible_bias"][i]))#,end="", flush=True)
+        ##    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["visible_bias"][i]))
  
         
         num_grad_KL=numeric_gradKL(rbm.hidden_bias,nn_state,psi_dict,vis,unitary_dict,bases)
-        #num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.hidden_bias,data)
+        ##num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.hidden_bias,data)
         print("\nTesting hidden bias...")
-        #print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
+        print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
+        #for i in range(len(rbm.hidden_bias)):
+        ##    print("{: 10.8f}".format(num_grad_KL[i]))
         for i in range(len(rbm.hidden_bias)):
-            print("{: 10.8f}".format(num_grad_KL[i]))
-        #for i in range(len(nn_state.rbm_am.hidden_bias)):
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL["rbm_am"]["hidden_bias"][i]),end="", flush=True)
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["hidden_bias"][i]))
+            print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL[net]["hidden_bias"][i]))#,end="", flush=True)
+        ##    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["hidden_bias"][i]))
 
     print('')
 
 
-#def test_psi_rotations(bases,unitary_dict,fullunitary_dict,psi_dict,vis):
-#    for b in range(1,len(bases)):
-#        psi_r = rotate_psi_full(bases[b],fullunitary_dict,psi_dict['ZZ'])
-#        print("\n\nBases: %s\n" % bases[b])
-#        D = 1 << len(bases[b])
-#        psi_alg = rotate_psi(bases[b],unitary_dict,psi_dict['ZZ'])
-#        print('\t   Exact \t\t\t\tFullRotation \t\t\t\tAlgorithmic')
-#        for j in range(D):
-#            print("{: 10.8f}  +  {: 10.8f}\t\t".format(psi_dict[bases[b]][0][j].item(),psi_dict[bases[b]][1][j].item()),end="", flush=True)
-#            print("{: 10.8f}  +  {: 10.8f}\t\t".format(psi_r[0][j].item(),psi_r[1][j].item()),end="", flush=True)
-#            print("{: 10.8f}  +  {: 10.8f}\t\t".format(psi_alg[0][j].item(),psi_alg[1][j].item()))
-#        
-#
-#
+
+
+
 
 path_to_train_data = '../tools/benchmarks/data/2qubits_complex/2qubits_train_samples.txt'
 path_to_train_bases= '../tools/benchmarks/data/2qubits_complex/2qubits_train_bases.txt'
@@ -260,154 +280,9 @@ with open(path_to_bases) as fin:
 psi_dict = load_target_psi(bases,path_to_target_psi)
 fullunitary_dict = load_full_unitaries(bases,path_to_full_unitaries)
 
-nn_state = ComplexWavefunction(full_unitaries=fullunitary_dict,
-                         psi_dictionary=psi_dict,
-                         num_visible=num_visible,
-                         num_hidden=num_hidden)
+nn_state = ComplexWavefunction(num_visible=num_visible,
+                               num_hidden=num_hidden)
 k           = 100
 eps         = 1.e-8
 
 test_gradients(nn_state,psi_dict,unitary_dict,bases,vis,eps)
-#Z = partition(nn_state,vis)
-#compute_numerical_kl(nn_state,psi_dict,vis,Z,unitary_dict,bases)
-
-
-#test_psi_rotations(bases,unitary_dict,fullunitary_dict,psi_dict,vis)
-##alg_grads   = rbm_complex.compute_batch_gradients(unitary_dict, k, data, data, basis_data, basis_data)
-
-
-
-
-#def compute_numerical_KL(visible_space, Z):
-#    '''Computes the total KL divergence.
-#    '''
-#    KL = 0.0
-#    basis_list = ['Z' 'Z', 'X' 'Z', 'Z' 'X', 'Y' 'Z', 'Z' 'Y']
-#
-#    # Wavefunctions (RBM and true) in the computational basis.
-#    # psi_ZZ      = self.normalized_wavefunction(visible_space)
-#    # true_psi_ZZ = self.get_true_psi('ZZ')
-#
-#    #Compute the KL divergence for the non computational bases.
-#    for i in range(len(basis_list)):
-#        rotated_RBM_psi = cplx.MV_mult(
-#            full_unitary_dictionary[basis_list[i]],
-#            rbm_complex.normalized_wavefunction(visible_space, Z)).view(2,-1)
-#        rotated_true_psi = rbm_complex.get_true_psi(basis_list[i]).view(2,-1)
-#
-#        #print ("RBM >>> ", rotated_RBM_psi,"\n norm >>> ",cplx.norm(cplx.inner_prod(rotated_RBM_psi, rotated_RBM_psi)))
-#        #print ("True >> ", rotated_true_psi)
-#
-#        for j in range(len(visible_space)):
-#            elementof_rotated_RBM_psi = torch.tensor(
-#                                        [rotated_RBM_psi[0][j],
-#                                         rotated_RBM_psi[1][j]]
-#                                        ).view(2, 1)
-#
-#            elementof_rotated_true_psi = torch.tensor(
-#                                          [rotated_true_psi[0][j],
-#                                           rotated_true_psi[1][j]] 
-#                                          ).view(2, 1)
-#
-#            norm_true_psi = cplx.norm(cplx.inner_prod(
-#                                      elementof_rotated_true_psi,
-#                                      elementof_rotated_true_psi))
-#
-#            norm_RBM_psi = cplx.norm(cplx.inner_prod(
-#                                     elementof_rotated_RBM_psi,
-#                                     elementof_rotated_RBM_psi))
-#            '''
-#            if norm_true_psi < 0.01 or norm_RBM_psi < 0.01:
-#                print ('True >>> ',norm_true_psi)
-#                print ('RBM >>> ', norm_RBM_psi)
-#            '''
-#            # TODO: numerical grads are NAN here if I don't do this if statement (july 16)
-#            #if norm_true_psi>0.0 and norm_RBM_psi>0.0:
-#            #print ('Basis      : ',basis_list[i])
-#            #print ("Plus term  : ",norm_true_psi*torch.log(norm_true_psi))
-#            #print ("Minus term : ",norm_true_psi*torch.log(norm_RBM_psi),'\n')
-#
-#            KL += norm_true_psi*torch.log(norm_true_psi)
-#            KL -= norm_true_psi*torch.log(norm_RBM_psi)
-#
-#    #print ('KL >>> ',KL)
-#
-#    return KL
-#
-#def compute_numerical_NLL(batch, Z):
-#    NLL = 0.0
-#    batch_size = len(batch)
-#
-#    for i in range(len(batch)):
-#        NLL -= (rbm_complex.rbm_amp.probability(batch[i], Z)).log().item()/batch_size       
-#
-#    return NLL 
-#
-#def compute_numerical_gradient(batch, visible_space, param, alg_grad, Z):
-#    eps = 1.e-8
-#    print("Numerical NLL\t Numerical KL\t Alg.")
-#
-#    for i in range(len(param)):
-#
-#        param[i].data += eps
-#        Z = rbm_complex.rbm_amp.partition(visible_space)
-#        NLL_pos = compute_numerical_NLL(batch, Z)
-#        KL_pos  = compute_numerical_KL(visible_space, Z)
-#
-#        param[i].data -= 2*eps
-#        Z = rbm_complex.rbm_amp.partition(visible_space)
-#        NLL_neg = compute_numerical_NLL(batch, Z)
-#        KL_neg  = compute_numerical_KL(visible_space, Z)
-#
-#        param[i].data += eps
-#
-#        num_gradKL  = (KL_pos - KL_neg) / (2*eps)
-#        num_gradNLL = (NLL_pos - NLL_neg) / (2*eps)
-#
-#        print("{: 10.8f}\t{: 10.8f}\t{: 10.8f}\t"
-#              .format(num_gradNLL, num_gradKL, alg_grad[i]))
-#
-#def test_gradients(batch, visible_space, k, alg_grads):
-#    # Must have negative sign because the compute_batch_grads returns the neg of the grads.
-#    # key_list = ["weights_amp", "visible_bias_amp", "hidden_bias_amp", "weights_phase", "visible_bias_phase", "hidden_bias_phase"]
-#
-#    flat_weights_amp   = rbm_complex.rbm_amp.weights.data.view(-1)
-#    flat_weights_phase = rbm_complex.rbm_phase.weights.data.view(-1)
-#
-#    flat_grad_weights_amp   = alg_grads["rbm_amp"]["weights"].view(-1)
-#    flat_grad_weights_phase = alg_grads["rbm_phase"]["weights"].view(-1)
-#
-#    Z = rbm_complex.rbm_amp.partition(visible_space)
-#
-#    print('-------------------------------------------------------------------------------')
-#
-#    print('Weights amp gradient')
-#    compute_numerical_gradient(
-#        batch, visible_space, flat_weights_amp, -flat_grad_weights_amp, Z)
-#    print ('\n')
-#
-#    print('Visible bias amp gradient')
-#    compute_numerical_gradient(
-#        batch, visible_space, rbm_complex.rbm_amp.visible_bias, -alg_grads["rbm_amp"]["visible_bias"], Z)
-#    print ('\n')
-#
-#    print('Hidden bias amp gradient')
-#    compute_numerical_gradient(
-#        batch, visible_space, rbm_complex.rbm_amp.hidden_bias, -alg_grads["rbm_amp"]["hidden_bias"], Z)
-#    print ('\n')
-#
-#    print('Weights phase gradient')
-#    compute_numerical_gradient(
-#        batch, visible_space, flat_weights_phase, -flat_grad_weights_phase, Z)
-#    print ('\n')
-#
-#    print('Visible bias phase gradient')
-#    compute_numerical_gradient(
-#        batch, visible_space, rbm_complex.rbm_phase.visible_bias, -alg_grads["rbm_phase"]["visible_bias"], Z)
-#    print ('\n')
-#
-#    print('Hidden bias phase gradient')
-#    compute_numerical_gradient(
-#        batch, visible_space, rbm_complex.rbm_phase.hidden_bias, -alg_grads["rbm_phase"]["hidden_bias"], Z)
-#
-#test_gradients(data, vis, k, alg_grads)

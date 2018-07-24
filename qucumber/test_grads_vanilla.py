@@ -95,18 +95,16 @@ def numeric_gradKL(nn_state,target_psi, param, vis):
         
         Z     = partition(nn_state,vis)
         KL_p  = compute_numerical_kl(nn_state,target_psi, vis, Z)
-        #NLL_p = compute_numerical_NLL(data, Z)
 
         param[i] -= 2*eps
 
         Z     = partition(nn_state,vis)
         KL_m  = compute_numerical_kl(nn_state,target_psi, vis, Z)
-        #NLL_m = compute_numerical_NLL(data, Z)
 
         param[i] += eps
 
         num_gradKL.append( (KL_p - KL_m) / (2*eps) )
-        #num_gradNLL = (NLL_p - NLL_m) / (2*eps)
+    
     return num_gradKL
 
 def numeric_gradNLL(nn_state, param,data):
