@@ -28,13 +28,15 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 
-import qucumber.cplx as cplx
 from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
 from binary_rbm import BinaryRBM
-import qucumber.cplx as cplx
+#import qucumber.cplx as cplx
+from utils import cplx
+from utils import unitaries
 from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
+from qucumber import unitaries
 
 __all__ = [
     "ComplexWavefunction"
@@ -54,7 +56,7 @@ class ComplexWavefunction:
                                   seed=seed+72938)
         self.networks = ["rbm_am","rbm_ph"]
         self.device = self.rbm_am.device
-
+        self.unitary_dict = unitaries.create_dict()
         self.visible_state = torch.zeros(1,self.num_visible,
                                          device=self.rbm_am.device,
                                          dtype=torch.double)
@@ -73,6 +75,7 @@ class ComplexWavefunction:
         return -self.rbm_ph.effective_energy(v)
    
     def psi(self,v):
+        #NOTE Why
         #v_prime = v.view(-1, self.num_visible)
         cos_phase = (0.5*self.phase(v)).cos() 
         sin_phase = (0.5*self.phase(v)).sin() 
@@ -84,7 +87,7 @@ class ComplexWavefunction:
     def gradient(self,v):
         return {'rbm_am': self.rbm_am.effective_energy_gradient(v),'rbm_ph': self.rbm_ph.effective_energy_gradient(v)}
 
-    def rotate_grad(self,basis,v_state,unitary_dict):
+    def rotate_grad(self,basis,v_state):
         
         v = torch.zeros(self.num_visible, dtype=torch.double)
         grad = {}
@@ -116,7 +119,7 @@ class ComplexWavefunction:
                     v[j]=v_state[j]
             U = torch.tensor([1., 0.], dtype=torch.double)
             for ii in range(num_nontrivial_U):
-                tmp = unitary_dict[basis[nontrivial_sites[ii]]][:,int(v_state[nontrivial_sites[ii]]),int(v[nontrivial_sites[ii]])]
+                tmp = self.unitary_dict[basis[nontrivial_sites[ii]]][:,int(v_state[nontrivial_sites[ii]]),int(v[nontrivial_sites[ii]])]
                 U = cplx.scalar_mult(U,tmp)
             
             grad = self.gradient(v)

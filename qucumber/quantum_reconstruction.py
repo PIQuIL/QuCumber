@@ -28,7 +28,8 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 
-import qucumber.cplx as cplx
+#import qucumber.cplx as cplx
+import utils.cplx as cplx
 from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
 from positive_wavefunction import PositiveWavefunction
@@ -44,8 +45,9 @@ class QuantumReconstruction:
         self.nn_state = nn_state 
         self.num_visible = nn_state.num_visible
         self.stop_training = False
+        unitary_dict = {}
 
-    def compute_batch_gradients(self, k, samples_batch):
+    def compute_batch_gradients(self, k, samples_batch,bases_batch=None):
         """This function will compute the gradients of a batch of the training
         data (data_file) given the basis measurements (chars_file).
 
@@ -60,16 +62,37 @@ class QuantumReconstruction:
         :rtype: dict
         """
         grad = {}
-        # Positive Phase
-        grad_data = self.nn_state.gradient(samples_batch)
-        # Negative Phase
-        self.nn_state.sample(k)
-        grad_model = self.nn_state.gradient(self.nn_state.visible_state)
         for net in self.nn_state.networks:
             tmp = {}
-            for par in grad_data[net].keys():
-                tmp[par] = grad_data[net][par]/float(samples_batch.shape[0]) - grad_model[net][par]/float(self.nn_state.visible_state.shape[0])
+            rbm = getattr(self.nn_state, net)
+            for par in rbm.state_dict():
+                tmp[par]=0.0    
             grad[net] = tmp
+        
+        # Positive Phase
+        for i in range(samples_batch.shape[0]):
+            if bases_batch is None:
+                for par in rbm.state_dict():
+                    grad['rbm_am'][par] += self.nn_state.gradient(samples_batch[i])['rbm_am'][par]/float(samples_batch.shape[0])
+            else:
+                b_flag = 0
+                for j in range(self.nn_state.num_visible):
+                    if (bases_batch[i][j] != 'Z'):
+                        b_flag = 1
+                if (b_flag == 0):
+                    for par in rbm.state_dict():
+                        grad['rbm_am'][par] += self.nn_state.gradient(samples_batch[i])['rbm_am'][par]/float(samples_batch.shape[0])
+                else:
+                    rotated_grad = self.nn_state.rotate_grad(bases_batch[i],samples_batch[i])
+                    for net in self.nn_state.networks:
+                        for par in getattr(self.nn_state, net).state_dict():
+                            grad[net][par] += rotated_grad[net][par]/float(samples_batch.shape[0])
+        
+        # Negative Phase
+        self.nn_state.sample(k)
+        for par in getattr(self.nn_state, 'rbm_am').state_dict():
+            grad['rbm_am'][par] -= self.nn_state.gradient(self.nn_state.visible_state)['rbm_am'][par]/float(self.nn_state.visible_state.shape[0])
+
         return grad
 
     def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=100,
@@ -133,7 +156,7 @@ class QuantumReconstruction:
                 callbacks.on_batch_start(self, ep, batch_num)
 
                 self.nn_state.set_visible_layer(neg_batch)
-                all_grads = self.compute_batch_gradients(k, pos_batch,neg_batch)
+                all_grads = self.compute_batch_gradients(k, pos_batch)
                 optimizer.zero_grad()  # clear any cached gradients
 
                 # assign all available gradients to the corresponding parameter

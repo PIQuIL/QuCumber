@@ -17,18 +17,18 @@
 # specific language governing permissions and limitations
 # under the License.
 
-#import warnings
+import warnings
 from itertools import chain
-#
-#import numpy as np
-#from math import sqrt
+
+import numpy as np
+from math import sqrt
 import torch
-#from torch import nn
-#from torch.nn import functional as F
+from torch import nn
+from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 
-import qucumber.cplx as cplx
+import utils.cplx as cplx
 from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
 from binary_rbm import BinaryRBM
