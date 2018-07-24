@@ -20,7 +20,6 @@
 import torch
 import numpy as np
 
-
 def create_dict(name=None, unitary=None):
     dictionary = {
         'X': (1./np.sqrt(2))*torch.tensor(
