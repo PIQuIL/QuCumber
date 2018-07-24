@@ -1,6 +1,8 @@
 #from qucumber.rbm import ComplexRBM
 from qucumber import unitaries
 from qucumber import cplx
+import sys
+sys.path.append('../')
 
 import torch
 import numpy as np
@@ -259,11 +261,11 @@ def test_gradients(nn_state,psi_dict,unitary_dict,bases,vis,eps):
 
 
 
-path_to_train_data = '../tools/benchmarks/data/2qubits_complex/2qubits_train_samples.txt'
-path_to_train_bases= '../tools/benchmarks/data/2qubits_complex/2qubits_train_bases.txt'
-path_to_full_unitaries = '../tools/benchmarks/data/2qubits_complex/2qubits_unitaries.txt'
-path_to_bases = '../tools/benchmarks/data/2qubits_complex/2qubits_bases.txt'
-path_to_target_psi = '../tools/benchmarks/data/2qubits_complex/2qubits_psi.txt'
+path_to_train_data = '../../tools/benchmarks/data/2qubits_complex/2qubits_train_samples.txt'
+path_to_train_bases= '../../tools/benchmarks/data/2qubits_complex/2qubits_train_bases.txt'
+path_to_full_unitaries = '../../tools/benchmarks/data/2qubits_complex/2qubits_unitaries.txt'
+path_to_bases = '../../tools/benchmarks/data/2qubits_complex/2qubits_bases.txt'
+path_to_target_psi = '../../tools/benchmarks/data/2qubits_complex/2qubits_psi.txt'
 
 train_data = torch.tensor(np.loadtxt(path_to_train_data),dtype = torch.double)
 train_bases = np.loadtxt(path_to_train_bases, dtype=str)

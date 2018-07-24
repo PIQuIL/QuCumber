@@ -1,9 +1,16 @@
 from qucumber.rbm import BinomialRBM
-
+import sys
+sys.path.append('../')
 import torch
 import numpy as np
 from positive_wavefunction import PositiveWavefunction
 from quantum_reconstruction import QuantumReconstruction
+import importlib.util
+#spec = importlib.util.spec_from_file_location("PositiveWavefunction", "../positive_wavefunction.py")
+#PositiveWavefunction = importlib.util.module_from_spec(spec)
+#spec = importlib.util.spec_from_file_location("QuantumReconstruction", "../quantum_reconstruction.py")
+#QuantumReconstruction = importlib.util.module_from_spec(spec)
+#spec.loader.exec_module(PositiveWavefunction)
 
 def generate_visible_space(num_visible):
     """Generates all possible visible states.
@@ -86,7 +93,8 @@ def algorithmic_gradKL(nn_state,target_psi,vis):
     return grad_KL            
 
 def algorithmic_gradNLL(qr,data,k):
-    return qr.compute_batch_gradients(k, data, data)
+    qr.nn_state.set_visible_layer(data)
+    return qr.compute_batch_gradients(k, data)
     
 def numeric_gradKL(nn_state,target_psi, param, vis):
     num_gradKL = []
@@ -162,9 +170,9 @@ def test_gradients(qr,target_psi,data, vis, eps,k):
 
 # MAIN
 data       = torch.tensor(np.loadtxt(
-                          '../examples/tfim1d_N10_train_samples.txt'), 
+                          '../../examples/quantum_ising/tfim1d_N10_train_samples.txt'), 
                           dtype = torch.double)
-target_psi = torch.tensor(np.loadtxt('../examples/tfim1d_N10_psi.txt'), 
+target_psi = torch.tensor(np.loadtxt('../../examples/quantum_ising/tfim1d_N10_psi.txt'), 
                           dtype = torch.double)
 
 nh = 2

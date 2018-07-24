@@ -37,7 +37,7 @@ __all__ = [
     "PositiveWavefunction"
 ]
 
-class PositiveWavefunction(Sampler):
+class PositiveWavefunction:
     def __init__(self, num_visible, num_hidden=None, gpu=True, seed=None):
         super(PositiveWavefunction, self).__init__()
         self.num_visible = int(num_visible)

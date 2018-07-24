@@ -40,7 +40,7 @@ __all__ = [
     "ComplexWavefunction"
 ]
 
-class ComplexWavefunction(Sampler):
+class ComplexWavefunction:
     
     def __init__(self,num_visible,
                  num_hidden, gpu=True,
@@ -104,7 +104,7 @@ class ComplexWavefunction(Sampler):
             if (basis[j] is not 'Z'):
                 num_nontrivial_U += 1
                 nontrivial_sites.append(j)
-        sub_state = generate_visible_space(num_nontrivial_U)
+        sub_state = self.generate_visible_space(num_nontrivial_U)
     
         for x in range(1<<num_nontrivial_U):
             cnt = 0
@@ -140,22 +140,45 @@ class ComplexWavefunction(Sampler):
 
         return final_grad
 
+    def sample(self, k):
+        """Performs k steps of Block Gibbs sampling given an initial visible
+        state v0.
 
-def generate_visible_space(size):
-    """Generates all possible visible states.
+        :param k: Number of Block Gibbs steps.
+        :type k: int
+        :param v0: The initial visible state.
+        :type v0: torch.Tensor
 
-    :returns: A tensor of all possible spin configurations.
-    :rtype: torch.Tensor
-    """
-    space = torch.zeros((1 << size, size),
-                        device="cpu", dtype=torch.double)
-    for i in range(1 << size):
-        d = i
-        for j in range(size):
-            d, r = divmod(d, 2)
-            space[i, size - j - 1] = int(r)
-    
-    return space
+        :returns: Tuple containing the initial visible state, v0,
+                  the hidden state sampled from v0,
+                  the visible state sampled after k steps,
+                  the hidden state sampled after k steps and its corresponding
+
+                  probability vector.
+        :rtype: tuple(torch.Tensor, torch.Tensor,
+                      torch.Tensor, torch.Tensor,
+                      torch.Tensor)
+        """
+        for _ in range(k):
+            self.hidden_state = self.rbm_am.sample_h_given_v(self.visible_state)
+            self.visible_state = self.rbm_am.sample_v_given_h(self.hidden_state)
+
+
+    def generate_visible_space(self,size):
+        """Generates all possible visible states.
+
+        :returns: A tensor of all possible spin configurations.
+        :rtype: torch.Tensor
+        """
+        space = torch.zeros((1 << size, size),
+                            device="cpu", dtype=torch.double)
+        for i in range(1 << size):
+            d = i
+            for j in range(size):
+                d, r = divmod(d, 2)
+                space[i, size - j - 1] = int(r)
+        
+        return space
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
