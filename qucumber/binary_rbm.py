@@ -28,7 +28,8 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 
-import qucumber.cplx as cplx
+#import qucumber.cplx as cplx
+import utils.cplx as cplx
 from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
 

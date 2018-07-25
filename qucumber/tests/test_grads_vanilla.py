@@ -137,7 +137,6 @@ def test_gradients(qr,target_psi,data, vis, eps,k):
     nn_state = qr.nn_state
     alg_grad_KL = algorithmic_gradKL(nn_state,target_psi,vis)
     alg_grad_NLL = algorithmic_gradNLL(qr,data,k)
-    
     flat_weights      = nn_state.rbm_am.weights.data.view(-1)
     flat_weights_grad_KL = alg_grad_KL["rbm_am"]["weights"].view(-1)
     flat_weights_grad_NLL = alg_grad_NLL["rbm_am"]["weights"].view(-1)
@@ -186,6 +185,4 @@ vis        = generate_visible_space(data.shape[-1])
 k          = 100
 eps        = 1.e-8
 
-#alg_grads  = nn_state.compute_batch_gradients(k, data, data)
-algorithmic_gradKL(nn_state,target_psi,vis)
 test_gradients(qr,target_psi,data[0:1000], vis, eps,k)#,alg_grads)

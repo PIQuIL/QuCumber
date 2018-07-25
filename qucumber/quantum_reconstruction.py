@@ -62,41 +62,44 @@ class QuantumReconstruction:
         :rtype: dict
         """
         grad = {}
+        grad_data = {}
         for net in self.nn_state.networks:
             tmp = {}
             rbm = getattr(self.nn_state, net)
             for par in rbm.state_dict():
                 tmp[par]=0.0    
             grad[net] = tmp
+            grad_data[net] = tmp
         
-        # Positive Phase
-        for i in range(samples_batch.shape[0]):
-            if bases_batch is None:
-                for par in rbm.state_dict():
-                    grad['rbm_am'][par] += self.nn_state.gradient(samples_batch[i])['rbm_am'][par]/float(samples_batch.shape[0])
-            else:
+        if bases_batch is None:
+            grad_data = self.nn_state.gradient(samples_batch)
+        else:
+            # Positive Phase
+            for i in range(samples_batch.shape[0]):
                 b_flag = 0
                 for j in range(self.nn_state.num_visible):
                     if (bases_batch[i][j] != 'Z'):
                         b_flag = 1
                 if (b_flag == 0):
-                    for par in rbm.state_dict():
-                        grad['rbm_am'][par] += self.nn_state.gradient(samples_batch[i])['rbm_am'][par]/float(samples_batch.shape[0])
+                    for par in getattr(self.nn_state, 'rbm_am').state_dict():
+                        grad_data['rbm_am'][par] += self.nn_state.gradient(samples_batch[i])['rbm_am'][par]
                 else:
                     rotated_grad = self.nn_state.rotate_grad(bases_batch[i],samples_batch[i])
                     for net in self.nn_state.networks:
                         for par in getattr(self.nn_state, net).state_dict():
-                            grad[net][par] += rotated_grad[net][par]/float(samples_batch.shape[0])
-        
-        # Negative Phase
+                            grad_data[net][par] += rotated_grad[net][par]
+            
         self.nn_state.sample(k)
-        for par in getattr(self.nn_state, 'rbm_am').state_dict():
-            grad['rbm_am'][par] -= self.nn_state.gradient(self.nn_state.visible_state)['rbm_am'][par]/float(self.nn_state.visible_state.shape[0])
-
+        grad_model = self.nn_state.gradient(self.nn_state.visible_state)
+        for net in self.nn_state.networks:
+            for par in grad_data[net].keys():
+                grad[net][par] = grad_data[net][par]/float(samples_batch.shape[0])# - grad_model[net][par]/float(self.nn_state.visible_state.shape[0])
+        for par in grad_data['rbm_am'].keys():
+            grad['rbm_am'][par] -= grad_model['rbm_am'][par]/float(self.nn_state.visible_state.shape[0])
         return grad
-
-    def fit(self, data, epochs=100, pos_batch_size=100, neg_batch_size=100,
-            k=10, lr=1e-2, progbar=False, callbacks=[]):
+        
+    def fit(self, train_samples,epochs, pos_batch_size, neg_batch_size,
+            k, lr,train_bases = None, progbar=False, callbacks=[]):
         """Execute the training of the RBM.
 
         :param data: The actual training data
@@ -126,22 +129,31 @@ class QuantumReconstruction:
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
         callbacks = CallbackList(callbacks)
 
-        data = torch.tensor(data, device=self.nn_state.device,
+        data_samples = torch.tensor(train_samples, device=self.nn_state.device,
                             dtype=torch.double)
+        par_list = []
+        #for net in self.nn_state.networks:
+        #    rbm = getattr(self.nn_state, net) 
+        #    for par in rbm.state_dict():
+        #        par_list.append(getattr(rbm, par))
+        #        #print(getattr(rbm, par))
+        
+        #optimizer = torch.optim.SGD(par_list,lr=lr)
         optimizer = torch.optim.SGD([self.nn_state.rbm_am.weights,
                                      self.nn_state.rbm_am.visible_bias,
-                                     self.nn_state.rbm_am.hidden_bias],
+                                     self.nn_state.rbm_am.hidden_bias,#],lr=lr)
+                                     self.nn_state.rbm_ph.weights,
+                                     self.nn_state.rbm_ph.visible_bias,
+                                     self.nn_state.rbm_ph.hidden_bias],
                                     lr=lr)
 
         callbacks.on_train_start(self)
-
         for ep in progress_bar(range(epochs), desc="Epochs ",
                                disable=disable_progbar):
-            pos_batches = DataLoader(data, batch_size=pos_batch_size,
+            pos_batches = DataLoader(data_samples, batch_size=pos_batch_size,
                                      shuffle=True)
-
             multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
-            neg_batches = [DataLoader(data, batch_size=neg_batch_size,
+            neg_batches = [DataLoader(data_samples, batch_size=neg_batch_size,
                                       shuffle=True)
                            for i in range(multiplier)]
             neg_batches = chain(*neg_batches)
@@ -150,26 +162,76 @@ class QuantumReconstruction:
 
             if self.stop_training:  # check for stop_training signal
                 break
+            
+            # FULL GRADIENT
+            self.nn_state.set_visible_layer(train_samples[0:100])
+            all_grads = self.compute_batch_gradients(k, train_samples,train_bases)
+            optimizer.zero_grad()  # clear any cached gradients
+            ##assign all available gradients to the corresponding parameter
+            for net in self.nn_state.networks:
+                #print(net)
+                rbm = getattr(self.nn_state, net)
+                #print(rbm)
+                for param in all_grads[net].keys():
+                    #print(param)
+                    #print(all_grads[net][param])
+                    getattr(rbm, param).grad = all_grads[net][param]
 
-            for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
-                                                               neg_batches)):
-                callbacks.on_batch_start(self, ep, batch_num)
+            optimizer.step()  # tell the optimizer to apply the gradients
 
-                self.nn_state.set_visible_layer(neg_batch)
-                all_grads = self.compute_batch_gradients(k, pos_batch)
-                optimizer.zero_grad()  # clear any cached gradients
+            #for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
+            #                                                   neg_batches)):
+            #    callbacks.on_batch_start(self, ep, batch_num)
 
-                # assign all available gradients to the corresponding parameter
-                for net in self.nn_state.networks:
-                    rbm = getattr(self.nn_state, net)
-                    for param in all_grads[net].keys():
-                        getattr(rbm, param).grad = all_grads[net][param]
+            #    self.nn_state.set_visible_layer(neg_batch)
+            #    all_grads = self.compute_batch_gradients(k, pos_batch)
+            #    optimizer.zero_grad()  # clear any cached gradients
 
-                optimizer.step()  # tell the optimizer to apply the gradients
+            #    # assign all available gradients to the corresponding parameter
+            #    for net in self.nn_state.networks:
+            #        rbm = getattr(self.nn_state, net)
+            #        for param in all_grads[net].keys():
+            #            getattr(rbm, param).grad = all_grads[net][param]
 
-                callbacks.on_batch_end(self, ep, batch_num)
+            #    optimizer.step()  # tell the optimizer to apply the gradients
+
+            #    callbacks.on_batch_end(self, ep, batch_num)
 
             callbacks.on_epoch_end(self, ep)
 
         callbacks.on_train_end(self)
+    
+    def generate_visible_space():
+        """Generates all possible visible states.
+    
+        :returns: A tensor of all possible spin configurations.
+        :rtype: torch.Tensor
+        """
+        space = torch.zeros((1 << self.num_visible, self.num_visible),
+                            device="cpu", dtype=torch.double)
+        for i in range(1 << self.num_visible):
+            d = i
+            for j in range(self.num_visible):
+                d, r = divmod(d, 2)
+                space[i, self.num_visible - j - 1] = int(r)
+    
+        return space
 
+    def partition(self,visible_space):
+        """The natural logarithm of the partition function of the RBM.
+    
+        :param visible_space: A rank 2 tensor of the entire visible space.
+        :type visible_space: torch.Tensor
+    
+        :returns: The natural log of the partition function.
+        :rtype: torch.Tensor
+        """
+        free_energies = -self.nn_state.rbm_am.effective_energy(visible_space)
+        max_free_energy = free_energies.max()
+    
+        f_reduced = free_energies - max_free_energy
+        logZ = max_free_energy + f_reduced.exp().sum().log()
+        return logZ.exp()
+        
+        #return logZ
+    

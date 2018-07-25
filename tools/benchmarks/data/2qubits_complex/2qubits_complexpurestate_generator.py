@@ -130,10 +130,10 @@ def main():
     N = 2
     Nsamples = 100 
     D = 1<<N
-    psi_fout =     open("../benchmarks/data/2qubits_complex_RBMlike/2qubits_psi.txt",'w')
-    basis_fout =   open("../benchmarks/data/2qubits_complex_RBMlike/2qubits_train_bases.txt",'w')
-    data_fout =    open("../benchmarks/data/2qubits_complex_RBMlike/2qubits_train_samples.txt",'w')
-    unitary_fout = open("../benchmarks/data/2qubits_complex_RBMlike/2qubits_unitaries.txt",'w')
+    psi_fout =     open("2qubits_psi.txt",'w')
+    basis_fout =   open("2qubits_train_bases.txt",'w')
+    data_fout =    open("2qubits_train_samples.txt",'w')
+    #unitary_fout = open("2qubits_unitaries.txt",'w')
 
     random.seed(1234)
 
@@ -141,37 +141,37 @@ def main():
     Psi = np.zeros((D),dtype=complex)
 
     # GENERATE WAVEFUNCTION ON THE sZ BASIS
-    #for i in range(D):
+    for i in range(D):
    
-    #    ## RANDOM REAL COEFFICIENTS
-    #    #Psi[i] = random.uniform(-1,1)
-    #    
-    #    # RANDOM COMPLEX COEFFICIENTS
-    #    Psi[i] = random.uniform(0,1)
-    #    phi = random.uniform(0,2*m.pi)
-    #    Psi[i] *= cmath.exp(1j*phi)
-    #    Psi[i] = cmath.exp(1j*phi)    
-    #    Norm += Psi[i]*np.conjugate(Psi[i])
-    #Psi /= m.sqrt(Norm)
-
-    # RBM-like state
-    b_lambda = np.asarray([0.1,-0.74])
-    c_lambda = np.asarray([-0.4,-1.2])
-    W_lambda = np.asarray([[-0.8,0.3],[0.5,-0.2]])
-    b_mu = np.asarray([0.31,-0.4])
-    c_mu = np.asarray([-0.45,-0.2])
-    W_mu = np.asarray([[-1.0,0.1],[-0.5,0.48]])
-    
-    Norm = 0.0
-    sigma = np.zeros((N))
-    for i in range(1<<N):
-        st = bin(i)[2:].zfill(N)
-        state = st.split()
-        for j in range(N):
-            sigma[j] = int(state[0][j])
-        Psi[i] = cmath.exp(-0.5*(RBM_energy(sigma,W_lambda,b_lambda,c_lambda)+1j*RBM_energy(sigma,W_mu,b_mu,c_mu)))
+        ## RANDOM REAL COEFFICIENTS
+        #Psi[i] = random.uniform(-1,1)
+        
+        # RANDOM COMPLEX COEFFICIENTS
+        Psi[i] = random.uniform(0,1)
+        phi = random.uniform(0,2*m.pi)
+        Psi[i] *= cmath.exp(1j*phi)
+        #Psi[i] = cmath.exp(1j*phi)    
         Norm += Psi[i]*np.conjugate(Psi[i])
     Psi /= m.sqrt(Norm)
+
+    ## RBM-like state
+    #b_lambda = np.asarray([0.1,-0.74])
+    #c_lambda = np.asarray([-0.4,-1.2])
+    #W_lambda = np.asarray([[-0.8,0.3],[0.5,-0.2]])
+    #b_mu = np.asarray([0.31,-0.4])
+    #c_mu = np.asarray([-0.45,-0.2])
+    #W_mu = np.asarray([[-1.0,0.1],[-0.5,0.48]])
+    #
+    #Norm = 0.0
+    #sigma = np.zeros((N))
+    #for i in range(1<<N):
+    #    st = bin(i)[2:].zfill(N)
+    #    state = st.split()
+    #    for j in range(N):
+    #        sigma[j] = int(state[0][j])
+    #    Psi[i] = cmath.exp(-0.5*(RBM_energy(sigma,W_lambda,b_lambda,c_lambda)+1j*RBM_energy(sigma,W_mu,b_mu,c_mu)))
+    #    Norm += Psi[i]*np.conjugate(Psi[i])
+    #Psi /= m.sqrt(Norm)
 
     print Psi
 
@@ -205,7 +205,7 @@ def main():
         
         U = build_X_rotation(N,j)
         psi_b = U.dot(Psi)
-        writeUnitary(U,unitary_fout)
+        #writeUnitary(U,unitary_fout)
         writeWF(psi_b,psi_fout)
         build_basisset(N,Nsamples,basis_fout,basis)
         build_dataset(N,psi_b,Nsamples,data_fout)
@@ -221,14 +221,14 @@ def main():
         
         U = build_Y_rotation(N,j)
         psi_b = U.dot(Psi)
-        writeUnitary(U,unitary_fout)
+        #writeUnitary(U,unitary_fout)
         writeWF(psi_b,psi_fout)
         build_basisset(N,Nsamples,basis_fout,basis)
         build_dataset(N,psi_b,Nsamples,data_fout)
    
     basis_fout.close()
     psi_fout.close()
-    unitary_fout.close()
+    #unitary_fout.close()
     data_fout.close()
  
 if __name__ == "__main__":
