@@ -68,7 +68,6 @@ class BinomialRBMModule(nn.Module, Sampler):
                                                      dtype=torch.double)),
                                         requires_grad=True)
         else:
-
             self.weights = nn.Parameter(
                 (torch.randn(self.num_hidden, self.num_visible,
                              device=self.device, dtype=torch.double)
@@ -345,7 +344,13 @@ class BinomialRBM(Sampler):
         except AssertionError as e:
             state_dict = torch.load(location, lambda storage, loc: 'cpu')
 
-        self.rbm_module.load_state_dict(state_dict, strict=False)
+        if set(self.rbm_module.state_dict()) <= set(state_dict):
+            self.rbm_module.load_state_dict(state_dict, strict=False)
+        else:
+            raise ValueError(
+                "Given set of parameters is incomplete! "
+                + "Has keys: {}; ".format(list(state_dict.keys()))
+                + "Need: {}".format(self.rbm_module.named_parameters()))
 
     @staticmethod
     def autoload(location, gpu=True):
@@ -370,7 +375,14 @@ class BinomialRBM(Sampler):
                           num_hidden=len(state_dict['hidden_bias']),
                           gpu=gpu,
                           seed=None)
-        rbm.rbm_module.load_state_dict(state_dict, strict=False)
+
+        if set(rbm.rbm_module.state_dict()) <= set(state_dict):
+            rbm.rbm_module.load_state_dict(state_dict, strict=False)
+        else:
+            raise ValueError(
+                "Given set of parameters is incomplete! "
+                + "Has keys: {}; ".format(list(state_dict.keys()))
+                + "Need: {}".format(rbm.rbm_module.named_parameters()))
 
         return rbm
 
@@ -446,10 +458,7 @@ class BinomialRBM(Sampler):
 
         data = torch.tensor(data, device=self.rbm_module.device,
                             dtype=torch.double)
-        optimizer = torch.optim.SGD([self.rbm_module.weights,
-                                     self.rbm_module.visible_bias,
-                                     self.rbm_module.hidden_bias],
-                                    lr=lr)
+        optimizer = torch.optim.SGD(self.rbm_module.parameters(), lr=lr)
 
         callbacks.on_train_start(self)
 
