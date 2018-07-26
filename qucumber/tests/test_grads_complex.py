@@ -252,10 +252,8 @@ def test_gradients(nn_state,psi_dict,data_samples,data_bases,unitary_dict,bases,
     alg_grad_KL = algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases)
     for net in nn_state.networks:
         print('\n\nRBM: %s' %net) 
-        #alg_grad_KL = algorithmic_gradKL(nn_state,net,psi_dict,vis,unitary_dict,bases)
         rbm = getattr(nn_state, net)
         flat_weights = rbm.weights.data.view(-1)
-        #print(alg_grad_KL[net])
         flat_weights_grad_KL = alg_grad_KL[net]["weights"].view(-1)
         flat_weights_grad_NLL = alg_grad_NLL[net]["weights"].view(-1)
         num_grad_KL=numeric_gradKL(flat_weights,nn_state,psi_dict,vis,unitary_dict,bases)
@@ -319,8 +317,8 @@ fullunitary_dict = load_full_unitaries(bases,path_to_full_unitaries)
 nn_state = ComplexWavefunction(num_visible=num_visible,
                                num_hidden=num_hidden)
 qr = QuantumReconstruction(nn_state)
-print(nn_state.rbm_am.weights)
-print(nn_state.rbm_ph.weights)
+#print(nn_state.rbm_am.weights)
+#print(nn_state.rbm_ph.weights)
 
 smin = 0
 smax = 500

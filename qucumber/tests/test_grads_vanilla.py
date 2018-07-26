@@ -58,7 +58,7 @@ def probability(nn_state,v, Z):
     :returns: The probability of the given vector(s) of visible units.
     :rtype: torch.Tensor
     """
-    return (nn_state.psi(v))**2 / Z
+    return (nn_state.amplitude(v))**2 / Z
 
 
 def compute_numerical_kl(nn_state,target_psi, vis, Z):

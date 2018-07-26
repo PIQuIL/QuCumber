@@ -13,22 +13,25 @@ int main(int argc, char* argv[]){
     //---- SPECIFIC PARAMETERS ----/
     
     // TFIM1d with 10 SPINS
-    typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
-    par.basis_ = "std";
-    std::string model = "tfim1d_N10";
-    std::string baseName = "../../examples/quantum_ising/"+model+"_";
-    par.nv_=10;
-    par.nh_=2;
-    par.ns_= 10000;
-    par.nc_= 10000;
-    // 2qubits complex 
-    //typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
-    //par.basis_ = "xy1";
-    //std::string model = "2qubits";
-    //std::string baseName = "../../examples/2qubits_complex/"+model+"_";
-    //par.nv_=2;
+    //typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
+    //par.basis_ = "std";
+    //std::string model = "tfim1d_N10";
+    //std::string baseName = "../../examples/quantum_ising/"+model+"_";
+    //par.nv_=10;
     //par.nh_=2;
-    //par.ns_=100;
+    //par.ns_= 1000;
+    //par.nc_= 100;
+    //std::string parName = "parameters_benchmark_real.txt";
+    // 2qubits complex 
+    typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
+    par.basis_ = "xy1";
+    std::string model = "2qubits";
+    std::string baseName = "../../examples/2qubits_complex/"+model+"_";
+    par.nv_=2;
+    par.nh_=2;
+    par.ns_=100;
+    par.nc_=500;
+    std::string parName = "parameters_benchmark_complex.txt";
     
     typedef qst::Sgd Optimizer;                     //Stochastic gradient descent
     typedef qst::ObserverPSI<NNState> Observer;              //Observer for Wavefunction
@@ -57,7 +60,6 @@ int main(int argc, char* argv[]){
     //---- NEURAL NETWORK STATE ----//
     NNState nn(par);
     nn.InitRandomPars(12345,par.w_);
-    std::string parName = "parameters_benchmark_complex.txt";
     nn.LoadWeights(parName);    
     nn.PrintParameters();
     //---- OBSERVER ----//
@@ -70,9 +72,9 @@ int main(int argc, char* argv[]){
     } 
     
     ////---- TOMOGRAPHY ----//
-    //qst::Tomography<NNState,Observer,Optimizer> tomo(opt,nn,obs,par);
-    //tomo.setBasisRotations(UnitaryRotations);
-    //tomo.Run(training_samples,training_bases);
+    //?qst::Tomography<NNState,Observer,Optimizer> tomo(opt,nn,obs,par);
+    //?tomo.setBasisRotations(UnitaryRotations);
+    //?tomo.Run(training_samples,training_bases);
     
     //---- TEST ----// 
     par.PrintParameters();            //Print parameter on screen

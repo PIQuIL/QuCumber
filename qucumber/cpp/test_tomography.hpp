@@ -52,7 +52,6 @@ public:
                 basis_states_(i,j) = bit[N_-j-1];
             }
         }
-
     }
 
     // Test the derivatives of the KL divergence
@@ -107,43 +106,44 @@ public:
     void DerNLL(double eps,int nchains,Eigen::MatrixXd &data_samples,std::vector<std::vector<std::string> > &data_bases,Eigen::VectorXd &alg_ders_nosample,Eigen::VectorXd &alg_ders_sample,Eigen::VectorXd &num_ders){
         auto pars = NNstate_.GetParameters();
         obs_.ExactPartitionFunction();
-        Eigen::VectorXcd derKL(npar_);
+        Eigen::VectorXd derKL(npar_);
         alg_ders_nosample.setZero(npar_);
         alg_ders_sample.setZero(npar_);
         num_ders.setZero(npar_);
 
         //-- ALGORITHMIC DERIVATIVES --//
         //Standard Basis
-        for(int j=0;j<data_samples.rows();j++){
-            //Positive phase - Lambda gradient in reference basis
-            alg_ders_nosample.head(nparLambda_) +=  NNstate_.LambdaGrad(data_samples.row(j))/float(data_samples.rows());
-            alg_ders_sample.head(nparLambda_) +=  NNstate_.LambdaGrad(data_samples.row(j))/float(data_samples.rows());
-        }
-
+        int bID=0;
+        for(int k=0;k<data_samples.rows();k++){
+            bID=0;
+            for(int j=0;j<N_;j++){
+                if (data_bases[k][j]!="Z"){
+                    bID = 1;
+                    break;
+                }
+            }
+            if (bID==0){
+                alg_ders_nosample.head(nparLambda_) +=  NNstate_.LambdaGrad(data_samples.row(k))/float(data_samples.rows());
+                alg_ders_sample.head(nparLambda_) +=  NNstate_.LambdaGrad(data_samples.row(k))/float(data_samples.rows());
+            }
+            else{
+                NNstate_.rotatedGrad(data_bases[k],data_samples.row(k),U_,derKL);
+                alg_ders_nosample += derKL/float(data_samples.rows());
+                alg_ders_sample += derKL/float(data_samples.rows());
+            }
+        } 
+        
+        
         for(int j=0;j<1<<N_;j++){ 
             alg_ders_nosample.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
-            //std::cout << (NNstate_.LambdaGrad(basis_states_.row(j)).head(10)).transpose() << std::endl<<std::endl;
         }
+         
         NNstate_.SetVisibleLayer(data_samples.topRows(nchains));
-        NNstate_.Sample(100);
+        NNstate_.Sample(1000);
         //std::cout << NNstate_.VisibleStateRow(0) << std::endl;
         for(int k=0;k<NNstate_.Nchains();k++){ 
             alg_ders_sample.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
         }
-        //if (basis_.compare("std")!=0){
-        //    //Rotated Basis
-        //    for(int b=1;b<basisSet_.size();b++){
-        //        for(int j=0;j<1<<N_;j++){
-        //            NNstate_.rotatedGrad(basisSet_[b],basis_states_.row(j),U_,derKL);
-        //            //Positive phase - Lambda gradient in basis b
-        //            ders.head(nparLambda_) += norm(rotated_wf_[b-1](j))*derKL.head(nparLambda_).real();
-        //            //Positive phase - Mu gradient in basis b
-        //            ders.tail(nparMu_) -= norm(rotated_wf_[b-1](j))*derKL.tail(nparMu_).imag();
-        //            //Negative phase - Lambda gradient in basis b (identical to the reference basis
-        //            ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
-        //        }
-        //    }
-        //}
         //-- NUMERICAL DERIVATIVES --//
         for(int p=0;p<npar_;p++){
             pars(p)+=eps;
@@ -204,22 +204,31 @@ public:
         if (p+1<npar_){
             std::cout<< "Network: rbm_ph (PHASE MACHINE)"<<std::endl<<std::endl;
             std::cout<<"Weights:"<<std::endl;
+            std::cout<<"Numerical KL\t\tAlgorithm KL"<<"\t\t\t\t"<<"Numerical NLL"<<"\t\t"<<"Alg NLL nosample"<<"\t"<<"Alg NLL sample"<<std::endl<<std::endl;
             for(int i=0;i<n_hidden;i++){
                 for(int j=0;j<NNstate_.N();j++){
-                    std::cout<<std::setprecision(8)<<num_derKL(p)<<std::setw(20)<<std::setprecision(8)<<alg_derKL(p)<<std::endl;
+                    std::cout<<std::setprecision(8)<<num_derKL(p) <<"\t\t"<<std::setprecision(8)<<alg_derKL(p)<<"\t\t\t\t";
+                    std::cout<<std::setprecision(8)<<num_derNLL(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_nosample(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_sample(p)<<std::endl; 
+                    //std::cout<<std::setprecision(8)<<num_derKL(p)<<std::setw(20)<<std::setprecision(8)<<alg_derKL(p)<<std::endl;
                     p++;
                 }
             }
             std::cout<<std::endl;
             std::cout<<"Visible Bias:"<<std::endl;
+            std::cout<<"Numerical KL\t\tAlgorithm KL"<<"\t\t\t\t"<<"Numerical NLL"<<"\t\t"<<"Alg NLL nosample"<<"\t"<<"Alg NLL sample"<<std::endl<<std::endl;
             for(int j=0;j<NNstate_.N();j++){
-                std::cout<<std::setprecision(8)<<num_derKL(p)<<std::setw(20)<<std::setprecision(8)<<alg_derKL(p)<<std::endl;
+                std::cout<<std::setprecision(8)<<num_derKL(p) <<"\t\t"<<std::setprecision(8)<<alg_derKL(p)<<"\t\t\t\t";
+                std::cout<<std::setprecision(8)<<num_derNLL(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_nosample(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_sample(p)<<std::endl; 
+                //std::cout<<std::setprecision(8)<<num_derKL(p)<<std::setw(20)<<std::setprecision(8)<<alg_derKL(p)<<std::endl;
                 p++;
             }
             std::cout<<std::endl;
             std::cout<<"Hidden Bias:"<<std::endl;
+            std::cout<<"Numerical KL\t\tAlgorithm KL"<<"\t\t\t\t"<<"Numerical NLL"<<"\t\t"<<"Alg NLL nosample"<<"\t"<<"Alg NLL sample"<<std::endl<<std::endl;
             for(int i=0;i<n_hidden;i++){
-                std::cout<<std::setprecision(8)<<num_derKL(p)<<std::setw(20)<<std::setprecision(8)<<alg_derKL(p)<<std::endl;
+                std::cout<<std::setprecision(8)<<num_derKL(p) <<"\t\t"<<std::setprecision(8)<<alg_derKL(p)<<"\t\t\t\t";
+                std::cout<<std::setprecision(8)<<num_derNLL(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_nosample(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_sample(p)<<std::endl; 
+                //std::cout<<std::setprecision(8)<<num_derKL(p)<<std::setw(20)<<std::setprecision(8)<<alg_derKL(p)<<std::endl;
                 p++;
             }
             std::cout<<std::endl;

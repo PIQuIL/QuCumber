@@ -16,16 +16,16 @@ template<class Wavefunction> class ObserverPSI{
     int npar_;
     Eigen::VectorXcd target_psi_;
     std::vector<Eigen::VectorXcd> rotated_wf_;
-    Eigen::MatrixXd basis_states_;      // Hilbert space basis
     std::map<std::string,Eigen::MatrixXcd> U_;
-    std::vector<std::vector<std::string> > basisSet_;
     std::string basis_;
+    std::vector<std::vector<std::string> > basisSet_;
 public:
 
     double KL_;
     double overlap_;
     double Z_;
     double NLL_;
+    Eigen::MatrixXd basis_states_;      // Hilbert space basis
 
     ObserverPSI(Wavefunction &PSI,std::string &basis):PSI_(PSI){ 
         
@@ -76,14 +76,8 @@ public:
     }
     
     void NLL(Eigen::MatrixXd &data_samples,std::vector<std::vector<std::string> > &data_bases){
-        //TODO NOTE THIS IS ONLY FOR REFERENCE BASIS
         NLL_ = 0.0;
         Eigen::VectorXcd rotated_psi(1<<N_);
-        //for (int i=0;i<data_samples.rows();i++){
-        //    NLL_ -= log(norm(PSI_.psi(data_samples.row(i))));
-        //    NLL_ += log(Z_);
-        //}
-        //NLL_ /= float(data_samples.rows());
         int b_ID=0;
         for (int i=0;i<data_samples.rows();i++){
             b_ID=0;
@@ -98,7 +92,6 @@ public:
                 NLL_ += log(Z_);
             }
             else{
-                std::cout<<"A"<<std::endl;
                 rotateRbmWF(data_bases[i],rotated_psi);
                 int ind = 0;
                 for (int j=0;j<N_;j++){
@@ -106,7 +99,6 @@ public:
                         ind += pow(2,j);
                     }
                 }
-                //std::cout<<data_samples.row(i) << "    " << ind << std::endl;
                 NLL_ -=log(norm(rotated_psi(ind)));
                 NLL_ += log(Z_);
             }

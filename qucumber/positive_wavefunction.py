@@ -37,7 +37,7 @@ __all__ = [
     "PositiveWavefunction"
 ]
 
-class PositiveWavefunction:
+class PositiveWavefunction(Sampler):
     def __init__(self, num_visible, num_hidden=None, gpu=True, seed=None):
         super(PositiveWavefunction, self).__init__()
         self.num_visible = int(num_visible)
@@ -61,9 +61,16 @@ class PositiveWavefunction:
         #self.visible_state.resize_(v.shape)
         #self.hidden_state.resize_(v.shape[0],self.num_hidden)
         self.visible_state = v
+   
+    def amplitude(self,v):
+        return (-self.rbm_am.effective_energy(v)).exp().sqrt()
     
     def psi(self,v):
-        return (-self.rbm_am.effective_energy(v)).exp().sqrt()
+        psi = torch.zeros(2, dtype=torch.double)
+        psi[0] = self.amplitude(v)
+        psi[1] = 0.0
+        return psi
+        #return (-self.rbm_am.effective_energy(v)).exp().sqrt()
 
     def gradient(self,v):
         return {"rbm_am": self.rbm_am.effective_energy_gradient(v)} 
@@ -102,7 +109,7 @@ class PositiveWavefunction:
         :type metadata: dict
         """
         # add extra metadata to dictionary before saving it to disk
-        data = {**self.rbm_am.state_dict(), **metadata}
+        data = {"rbm_am":self.rbm_am.state_dict(), **metadata}
         torch.save(data, location)
 
     def load(self, location):

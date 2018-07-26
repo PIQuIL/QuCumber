@@ -71,20 +71,16 @@ public:
             else { // Positive phase - Lambda and Mu gradients for non-trivial bases
                 NNstate_.rotatedGrad(batchBases[k],batchSamples.row(k),U_,rotated_grad_);
                 grad_ += rotated_grad_/double(bs_);
-                //grad_.head(nparLambda_) += rotated_grad_.head(nparLambda_).real()/double(bs_);
-                //grad_.tail(nparMu_) -= rotated_grad_.tail(nparMu_).imag()/double(bs_);
             }
         }
        
         //Negative Phase - Exact
         obs_.ExactPartitionFunction();
-        for(int b=0;b<obs_.basisSet_.size();b++){
-            for(int j=0;j<1<<N_;j++){
-                grad_.head(nparLambda_) -= norm(obs_.target_psi_(j))*NNstate_.LambdaGrad(obs_.basis_states_.row(j))/obs_.Z_;
-            }
-        }
+        for(int j=0;j<1<<N_;j++){
+            grad_.head(nparLambda_) -= norm(NNstate_.psi(obs_.basis_states_.row(j)))*NNstate_.LambdaGrad(obs_.basis_states_.row(j))/obs_.Z_;
+        } 
 
-        ////Negative Phase - Sampled
+        //Negative Phase - Sampled
         //NNstate_.Sample(cd_);
         //for(int k=0;k<NNstate_.Nchains();k++){
         //    grad_.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
@@ -105,22 +101,23 @@ public:
         int index;
         int counter = 0;
         int trainSize = trainData.rows();
-        int saveFrequency =  int(trainSize / bs_);
+        int saveFrequency = 1;
+        int batch_num = int(trainSize / bs_);
         Eigen::MatrixXd batch_samples;
         std::vector<std::vector<std::string> > batch_bases;
         std::uniform_int_distribution<int> distribution(0,trainSize-1);
         
-        int epoch = 0;
         for(int i=0;i<epochs_;i++){
-            // Randomize a batch and set the visible layer to a data point 
-            SetUpTrainingStep(trainData,batch_samples,trainBases,batch_bases,distribution); 
-            // Perform one step of optimization
-            ComputeGradient(batch_samples,batch_bases);
-            UpdateParameters();
+            for(int j=0;j<batch_num;j++){
+                // Randomize a batch and set the visible layer to a data point 
+                SetUpTrainingStep(trainData,batch_samples,trainBases,batch_bases,distribution); 
+                // Perform one step of optimization
+                ComputeGradient(batch_samples,batch_bases);
+                UpdateParameters();
+            }
             //Compute stuff and print
             if (counter == saveFrequency){
-                epoch += 1;
-                obs_.Scan(epoch);
+                obs_.Scan(i);
                 //std::cout << "Epoch: " << epoch << std::endl;
                 counter = 0;
             }
