@@ -116,6 +116,7 @@ public:
         basisIndex.clear();
         // Extract the sites where the rotation is non-trivial
         for(int j=0;j<N_;j++){
+            //std::cout<<basis[j]<<std::endl;
             if (basis[j]!="Z"){
                 t++;
                 basisIndex.push_back(j);
@@ -136,13 +137,45 @@ public:
             U=1.0;
             //Compute the product of the matrix elements of the unitary rotations
             for(int ii=0;ii<t;ii++){
+                //std::cout<<basis[basisIndex[ii]]<<std::endl;
                 U = U * Unitaries[basis[basisIndex[ii]]](int(state(basisIndex[ii])),int(v(basisIndex[ii])));
             }
+            //std::cout<<U<<std::endl; 
             rotated_psiGrad += U*Grad(v)*psi(v);
             rotated_psi += U*psi(v);
+            //int p=0;
+            //for(int i=0;i<2;i++){
+            //    for(int j=0;j<2;j++){
+            //        std::cout<< rotated_psiGrad(p) << " ";
+            //        p++;
+            //    }
+            //    std::cout<<std::endl;
+            //}
         }
+        ////std::cout<<std::endl;
+        int p=0;
+        //for(int i=0;i<2;i++){
+        //    for(int j=0;j<2;j++){
+        //        std::cout<< Grad(v)(p) << " ";
+        //        p++;
+        //    }
+        //    std::cout<<std::endl;
+
+        //}
+        //std::cout<<std::endl;
+
+
         rotated_gradient.head(nparLambda_)=(rotated_psiGrad.head(nparLambda_)/rotated_psi).real();
         rotated_gradient.tail(nparMu_)=-(rotated_psiGrad.tail(nparMu_)/rotated_psi).imag();
+        p=0;
+        //for(int i=0;i<2;i++){
+        //    for(int j=0;j<2;j++){
+        //        std::cout<< rotated_gradient(p) << " ";
+        //        p++;
+        //    }
+        //    std::cout<<std::endl;
+        //}
+        ////std::cout<<rotated_gradient<<std::endl<<std::endl<<std::endl; 
     }
 
     

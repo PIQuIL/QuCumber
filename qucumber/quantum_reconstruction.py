@@ -99,7 +99,7 @@ class QuantumReconstruction:
         return grad
         
     def fit(self, train_samples,epochs, pos_batch_size, neg_batch_size,
-            k, lr,train_bases = None, progbar=False, callbacks=[]):
+            k, lr,train_bases = None, progbar=False, target_psi=None,callbacks=[]):
         """Execute the training of the RBM.
 
         :param data: The actual training data
@@ -124,7 +124,6 @@ class QuantumReconstruction:
         :param callbacks: Callbacks to run while training.
         :type callbacks: list(qucumber.callbacks.Callback)
         """
-
         disable_progbar = (progbar is False)
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
         callbacks = CallbackList(callbacks)
@@ -148,6 +147,9 @@ class QuantumReconstruction:
                                     lr=lr)
 
         callbacks.on_train_start(self)
+        
+        vis = self.generate_visible_space()
+
         for ep in progress_bar(range(epochs), desc="Epochs ",
                                disable=disable_progbar):
             pos_batches = DataLoader(data_samples, batch_size=pos_batch_size,
@@ -178,7 +180,9 @@ class QuantumReconstruction:
                     getattr(rbm, param).grad = all_grads[net][param]
 
             optimizer.step()  # tell the optimizer to apply the gradients
-
+            if target_psi is not None:
+                F = self.fidelity(target_psi,vis)
+                print(F.item())
             #for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
             #                                                   neg_batches)):
             #    callbacks.on_batch_start(self, ep, batch_num)
@@ -201,7 +205,7 @@ class QuantumReconstruction:
 
         callbacks.on_train_end(self)
     
-    def generate_visible_space():
+    def generate_visible_space(self):
         """Generates all possible visible states.
     
         :returns: A tensor of all possible spin configurations.
@@ -234,4 +238,18 @@ class QuantumReconstruction:
         return logZ.exp()
         
         #return logZ
-    
+    def fidelity(self,target_psi,vis):
+        F = torch.tensor([0., 0.], dtype=torch.double) 
+        Z = self.partition(vis)
+        #print(psi)
+        for i in range(len(vis)):
+            psi = self.nn_state.psi(vis[i])/Z.sqrt()
+            #print(target_psi)
+            F[0] += target_psi[0,i]*psi[0]+target_psi[1,i]*psi[1]
+            F[1] += target_psi[0,i]*psi[1]-target_psi[1,i]*psi[0]
+            #F += cplx.scalar_mult(target_psi[:,i],psi[:])/Z.sqrt()
+        return cplx.norm(F)
+
+
+
+

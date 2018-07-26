@@ -101,6 +101,7 @@ public:
             //KL in the rotated bases
             for (int b=1;b<basisSet_.size();b++){
                 rotateRbmWF(basisSet_[b],rotated_psi);
+                //std::cout<<rotated_psi.transpose()<<std::endl;
                 for(int i=0;i<1<<N_;i++){
                     if (norm(rotated_wf_[b-1](i))>0.0){
                         KL_ += norm(rotated_wf_[b-1](i))*log(norm(rotated_wf_[b-1](i)));

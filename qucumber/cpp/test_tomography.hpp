@@ -7,7 +7,7 @@
 #include <bitset>
 #include <string>
 #include <map>
-
+#include <sstream>
 #ifndef QST_TESTTOMOGRPHY_HPP
 #define QST_TESTTOMOGRPHY_HPP
 
@@ -56,59 +56,108 @@ public:
     }
 
     // Test the derivatives of the KL divergence
-    void DerKL(double eps=1.0e-4){
+    void DerKL(double eps,Eigen::VectorXd &alg_ders,Eigen::VectorXd &num_ders){
         auto pars = NNstate_.GetParameters();
         obs_.ExactPartitionFunction();
         Eigen::VectorXd derKL(npar_);
-        Eigen::VectorXd ders(npar_);
-        ders.setZero(npar_);
-
-        //std::cout << NNstate_.LambdaGrad(basis_states_.row(150)) << std::endl;
+        //Eigen::VectorXd alg_ders(npar_);
+        //Eigen::VectorXd num_ders(npar_);
+        alg_ders.setZero(npar_);
+        num_ders.setZero(npar_);
+        
         //-- ALGORITHMIC DERIVATIVES --//
         //Standard Basis
         for(int j=0;j<1<<N_;j++){
             //Positive phase - Lambda gradient in reference basis
-            ders.head(nparLambda_) +=  norm(target_psi_(j))*NNstate_.LambdaGrad(basis_states_.row(j));
+            alg_ders.head(nparLambda_) +=  norm(target_psi_(j))*NNstate_.LambdaGrad(basis_states_.row(j));
             //Negative phase - Lambda gradient in reference basis       
-            ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
+            alg_ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
         }
-        std::cout <<ders << std::endl;
-            
-        //if (basis_.compare("std")!=0){
-        //    //Rotated Basis
-        //    for(int b=1;b<basisSet_.size();b++){
-        //        for(int j=0;j<1<<N_;j++){
-        //            NNstate_.rotatedGrad(basisSet_[b],basis_states_.row(j),U_,derKL);
-        //            ////Positive phase - Lambda gradient in basis b
-        //            //ders.head(nparLambda_) += norm(rotated_wf_[b-1](j))*derKL.head(nparLambda_).real();
-        //            ////Positive phase - Mu gradient in basis b
-        //            //ders.tail(nparMu_) -= norm(rotated_wf_[b-1](j))*derKL.tail(nparMu_).imag();
-        //            ders += norm(rotated_wf_[b-1](j))*derKL; 
-        //            //Negative phase - Lambda gradient in basis b (identical to the reference basis
-        //            ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
-        //        }
-        //    }
-        //}
-        ////-- NUMERICAL DERIVATIVES --//
-        //for(int p=0;p<npar_;p++){
-        //    pars(p)+=eps;
-        //    NNstate_.SetParameters(pars);
-        //    double valp=0.0;
-        //    obs_.ExactPartitionFunction();
-        //    obs_.ExactKL();
-        //    valp = obs_.KL_;
-        //    pars(p)-=2*eps;
-        //    NNstate_.SetParameters(pars);
-        //    double valm=0.0;
-        //    obs_.ExactPartitionFunction();
-        //    obs_.ExactKL();
-        //    valm = obs_.KL_;
-        //    pars(p)+=eps;
-        //    double numder=(-valm+valp)/(eps*2);
-        //    std::cout<<"Derivative wrt par "<<p<<". Grad =: "<<ders(p)<<" Numerical = : "<<numder<<std::endl;
-        //}
+          
+        if (basis_.compare("std")!=0){
+            //Rotated Basis
+            for(int b=1;b<basisSet_.size();b++){
+                for(int j=0;j<1<<N_;j++){
+                    //Positive phase
+                    NNstate_.rotatedGrad(basisSet_[b],basis_states_.row(j),U_,derKL);
+                    alg_ders += norm(rotated_wf_[b-1](j))*derKL; 
+                    //Negative phase - Lambda gradient in basis b (identical to the reference basis
+                    alg_ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
+                }
+            }
+        }
+        //-- NUMERICAL DERIVATIVES --//
+        for(int p=0;p<npar_;p++){
+            pars(p)+=eps;
+            NNstate_.SetParameters(pars);
+            double valp=0.0;
+            obs_.ExactPartitionFunction();
+            obs_.ExactKL();
+            valp = obs_.KL_;
+            pars(p)-=2*eps;
+            NNstate_.SetParameters(pars);
+            double valm=0.0;
+            obs_.ExactPartitionFunction();
+            obs_.ExactKL();
+            valm = obs_.KL_;
+            pars(p)+=eps;
+            num_ders(p)=(-valm+valp)/(eps*2);
+            //std::cout<<"Derivative wrt par "<<p<<". Grad =: "<<alg_ders(p)<<" Numerical = : "<<num_ders[p]<<std::endl;
+        }
     }
 
+    void RunDerCheck(double n_hidden,double eps=1.0e-4){
+        Eigen::VectorXd alg_der(npar_);
+        Eigen::VectorXd num_der(npar_);
+        DerKL(eps,alg_der,num_der); 
+        
+        std::cout<< "Running KL derivatives check.."<<std::endl<<std::endl;
+        std::cout<< "Network: rbm_am (AMPLITUDE MACHINE)"<<std::endl<<std::endl;
+        int p=0;
+        std::cout<<"Weights:"<<std::endl;
+        for(int i=0;i<n_hidden;i++){
+            for(int j=0;j<NNstate_.N();j++){
+                std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
+                p++;
+            }
+        }
+        std::cout<<std::endl;
+        std::cout<<"Visible Bias:"<<std::endl;
+        for(int j=0;j<NNstate_.N();j++){
+            std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
+            p++;
+        }
+        std::cout<<std::endl;
+        std::cout<<"Hidden Bias:"<<std::endl;
+        for(int i=0;i<n_hidden;i++){
+            std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
+            p++;
+        }
+        std::cout<<std::endl;
+        if (p+1<npar_){
+            std::cout<< "Network: rbm_ph (PHASE MACHINE)"<<std::endl<<std::endl;
+            std::cout<<"Weights:"<<std::endl;
+            for(int i=0;i<n_hidden;i++){
+                for(int j=0;j<NNstate_.N();j++){
+                    std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
+                    p++;
+                }
+            }
+            std::cout<<std::endl;
+            std::cout<<"Visible Bias:"<<std::endl;
+            for(int j=0;j<NNstate_.N();j++){
+                std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
+                p++;
+            }
+            std::cout<<std::endl;
+            std::cout<<"Hidden Bias:"<<std::endl;
+            for(int i=0;i<n_hidden;i++){
+                std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
+                p++;
+            }
+            std::cout<<std::endl;
+        }
+    }
     // Test the derivatives of the KL divergence
     void DerNLL(Eigen::MatrixXd &data,double eps=1.0e-4){
         auto pars = NNstate_.GetParameters();

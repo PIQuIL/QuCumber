@@ -64,7 +64,7 @@ def load_target_psi(bases,path_to_target_psi):
         psi_imag = torch.tensor(psi_data[b*D:D*(b+1),1], dtype=torch.double)
         psi[0]   = psi_real
         psi[1]   = psi_imag
-        
+         
         psi_dict[bases[b]] = psi
     
     return psi_dict
@@ -308,13 +308,19 @@ vis = generate_visible_space(num_visible)
 bases = []#np.loadtxt(path_to_bases,dtype=str)
 with open(path_to_bases) as fin:
     for line in fin:
-        bases.append(line.strip())
+        tmp = ""
+        for ch in line.strip():
+            if ch is not " ":
+                tmp += ch
+        bases.append(tmp)
 psi_dict = load_target_psi(bases,path_to_target_psi)
 fullunitary_dict = load_full_unitaries(bases,path_to_full_unitaries)
 
 nn_state = ComplexWavefunction(num_visible=num_visible,
                                num_hidden=num_hidden)
 qr = QuantumReconstruction(nn_state)
+print(nn_state.rbm_am.weights)
+print(nn_state.rbm_ph.weights)
 
 smin = 0
 smax = 500

@@ -8,29 +8,33 @@ int main(int argc, char* argv[]){
 
     //Read simulation parameters from command line
     par.ReadParameters(argc,argv);    //Read parameters from the command line
-    par.PrintParameters();            //Print parameter on screen
+    //par.PrintParameters();            //Print parameter on screen
+   
     //---- SPECIFIC PARAMETERS ----/
     
     // TFIM1d with 10 SPINS
-    typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
-    par.basis_ = "std";
-    std::string model = "tfim1d_N10";
-    par.nv_=10;
-    par.nh_=10;
-    
-    // 2qubits complex 
-    //typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
-    //par.basis_ = "xy1";
-    //std::string model = "2qubits";
-    //par.nv_=2;
+    //typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
+    //par.basis_ = "std";
+    //std::string model = "tfim1d_N10";
+    //std::string baseName = "../../examples/quantum_ising/"+model+"_";
+    //par.nv_=10;
     //par.nh_=2;
+    //par.ns_= 10000;
 
+    // 2qubits complex 
+    typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
+    par.basis_ = "xy1";
+    std::string model = "2qubits";
+    std::string baseName = "../../examples/2qubits_complex/"+model+"_";
+    par.nv_=2;
+    par.nh_=2;
+    par.ns_=100;
+    
     typedef qst::Sgd Optimizer;                     //Stochastic gradient descent
     typedef qst::ObserverPSI<NNState> Observer;              //Observer for Wavefunction
 
     ////Load the data
     std::string fileName; 
-    std::string baseName = "data/"+model+"_";
     qst::SetNumberOfBases(par);
     Eigen::VectorXcd target_psi;                //Target wavefunction
     std::vector<Eigen::VectorXcd> rotated_target_psi;       //Vector with the target wavefunctions in different basis
@@ -53,7 +57,9 @@ int main(int argc, char* argv[]){
     //---- NEURAL NETWORK STATE ----//
     NNState nn(par);
     nn.InitRandomPars(12345,par.w_);
-    
+    std::string parName = "parameters_benchmark_complex.txt";
+    nn.LoadWeights(parName);    
+    nn.PrintParameters();
     //---- OBSERVER ----//
     Observer obs(nn,par.basis_);
     obs.setWavefunction(target_psi);
@@ -63,19 +69,19 @@ int main(int argc, char* argv[]){
         obs.setRotatedWavefunctions(rotated_target_psi);
     } 
     
-    
     ////---- TOMOGRAPHY ----//
-    qst::Tomography<NNState,Observer,Optimizer> tomo(opt,nn,obs,par);
-    tomo.setBasisRotations(UnitaryRotations);
-    tomo.Run(training_samples,training_bases);
+    //qst::Tomography<NNState,Observer,Optimizer> tomo(opt,nn,obs,par);
+    //tomo.setBasisRotations(UnitaryRotations);
+    //tomo.Run(training_samples,training_bases);
     
-    ////---- TEST ----// 
-    //qst::Test<NNState,Observer> test(nn,obs,par);
-    //test.setWavefunction(target_psi);
-    //if (par.basis_.compare("std")!=0){
-    //    test.setBasisRotations(UnitaryRotations);
-    //    test.setBasis(basisSet);
-    //    test.setRotatedWavefunctions(rotated_target_psi);
-    //}
-    //test.DerKL(0.000001);
+    //---- TEST ----// 
+    par.PrintParameters();            //Print parameter on screen
+    qst::Test<NNState,Observer> test(nn,obs,par);
+    test.setWavefunction(target_psi);
+    if (par.basis_.compare("std")!=0){
+        test.setBasisRotations(UnitaryRotations);
+        test.setBasis(basisSet);
+        test.setRotatedWavefunctions(rotated_target_psi);
+    }
+    test.RunDerCheck(par.nh_,1e-8);
 }

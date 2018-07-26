@@ -60,9 +60,10 @@ public:
         for(int k=0;k<bs_;k++){
             bID = 0;
             for(int j=0;j<N_;j++){ // Check if the basis is the reference one
+                //std::cout<<"A"<<batchBases[k][j]<<std::endl;
                 if (batchBases[k][j]!="Z"){
                     bID = 1;
-                    break;
+                    //break;
                 }
             }
             if (bID==0){ // Positive phase - Lambda gradient in the reference basis
@@ -75,12 +76,20 @@ public:
                 //grad_.tail(nparMu_) -= rotated_grad_.tail(nparMu_).imag()/double(bs_);
             }
         }
-        
-        //Negative Phase
-        NNstate_.Sample(cd_);
-        for(int k=0;k<NNstate_.Nchains();k++){
-            grad_.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
+       
+        //Negative Phase - Exact
+        obs_.ExactPartitionFunction();
+        for(int b=0;b<obs_.basisSet_.size();b++){
+            for(int j=0;j<1<<N_;j++){
+                grad_.head(nparLambda_) -= norm(obs_.target_psi_(j))*NNstate_.LambdaGrad(obs_.basis_states_.row(j))/obs_.Z_;
+            }
         }
+
+        ////Negative Phase - Sampled
+        //NNstate_.Sample(cd_);
+        //for(int k=0;k<NNstate_.Nchains();k++){
+        //    grad_.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
+        //}
         opt_.getUpdates(grad_);
     }
     
@@ -110,13 +119,13 @@ public:
             ComputeGradient(batch_samples,batch_bases);
             UpdateParameters();
             //Compute stuff and print
-            //if (counter == saveFrequency){
-            //    epoch += 1;
-            //    //obs_.Scan(epoch);
-            //    std::cout << "Epoch: " << epoch << std::endl;
-            //    counter = 0;
-            //}
-            //counter++;
+            if (counter == saveFrequency){
+                epoch += 1;
+                obs_.Scan(epoch);
+                //std::cout << "Epoch: " << epoch << std::endl;
+                counter = 0;
+            }
+            counter++;
         }
     }
     
