@@ -27,7 +27,7 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
-
+import time
 #import qucumber.cplx as cplx
 import utils.cplx as cplx
 from qucumber.samplers import Sampler
@@ -93,17 +93,16 @@ class QuantumReconstruction(Sampler):
             for par in grad_data[net].keys():
                 grad[net][par] = grad_data[net][par]/float(samples_batch.shape[0])# - grad_model[net][par]/float(self.nn_state.visible_state.shape[0])
 
-        
-        vis = self.generate_visible_space()
-        Z = self.partition(vis)
-        for i in range(len(vis)):
-            for par in grad_data[net].keys():
-                grad['rbm_am'][par] -= ((self.nn_state.amplitude(vis[i])**2)/Z)*self.nn_state.gradient(vis[i])['rbm_am'][par] 
+        #vis = self.generate_visible_space()
+        #Z = self.partition(vis)
+        #for i in range(len(vis)):
+        #    for par in grad_data[net].keys():
+        #        grad['rbm_am'][par] -= ((self.nn_state.amplitude(vis[i])**2)/Z)*self.nn_state.gradient(vis[i])['rbm_am'][par] 
 
-        #self.nn_state.sample(k)
-        #grad_model = self.nn_state.gradient(self.nn_state.visible_state)
-        #for par in grad_data['rbm_am'].keys():
-        #    grad['rbm_am'][par] -= grad_model['rbm_am'][par]/float(self.nn_state.visible_state.shape[0])
+        self.nn_state.sample(k)
+        grad_model = self.nn_state.gradient(self.nn_state.visible_state)
+        for par in grad_data['rbm_am'].keys():
+            grad['rbm_am'][par] -= grad_model['rbm_am'][par]/float(self.nn_state.visible_state.shape[0])
         return grad
         
     def fit(self, train_samples,epochs, pos_batch_size, neg_batch_size,
@@ -168,9 +167,14 @@ class QuantumReconstruction(Sampler):
         callbacks.on_train_start(self)
         
         vis = self.generate_visible_space()
-        for ep in range(epochs):
-        #for ep in progress_bar(range(epochs), desc="Epochs ",
-        #                       disable=disable_progbar):
+        F = self.fidelity(target_psi,vis)
+        
+        #print('Epoch = 0   Fidelity = ',end="")
+        #print(F.item())
+        t0 = time.time()
+        #for ep in range(epochs):
+        for ep in progress_bar(range(epochs), desc="Epochs ",
+                               disable=disable_progbar):
             pos_batches = DataLoader(data_samples, batch_size=pos_batch_size,
                                      shuffle=True)
             multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
@@ -186,6 +190,7 @@ class QuantumReconstruction(Sampler):
             
             # FULL GRADIENT
             #self.nn_state.set_visible_layer(neg_batches)
+            #self.nn_state.set_visible_layer(train_samples[0:100])
             #all_grads = self.compute_batch_gradients(k, train_samples,train_bases)
             #optimizer.zero_grad()  # clear any cached gradients
             ###assign all available gradients to the corresponding parameter
@@ -210,15 +215,17 @@ class QuantumReconstruction(Sampler):
                 optimizer.step()  # tell the optimizer to apply the gradients
 
                 callbacks.on_batch_end(self, ep, batch_num)
-            if target_psi is not None:
-                F = self.fidelity(target_psi,vis)
-                print('Epoch = %d   Fidelity = ' % ep,end="")
-                print(F.item())
+            #if target_psi is not None:
+            #    F = self.fidelity(target_psi,vis)
+            #    print('Epoch = %d   Fidelity = ' % ep,end="")
+            #    print(F.item())
 
             callbacks.on_epoch_end(self, ep)
-
+        F = self.fidelity(target_psi,vis)
+        print(F.item())
         callbacks.on_train_end(self)
-    
+        t1 = time.time()
+        print("\nElapsed time = %.2f" %(t1-t0)) 
     def generate_visible_space(self):
         """Generates all possible visible states.
     
@@ -255,14 +262,12 @@ class QuantumReconstruction(Sampler):
     def fidelity(self,target_psi,vis):
         F = torch.tensor([0., 0.], dtype=torch.double) 
         Z = self.partition(vis)
-         
         for i in range(len(vis)):
             psi = self.nn_state.psi(vis[i])/Z.sqrt()
             F[0] += target_psi[0,i]*psi[0]+target_psi[1,i]*psi[1]
             F[1] += target_psi[0,i]*psi[1]-target_psi[1,i]*psi[0]
-        
+            #F[0] += target_psi[0,i]*psi[0] 
+        #return F[0]*F[0]
         return cplx.norm(F)
-
-
 
 

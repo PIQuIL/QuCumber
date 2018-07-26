@@ -7,6 +7,7 @@
 #include <bitset>
 #include <string>
 #include <map>
+#include <ctime>
 
 #ifndef QST_TOMOGRAPHY_HPP
 #define QST_TOMOGRAPHY_HPP
@@ -54,10 +55,10 @@ public:
     //Compute gradient of KL divergence 
     void ComputeGradient(const Eigen::MatrixXd & batchSamples,const std::vector<std::vector<std::string> >& batchBases){ 
         grad_.setZero();
-
+        int batch_size = batchSamples.rows();
         int bID = 0;
         //Positive Phase
-        for(int k=0;k<bs_;k++){
+        for(int k=0;k<batch_size;k++){
             bID = 0;
             for(int j=0;j<N_;j++){ // Check if the basis is the reference one
                 if (batchBases[k][j]!="Z"){
@@ -66,25 +67,25 @@ public:
                 }
             }
             if (bID==0){ // Positive phase - Lambda gradient in the reference basis
-                grad_.head(nparLambda_) += NNstate_.LambdaGrad(batchSamples.row(k))/double(bs_);
+                grad_.head(nparLambda_) += NNstate_.LambdaGrad(batchSamples.row(k))/double(batch_size);
             }
             else { // Positive phase - Lambda and Mu gradients for non-trivial bases
                 NNstate_.rotatedGrad(batchBases[k],batchSamples.row(k),U_,rotated_grad_);
-                grad_ += rotated_grad_/double(bs_);
+                grad_ += rotated_grad_/double(batch_size);
             }
         }
        
         //Negative Phase - Exact
-        obs_.ExactPartitionFunction();
-        for(int j=0;j<1<<N_;j++){
-            grad_.head(nparLambda_) -= norm(NNstate_.psi(obs_.basis_states_.row(j)))*NNstate_.LambdaGrad(obs_.basis_states_.row(j))/obs_.Z_;
-        } 
-
+        //obs_.ExactPartitionFunction();
+        //for(int j=0;j<1<<N_;j++){
+        //    grad_.head(nparLambda_) -= norm(NNstate_.psi(obs_.basis_states_.row(j)))*NNstate_.LambdaGrad(obs_.basis_states_.row(j))/obs_.Z_;
+        //} 
+        //std::cout << grad_.segment(10*N_,10*N_+10) << std::endl;
         //Negative Phase - Sampled
-        //NNstate_.Sample(cd_);
-        //for(int k=0;k<NNstate_.Nchains();k++){
-        //    grad_.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
-        //}
+        NNstate_.Sample(cd_);
+        for(int k=0;k<NNstate_.Nchains();k++){
+            grad_.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
+        }
         opt_.getUpdates(grad_);
     }
     
@@ -106,8 +107,15 @@ public:
         Eigen::MatrixXd batch_samples;
         std::vector<std::vector<std::string> > batch_bases;
         std::uniform_int_distribution<int> distribution(0,trainSize-1);
-        
+        std::cout<<trainSize<<std::endl;
+        clock_t time_a = std::clock();
+        //obs_.Scan(0);
         for(int i=0;i<epochs_;i++){
+            
+            // Gradient descent
+            //ComputeGradient(trainData,trainBases);
+            //UpdateParameters();
+            // Stochastic gradient descent
             for(int j=0;j<batch_num;j++){
                 // Randomize a batch and set the visible layer to a data point 
                 SetUpTrainingStep(trainData,batch_samples,trainBases,batch_bases,distribution); 
@@ -116,13 +124,18 @@ public:
                 UpdateParameters();
             }
             //Compute stuff and print
-            if (counter == saveFrequency){
-                obs_.Scan(i);
-                //std::cout << "Epoch: " << epoch << std::endl;
-                counter = 0;
-            }
-            counter++;
+            //if (counter == saveFrequency){
+            //    obs_.Scan(i);
+            //    //std::cout << "Epoch: " << epoch << std::endl;
+            //    counter = 0;
+            //}
+            //counter++;
         }
+        obs_.Scan(0);
+        clock_t time_b = std::clock();
+        unsigned int total_time_ticks = (unsigned int)(time_b - time_a);
+        double time_s = float(total_time_ticks)/double(CLOCKS_PER_SEC);
+        std::cout<<std::endl<<"Time elapsed: " << time_s << " seconds." << std::endl;
     }
     
     //Set the value of the target wavefunction

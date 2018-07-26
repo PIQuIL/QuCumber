@@ -4,7 +4,6 @@
 #include <Eigen/Dense>
 #include <random>
 #include <fstream>
-
 namespace qst{
 
 // RBM class
@@ -106,6 +105,10 @@ public:
             der(p)=gamma_(i);
             p++;
         } 
+        //der.head(nv_*nh_) = KroneckerProduct(gamma_,v);
+        //der.segment(nv_*nh_,nv_*nh_+nv_) = v;
+        //der.tail(nh_) = gamma_;
+        
         return -der;
     }
    

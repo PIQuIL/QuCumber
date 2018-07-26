@@ -42,7 +42,7 @@ __all__ = [
     "ComplexWavefunction"
 ]
 
-class ComplexWavefunction:
+class ComplexWavefunction(Sampler):
     
     def __init__(self,num_visible,
                  num_hidden, gpu=True,

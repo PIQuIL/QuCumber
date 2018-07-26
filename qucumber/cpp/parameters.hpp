@@ -28,7 +28,7 @@ public:
         // Default values
         nv_ = 10;
         nh_ = 10;
-        w_  = 0.1;
+        w_  = 0.01;
         cd_ = 10;
         nc_ = 100;
         lr_ = 0.1;

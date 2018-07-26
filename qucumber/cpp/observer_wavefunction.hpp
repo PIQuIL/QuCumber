@@ -23,6 +23,7 @@ public:
 
     double KL_;
     double overlap_;
+    double fidelity_;
     double Z_;
     double NLL_;
     Eigen::MatrixXd basis_states_;      // Hilbert space basis
@@ -47,8 +48,8 @@ public:
     //Compute different estimators for the training performance
     void Scan(int i){//,Eigen::MatrixXd &nll_test,std::ofstream &obs_out){
         ExactPartitionFunction();
-        ExactKL(); 
-        Overlap();
+        //ExactKL(); 
+        Fidelity();
         PrintStats(i);
     }
 
@@ -72,7 +73,7 @@ public:
     // Compute the fidelity with the target wavefunction 
     void Fidelity(){
         Overlap();
-        return overlap_*overlap_;
+        fidelity_= overlap_*overlap_;
     }
     
     void NLL(Eigen::MatrixXd &data_samples,std::vector<std::vector<std::string> > &data_bases){
@@ -138,7 +139,7 @@ public:
     void PrintStats(int i){
         std::cout << "Epoch: " << i << "\t";     
         std::cout << "KL = " << std::setprecision(10) << KL_ << "\t";
-        std::cout << "Overlap = " << std::setprecision(10) << overlap_<< "\t";//<< Fcheck_;
+        std::cout << "Fidelity = " << std::setprecision(10) << fidelity_<< "\t";//<< Fcheck_;
         std::cout << std::endl;
     } 
 
