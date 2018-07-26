@@ -60,8 +60,6 @@ public:
         auto pars = NNstate_.GetParameters();
         obs_.ExactPartitionFunction();
         Eigen::VectorXd derKL(npar_);
-        //Eigen::VectorXd alg_ders(npar_);
-        //Eigen::VectorXd num_ders(npar_);
         alg_ders.setZero(npar_);
         num_ders.setZero(npar_);
         
@@ -102,86 +100,35 @@ public:
             valm = obs_.KL_;
             pars(p)+=eps;
             num_ders(p)=(-valm+valp)/(eps*2);
-            //std::cout<<"Derivative wrt par "<<p<<". Grad =: "<<alg_ders(p)<<" Numerical = : "<<num_ders[p]<<std::endl;
         }
     }
 
-    void RunDerCheck(double n_hidden,double eps=1.0e-4){
-        Eigen::VectorXd alg_der(npar_);
-        Eigen::VectorXd num_der(npar_);
-        DerKL(eps,alg_der,num_der); 
-        
-        std::cout<< "Running KL derivatives check.."<<std::endl<<std::endl;
-        std::cout<< "Network: rbm_am (AMPLITUDE MACHINE)"<<std::endl<<std::endl;
-        int p=0;
-        std::cout<<"Weights:"<<std::endl;
-        for(int i=0;i<n_hidden;i++){
-            for(int j=0;j<NNstate_.N();j++){
-                std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
-                p++;
-            }
-        }
-        std::cout<<std::endl;
-        std::cout<<"Visible Bias:"<<std::endl;
-        for(int j=0;j<NNstate_.N();j++){
-            std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
-            p++;
-        }
-        std::cout<<std::endl;
-        std::cout<<"Hidden Bias:"<<std::endl;
-        for(int i=0;i<n_hidden;i++){
-            std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
-            p++;
-        }
-        std::cout<<std::endl;
-        if (p+1<npar_){
-            std::cout<< "Network: rbm_ph (PHASE MACHINE)"<<std::endl<<std::endl;
-            std::cout<<"Weights:"<<std::endl;
-            for(int i=0;i<n_hidden;i++){
-                for(int j=0;j<NNstate_.N();j++){
-                    std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
-                    p++;
-                }
-            }
-            std::cout<<std::endl;
-            std::cout<<"Visible Bias:"<<std::endl;
-            for(int j=0;j<NNstate_.N();j++){
-                std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
-                p++;
-            }
-            std::cout<<std::endl;
-            std::cout<<"Hidden Bias:"<<std::endl;
-            for(int i=0;i<n_hidden;i++){
-                std::cout<<std::setprecision(8)<<num_der(p)<<std::setw(20)<<std::setprecision(8)<<alg_der(p)<<std::endl;
-                p++;
-            }
-            std::cout<<std::endl;
-        }
-    }
     // Test the derivatives of the KL divergence
-    void DerNLL(Eigen::MatrixXd &data,double eps=1.0e-4){
+    void DerNLL(double eps,Eigen::MatrixXd &data_samples,Eigen::VectorXd &alg_ders_nosample,Eigen::VectorXd &alg_ders_sample,Eigen::VectorXd &num_ders){
         auto pars = NNstate_.GetParameters();
         obs_.ExactPartitionFunction();
         Eigen::VectorXcd derKL(npar_);
-        Eigen::VectorXd ders(npar_);
-        ders.setZero(npar_);
+        alg_ders_nosample.setZero(npar_);
+        alg_ders_sample.setZero(npar_);
+        num_ders.setZero(npar_);
 
         //-- ALGORITHMIC DERIVATIVES --//
         //Standard Basis
-        //std::cout << data.rows() <<std::endl;
-        for(int j=0;j<data.rows();j++){
+        for(int j=0;j<data_samples.rows();j++){
             //Positive phase - Lambda gradient in reference basis
-            ders.head(nparLambda_) +=  NNstate_.LambdaGrad(data.row(j))/float(data.rows());
+            alg_ders_nosample.head(nparLambda_) +=  NNstate_.LambdaGrad(data_samples.row(j))/float(data_samples.rows());
+            alg_ders_sample.head(nparLambda_) +=  NNstate_.LambdaGrad(data_samples.row(j))/float(data_samples.rows());
         }
-        //for(int j=0;j<1<<N_;j++){ 
-        //    ders.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
-        //    //std::cout << (NNstate_.LambdaGrad(basis_states_.row(j)).head(10)).transpose() << std::endl<<std::endl;
-        //}
-        //NNstate_.SetVisibleLayer(data);
+
+        for(int j=0;j<1<<N_;j++){ 
+            alg_ders_nosample.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
+            //std::cout << (NNstate_.LambdaGrad(basis_states_.row(j)).head(10)).transpose() << std::endl<<std::endl;
+        }
+        NNstate_.SetVisibleLayer(data_samples);
         NNstate_.Sample(100);
-        std::cout << NNstate_.VisibleStateRow(0) << std::endl;
+        //std::cout << NNstate_.VisibleStateRow(0) << std::endl;
         for(int k=0;k<NNstate_.Nchains();k++){ 
-            ders.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
+            alg_ders_sample.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
         }
         //if (basis_.compare("std")!=0){
         //    //Rotated Basis
@@ -203,17 +150,79 @@ public:
             NNstate_.SetParameters(pars);
             double valp=0.0;
             obs_.ExactPartitionFunction();
-            obs_.NLL(data);
+            obs_.NLL(data_samples);
             valp = obs_.NLL_;
             pars(p)-=2*eps;
             NNstate_.SetParameters(pars);
             double valm=0.0;
             obs_.ExactPartitionFunction();
-            obs_.NLL(data);
+            obs_.NLL(data_samples);
             valm = obs_.NLL_;
             pars(p)+=eps;
-            double numder=(-valm+valp)/(eps*2);
-            std::cout<<"Derivative wrt par "<<p<<". Grad =: "<<ders(p)<<" Numerical = : "<<numder<<std::endl;
+            num_ders(p)=(-valm+valp)/(eps*2);
+        }
+    }
+
+    void RunDerCheck(double n_hidden,Eigen::MatrixXd &data_samples,double eps=1.0e-4){
+        Eigen::VectorXd alg_derKL(npar_);
+        Eigen::VectorXd num_derKL(npar_);
+        Eigen::VectorXd alg_derNLL_sample(npar_);
+        Eigen::VectorXd alg_derNLL_nosample(npar_);
+        Eigen::VectorXd num_derNLL(npar_);
+        DerKL(eps,alg_derKL,num_derKL); 
+        DerNLL(eps,data_samples,alg_derNLL_nosample,alg_derNLL_sample,num_derNLL);
+        
+        std::cout<< "Running KL derivatives check.."<<std::endl<<std::endl;
+        std::cout<< "Network: rbm_am (AMPLITUDE MACHINE)"<<std::endl<<std::endl;
+        int p=0;
+        std::cout<<"Weights:"<<std::endl;
+        std::cout<<"Numerical KL\t\tAlgorithm KL"<<"\t\t\t\t"<<"Numerical NLL"<<"\t\t"<<"Alg NLL nosample"<<"\t"<<"Alg NLL sample"<<std::endl<<std::endl;
+        for(int i=0;i<n_hidden;i++){
+            for(int j=0;j<NNstate_.N();j++){
+                std::cout<<std::setprecision(8)<<num_derKL(p) <<"\t\t"<<std::setprecision(8)<<alg_derKL(p)<<"\t\t\t\t";
+                std::cout<<std::setprecision(8)<<num_derNLL(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_nosample(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_sample(p)<<std::endl; 
+                p++;
+            }
+        }
+        std::cout<<std::endl;
+        std::cout<<"Visible Bias:"<<std::endl;
+        std::cout<<"Numerical KL\t\tAlgorithm KL"<<"\t\t\t\t"<<"Numerical NLL"<<"\t\t"<<"Alg NLL nosample"<<"\t"<<"Alg NLL sample"<<std::endl<<std::endl;
+        for(int j=0;j<NNstate_.N();j++){
+            std::cout<<std::setprecision(8)<<num_derKL(p) <<"\t\t"<<std::setprecision(8)<<alg_derKL(p)<<"\t\t\t\t";
+            std::cout<<std::setprecision(8)<<num_derNLL(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_nosample(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_sample(p)<<std::endl; 
+            p++;
+        }
+        std::cout<<std::endl;
+        std::cout<<"Hidden Bias:"<<std::endl;
+        std::cout<<"Numerical KL\t\tAlgorithm KL"<<"\t\t\t\t"<<"Numerical NLL"<<"\t\t"<<"Alg NLL nosample"<<"\t"<<"Alg NLL sample"<<std::endl<<std::endl;
+        for(int i=0;i<n_hidden;i++){
+            std::cout<<std::setprecision(8)<<num_derKL(p) <<"\t\t"<<std::setprecision(8)<<alg_derKL(p)<<"\t\t\t\t";
+            std::cout<<std::setprecision(8)<<num_derNLL(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_nosample(p)<<"\t\t"<<std::setprecision(8)<<alg_derNLL_sample(p)<<std::endl; 
+            p++;
+        }
+        std::cout<<std::endl;
+        if (p+1<npar_){
+            std::cout<< "Network: rbm_ph (PHASE MACHINE)"<<std::endl<<std::endl;
+            std::cout<<"Weights:"<<std::endl;
+            for(int i=0;i<n_hidden;i++){
+                for(int j=0;j<NNstate_.N();j++){
+                    std::cout<<std::setprecision(8)<<num_derKL(p)<<std::setw(20)<<std::setprecision(8)<<alg_derKL(p)<<std::endl;
+                    p++;
+                }
+            }
+            std::cout<<std::endl;
+            std::cout<<"Visible Bias:"<<std::endl;
+            for(int j=0;j<NNstate_.N();j++){
+                std::cout<<std::setprecision(8)<<num_derKL(p)<<std::setw(20)<<std::setprecision(8)<<alg_derKL(p)<<std::endl;
+                p++;
+            }
+            std::cout<<std::endl;
+            std::cout<<"Hidden Bias:"<<std::endl;
+            for(int i=0;i<n_hidden;i++){
+                std::cout<<std::setprecision(8)<<num_derKL(p)<<std::setw(20)<<std::setprecision(8)<<alg_derKL(p)<<std::endl;
+                p++;
+            }
+            std::cout<<std::endl;
         }
     }
     //Set the value of the target wavefunction

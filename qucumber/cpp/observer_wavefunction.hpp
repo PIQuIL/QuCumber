@@ -75,14 +75,14 @@ public:
         return overlap_*overlap_;
     }
     
-    void NLL(Eigen::MatrixXd &data){
+    void NLL(Eigen::MatrixXd &data_samples){
         //TODO NOTE THIS IS ONLY FOR REFERENCE BASIS
         NLL_ = 0.0;
-        for (int i=0;i<data.rows();i++){
-            NLL_ -= log(norm(PSI_.psi(data.row(i))));
+        for (int i=0;i<data_samples.rows();i++){
+            NLL_ -= log(norm(PSI_.psi(data_samples.row(i))));
             NLL_ += log(Z_);
         }
-        NLL_ /= float(data.rows());
+        NLL_ /= float(data_samples.rows());
     }
 
     //Compute KL divergence exactly

@@ -13,22 +13,22 @@ int main(int argc, char* argv[]){
     //---- SPECIFIC PARAMETERS ----/
     
     // TFIM1d with 10 SPINS
-    //typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
-    //par.basis_ = "std";
-    //std::string model = "tfim1d_N10";
-    //std::string baseName = "../../examples/quantum_ising/"+model+"_";
-    //par.nv_=10;
-    //par.nh_=2;
-    //par.ns_= 10000;
-
-    // 2qubits complex 
-    typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
-    par.basis_ = "xy1";
-    std::string model = "2qubits";
-    std::string baseName = "../../examples/2qubits_complex/"+model+"_";
-    par.nv_=2;
+    typedef qst::WavefunctionPositive NNState;       //Positive Wavefunction
+    par.basis_ = "std";
+    std::string model = "tfim1d_N10";
+    std::string baseName = "../../examples/quantum_ising/"+model+"_";
+    par.nv_=10;
     par.nh_=2;
-    par.ns_=100;
+    par.ns_= 10000;
+    par.nc_= par.ns_;
+    // 2qubits complex 
+    //typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
+    //par.basis_ = "xy1";
+    //std::string model = "2qubits";
+    //std::string baseName = "../../examples/2qubits_complex/"+model+"_";
+    //par.nv_=2;
+    //par.nh_=2;
+    //par.ns_=100;
     
     typedef qst::Sgd Optimizer;                     //Stochastic gradient descent
     typedef qst::ObserverPSI<NNState> Observer;              //Observer for Wavefunction
@@ -83,5 +83,5 @@ int main(int argc, char* argv[]){
         test.setBasis(basisSet);
         test.setRotatedWavefunctions(rotated_target_psi);
     }
-    test.RunDerCheck(par.nh_,1e-8);
+    test.RunDerCheck(par.nh_,training_samples,1e-8);
 }
