@@ -104,7 +104,7 @@ public:
     }
 
     // Test the derivatives of the KL divergence
-    void DerNLL(double eps,Eigen::MatrixXd &data_samples,Eigen::VectorXd &alg_ders_nosample,Eigen::VectorXd &alg_ders_sample,Eigen::VectorXd &num_ders){
+    void DerNLL(double eps,int nchains,Eigen::MatrixXd &data_samples,std::vector<std::vector<std::string> > &data_bases,Eigen::VectorXd &alg_ders_nosample,Eigen::VectorXd &alg_ders_sample,Eigen::VectorXd &num_ders){
         auto pars = NNstate_.GetParameters();
         obs_.ExactPartitionFunction();
         Eigen::VectorXcd derKL(npar_);
@@ -124,7 +124,7 @@ public:
             alg_ders_nosample.head(nparLambda_) -= NNstate_.LambdaGrad(basis_states_.row(j))*norm(NNstate_.psi(basis_states_.row(j)))/obs_.Z_;
             //std::cout << (NNstate_.LambdaGrad(basis_states_.row(j)).head(10)).transpose() << std::endl<<std::endl;
         }
-        NNstate_.SetVisibleLayer(data_samples);
+        NNstate_.SetVisibleLayer(data_samples.topRows(nchains));
         NNstate_.Sample(100);
         //std::cout << NNstate_.VisibleStateRow(0) << std::endl;
         for(int k=0;k<NNstate_.Nchains();k++){ 
@@ -150,27 +150,27 @@ public:
             NNstate_.SetParameters(pars);
             double valp=0.0;
             obs_.ExactPartitionFunction();
-            obs_.NLL(data_samples);
+            obs_.NLL(data_samples,data_bases);
             valp = obs_.NLL_;
             pars(p)-=2*eps;
             NNstate_.SetParameters(pars);
             double valm=0.0;
             obs_.ExactPartitionFunction();
-            obs_.NLL(data_samples);
+            obs_.NLL(data_samples,data_bases);
             valm = obs_.NLL_;
             pars(p)+=eps;
             num_ders(p)=(-valm+valp)/(eps*2);
         }
     }
 
-    void RunDerCheck(double n_hidden,Eigen::MatrixXd &data_samples,double eps=1.0e-4){
+    void RunDerCheck(double n_hidden,Eigen::MatrixXd &data_samples,std::vector<std::vector<std::string> > &data_bases,double eps=1.0e-4,int nchains=100){
         Eigen::VectorXd alg_derKL(npar_);
         Eigen::VectorXd num_derKL(npar_);
         Eigen::VectorXd alg_derNLL_sample(npar_);
         Eigen::VectorXd alg_derNLL_nosample(npar_);
         Eigen::VectorXd num_derNLL(npar_);
         DerKL(eps,alg_derKL,num_derKL); 
-        DerNLL(eps,data_samples,alg_derNLL_nosample,alg_derNLL_sample,num_derNLL);
+        DerNLL(eps,nchains,data_samples,data_bases,alg_derNLL_nosample,alg_derNLL_sample,num_derNLL);
         
         std::cout<< "Running KL derivatives check.."<<std::endl<<std::endl;
         std::cout<< "Network: rbm_am (AMPLITUDE MACHINE)"<<std::endl<<std::endl;

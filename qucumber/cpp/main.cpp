@@ -20,7 +20,7 @@ int main(int argc, char* argv[]){
     par.nv_=10;
     par.nh_=2;
     par.ns_= 10000;
-    par.nc_= par.ns_;
+    par.nc_= 10000;
     // 2qubits complex 
     //typedef qst::WavefunctionComplex NNState;       //Complex Wavefunction
     //par.basis_ = "xy1";
@@ -83,5 +83,5 @@ int main(int argc, char* argv[]){
         test.setBasis(basisSet);
         test.setRotatedWavefunctions(rotated_target_psi);
     }
-    test.RunDerCheck(par.nh_,training_samples,1e-8);
+    test.RunDerCheck(par.nh_,training_samples,training_bases,1e-8,par.nc_);
 }

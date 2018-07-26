@@ -75,14 +75,43 @@ public:
         return overlap_*overlap_;
     }
     
-    void NLL(Eigen::MatrixXd &data_samples){
+    void NLL(Eigen::MatrixXd &data_samples,std::vector<std::vector<std::string> > &data_bases){
         //TODO NOTE THIS IS ONLY FOR REFERENCE BASIS
         NLL_ = 0.0;
+        Eigen::VectorXcd rotated_psi(1<<N_);
+        //for (int i=0;i<data_samples.rows();i++){
+        //    NLL_ -= log(norm(PSI_.psi(data_samples.row(i))));
+        //    NLL_ += log(Z_);
+        //}
+        //NLL_ /= float(data_samples.rows());
+        int b_ID=0;
         for (int i=0;i<data_samples.rows();i++){
-            NLL_ -= log(norm(PSI_.psi(data_samples.row(i))));
-            NLL_ += log(Z_);
+            b_ID=0;
+            for(int j=0;j<N_;j++){
+                if (data_bases[i][j]!="Z"){
+                    b_ID = 1;
+                    break;
+                }
+            } 
+            if(b_ID==0){
+                NLL_ -= log(norm(PSI_.psi(data_samples.row(i))));
+                NLL_ += log(Z_);
+            }
+            else{
+                std::cout<<"A"<<std::endl;
+                rotateRbmWF(data_bases[i],rotated_psi);
+                int ind = 0;
+                for (int j=0;j<N_;j++){
+                    if (data_samples(i,N_-j-1) == 1){
+                        ind += pow(2,j);
+                    }
+                }
+                //std::cout<<data_samples.row(i) << "    " << ind << std::endl;
+                NLL_ -=log(norm(rotated_psi(ind)));
+                NLL_ += log(Z_);
+            }
         }
-        NLL_ /= float(data_samples.rows());
+        NLL_ /=float(data_samples.rows());
     }
 
     //Compute KL divergence exactly

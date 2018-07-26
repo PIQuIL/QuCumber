@@ -64,6 +64,7 @@ public:
     }
     // Set the visible layer state
     inline void SetVisibleLayer(Eigen::MatrixXd v){
+        v_.resize(v.rows(),v.cols());
         v_=v;
     }
    

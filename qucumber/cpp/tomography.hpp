@@ -60,10 +60,9 @@ public:
         for(int k=0;k<bs_;k++){
             bID = 0;
             for(int j=0;j<N_;j++){ // Check if the basis is the reference one
-                //std::cout<<"A"<<batchBases[k][j]<<std::endl;
                 if (batchBases[k][j]!="Z"){
                     bID = 1;
-                    //break;
+                    break;
                 }
             }
             if (bID==0){ // Positive phase - Lambda gradient in the reference basis
