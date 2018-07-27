@@ -165,15 +165,15 @@ def compute_numerical_kl(nn_state,psi_dict,vis,Z,unitary_dict,bases):
     psi_r = torch.zeros(2,1<<N,dtype=torch.double)
     KL = 0.0
     for i in range(len(vis)):
-        KL += cplx.norm(psi_dict[bases[0]][:,i])*cplx.norm(psi_dict[bases[0]][:,i]).log()
-        KL -= cplx.norm(psi_dict[bases[0]][:,i])*(probability(nn_state,vis[i],Z)).log().item()
+        KL += cplx.norm(psi_dict[bases[0]][:,i])*cplx.norm(psi_dict[bases[0]][:,i]).log()/float(len(bases))
+        KL -= cplx.norm(psi_dict[bases[0]][:,i])*(probability(nn_state,vis[i],Z)).log().item()/float(len(bases))
     for b in range(1,len(bases)):
         psi_r = rotate_psi(nn_state,bases[b],unitary_dict)
         for ii in range(len(vis)):
             if(cplx.norm(psi_dict[bases[b]][:,ii])>0.0):
-                KL += cplx.norm(psi_dict[bases[b]][:,ii])*cplx.norm(psi_dict[bases[b]][:,ii]).log()
-            KL -= cplx.norm(psi_dict[bases[b]][:,ii])*cplx.norm(psi_r[:,ii]).log()
-            KL += cplx.norm(psi_dict[bases[b]][:,ii])*Z.log()
+                KL += cplx.norm(psi_dict[bases[b]][:,ii])*cplx.norm(psi_dict[bases[b]][:,ii]).log()/float(len(bases))
+            KL -= cplx.norm(psi_dict[bases[b]][:,ii])*cplx.norm(psi_r[:,ii]).log()/float(len(bases))
+            KL += cplx.norm(psi_dict[bases[b]][:,ii])*Z.log()/float(len(bases))
 
     return KL
 
@@ -230,8 +230,8 @@ def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
     
     for i in range(len(vis)):
         for par in rbm.state_dict():
-            grad_KL['rbm_am'][par] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.gradient(vis[i])['rbm_am'][par]
-            grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]
+            grad_KL['rbm_am'][par] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.gradient(vis[i])['rbm_am'][par]/float(len(bases))
+            grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]/float(len(bases))
 
     for b in range(1,len(bases)):
         psi_r = rotate_psi(nn_state,bases[b],unitary_dict)
@@ -239,9 +239,9 @@ def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
             rotated_grad = nn_state.rotate_grad(bases[b],vis[i])
             for net in nn_state.networks:
                 for par in rbm.state_dict():
-                    grad_KL[net][par] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[net][par]
+                    grad_KL[net][par] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[net][par]/float(len(bases))
             for par in rbm.state_dict():
-                grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]
+                grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]/float(len(bases))
     return grad_KL            
 
 
@@ -290,6 +290,11 @@ def test_gradients(nn_state,psi_dict,data_samples,data_bases,unitary_dict,bases,
 
 
 
+#path_to_train_data = '../../tools/benchmarks/data/2qubits_complex/2qubits_train_samples.txt'
+#path_to_train_bases= '../../tools/benchmarks/data/2qubits_complex/2qubits_train_bases.txt'
+#path_to_full_unitaries = '../../tools/benchmarks/data/2qubits_complex/2qubits_unitaries.txt'
+#path_to_bases = '../../tools/benchmarks/data/2qubits_complex/2qubits_bases.txt'
+#path_to_target_psi = '../../tools/benchmarks/data/2qubits_complex/2qubits_psi.txt'
 path_to_train_data = '../../tools/benchmarks/data/2qubits_complex/2qubits_train_samples.txt'
 path_to_train_bases= '../../tools/benchmarks/data/2qubits_complex/2qubits_train_bases.txt'
 path_to_full_unitaries = '../../tools/benchmarks/data/2qubits_complex/2qubits_unitaries.txt'

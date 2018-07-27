@@ -61,7 +61,7 @@ public:
         Eigen::VectorXd derKL(npar_);
         alg_ders.setZero(npar_);
         num_ders.setZero(npar_);
-        
+         
         //-- ALGORITHMIC DERIVATIVES --//
         //Standard Basis
         for(int j=0;j<1<<N_;j++){
@@ -74,6 +74,10 @@ public:
         if (basis_.compare("std")!=0){
             //Rotated Basis
             for(int b=1;b<basisSet_.size();b++){
+                for(int j=0;j<N_;j++){
+                    std::cout<< basisSet_[b][j]<<" ";
+                }
+                std::cout<<std::endl;
                 for(int j=0;j<1<<N_;j++){
                     //Positive phase
                     NNstate_.rotatedGrad(basisSet_[b],basis_states_.row(j),U_,derKL);
@@ -83,6 +87,7 @@ public:
                 }
             }
         }
+        alg_ders /= float(basisSet_.size()+1);
         //-- NUMERICAL DERIVATIVES --//
         for(int p=0;p<npar_;p++){
             pars(p)+=eps;

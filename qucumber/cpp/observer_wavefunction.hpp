@@ -37,10 +37,12 @@ public:
         std::bitset<16> bit;
         // Create the basis of the Hilbert space
         basis_states_.resize(1<<N_,N_);
-        for(int i=0;i<1<<N_;i++){
-            bit = i;
-            for(int j=0;j<N_;j++){
-                basis_states_(i,j) = bit[N_-j-1];
+        if (N_ < 16){
+            for(int i=0;i<1<<N_;i++){
+                bit = i;
+                for(int j=0;j<N_;j++){
+                    basis_states_(i,j) = bit[N_-j-1];
+                }
             }
         }
     }
@@ -48,7 +50,7 @@ public:
     //Compute different estimators for the training performance
     void Scan(int i){//,Eigen::MatrixXd &nll_test,std::ofstream &obs_out){
         ExactPartitionFunction();
-        //ExactKL(); 
+        ExactKL(); 
         Fidelity();
         PrintStats(i);
     }
@@ -67,6 +69,7 @@ public:
         std::complex<double> tmp;
         for(int i=0;i<basis_states_.rows();i++){
             tmp += conj(target_psi_(i))*PSI_.psi(basis_states_.row(i))/std::sqrt(Z_);
+            //tmp += target_psi_(i)*PSI_.psi(basis_states_.row(i)).real()/std::sqrt(Z_);    
         }
         overlap_ = abs(tmp);
     }
@@ -133,12 +136,13 @@ public:
                 }
             }
         }
+        KL_/=float(basisSet_.size()+1);
     }
     
     //Print observer
     void PrintStats(int i){
-        std::cout << "Epoch: " << i << "\t";     
-        std::cout << "KL = " << std::setprecision(10) << KL_ << "\t";
+        std::cout << "Epoch: " << i << " \t";     
+        std::cout << "KL = " << std::setprecision(10) << KL_ << " \t";
         std::cout << "Fidelity = " << std::setprecision(10) << fidelity_<< "\t";//<< Fcheck_;
         std::cout << std::endl;
     } 
