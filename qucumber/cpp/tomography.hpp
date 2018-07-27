@@ -58,6 +58,7 @@ public:
         int batch_size = batchSamples.rows();
         int bID = 0;
         //Positive Phase
+        //grad_.head(nparLambda_) = NNstate_.LambdaGrad(batchSamples);
         for(int k=0;k<batch_size;k++){
             bID = 0;
             for(int j=0;j<N_;j++){ // Check if the basis is the reference one
@@ -80,12 +81,13 @@ public:
         //for(int j=0;j<1<<N_;j++){
         //    grad_.head(nparLambda_) -= norm(NNstate_.psi(obs_.basis_states_.row(j)))*NNstate_.LambdaGrad(obs_.basis_states_.row(j))/obs_.Z_;
         //} 
-        //std::cout << grad_.segment(10*N_,10*N_+10) << std::endl;
-        //Negative Phase - Sampled
+
+        Negative Phase - Sampled
         NNstate_.Sample(cd_);
         for(int k=0;k<NNstate_.Nchains();k++){
             grad_.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
         }
+        
         opt_.getUpdates(grad_);
     }
     
@@ -113,23 +115,23 @@ public:
         for(int i=0;i<epochs_;i++){
             
             // Gradient descent
-            //ComputeGradient(trainData,trainBases);
-            //UpdateParameters();
+            ComputeGradient(trainData,trainBases);
+            UpdateParameters();
             // Stochastic gradient descent
-            for(int j=0;j<batch_num;j++){
-                // Randomize a batch and set the visible layer to a data point 
-                SetUpTrainingStep(trainData,batch_samples,trainBases,batch_bases,distribution); 
-                // Perform one step of optimization
-                ComputeGradient(batch_samples,batch_bases);
-                UpdateParameters();
-            }
-            //Compute stuff and print
-            //if (counter == saveFrequency){
-            //    obs_.Scan(i);
-            //    //std::cout << "Epoch: " << epoch << std::endl;
-            //    counter = 0;
+            //for(int j=0;j<batch_num;j++){
+            //    // Randomize a batch and set the visible layer to a data point 
+            //    SetUpTrainingStep(trainData,batch_samples,trainBases,batch_bases,distribution); 
+            //    // Perform one step of optimization
+            //    ComputeGradient(batch_samples,batch_bases);
+            //    UpdateParameters();
             //}
-            //counter++;
+            //Compute stuff and print
+            if (counter == saveFrequency){
+                obs_.Scan(i);
+                //std::cout << "Epoch: " << epoch << std::endl;
+                counter = 0;
+            }
+            counter++;
         }
         obs_.Scan(0);
         clock_t time_b = std::clock();

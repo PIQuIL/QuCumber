@@ -88,6 +88,10 @@ public:
     Eigen::VectorXd LambdaGrad(const Eigen::VectorXd & v){
         return rbmAm_.VisEnergyGrad(v);
     }
+//    //Compute gradient of effective energy wrt Lambda 
+//    Eigen::VectorXd LambdaGrad(const Eigen::MatrixXd & v){
+//        return rbmAm_.VisEnergyGrad(v);
+//    }
     //Compute gradient of effective energy wrt all parameters
     Eigen::VectorXd Grad(const Eigen::VectorXd & v){
         return rbmAm_.VisEnergyGrad(v);

@@ -47,15 +47,14 @@ def train_real(train_path, true_psi_path, num_hidden, epochs, batch_size,
     """Train an RBM without any phase."""
     train_set = torch.tensor(np.loadtxt(train_path, dtype='float32'),dtype=torch.double)
 
-    num_hidden = 10#train_set.shape[-1] if num_hidden is None else num_hidden
+    #num_hidden = 10#train_set.shape[-1] if num_hidden is None else num_hidden
 
     psi = load_target_psi(train_set.shape[-1],true_psi_path)#path_to_target_psi) 
-
     nn_state = PositiveWavefunction(num_visible=train_set.shape[-1],
                       num_hidden=num_hidden, seed=seed)
-    print(nn_state.rbm_am.weights)
-    print(nn_state.rbm_am.visible_bias)
-    print(nn_state.rbm_am.hidden_bias)
+#    print(nn_state.rbm_am.weights)
+#    print(nn_state.rbm_am.visible_bias)
+#    print(nn_state.rbm_am.hidden_bias)
 
 #    nn_state.save('train_benchmark_params_real.pkl')
     
@@ -63,10 +62,9 @@ def train_real(train_path, true_psi_path, num_hidden, epochs, batch_size,
             #lr=learning_rate, progbar=(not no_prog))
     qr = QuantumReconstruction(nn_state)
     
-    qr.fit(train_set, epochs, batch_size, num_chains, k=k,
-            lr=learning_rate, progbar=(not no_prog),target_psi=psi)
+    qr.fit(train_set, epochs, batch_size, num_chains, k,
+            learning_rate, progbar=(not no_prog),target_psi=psi)
 
-    
     print('Finished training. Saving results...')
     nn_state.save('saved_params_real.pkl')
 #    print(nn_state.rbm_am.weights)
@@ -91,10 +89,10 @@ def train_real(train_path, true_psi_path, num_hidden, epochs, batch_size,
               show_default=True, type=int)
 @click.option('-nc', '--num-chains', default=100,
               show_default=True, type=int)
-@click.option('-e', '--epochs', default=100, show_default=True, type=int)
+@click.option('-e', '--epochs', default=1000, show_default=True, type=int)
 @click.option('-k', default=10, show_default=True, type=int,
               help="number of Contrastive Divergence steps")
-@click.option('-lr', '--learning-rate', default=1e-3,
+@click.option('-lr', '--learning-rate', default=1e-1,
               show_default=True, type=float)
 @click.option('--log-every', default=0, show_default=True, type=int,
               help=("how often the validation statistics are recorded, "
@@ -128,7 +126,8 @@ def train_complex(train_path, basis_path, true_psi_path, num_hidden,
                                num_hidden=num_hidden)
    
     qr = QuantumReconstruction(nn_state)
-
+    #data = {"samples":train_data,"bases":train_bases}
+    #qr.fit(data,epochs, batch_size, num_chains, k,learning_rate,progbar=(not no_prog),target_psi=psi)
     qr.fit(train_data, epochs, batch_size, num_chains, k,
             learning_rate,train_bases, progbar=(not no_prog),target_psi=psi)
     print(nn_state.rbm_am.weights)

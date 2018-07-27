@@ -86,9 +86,11 @@ public:
         }
     }
 
-    // Compute derivative of the effective visible energy
+    //Compute derivative of the effective visible energy
     Eigen::VectorXd VisEnergyGrad(const Eigen::VectorXd & v){
+        Eigen::VectorXd ders(npar_);
         Eigen::VectorXd der(npar_);
+        ders.setZero(npar_);
         int p=0;
         logistic(W_*v+c_,gamma_);
         for(int i=0;i<nh_;i++){
@@ -104,13 +106,33 @@ public:
         for(int i=0;i<nh_;i++){
             der(p)=gamma_(i);
             p++;
-        } 
-        //der.head(nv_*nh_) = KroneckerProduct(gamma_,v);
-        //der.segment(nv_*nh_,nv_*nh_+nv_) = v;
-        //der.tail(nh_) = gamma_;
-        
+        }
         return -der;
+        //Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> M;
+        //M = gamma_*v.transpose();
+        //Eigen::Map<Eigen::RowVectorXd> v1(M.data(), M.size());
+        //Eigen::VectorXd v2 = v1;
+        //ders.head(nv_*nh_)=-v2;
+        //ders.segment(nv_*nh_,nv_) = -v;
+        //ders.tail(nh_) = -gamma_;
+        //
+        //return ders;
     }
+    // Compute derivative of the effective visible energy
+    //Eigen::VectorXd VisEnergyGrad(const Eigen::MatrixXd & v){
+    //    Eigen::VectorXd ders(npar_);
+    //    Eigen::MatrixXd gamma(v.rows(),nh_);
+    //    std::cout<<v*W_.transpose().size()<<std::endl;
+    //    logistic((v*W_.transpose()).rowwise() + c_.transpose(),gamma);
+    //    //Eigen::MatrixXd w = gamma.transpose()*v;
+    //    //Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> M(w);
+    //    //Eigen::Map<Eigen::RowVectorXd> v1(M.data(), M.size());
+    //    //ders.head(nv_*nh_)=-v1/float(v.rows());
+    //    //ders.segment(nv_*nh_,nv_) = -v.colwise().sum()/float(v.rows());
+    //    //ders.tail(nh_) = -gamma.colwise().sum()/float(v.rows());;
+    //    return ders;
+    //}
+   
    
     // Return the probability for state v
     inline double prob(const Eigen::VectorXd & v){
