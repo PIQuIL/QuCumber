@@ -164,7 +164,6 @@ public:
         //}
         //std::cout<<std::endl;
 
-
         rotated_gradient.head(nparLambda_)=(rotated_psiGrad.head(nparLambda_)/rotated_psi).real();
         rotated_gradient.tail(nparMu_)=-(rotated_psiGrad.tail(nparMu_)/rotated_psi).imag();
         p=0;

@@ -69,7 +69,6 @@ public:
         std::complex<double> tmp;
         for(int i=0;i<basis_states_.rows();i++){
             tmp += conj(target_psi_(i))*PSI_.psi(basis_states_.row(i))/std::sqrt(Z_);
-            //tmp += target_psi_(i)*PSI_.psi(basis_states_.row(i)).real()/std::sqrt(Z_);    
         }
         overlap_ = abs(tmp);
     }
@@ -136,7 +135,7 @@ public:
                 }
             }
         }
-        KL_/=float(basisSet_.size()+1);
+        KL_/=float(basisSet_.size());
     }
     
     //Print observer

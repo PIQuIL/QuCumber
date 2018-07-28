@@ -66,7 +66,7 @@ void LoadWavefunction(Parameters & par,std::string &wf_fileName,Eigen::VectorXd 
         :param wf: wavefunction vector
     */
     std::ifstream fin(wf_fileName);
-    if (par.nv_ > 8) {
+    if (par.nv_ > 16) {
         std::cout << "BLA" << std::endl;
         //throw std::string( "Hilbert space too large");
     }
@@ -122,7 +122,10 @@ void LoadBasesConfigurations(Parameters &par,std::string &basis_name,std::vector
 
 void SetNumberOfBases(Parameters &par){
     if (par.basis_ == "std")    par.nb_ = 1;
-    if (par.basis_ == "xy1")    par.nb_ = 2*par.nv_+1;
+    if (par.basis_ == "x1")     par.nb_ = 1+par.nv_;
+    if (par.basis_ == "x2")     par.nb_ = 1+par.nv_+par.nv_-1;
+    if (par.basis_ == "xy1")    par.nb_ = 1+2*par.nv_;
+    if (par.basis_ == "xy2")    par.nb_ = 1+2*par.nv_+4*(par.nv_-1);
 }
 void GenerateUnitaryRotations(std::map<std::string,Eigen::MatrixXcd> & U){
 

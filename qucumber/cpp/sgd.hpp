@@ -42,7 +42,7 @@ public:
     }
     
     // Read update from gradient calculator
-    void getUpdates(const Eigen::MatrixXd & derLog){
+    void getUpdates(const Eigen::VectorXd & derLog){
         deltaP_ = derLog;
     }
     

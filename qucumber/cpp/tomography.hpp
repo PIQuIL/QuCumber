@@ -31,7 +31,7 @@ template<class NNState,class Observer,class Optimizer> class Tomography {
     double lr_;                                 // Learning rate
     double l2_;                                 // L2 regularization constant
 
-    Eigen::VectorXd grad_;                      // Gradients 
+    Eigen::MatrixXd grad_;                      // Gradients 
     Eigen::VectorXd rotated_grad_;             // Rotated gradients
     std::mt19937 rgen_;                         // Random number generator
     std::map<std::string,Eigen::MatrixXcd> U_;  // Structure containin the single unitary rotations
@@ -55,6 +55,7 @@ public:
     //Compute gradient of KL divergence 
     void ComputeGradient(const Eigen::MatrixXd & batchSamples,const std::vector<std::vector<std::string> >& batchBases){ 
         grad_.setZero();
+        //grad_.resize(batchSamples.rows(),npar_);
         int batch_size = batchSamples.rows();
         int bID = 0;
         //Positive Phase
@@ -82,7 +83,7 @@ public:
         //    grad_.head(nparLambda_) -= norm(NNstate_.psi(obs_.basis_states_.row(j)))*NNstate_.LambdaGrad(obs_.basis_states_.row(j))/obs_.Z_;
         //} 
 
-        Negative Phase - Sampled
+        //Negative Phase - Sampled
         NNstate_.Sample(cd_);
         for(int k=0;k<NNstate_.Nchains();k++){
             grad_.head(nparLambda_) -= NNstate_.LambdaGrad(NNstate_.VisibleStateRow(k))/double(NNstate_.Nchains());
@@ -104,27 +105,29 @@ public:
         int index;
         int counter = 0;
         int trainSize = trainData.rows();
-        int saveFrequency = 1;
+        int saveFrequency = 10;
         int batch_num = int(trainSize / bs_);
         Eigen::MatrixXd batch_samples;
         std::vector<std::vector<std::string> > batch_bases;
         std::uniform_int_distribution<int> distribution(0,trainSize-1);
-        std::cout<<trainSize<<std::endl;
+        
         clock_t time_a = std::clock();
         //obs_.Scan(0);
         for(int i=0;i<epochs_;i++){
+            //std::cout<<"Epoch: " << i <<std::endl;   
             
             // Gradient descent
-            ComputeGradient(trainData,trainBases);
-            UpdateParameters();
+            //ComputeGradient(trainData,trainBases);
+            //UpdateParameters();
+            
             // Stochastic gradient descent
-            //for(int j=0;j<batch_num;j++){
-            //    // Randomize a batch and set the visible layer to a data point 
-            //    SetUpTrainingStep(trainData,batch_samples,trainBases,batch_bases,distribution); 
-            //    // Perform one step of optimization
-            //    ComputeGradient(batch_samples,batch_bases);
-            //    UpdateParameters();
-            //}
+            for(int j=0;j<batch_num;j++){
+                // Randomize a batch and set the visible layer to a data point 
+                SetUpTrainingStep(trainData,batch_samples,trainBases,batch_bases,distribution); 
+                // Perform one step of optimization
+                ComputeGradient(batch_samples,batch_bases);
+                UpdateParameters();
+            }
             //Compute stuff and print
             if (counter == saveFrequency){
                 obs_.Scan(i);
@@ -133,7 +136,7 @@ public:
             }
             counter++;
         }
-        obs_.Scan(0);
+        //obs_.Scan(0);
         clock_t time_b = std::clock();
         unsigned int total_time_ticks = (unsigned int)(time_b - time_a);
         double time_s = float(total_time_ticks)/double(CLOCKS_PER_SEC);

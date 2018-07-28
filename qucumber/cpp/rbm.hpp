@@ -139,6 +139,11 @@ public:
         ln1pexp(W_*v+c_,gamma_);
         return std::exp(v.dot(b_)+gamma_.sum());
     }
+    // Return the probability for state v
+    inline double EffectiveEnergy(const Eigen::VectorXd & v){
+        ln1pexp(W_*v+c_,gamma_);
+        return -v.dot(b_)-gamma_.sum();
+    }
     
     // Conditional Probabilities 
     void ProbHiddenGivenVisible(const Eigen::MatrixXd &v,Eigen::MatrixXd &probs){
