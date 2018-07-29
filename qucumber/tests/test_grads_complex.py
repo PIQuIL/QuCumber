@@ -1,4 +1,3 @@
-#from qucumber.rbm import ComplexRBM
 import sys
 sys.path.append('../')
 from utils import unitaries
@@ -53,37 +52,29 @@ def probability(nn_state,v, Z):
     """
     return (nn_state.amplitude(v))**2 / Z
 
-def load_target_psi(bases,path_to_target_psi):
-    psi_data = np.loadtxt(path_to_target_psi)
+def load_target_psi(bases,psi_data):
     psi_dict={}
     D = int(len(psi_data)/float(len(bases)))
     for b in range(len(bases)):
-        # 5 possible wavefunctions: ZZ, XZ, ZX, YZ, ZY
+        
         psi      = torch.zeros(2,D, dtype=torch.double)
         psi_real = torch.tensor(psi_data[b*D:D*(b+1),0], dtype=torch.double)
         psi_imag = torch.tensor(psi_data[b*D:D*(b+1),1], dtype=torch.double)
         psi[0]   = psi_real
         psi[1]   = psi_imag
-         
         psi_dict[bases[b]] = psi
     
     return psi_dict
 
-def load_full_unitaries(bases,path_to_full_unitaries):
-    unitaries_data = np.loadtxt(path_to_full_unitaries)
-    full_unitaries_dict = {}
-    #D = 1 << len(bases[0])
-    #print(D)
-    for b in range(len(bases)):
-        full_unitary      = torch.zeros(2,D,D,dtype=torch.double)
-        full_unitary_real = torch.tensor(unitaries_data[2*D*b:D*(2*b+1)],
-                                         dtype=torch.double)
-        full_unitary_imag = torch.tensor(unitaries_data[D*(2*b+1):2*D*(b+1)],
-                                         dtype=torch.double)
-        full_unitary[0]   = full_unitary_real
-        full_unitary[1]   = full_unitary_imag
-        full_unitaries_dict[bases[b]] = full_unitary
-    return full_unitaries_dict
+def transform_bases(bases_data):
+    bases = []
+    for i in range(len(bases_data)):
+        tmp = ""
+        for j in range(len(bases_data[i])):
+            if bases_data[i][j] is not " ":
+                tmp += bases_data[i][j]
+        bases.append(tmp)
+    return bases
 
 
 def rotate_psi_full(basis,full_unitary_dict,psi):
@@ -92,7 +83,7 @@ def rotate_psi_full(basis,full_unitary_dict,psi):
     Upsi = cplx.MV_mult(U,psi)
     return Upsi
 
-def rotate_psi(nn_state,basis,unitary_dict):
+def rotate_psi(nn_state,basis,unitary_dict,vis):
     N=nn_state.num_visible
     v = torch.zeros(N, dtype=torch.double)
     psi_r = torch.zeros(2,1<<N,dtype=torch.double)
@@ -123,23 +114,7 @@ def rotate_psi(nn_state,basis,unitary_dict):
         psi_r[:,x] = Upsi
     return psi_r
 
-
-#def test_psi_rotations(bases,unitary_dict,fullunitary_dict,psi_dict,vis):
-#    for b in range(1,len(bases)):
-#        psi_r = rotate_psi_full(bases[b],fullunitary_dict,psi_dict['ZZ'])
-#        print("\n\nBases: %s\n" % bases[b])
-#        D = 1 << len(bases[b])
-#        psi_alg = rotate_psi(bases[b],unitary_dict,psi_dict['ZZ'])
-#        print('\t   Exact \t\t\t\tFullRotation \t\t\t\tAlgorithmic')
-#        for     j in range(D):
-#            print("{: 10.8f}  +  {: 10.8f}\t\t".format(psi_dict[bases[b]][0][j].item(),psi_dict[bases[b]][1][j].item()),end="", flush=True)
-#            print("{: 10.8f}  +  {: 10.8f}\t\t".format(psi_r[0][j].item(),psi_r[1][j].item()),end="", flush=True)
-#            print("{: 10.8f}  +  {: 10.8f}\t\t".format(psi_alg[0][j].item(),psi_alg[1][j].item()))
-#        
-#
-#
-
-def compute_numerical_NLL(nn_state,data_samples,data_bases,Z,unitary_dict,bases):
+def compute_numerical_NLL(nn_state,data_samples,data_bases,Z,unitary_dict,vis):
     NLL = 0
     batch_size = len(data_samples)
     b_flag = 0
@@ -149,14 +124,12 @@ def compute_numerical_NLL(nn_state,data_samples,data_bases,Z,unitary_dict,bases)
             ind = 0
             if (data_bases[i][j] != 'Z'):
                 b_flag = 1
-            #print(i,data_samples[i,j].item())
             bitstate.append(int(data_samples[i,j].item()))
         ind = int("".join(str(i) for i in bitstate), 2)
-        #print(data_samples[i],ind)
         if (b_flag == 0): 
             NLL -= (probability(nn_state,data_samples[i], Z)).log().item()/batch_size
         else:
-            psi_r = rotate_psi(nn_state,data_bases[i],unitary_dict)
+            psi_r = rotate_psi(nn_state,data_bases[i],unitary_dict,vis)
             NLL -= (cplx.norm(psi_r[:,ind]).log()-Z.log()).item()/batch_size
     return NLL
 
@@ -168,7 +141,7 @@ def compute_numerical_kl(nn_state,psi_dict,vis,Z,unitary_dict,bases):
         KL += cplx.norm(psi_dict[bases[0]][:,i])*cplx.norm(psi_dict[bases[0]][:,i]).log()/float(len(bases))
         KL -= cplx.norm(psi_dict[bases[0]][:,i])*(probability(nn_state,vis[i],Z)).log().item()/float(len(bases))
     for b in range(1,len(bases)):
-        psi_r = rotate_psi(nn_state,bases[b],unitary_dict)
+        psi_r = rotate_psi(nn_state,bases[b],unitary_dict,vis)
         for ii in range(len(vis)):
             if(cplx.norm(psi_dict[bases[b]][:,ii])>0.0):
                 KL += cplx.norm(psi_dict[bases[b]][:,ii])*cplx.norm(psi_dict[bases[b]][:,ii]).log()/float(len(bases))
@@ -181,26 +154,27 @@ def algorithmic_gradNLL(qr,data_samples,data_bases,k):
     qr.nn_state.set_visible_layer(data_samples)
     return qr.compute_batch_gradients(k, data_samples,data_bases)
 
-def numeric_gradNLL(nn_state,data_samples,data_bases,unitary_dict,param):
+def numeric_gradNLL(nn_state,data_samples,data_bases,unitary_dict,param,vis,eps):
+    
     num_gradNLL = []
     for i in range(len(param)):
         param[i] += eps
         
         Z     = partition(nn_state,vis)
-        NLL_p = compute_numerical_NLL(nn_state,data_samples,data_bases,Z,unitary_dict,bases)
+        NLL_p = compute_numerical_NLL(nn_state,data_samples,data_bases,Z,unitary_dict,vis)
 
         param[i] -= 2*eps
 
         Z     = partition(nn_state,vis)
-        NLL_m = compute_numerical_NLL(nn_state,data_samples,data_bases,Z,unitary_dict,bases)
+        NLL_m = compute_numerical_NLL(nn_state,data_samples,data_bases,Z,unitary_dict,vis)
 
         param[i] += eps
 
         num_gradNLL.append( (NLL_p - NLL_m) / (2*eps) )
     return num_gradNLL
 
-#compute_numerical_NLL(nn_state,data_samples,data_bases,unitary_dict,bases)
-def numeric_gradKL(param,nn_state,psi_dict,vis,unitary_dict,bases):
+def numeric_gradKL(param,nn_state,psi_dict,vis,unitary_dict,bases,eps):
+    
     num_gradKL = []
     for i in range(len(param)):
         param[i] += eps
@@ -219,6 +193,7 @@ def numeric_gradKL(param,nn_state,psi_dict,vis,unitary_dict,bases):
     return num_gradKL
 
 def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
+    
     grad_KL={}
     for net in nn_state.networks:
         tmp = {}
@@ -234,7 +209,7 @@ def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
             grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]/float(len(bases))
 
     for b in range(1,len(bases)):
-        psi_r = rotate_psi(nn_state,bases[b],unitary_dict)
+        psi_r = rotate_psi(nn_state,bases[b],unitary_dict,vis)
         for i in range(len(vis)):
             rotated_grad = nn_state.rotate_grad(bases[b],vis[i])
             for net in nn_state.networks:
@@ -246,41 +221,38 @@ def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
 
 
 
-#def test_gradients(qr,target_psi,data, vis, eps,k):
-def test_gradients(nn_state,psi_dict,data_samples,data_bases,unitary_dict,bases,vis,eps,k):
+def run(qr,psi_dict,data_samples,data_bases,unitary_dict,bases,vis,eps,k):
+    
     alg_grad_NLL = algorithmic_gradNLL(qr,data_samples,data_bases,k)
-    alg_grad_KL = algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases)
-    for net in nn_state.networks:
+    alg_grad_KL = algorithmic_gradKL(qr.nn_state,psi_dict,vis,unitary_dict,bases)
+    
+    for net in qr.nn_state.networks:
         print('\n\nRBM: %s' %net) 
-        rbm = getattr(nn_state, net)
+        rbm = getattr(qr.nn_state, net)
         flat_weights = rbm.weights.data.view(-1)
         flat_weights_grad_KL = alg_grad_KL[net]["weights"].view(-1)
         flat_weights_grad_NLL = alg_grad_NLL[net]["weights"].view(-1)
-        num_grad_KL=numeric_gradKL(flat_weights,nn_state,psi_dict,vis,unitary_dict,bases)
-        num_grad_NLL = numeric_gradNLL(nn_state,data_samples,data_bases,unitary_dict,flat_weights)
+        num_grad_KL=numeric_gradKL(flat_weights,qr.nn_state,psi_dict,vis,unitary_dict,bases,eps)
+        num_grad_NLL = numeric_gradNLL(qr.nn_state,data_samples,data_bases,unitary_dict,flat_weights,vis,eps)
+        
         print("\nTesting weights...")
         print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
         for i in range(len(flat_weights)):
             print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],flat_weights_grad_KL[i]),end="", flush=True)
             print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],flat_weights_grad_NLL[i]))
-        #
-        num_grad_KL=numeric_gradKL(rbm.visible_bias,nn_state,psi_dict,vis,unitary_dict,bases)
-        num_grad_NLL = numeric_gradNLL(nn_state,data_samples,data_bases,unitary_dict,rbm.visible_bias)
+        
+        num_grad_KL=numeric_gradKL(rbm.visible_bias,qr.nn_state,psi_dict,vis,unitary_dict,bases,eps)
+        num_grad_NLL = numeric_gradNLL(qr.nn_state,data_samples,data_bases,unitary_dict,rbm.visible_bias,vis,eps)
         print("\nTesting visible bias...")
         print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-        ###for i in range(len(rbm.visible_bias)):
-        ###    print("{: 10.8f}".format(num_grad_KL[i]))
         for i in range(len(rbm.visible_bias)):
             print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL[net]["visible_bias"][i]),end="",flush=True)
             print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["visible_bias"][i]))
  
-        
-        num_grad_KL=numeric_gradKL(rbm.hidden_bias,nn_state,psi_dict,vis,unitary_dict,bases)
-        num_grad_NLL = numeric_gradNLL(nn_state,data_samples,data_bases,unitary_dict,rbm.hidden_bias)
+        num_grad_KL=numeric_gradKL(rbm.hidden_bias,qr.nn_state,psi_dict,vis,unitary_dict,bases,eps)
+        num_grad_NLL = numeric_gradNLL(qr.nn_state,data_samples,data_bases,unitary_dict,rbm.hidden_bias,vis,eps)
         print("\nTesting hidden bias...")
         print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-        #for i in range(len(rbm.hidden_bias)):
-        ##    print("{: 10.8f}".format(num_grad_KL[i]))
         for i in range(len(rbm.hidden_bias)):
             print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL[net]["hidden_bias"][i]),end="", flush=True)
             print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["hidden_bias"][i]))
@@ -288,45 +260,3 @@ def test_gradients(nn_state,psi_dict,data_samples,data_bases,unitary_dict,bases,
     print('')
 
 
-
-
-#path_to_train_data = '../../tools/benchmarks/data/2qubits_complex/2qubits_train_samples.txt'
-#path_to_train_bases= '../../tools/benchmarks/data/2qubits_complex/2qubits_train_bases.txt'
-#path_to_full_unitaries = '../../tools/benchmarks/data/2qubits_complex/2qubits_unitaries.txt'
-#path_to_bases = '../../tools/benchmarks/data/2qubits_complex/2qubits_bases.txt'
-#path_to_target_psi = '../../tools/benchmarks/data/2qubits_complex/2qubits_psi.txt'
-path_to_train_data = '../../tools/benchmarks/data/2qubits_complex/2qubits_train_samples.txt'
-path_to_train_bases= '../../tools/benchmarks/data/2qubits_complex/2qubits_train_bases.txt'
-path_to_full_unitaries = '../../tools/benchmarks/data/2qubits_complex/2qubits_unitaries.txt'
-path_to_bases = '../../tools/benchmarks/data/2qubits_complex/2qubits_bases.txt'
-path_to_target_psi = '../../tools/benchmarks/data/2qubits_complex/2qubits_psi.txt'
-
-train_data = torch.tensor(np.loadtxt(path_to_train_data),dtype = torch.double)
-train_bases = np.loadtxt(path_to_train_bases, dtype=str)
-unitary_dict = unitaries.create_dict()
-num_visible      = train_data.shape[-1]
-num_hidden   = num_visible
-D = 1<<num_visible
-vis = generate_visible_space(num_visible)
-bases = []#np.loadtxt(path_to_bases,dtype=str)
-with open(path_to_bases) as fin:
-    for line in fin:
-        tmp = ""
-        for ch in line.strip():
-            if ch is not " ":
-                tmp += ch
-        bases.append(tmp)
-psi_dict = load_target_psi(bases,path_to_target_psi)
-fullunitary_dict = load_full_unitaries(bases,path_to_full_unitaries)
-
-nn_state = ComplexWavefunction(num_visible=num_visible,
-                               num_hidden=num_hidden)
-qr = QuantumReconstruction(nn_state)
-#print(nn_state.rbm_am.weights)
-#print(nn_state.rbm_ph.weights)
-
-smin = 0
-smax = 500
-k           = 1
-eps         = 1.e-8
-test_gradients(nn_state,psi_dict,train_data[smin:smax],train_bases[smin:smax],unitary_dict,bases,vis,eps,k)

@@ -6,11 +6,6 @@ import numpy as np
 from positive_wavefunction import PositiveWavefunction
 from quantum_reconstruction import QuantumReconstruction
 import importlib.util
-#spec = importlib.util.spec_from_file_location("PositiveWavefunction", "../positive_wavefunction.py")
-#PositiveWavefunction = importlib.util.module_from_spec(spec)
-#spec = importlib.util.spec_from_file_location("QuantumReconstruction", "../quantum_reconstruction.py")
-#QuantumReconstruction = importlib.util.module_from_spec(spec)
-#spec.loader.exec_module(PositiveWavefunction)
 
 def generate_visible_space(num_visible):
     """Generates all possible visible states.
@@ -65,7 +60,7 @@ def compute_numerical_kl(nn_state,target_psi, vis, Z):
     KL = 0.0
     for i in range(len(vis)):
         KL += ((target_psi[i])**2)*((target_psi[i])**2).log()
-        KL -= ((target_psi[i])**2)*(probability(nn_state,vis[i], Z)).log().item() #NOTE WHY item here?
+        KL -= ((target_psi[i])**2)*(probability(nn_state,vis[i], Z)).log().item()#NOTE WHY item here?
 
     return KL
 
@@ -87,7 +82,7 @@ def algorithmic_gradKL(nn_state,target_psi,vis):
     Z = partition(nn_state,vis)
     for i in range(len(vis)):
         for rbmType in nn_state.gradient(vis[i]):
-            for pars in nn_state.gradient(vis[i])[rbmType]:    
+            for pars in nn_state.gradient(vis[i])[rbmType]:
                 grad_KL[rbmType][pars] += ((target_psi[i])**2)*nn_state.gradient(vis[i])[rbmType][pars]            
                 grad_KL[rbmType][pars] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])[rbmType][pars]
     return grad_KL            
@@ -96,7 +91,7 @@ def algorithmic_gradNLL(qr,data,k):
     qr.nn_state.set_visible_layer(data)
     return qr.compute_batch_gradients(k, data)
     
-def numeric_gradKL(nn_state,target_psi, param, vis):
+def numeric_gradKL(nn_state,target_psi, param, vis,eps):
     num_gradKL = []
     for i in range(len(param)):
         param[i] += eps
@@ -115,7 +110,7 @@ def numeric_gradKL(nn_state,target_psi, param, vis):
     
     return num_gradKL
 
-def numeric_gradNLL(nn_state, param,data):
+def numeric_gradNLL(nn_state, param,data,vis,eps):
     num_gradNLL = []
     for i in range(len(param)):
         param[i] += eps
@@ -133,31 +128,31 @@ def numeric_gradNLL(nn_state, param,data):
         num_gradNLL.append( (NLL_p - NLL_m) / (2*eps) )
     return num_gradNLL
 
-def test_gradients(qr,target_psi,data, vis, eps,k):
+def run(qr,target_psi,data, vis, eps,k):
     nn_state = qr.nn_state
     alg_grad_KL = algorithmic_gradKL(nn_state,target_psi,vis)
     alg_grad_NLL = algorithmic_gradNLL(qr,data,k)
     flat_weights      = nn_state.rbm_am.weights.data.view(-1)
     flat_weights_grad_KL = alg_grad_KL["rbm_am"]["weights"].view(-1)
     flat_weights_grad_NLL = alg_grad_NLL["rbm_am"]["weights"].view(-1)
-    num_grad_KL = numeric_gradKL(nn_state,target_psi,flat_weights,vis)
-    num_grad_NLL = numeric_gradNLL(nn_state,flat_weights,data)
+    num_grad_KL = numeric_gradKL(nn_state,target_psi,flat_weights,vis,eps)
+    num_grad_NLL = numeric_gradNLL(nn_state,flat_weights,data,vis,eps)
     print("\nTesting weights...")
     print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
     for i in range(len(flat_weights)):
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],flat_weights_grad_KL[i]),end="", flush=True)
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],flat_weights_grad_NLL[i]))
    
-    num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm_am.visible_bias,vis)
-    num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.visible_bias,data)
+    num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm_am.visible_bias,vis,eps)
+    num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.visible_bias,data,vis,eps)
     print("\nTesting visible bias...")
     print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
     for i in range(len(nn_state.rbm_am.visible_bias)):
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL["rbm_am"]["visible_bias"][i]),end="", flush=True)
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["visible_bias"][i]))
  
-    num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm_am.hidden_bias,vis)
-    num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.hidden_bias,data)
+    num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm_am.hidden_bias,vis,eps)
+    num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.hidden_bias,data,vis,eps)
     print("\nTesting hidden bias...")
     print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
     for i in range(len(nn_state.rbm_am.hidden_bias)):
@@ -165,24 +160,3 @@ def test_gradients(qr,target_psi,data, vis, eps,k):
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["hidden_bias"][i]))
 
     print('')
-
-
-# MAIN
-data       = torch.tensor(np.loadtxt(
-                          '../../examples/quantum_ising/tfim1d_N10_train_samples.txt'), 
-                          dtype = torch.double)
-target_psi = torch.tensor(np.loadtxt('../../examples/quantum_ising/tfim1d_N10_psi.txt'), 
-                          dtype = torch.double)
-
-nh = 2
-seed=1234
-nn_state = PositiveWavefunction(num_visible=data.shape[-1],
-                                num_hidden=nh, seed=seed)
-
-qr = QuantumReconstruction(nn_state)
-
-vis        = generate_visible_space(data.shape[-1])
-k          = 100
-eps        = 1.e-8
-
-test_gradients(qr,target_psi,data[0:1000], vis, eps,k)#,alg_grads)
