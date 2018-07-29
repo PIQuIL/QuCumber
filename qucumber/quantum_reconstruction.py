@@ -28,7 +28,6 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 import time
-#import qucumber.cplx as cplx
 import utils.cplx as cplx
 from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
@@ -72,7 +71,6 @@ class QuantumReconstruction(Sampler):
             grad_data[net] = tmp
         
         if bases_batch is None:
-        #if (samples_batch.shape[0]<2):
             grad_data = self.nn_state.gradient(samples_batch)
         else:
             # Positive Phase
@@ -108,7 +106,7 @@ class QuantumReconstruction(Sampler):
         return grad
         
     def fit(self, train_samples,epochs, pos_batch_size, neg_batch_size,
-            k, lr,train_bases = None, progbar=False, target_psi=None,callbacks=[]):
+            k, lr,train_bases = None, progbar=False,callbacks=[],observer=None):
         """Execute the training of the RBM.
 
         :param data: The actual training data
@@ -168,14 +166,9 @@ class QuantumReconstruction(Sampler):
 
         callbacks.on_train_start(self)
         
-        vis = self.generate_visible_space()
-        #F = self.fidelity(target_psi,vis)
-        #print('Epoch = 0   Fidelity = ',end="")
         #t0 = time.time()
-        #for ep in range(epochs):
-        frequency = 100
 
-        for ep in progress_bar(range(epochs), desc="Epochs ",
+        for ep in progress_bar(range(1,epochs+1), desc="Epochs ",
                                disable=disable_progbar):
             pos_batches = DataLoader(data_samples, batch_size=pos_batch_size,
                                      shuffle=True)
@@ -218,60 +211,14 @@ class QuantumReconstruction(Sampler):
                 optimizer.step()  # tell the optimizer to apply the gradients
 
                 callbacks.on_batch_end(self, ep, batch_num)
-            if ((ep % frequency) == 0): 
-                if target_psi is not None:
-                    F = self.fidelity(target_psi,vis)
-                    print('Epoch = %d   Fidelity = ' % ep,end="")
-                    print(F.item())
+            if ((ep % observer.frequency) == 0): 
+                #if target_psi is not None:
+                stat = observer.scan(ep,self.nn_state)
 
             callbacks.on_epoch_end(self, ep)
         #F = self.fidelity(target_psi,vis)
         #print(F.item())
         #callbacks.on_train_end(self)
         #t1 = time.time()
-        print("\nElapsed time = %.2f" %(t1-t0)) 
-    def generate_visible_space(self):
-        """Generates all possible visible states.
-    
-        :returns: A tensor of all possible spin configurations.
-        :rtype: torch.Tensor
-        """
-        space = torch.zeros((1 << self.num_visible, self.num_visible),
-                            device="cpu", dtype=torch.double)
-        for i in range(1 << self.num_visible):
-            d = i
-            for j in range(self.num_visible):
-                d, r = divmod(d, 2)
-                space[i, self.num_visible - j - 1] = int(r)
-    
-        return space
-
-    def partition(self,visible_space):
-        """The natural logarithm of the partition function of the RBM.
-    
-        :param visible_space: A rank 2 tensor of the entire visible space.
-        :type visible_space: torch.Tensor
-    
-        :returns: The natural log of the partition function.
-        :rtype: torch.Tensor
-        """
-        free_energies = -self.nn_state.rbm_am.effective_energy(visible_space)
-        max_free_energy = free_energies.max()
-    
-        f_reduced = free_energies - max_free_energy
-        logZ = max_free_energy + f_reduced.exp().sum().log()
-        return logZ.exp()
-        
-        #return logZ
-    def fidelity(self,target_psi,vis):
-        F = torch.tensor([0., 0.], dtype=torch.double) 
-        Z = self.partition(vis)
-        for i in range(len(vis)):
-            psi = self.nn_state.psi(vis[i])/Z.sqrt()
-            F[0] += target_psi[0,i]*psi[0]+target_psi[1,i]*psi[1]
-            F[1] += target_psi[0,i]*psi[1]-target_psi[1,i]*psi[0]
-            #F[0] += target_psi[0,i]*psi[0] 
-        #return F[0]*F[0]
-        return cplx.norm(F)
-
+        #print("\nElapsed time = %.2f" %(t1-t0)) 
 

@@ -6,7 +6,10 @@ import click
 import numpy as np
 import torch
 import utils
-
+import pickle
+import sys
+sys.path.append("utils/")
+import training_statistics as ts
 
 @click.group(context_settings={"help_option_names": ['-h', '--help']})
 def cli():
@@ -18,15 +21,8 @@ def load_params(param_file):
         param_dict = torch.load(f)
     return param_dict
 
-# REAL PURE WAVEFUNCTION
+# REAL POSITIVE WAVEFUNCTION
 @cli.command("train_real")
-@click.option('--train-path', default='../examples/quantum_ising_model/tfim1d_N4_train_samples.txt',
-              show_default=True, type=click.Path(exists=True),
-              help="path to the training data")
-@click.option('--true-psi-path', default='../examples/quantum_ising_model/tfim1d_N4_psi.txt',
-              show_default=True, type=click.Path(exists=True),
-              help=("path to the file containing the true wavefunctions "
-                    "in each basis."))
 @click.option('-nh', '--num-hidden', default=None, type=int,
               help=("number of hidden units in the RBM; defaults to "
                     "number of visible units"))
@@ -42,31 +38,32 @@ def load_params(param_file):
 @click.option('--seed', default=1234, show_default=True, type=int,
               help="random seed to initialize the RBM with")
 @click.option('--no-prog', is_flag=True)
-def train_real(train_path, true_psi_path, num_hidden, epochs, batch_size,
+def train_real(num_hidden, epochs, batch_size,
                num_chains, k, learning_rate, seed, no_prog):
     """Train an RBM without any phase."""
-    train_set = torch.tensor(np.loadtxt(train_path, dtype='float32'),dtype=torch.double)
+    with open('tests/data_test.pkl', 'rb') as fin:
+        test_data = pickle.load(fin)
+   
+    train_samples = torch.tensor(test_data['tfim1d']['train_samples'],dtype = torch.double)
+    target_psi_tmp=torch.tensor(test_data['tfim1d']['target_psi'],dtype = torch.double)
+    target_psi = load_target_psi(train_samples.shape[-1],target_psi_tmp)
+    num_hidden = train_samples.shape[-1] if num_hidden is None else num_hidden
 
-    #num_hidden = 10#train_set.shape[-1] if num_hidden is None else num_hidden
-
-    psi = load_target_psi(train_set.shape[-1],true_psi_path)#path_to_target_psi) 
-    nn_state = PositiveWavefunction(num_visible=train_set.shape[-1],
+    nn_state = PositiveWavefunction(num_visible=train_samples.shape[-1],
                       num_hidden=num_hidden, seed=seed)
-#    print(nn_state.rbm_am.weights)
-#    print(nn_state.rbm_am.visible_bias)
-#    print(nn_state.rbm_am.hidden_bias)
 
-#    nn_state.save('train_benchmark_params_real.pkl')
+    train_stats = ts.TrainingStatistics(train_samples.shape[-1])
+    train_stats.load(target_psi_tmp)
+    
     qr = QuantumReconstruction(nn_state)
-    qr.fit(train_set, epochs, batch_size, num_chains, k,
-            learning_rate, progbar=no_prog,target_psi=psi)
+    qr.fit(train_samples, epochs, batch_size, num_chains, k,
+            learning_rate, progbar=no_prog,observer = train_stats)
 
-    print('Finished training. Saving results...')
+    print('\nFinished training. Saving results...')
     #nn_state.save('saved_params_real.pkl')
-#    print(nn_state.rbm_am.weights)
     print('Done.')
 
-# COMPLEX PURE WAVEFUNCTION
+# COMPLEX WAVEFUNCTION
 @cli.command("train_complex")
 @click.option('--train-path', default='../tools/benchmarks/data/2qubits_complex/2qubits_train_samples.txt',
               show_default=True, type=click.Path(exists=True),
@@ -131,8 +128,8 @@ def train_complex(train_path, basis_path, true_psi_path, num_hidden,
 
 
 
-def load_target_psi(N,path_to_target_psi):
-    psi_data = np.loadtxt(path_to_target_psi)
+def load_target_psi(N,psi_data):#path_to_target_psi):
+    #psi_data = np.loadtxt(path_to_target_psi)
     D = 2**N#int(len(psi_data)/float(len(bases)))
     psi=torch.zeros(2,D, dtype=torch.double)
     if (len(psi_data.shape)<2):

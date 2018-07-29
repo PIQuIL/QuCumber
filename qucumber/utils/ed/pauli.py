@@ -47,17 +47,12 @@ def sigmaX(N,i):
     ''' Return the many-body operator
         I x I x .. x Sx x I x .. x I
         with Sx acting on qubit i '''
-    op = 1.0
     OpList = []
     for k in range(N):
         if (k == i):
             OpList.append(X)
-            op = np.kron(op,X)
         else:
             OpList.append(I)
-            op = np.kron(op,I)
-    #print(out
-    #return op
     return reduce(np.kron,OpList)
 
 # Pauli Y on site i of N qubits
@@ -93,41 +88,31 @@ def sigmaXsigmaX(N,i,j):
     ''' Return the many-body operator
         I x .. x Sx x I x Sx x I
         with Sx acting on qubit i and j '''
-    op = 1.0
     OpList = []
     for k in range(N):
         if (k == i):
-            op = np.kron(op,X)
             OpList.append(X)
         elif (k == j):
-            op = np.kron(op,X)
             OpList.append(X)
         else:
-            op = np.kron(op,I)
             OpList.append(I)
-    return op
-    #return reduce(np.kron,OpList)
+    return reduce(np.kron,OpList)
 
 # Pauli Y on site i and site j of N qubits
 def sigmaYsigmaY(N,i,j):
     ''' Return the many-body operator
         I x .. x Sy x I x Sy x I
         with Sx acting on qubit i and j '''
-    op = 1.0
     OpList = []
     for k in range(N):
         if (k == i):
-            op = np.kron(op,Y)
             OpList.append(Y)
         elif (k == j):
-            op = np.kron(op,Y)
             OpList.append(Y)
         else:
-            op = np.kron(op,I)
             OpList.append(I)
 
-    return op
-    #return reduce(np.kron,OpList)
+    return reduce(np.kron,OpList)
 
 # Pauli Z on site i and site j of N qubits
 def sigmaZsigmaZ(N,i,j):
