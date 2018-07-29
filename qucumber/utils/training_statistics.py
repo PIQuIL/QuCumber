@@ -31,7 +31,7 @@ class TrainingStatistics(object):
         self.Z = 0.0
         self.bases = []
         self.target_psi = torch.zeros(1<<self.N,dtype=torch.double)
-        self.psi_dict = {}
+        self.target_psi_dict = {}
         self.unitaries = unitaries.create_dict()
 
         self.F  = torch.tensor([0., 0.], dtype=torch.double)
@@ -41,11 +41,11 @@ class TrainingStatistics(object):
     def scan(self,epoch,nn_state):
         self.partition(nn_state)
         self.fidelity(nn_state)
-        self.compute_KL(nn_state)
+        #self.compute_KL(nn_state)
         print('Epoch = %d \tFidelity = ' % epoch,end="")
         print('%.6f' % self.F.item(),end="")
-        print('\tKL = ',end="") 
-        print('%.8f' %self.KL.item(),end="")
+        #print('\tKL = ',end="") 
+        #print('%.8f' %self.KL.item(),end="")
         print()
 
     def fidelity(self,nn_state):
@@ -101,28 +101,6 @@ class TrainingStatistics(object):
                 KL -= cplx.norm(self.psi_dict[self.bases[b]][:,ii])*cplx.norm(psi_r[:,ii]).log().item()/float(len(self.bases))
                 KL += cplx.norm(self.psi_dict[self.bases[b]][:,ii])*self.Z.log()/float(len(self.bases))
         self.KL = KL    
-
-
-    #def compute_numerical_NLL(self,nn_state,data_samples,data_bases):
-    #    NLL = 0
-    #    batch_size = len(data_samples)
-    #    b_flag = 0
-    #    for i in range(batch_size):
-    #        bitstate = []
-    #        for j in range(N):
-    #            ind = 0
-    #            if (data_bases[i][j] != 'Z'):
-    #                b_flag = 1
-    #            bitstate.append(int(data_samples[i,j].item()))
-    #        ind = int("".join(str(i) for i in bitstate), 2)
-    #        if (b_flag == 0): 
-    #            NLL -= (self.probability(nn_state,data_samples[i])).log()/float(batch_size)
-    #        else:
-    #            psi_r = rotate_psi(nn_state,data_bases[i])
-    #            NLL -= (cplx.norm(psi_r[:,ind]).log()-self.Z.log())/float(batch_size)
-    #    return NLL
-
-
 
     def generate_visible_space(self,n):
         """Generates all possible visible states.
@@ -184,36 +162,38 @@ class TrainingStatistics(object):
             psi[1]   = psi_imag
         self.target_psi = psi  
 
-
-    def load_bases(self,bases_data):
-        for i in range(len(bases_data)):
+    def load_bases(self,bases):
+        for i in range(len(bases)):
             tmp = ""
-            for j in range(len(bases_data[i])):
-                if bases_data[i][j] is not " ":
-                    tmp += bases_data[i][j]
+            for j in range(len(bases[i])):
+                if bases[i][j] is not " ":
+                    tmp += bases[i][j]
             self.bases.append(tmp)
-
-    def load_psi_dict(bases,psi_data):
-        D = int(len(psi_data)/float(len(self.bases)))
+    
+    def load_psi_dict(self,psi_dict):
+        #print(len(psi_data))
+        #print(len(self.bases))
+        D = int(len(psi_dict)/float(len(self.bases)))
         for b in range(len(self.bases)):
-            
             psi      = torch.zeros(2,D, dtype=torch.double)
-            psi_real = torch.tensor(psi_data[b*D:D*(b+1),0], dtype=torch.double)
-            psi_imag = torch.tensor(psi_data[b*D:D*(b+1),1], dtype=torch.double)
+            psi_real = torch.tensor(psi_dict[b*D:D*(b+1),0], dtype=torch.double)
+            psi_imag = torch.tensor(psi_dict[b*D:D*(b+1),1], dtype=torch.double)
             psi[0]   = psi_real
             psi[1]   = psi_imag
             
-            self.psi_dict[self.bases[b]] = psi
-
-    def load(self,psi_data,bases_data=None,psi_dict_data=None):
-        self.load_target_psi(psi_data)
-        if bases_data is None:
+            self.target_psi_dict[self.bases[b]] = psi
+        self.target_psi = self.target_psi_dict[self.bases[0]]
+        print(self.target_psi)
+    def load(self,target_psi=None,bases=None,target_psi_dict=None):
+        if(target_psi is not None):
+            self.load_target_psi(target_psi)
             basis = ""
             for j in range(self.N):
                 basis += 'Z'
             self.bases.append(basis)
         else:
-            self.load_bases(bases_data)
-            self.load_psi_dict(psi_dict_data)
+            self.load_bases(bases)
+            self.load_psi_dict(target_psi_dict)
+            
 
 

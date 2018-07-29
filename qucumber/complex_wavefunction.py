@@ -84,62 +84,61 @@ class ComplexWavefunction(Sampler):
         psi[1] = self.amplitude(v)*sin_phase
         return psi
 
-    def gradient(self,v):
-        return {'rbm_am': self.rbm_am.effective_energy_gradient(v),'rbm_ph': self.rbm_ph.effective_energy_gradient(v)}
-
-    def rotate_grad(self,basis,v_state):
-        
-        v = torch.zeros(self.num_visible, dtype=torch.double)
-        grad = {}
-        rotated_grad = {}
-        final_grad = {}
-        for net in self.networks:
-            rbm = getattr(self, net)
-            tmp = {}
-            for par in rbm.state_dict():
-                tmp[par] = 0
-            rotated_grad[net] = tmp
-            final_grad[net] = tmp
-        Upsi = torch.zeros(2, dtype=torch.double)
+    def gradient(self,basis,v_state):
         num_nontrivial_U = 0
         nontrivial_sites = []
+        final_grad = {}
         for j in range(self.num_visible):
             if (basis[j] is not 'Z'):
                 num_nontrivial_U += 1
                 nontrivial_sites.append(j)
-        sub_state = self.generate_visible_space(num_nontrivial_U)
-    
-        for x in range(1<<num_nontrivial_U):
-            cnt = 0
-            for j in range(self.num_visible):
-                if (basis[j] is not 'Z'):
-                    v[j]=sub_state[x][cnt]
-                    cnt += 1
-                else:
-                    v[j]=v_state[j]
-            U = torch.tensor([1., 0.], dtype=torch.double)
-            for ii in range(num_nontrivial_U):
-                tmp = self.unitary_dict[basis[nontrivial_sites[ii]]][:,int(v_state[nontrivial_sites[ii]]),int(v[nontrivial_sites[ii]])]
-                U = cplx.scalar_mult(U,tmp)
-            
-            grad = self.gradient(v)
-            Upsi += cplx.scalar_mult(U,self.psi(v))             
-            
+        if (num_nontrivial_U == 0):
+            final_grad['rbm_am'] = self.rbm_am.effective_energy_gradient(v) 
+        else:
+            v = torch.zeros(self.num_visible, dtype=torch.double)
+            grad = {}
+            rotated_grad = {}
             for net in self.networks:
-                Upsi_v = cplx.scalar_mult(U,self.psi(v))
-                tmp = cplx.make_complex_matrix(grad[net]['weights'],torch.zeros(grad[net]['weights'].shape[0],grad[net]['weights'].shape[1],dtype=torch.double))
-                rotated_grad[net]['weights']+=cplx.MS_mult(Upsi_v,tmp)
-                tmp = cplx.make_complex_vector(grad[net]['visible_bias'],torch.zeros(grad[net]['visible_bias'].shape[0],dtype=torch.double))
-                rotated_grad[net]['visible_bias']+=cplx.VS_mult(Upsi_v,tmp)
-                tmp = cplx.make_complex_vector(grad[net]['hidden_bias'],torch.zeros(grad[net]['hidden_bias'].shape[0],dtype=torch.double))
-                rotated_grad[net]['hidden_bias']+=cplx.VS_mult(Upsi_v,tmp)
+                rbm = getattr(self, net)
+                tmp = {}
+                for par in rbm.state_dict():
+                    tmp[par] = 0
+                rotated_grad[net] = tmp
+                final_grad[net] = tmp
+            Upsi = torch.zeros(2, dtype=torch.double)
+            sub_state = self.generate_visible_space(num_nontrivial_U)
+    
+            for x in range(1<<num_nontrivial_U):
+                cnt = 0
+                for j in range(self.num_visible):
+                    if (basis[j] is not 'Z'):
+                        v[j]=sub_state[x][cnt]
+                        cnt += 1
+                    else:
+                        v[j]=v_state[j]
+                U = torch.tensor([1., 0.], dtype=torch.double)
+                for ii in range(num_nontrivial_U):
+                    tmp = self.unitary_dict[basis[nontrivial_sites[ii]]][:,int(v_state[nontrivial_sites[ii]]),int(v[nontrivial_sites[ii]])]
+                    U = cplx.scalar_mult(U,tmp)
+                
+                grad = {'rbm_am': self.rbm_am.effective_energy_gradient(v),'rbm_ph': self.rbm_ph.effective_energy_gradient(v)}
+                Upsi += cplx.scalar_mult(U,self.psi(v))             
+                
+                for net in self.networks:
+                    Upsi_v = cplx.scalar_mult(U,self.psi(v))
+                    tmp = cplx.make_complex_matrix(grad[net]['weights'],torch.zeros(grad[net]['weights'].shape[0],grad[net]['weights'].shape[1],dtype=torch.double))
+                    rotated_grad[net]['weights']+=cplx.MS_mult(Upsi_v,tmp)
+                    tmp = cplx.make_complex_vector(grad[net]['visible_bias'],torch.zeros(grad[net]['visible_bias'].shape[0],dtype=torch.double))
+                    rotated_grad[net]['visible_bias']+=cplx.VS_mult(Upsi_v,tmp)
+                    tmp = cplx.make_complex_vector(grad[net]['hidden_bias'],torch.zeros(grad[net]['hidden_bias'].shape[0],dtype=torch.double))
+                    rotated_grad[net]['hidden_bias']+=cplx.VS_mult(Upsi_v,tmp)
 
-        final_grad['rbm_am']['weights'] = cplx.MS_divide(rotated_grad['rbm_am']['weights'],Upsi)[0,:,:] 
-        final_grad['rbm_am']['visible_bias'] = cplx.VS_divide(rotated_grad['rbm_am']['visible_bias'],Upsi)[0,:]  
-        final_grad['rbm_am']['hidden_bias'] = cplx.VS_divide(rotated_grad['rbm_am']['hidden_bias'],Upsi)[0,:]  
-        final_grad['rbm_ph']['weights'] = -cplx.MS_divide(rotated_grad['rbm_ph']['weights'],Upsi)[1,:,:] 
-        final_grad['rbm_ph']['visible_bias'] = -cplx.VS_divide(rotated_grad['rbm_ph']['visible_bias'],Upsi)[1,:]  
-        final_grad['rbm_ph']['hidden_bias'] = -cplx.VS_divide(rotated_grad['rbm_ph']['hidden_bias'],Upsi)[1,:]  
+            final_grad['rbm_am']['weights'] = cplx.MS_divide(rotated_grad['rbm_am']['weights'],Upsi)[0,:,:] 
+            final_grad['rbm_am']['visible_bias'] = cplx.VS_divide(rotated_grad['rbm_am']['visible_bias'],Upsi)[0,:]  
+            final_grad['rbm_am']['hidden_bias'] = cplx.VS_divide(rotated_grad['rbm_am']['hidden_bias'],Upsi)[0,:]  
+            final_grad['rbm_ph']['weights'] = -cplx.MS_divide(rotated_grad['rbm_ph']['weights'],Upsi)[1,:,:] 
+            final_grad['rbm_ph']['visible_bias'] = -cplx.VS_divide(rotated_grad['rbm_ph']['visible_bias'],Upsi)[1,:]  
+            final_grad['rbm_ph']['hidden_bias'] = -cplx.VS_divide(rotated_grad['rbm_ph']['hidden_bias'],Upsi)[1,:]  
 
         return final_grad
 

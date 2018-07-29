@@ -59,17 +59,16 @@ def probability(nn_state,v, Z):
 def compute_numerical_kl(nn_state,target_psi, vis, Z):
     KL = 0.0
     for i in range(len(vis)):
-        KL += ((target_psi[i])**2)*((target_psi[i])**2).log()
-        KL -= ((target_psi[i])**2)*(probability(nn_state,vis[i], Z)).log().item()#NOTE WHY item here?
-
-    return KL
+        KL += ((target_psi[i,0])**2)*((target_psi[i,0])**2).log().item()
+        KL -= ((target_psi[i,0])**2)*(probability(nn_state,vis[i], Z)).log().item()
+    return KL.item()
 
 def compute_numerical_NLL(nn_state,data, Z):
     NLL = 0
     batch_size = len(data)
 
     for i in range(batch_size):
-        NLL -= (probability(nn_state,data[i], Z)).log().item()/batch_size
+        NLL -= (probability(nn_state,data[i], Z)).log().item()/float(batch_size)
 
     return NLL
 
@@ -83,7 +82,7 @@ def algorithmic_gradKL(nn_state,target_psi,vis):
     for i in range(len(vis)):
         for rbmType in nn_state.gradient(vis[i]):
             for pars in nn_state.gradient(vis[i])[rbmType]:
-                grad_KL[rbmType][pars] += ((target_psi[i])**2)*nn_state.gradient(vis[i])[rbmType][pars]            
+                grad_KL[rbmType][pars] += ((target_psi[i,0])**2)*nn_state.gradient(vis[i])[rbmType][pars]            
                 grad_KL[rbmType][pars] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])[rbmType][pars]
     return grad_KL            
 
@@ -142,7 +141,7 @@ def run(qr,target_psi,data, vis, eps,k):
     for i in range(len(flat_weights)):
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],flat_weights_grad_KL[i]),end="", flush=True)
         print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],flat_weights_grad_NLL[i]))
-   
+     
     num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm_am.visible_bias,vis,eps)
     num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.visible_bias,data,vis,eps)
     print("\nTesting visible bias...")
