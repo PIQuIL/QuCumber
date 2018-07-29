@@ -20,10 +20,10 @@ def load_params(param_file):
 
 # REAL PURE WAVEFUNCTION
 @cli.command("train_real")
-@click.option('--train-path', default='../examples/quantum_ising/tfim1d_N10_train_samples.txt',
+@click.option('--train-path', default='../examples/quantum_ising_model/tfim1d_N4_train_samples.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the training data")
-@click.option('--true-psi-path', default='../examples/quantum_ising/tfim1d_N10_psi.txt',
+@click.option('--true-psi-path', default='../examples/quantum_ising_model/tfim1d_N4_psi.txt',
               show_default=True, type=click.Path(exists=True),
               help=("path to the file containing the true wavefunctions "
                     "in each basis."))
@@ -41,7 +41,7 @@ def load_params(param_file):
               show_default=True, type=float)
 @click.option('--seed', default=1234, show_default=True, type=int,
               help="random seed to initialize the RBM with")
-@click.option('--no-prog', is_flag=False)
+@click.option('--no-prog', is_flag=True)
 def train_real(train_path, true_psi_path, num_hidden, epochs, batch_size,
                num_chains, k, learning_rate, seed, no_prog):
     """Train an RBM without any phase."""
@@ -57,16 +57,12 @@ def train_real(train_path, true_psi_path, num_hidden, epochs, batch_size,
 #    print(nn_state.rbm_am.hidden_bias)
 
 #    nn_state.save('train_benchmark_params_real.pkl')
-    
-    #nn_state.fit(train_set, epochs, batch_size, num_chains, k=k,
-            #lr=learning_rate, progbar=(not no_prog))
     qr = QuantumReconstruction(nn_state)
-    
     qr.fit(train_set, epochs, batch_size, num_chains, k,
-            learning_rate, progbar=(not no_prog),target_psi=psi)
+            learning_rate, progbar=no_prog,target_psi=psi)
 
     print('Finished training. Saving results...')
-    nn_state.save('saved_params_real.pkl')
+    #nn_state.save('saved_params_real.pkl')
 #    print(nn_state.rbm_am.weights)
     print('Done.')
 

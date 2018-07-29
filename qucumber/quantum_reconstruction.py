@@ -139,8 +139,6 @@ class QuantumReconstruction(Sampler):
 
         data_samples = torch.tensor(train_samples, device=self.nn_state.device,
                             dtype=torch.double)
-        #data_bases = torch.tensor(train_samples, device=self.nn_state.device,
-        #        dtype=torch.int8)
         #par_list = []
         #for net in self.nn_state.networks:
         #    rbm = getattr(self.nn_state, net) 
@@ -171,12 +169,12 @@ class QuantumReconstruction(Sampler):
         callbacks.on_train_start(self)
         
         vis = self.generate_visible_space()
-        F = self.fidelity(target_psi,vis)
-        
+        #F = self.fidelity(target_psi,vis)
         #print('Epoch = 0   Fidelity = ',end="")
-        #print(F.item())
-        t0 = time.time()
+        #t0 = time.time()
         #for ep in range(epochs):
+        frequency = 100
+
         for ep in progress_bar(range(epochs), desc="Epochs ",
                                disable=disable_progbar):
             pos_batches = DataLoader(data_samples, batch_size=pos_batch_size,
@@ -193,45 +191,45 @@ class QuantumReconstruction(Sampler):
                 break
             
             # FULL GRADIENT
-            self.nn_state.set_visible_layer(neg_batches)
-            self.nn_state.set_visible_layer(train_samples[0:100])
-            all_grads = self.compute_batch_gradients(k, data_samples,train_bases)
-            optimizer.zero_grad()  # clear any cached gradients
-            ##assign all available gradients to the corresponding parameter
-            for net in self.nn_state.networks:
-                rbm = getattr(self.nn_state, net)
-                for param in all_grads[net].keys():
-                    getattr(rbm, param).grad = all_grads[net][param]
+            #self.nn_state.set_visible_layer(neg_batches)
+            #self.nn_state.set_visible_layer(train_samples[0:100])
+            #all_grads = self.compute_batch_gradients(k, data_samples,train_bases)
+            #optimizer.zero_grad()  # clear any cached gradients
+            ###assign all available gradients to the corresponding parameter
+            #for net in self.nn_state.networks:
+            #    rbm = getattr(self.nn_state, net)
+            #    for param in all_grads[net].keys():
+            #        getattr(rbm, param).grad = all_grads[net][param]
 
-            optimizer.step()  # tell the optimizer to apply the gradients
+            #optimizer.step()  # tell the optimizer to apply the gradients
             
-            
-            #for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
-            #                                                   neg_batches)):
-            #    callbacks.on_batch_start(self, ep, batch_num)
+            for batch_num, (pos_batch, neg_batch) in enumerate(zip(pos_batches,
+                                                               neg_batches)):
+                callbacks.on_batch_start(self, ep, batch_num)
 
-            #    self.nn_state.set_visible_layer(neg_batch)
-            #    all_grads = self.compute_batch_gradients(k, pos_batch)
-            #    optimizer.zero_grad()  # clear any cached gradients
-            #    # assign all available gradients to the corresponding parameter
-            #    for net in self.nn_state.networks:
-            #        rbm = getattr(self.nn_state, net)
-            #        for param in all_grads[net].keys():
-            #            getattr(rbm, param).grad = all_grads[net][param]
-            #    optimizer.step()  # tell the optimizer to apply the gradients
+                self.nn_state.set_visible_layer(neg_batch)
+                all_grads = self.compute_batch_gradients(k, pos_batch)
+                optimizer.zero_grad()  # clear any cached gradients
+                # assign all available gradients to the corresponding parameter
+                for net in self.nn_state.networks:
+                    rbm = getattr(self.nn_state, net)
+                    for param in all_grads[net].keys():
+                        getattr(rbm, param).grad = all_grads[net][param]
+                optimizer.step()  # tell the optimizer to apply the gradients
 
-            #    callbacks.on_batch_end(self, ep, batch_num)
-            if target_psi is not None:
-                F = self.fidelity(target_psi,vis)
-                print('Epoch = %d   Fidelity = ' % ep,end="")
-                print(F.item())
+                callbacks.on_batch_end(self, ep, batch_num)
+            if ((ep % frequency) == 0): 
+                if target_psi is not None:
+                    F = self.fidelity(target_psi,vis)
+                    print('Epoch = %d   Fidelity = ' % ep,end="")
+                    print(F.item())
 
-            #callbacks.on_epoch_end(self, ep)
+            callbacks.on_epoch_end(self, ep)
         #F = self.fidelity(target_psi,vis)
         #print(F.item())
         #callbacks.on_train_end(self)
         #t1 = time.time()
-        #print("\nElapsed time = %.2f" %(t1-t0)) 
+        print("\nElapsed time = %.2f" %(t1-t0)) 
     def generate_visible_space(self):
         """Generates all possible visible states.
     
