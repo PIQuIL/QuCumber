@@ -61,7 +61,6 @@ class PositiveWavefunction(Sampler):
         #self.visible_state.resize_(v.shape)
         #self.hidden_state.resize_(v.shape[0],self.num_hidden)
         self.visible_state = v
-   
     def amplitude(self,v):
         return (-self.rbm_am.effective_energy(v)).exp().sqrt()
     
