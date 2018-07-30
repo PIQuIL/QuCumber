@@ -171,8 +171,6 @@ class TrainingStatistics(object):
             self.bases.append(tmp)
     
     def load_psi_dict(self,psi_dict):
-        #print(len(psi_data))
-        #print(len(self.bases))
         D = int(len(psi_dict)/float(len(self.bases)))
         for b in range(len(self.bases)):
             psi      = torch.zeros(2,D, dtype=torch.double)
@@ -183,7 +181,7 @@ class TrainingStatistics(object):
             
             self.target_psi_dict[self.bases[b]] = psi
         self.target_psi = self.target_psi_dict[self.bases[0]]
-        print(self.target_psi)
+    
     def load(self,target_psi=None,bases=None,target_psi_dict=None):
         if(target_psi is not None):
             self.load_target_psi(target_psi)

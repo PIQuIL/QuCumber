@@ -259,18 +259,20 @@ def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
     
     for i in range(len(vis)):
         for par in rbm.state_dict():
-            grad_KL['rbm_am'][par] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.gradient(vis[i])['rbm_am'][par]/float(len(bases))
-            grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]/float(len(bases))
+#            grad_KL['rbm_am'][par] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.gradient(vis[i])['rbm_am'][par]/float(len(bases))
+            #grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]/float(len(bases))
+            grad_KL['rbm_am'][par] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.rbm_am.effective_energy_gradient(vis[i])[par]/float(len(bases))
+            grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.rbm_am.effective_energy_gradient(vis[i])[par]/float(len(bases))
 
     for b in range(1,len(bases)):
         psi_r = rotate_psi(nn_state,bases[b],unitary_dict,vis)
         for i in range(len(vis)):
-            rotated_grad = nn_state.rotate_grad(bases[b],vis[i])
+            rotated_grad = nn_state.gradient(bases[b],vis[i])
             for net in nn_state.networks:
                 for par in rbm.state_dict():
                     grad_KL[net][par] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[net][par]/float(len(bases))
             for par in rbm.state_dict():
-                grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])['rbm_am'][par]/float(len(bases))
+                grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.rbm_am.effective_energy_gradient(vis[i])[par]/float(len(bases))
     return grad_KL            
 
 

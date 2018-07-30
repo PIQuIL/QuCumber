@@ -12,7 +12,6 @@ local_rotation = {
         "Z": I
         }
 
-
 def UnitaryRotation(N,basis):
     OpList = []
     for k in range(N):
@@ -45,18 +44,6 @@ def GenerateDataChosenBases(N,Nsamples,psi,bases_set,fout=None):
             
     
     return np.asarray(train_samples,dtype=float),train_bases
-
-
-
-
-
-
-
-
-
-
-
-
 
 def GenerateDataRandomBases(N,q,Nsamples,psi,fout=None):
 
@@ -92,6 +79,7 @@ def GenerateDataRandomBases(N,q,Nsamples,psi,fout=None):
     return samples,bases
 
 def GenerateDataSet(N,Nsamples,psi,name_code = None,fout=None):
+    bases_set = None
     if name_code is None:
         train_samples = GenerateSamples(N,psi,Nsamples)
         train_bases = None
@@ -104,8 +92,7 @@ def GenerateDataSet(N,Nsamples,psi,name_code = None,fout=None):
         bases_set = CreateBasisSet(name_code,N)
         train_samples,train_bases = GenerateDataChosenBases(N,Nsamples,psi,bases_set)
     
-    return {'samples':np.asarray(train_samples,dtype=float),'bases':train_bases}
-
+    return {'bases':bases_set,'train_samples':np.asarray(train_samples,dtype=float),'train_bases':train_bases}
 
 
 def CreateBasisSet(name_code,N):

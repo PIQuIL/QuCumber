@@ -22,7 +22,6 @@ def TransverseFieldIsing(N,hx,J=1.0,PBC=False):
     
     return H
 
-
 ###########################################################
 
 # Heisenberg model (with a transverse field)
