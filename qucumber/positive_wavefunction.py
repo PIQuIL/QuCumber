@@ -55,6 +55,8 @@ class PositiveWavefunction(Sampler):
                                          device=self.rbm_am.device,
                                          dtype=torch.double)
 
+    def randomize(self):
+        self.rbm_am.randomize()
 
     def set_visible_layer(self,v):
         #NOTE double check this

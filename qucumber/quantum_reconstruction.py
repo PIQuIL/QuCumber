@@ -159,14 +159,13 @@ class QuantumReconstruction(Sampler):
 
         callbacks.on_train_start(self)
         #t0 = time.time()
-
         for ep in progress_bar(range(1,epochs+1), desc="Epochs ",
                                disable=disable_progbar):
 
             pos_batches = DataLoader(train_samples, batch_size=pos_batch_size,
                                      shuffle=shf)
             multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
-            
+             
             neg_batches = [DataLoader(train_samples, batch_size=neg_batch_size,
                                       shuffle=True)
                            for i in range(multiplier)]

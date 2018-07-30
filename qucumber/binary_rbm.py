@@ -95,6 +95,24 @@ class BinaryRBM(nn.Module, Sampler):
         return ("BinaryRBM(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
 
+    def randomize(self):
+        self.weights = nn.Parameter(
+            (torch.randn(self.num_hidden, self.num_visible,
+                         device=self.device, dtype=torch.double)
+             / np.sqrt(self.num_visible)),requires_grad=True)
+
+        self.visible_bias = nn.Parameter(
+                (torch.randn(self.num_visible,device=self.device, 
+                 dtype=torch.double)/np.sqrt(self.num_visible)),requires_grad=True)
+        self.hidden_bias = nn.Parameter(
+                (torch.randn(self.num_hidden,device=self.device, 
+                 dtype=torch.double)/np.sqrt(self.num_hidden)),requires_grad=True)
+ 
+        #self.weights = torch.randn(self.num_hidden, self.num_visible,device=self.device, dtype=torch.double)/ np.sqrt(self.num_visible)
+        #self.visible_bias = torch.randn(self.num_visible,device=self.device,dtype=torch.double)
+        #self.hidden_bias = torch.randn(self.num_hidden,device=self.device,dtype=torch.double)
+
+
     def effective_energy(self, v):
         r"""The effective energies of the given visible states.
 

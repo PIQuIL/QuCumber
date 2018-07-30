@@ -63,6 +63,11 @@ class ComplexWavefunction(Sampler):
         self.hidden_state = torch.zeros(1,self.num_hidden,
                                          device=self.rbm_am.device,
                                          dtype=torch.double)
+
+    def randomize(self):
+        self.rbm_am.randomize()
+        self.rbm_ph.randomize()
+        
     def set_visible_layer(self,v):
         #self.visible_state.resize_(v.shape)
         #self.hidden_state.resize_(v.shape[0],self.num_hidden)
@@ -93,7 +98,8 @@ class ComplexWavefunction(Sampler):
                 num_nontrivial_U += 1
                 nontrivial_sites.append(j)
         if (num_nontrivial_U == 0):
-            final_grad['rbm_am'] = self.rbm_am.effective_energy_gradient(v) 
+            final_grad['rbm_am'] = self.rbm_am.effective_energy_gradient(v_state) 
+            final_grad['rbm_ph'] = 0.0
         else:
             v = torch.zeros(self.num_visible, dtype=torch.double)
             grad = {}
