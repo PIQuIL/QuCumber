@@ -192,12 +192,12 @@ def compute_numerical_kl(nn_state,psi_dict,vis,Z,unitary_dict,bases):
     psi_r = torch.zeros(2,1<<N,dtype=torch.double)
     KL = 0.0
     for i in range(len(vis)):
-        KL += cplx.norm(psi_dict[bases[0]][:,i])*cplx.norm(psi_dict[bases[0]][:,i])).log()/float(len(bases))
+        KL += cplx.norm(psi_dict[bases[0]][:,i])*cplx.norm(psi_dict[bases[0]][:,i]).log()/float(len(bases))
         KL -= cplx.norm(psi_dict[bases[0]][:,i])*(probability(nn_state,vis[i],Z)).log().item()/float(len(bases))
     for b in range(1,len(bases)):
         psi_r = rotate_psi(nn_state,bases[b],unitary_dict,vis)
         for ii in range(len(vis)):
-            if(cplx.norm(psi_dict[bases[b]][:,ii]))>0.0):
+            if(cplx.norm(psi_dict[bases[b]][:,ii])>0.0):
                 KL += cplx.norm(psi_dict[bases[b]][:,ii])*cplx.norm(psi_dict[bases[b]][:,ii]).log()/float(len(bases))
             KL -= cplx.norm(psi_dict[bases[b]][:,ii])*cplx.norm(psi_r[:,ii]).log()/float(len(bases))
             KL += cplx.norm(psi_dict[bases[b]][:,ii])*Z.log()/float(len(bases))
