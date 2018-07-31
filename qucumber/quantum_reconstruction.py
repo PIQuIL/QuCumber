@@ -33,7 +33,7 @@ from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
 from positive_wavefunction import PositiveWavefunction
 from complex_wavefunction import ComplexWavefunction
-
+import math as m
 __all__ = [
     "QuantumReconstruction"
 ]
@@ -100,8 +100,11 @@ class QuantumReconstruction(Sampler):
             grad['rbm_am'][par] -= grad_model['rbm_am'][par]/float(self.nn_state.visible_state.shape[0])
         return grad
         
-    def fit(self, input_samples,epochs, pos_batch_size, neg_batch_size,
-            k, lr,input_bases = None, progbar=False,callbacks=[],observer=None):
+    def fit(self,input_samples,epochs,pos_batch_size, neg_batch_size,k,lr,
+            observer=None,
+            input_bases = None,z_samples = None,
+            progbar=False,callbacks=[]):
+            
         """Execute the training of the RBM.
 
         :param data: The actual training data
@@ -136,11 +139,11 @@ class QuantumReconstruction(Sampler):
         #TODO How to shuffle two datasets simultaneously using the same permutation in Torch
         #     Until then, we do not shuffle the dataset if there are bases
 
-        if(len(self.nn_state.networks) >1):
-            shf = False
-        else:
-            shf = True
-            pos_batch_bases = None
+        #if(len(self.nn_state.networks) >1):
+        #    shf = False
+        #else:
+        #    shf = True
+        #    pos_batch_bases = None
        
         #TODO make this iterative
         if (len(self.nn_state.networks) >1):
@@ -156,32 +159,55 @@ class QuantumReconstruction(Sampler):
             optimizer = torch.optim.SGD([self.nn_state.rbm_am.weights,
                                          self.nn_state.rbm_am.visible_bias,
                                          self.nn_state.rbm_am.hidden_bias],lr=lr)
-
+            batch_bases = None
         callbacks.on_train_start(self)
         #t0 = time.time()
+        batch_num = m.ceil(train_samples.shape[0] / pos_batch_size)
         for ep in progress_bar(range(1,epochs+1), desc="Epochs ",
                                disable=disable_progbar):
 
-            pos_batches = DataLoader(train_samples, batch_size=pos_batch_size,
-                                     shuffle=shf)
-            multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
-             
-            neg_batches = [DataLoader(train_samples, batch_size=neg_batch_size,
-                                      shuffle=True)
-                           for i in range(multiplier)]
-            neg_batches = chain(*neg_batches)
+            random_permutation      = torch.randperm(train_samples.shape[0])
+            shuffled_samples        = train_samples[random_permutation]
+            # List of all the batches for positive phase.
+            pos_batches = [shuffled_samples[batch_start:(batch_start + pos_batch_size)]
+                           for batch_start in range(0, len(train_samples), pos_batch_size)]
+
+            if input_bases is not None:
+                shuffled_bases = input_bases[random_permutation]
+                pos_batches_bases = [shuffled_bases[batch_start:(batch_start + pos_batch_size)]
+                           for batch_start in range(0, len(train_samples), pos_batch_size)]
+            
+            
+            # DATALOADER
+            #pos_batches = DataLoader(train_samples, batch_size=pos_batch_size,
+            #                         shuffle=shf)
+            #multiplier = int((neg_batch_size / pos_batch_size) + 0.5)
+            # 
+            #neg_batches = [DataLoader(train_samples, batch_size=neg_batch_size,
+            #                          shuffle=True)
+            #               for i in range(multiplier)]
+            #neg_batches = chain(*neg_batches)
             callbacks.on_epoch_start(self, ep)
 
             if self.stop_training:  # check for stop_training signal
                 break
             
-            for batch_num, (pos_batch,neg_batch) in enumerate(zip(pos_batches,
-                                                               neg_batches)):
-                callbacks.on_batch_start(self, ep, batch_num)
+            #for batch_num, (pos_batch,neg_batch) in enumerate(zip(pos_batches,
+            #                                                   neg_batches)):
+            for b in range(batch_num):
+                callbacks.on_batch_start(self, ep, b)
+                #if input_bases is not None:
+                #    pos_batch_bases = input_bases[batch_num*pos_batch_size:(batch_num+1)*;pos_batch_size]
+
+                random_permutation      = torch.randperm(train_samples.shape[0])
+                neg_batch        = train_samples[random_permutation][0:neg_batch_size]
+                #neg_batches = [shuffled_samples[batch_start:(batch_start + neg_batch_size)]
+                #           for batch_start in range(0, len(train_samples), neg_batch_size)]
+
                 if input_bases is not None:
-                    pos_batch_bases = input_bases[batch_num*pos_batch_size:(batch_num+1)*pos_batch_size]
+                    batch_bases = pos_batches_bases[b]
                 self.nn_state.set_visible_layer(neg_batch)
-                all_grads = self.compute_batch_gradients(k, pos_batch,pos_batch_bases)
+                all_grads = self.compute_batch_gradients(k, pos_batches[b],batch_bases)
                 optimizer.zero_grad()  # clear any cached gradients
                 
                 
@@ -192,7 +218,7 @@ class QuantumReconstruction(Sampler):
                         getattr(rbm, param).grad = all_grads[net][param]
                 optimizer.step()  # tell the optimizer to apply the gradients
 
-                callbacks.on_batch_end(self, ep, batch_num)
+                callbacks.on_batch_end(self, ep, b)
             if observer is not None:
                 if ((ep % observer.frequency) == 0): 
                     #if target_psi is not None:

@@ -11,7 +11,6 @@ import sys
 sys.path.append("utils/")
 import training_statistics as ts
 sys.path.append("../examples/observables/")
-import quantum_ising_chain as TFIM
 
 
 @click.group(context_settings={"help_option_names": ['-h', '--help']})
@@ -56,7 +55,6 @@ def train_real(num_hidden, epochs, batch_size,
 
     train_stats = ts.TrainingStatistics(train_samples.shape[-1])
     train_stats.load(target_psi=target_psi)
-    print(len(train_samples))    
     qr = QuantumReconstruction(nn_state)
     qr.fit(train_samples, epochs, batch_size, num_chains, k,
             learning_rate, progbar=no_prog,observer = train_stats)
@@ -120,7 +118,7 @@ def train_complex(num_hidden,
     train_samples = torch.tensor(test_data['2qubits']['train_samples'],dtype = torch.double)
     bases = test_data['2qubits']['bases'] 
     target_psi_dict=torch.tensor(test_data['2qubits']['target_psi'],dtype = torch.double)
-
+    num_bases = len(bases)
     unitary_dict = unitaries.create_dict()
     
     num_visible      = train_samples.shape[-1]
@@ -134,12 +132,12 @@ def train_complex(num_hidden,
    
     train_stats = ts.TrainingStatistics(train_samples.shape[-1],frequency=1)
     train_stats.load(bases = bases,target_psi_dict = target_psi_dict)
-
+    
     qr = QuantumReconstruction(nn_state)
     ##data = {"samples":train_data,"bases":train_bases}
     ##qr.fit(data,epochs, batch_size, num_chains, k,learning_rate,progbar=(not no_prog),target_psi=psi)
     qr.fit(train_samples, epochs, batch_size, num_chains, k,
-            learning_rate,train_bases, progbar=(no_prog),observer=train_stats)
+            learning_rate,observer=train_stats,input_bases = train_bases,progbar=(no_prog))
 
 
 
