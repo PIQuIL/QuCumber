@@ -54,7 +54,7 @@ class TrainingStatistics(object):
             psi = nn_state.psi(self.vis[i])/self.Z.sqrt()
             F[0] += self.target_psi[0,i]*psi[0]+self.target_psi[1,i]*psi[1]
             F[1] += self.target_psi[0,i]*psi[1]-self.target_psi[1,i]*psi[0]
-        self.F = cplx.norm(F.view(-1,1))
+        self.F = cplx.norm(F)
 
     def rotate_psi(self,nn_state,basis):
         v = torch.zeros(self.N, dtype=torch.double)
@@ -91,15 +91,15 @@ class TrainingStatistics(object):
         psi_r = torch.zeros(2,1<<self.N,dtype=torch.double)
         KL = 0.0
         for i in range(len(self.vis)):
-            KL += cplx.norm(self.target_psi[:,i].view(-1,1))*cplx.norm(self.target_psi[:,i].view(-1,1)).log()/float(len(self.bases))
-            KL -= cplx.norm(self.target_psi[:,i].view(-1,1))*(self.probability(nn_state,self.vis[i])).log().item()/float(len(self.bases))
+            KL += cplx.norm(self.target_psi[:,i])*cplx.norm(self.target_psi[:,i]).log()/float(len(self.bases))
+            KL -= cplx.norm(self.target_psi[:,i])*(self.probability(nn_state,self.vis[i])).log().item()/float(len(self.bases))
         for b in range(1,len(self.bases)):
             psi_r = rotate_psi(nn_state,self.bases[b])
             for ii in range(len(self.vis)):
-                if(cplx.norm(self.psi_dict[self.bases[b]][:,ii].view(-1,1))>0.0):
-                    KL += cplx.norm(self.psi_dict[self.bases[b]][:,ii].view(-1,1))*cplx.norm(self.psi_dict[bases[b]][:,ii].view(-1,1)).log()/float(len(self.bases))
-                KL -= cplx.norm(self.psi_dict[self.bases[b]][:,ii].view(-1,1))*cplx.norm(psi_r[:,ii].view(-1,1)).log().item()/float(len(self.bases))
-                KL += cplx.norm(self.psi_dict[self.bases[b]][:,ii].view(-1,1))*self.Z.log()/float(len(self.bases))
+                if(cplx.norm(self.psi_dict[self.bases[b]][:,ii])>0.0):
+                    KL += cplx.norm(self.psi_dict[self.bases[b]][:,ii])*cplx.norm(self.psi_dict[bases[b]][:,ii]).log()/float(len(self.bases))
+                KL -= cplx.norm(self.psi_dict[self.bases[b]][:,ii])*cplx.norm(psi_r[:,ii]).log().item()/float(len(self.bases))
+                KL += cplx.norm(self.psi_dict[self.bases[b]][:,ii])*self.Z.log()/float(len(self.bases))
         self.KL = KL    
 
     def generate_visible_space(self,n):

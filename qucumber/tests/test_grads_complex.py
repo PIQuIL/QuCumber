@@ -184,7 +184,7 @@ def compute_numerical_NLL(nn_state,data_samples,data_bases,Z,unitary_dict,vis):
             NLL -= (probability(nn_state,data_samples[i], Z)).log().item()/batch_size
         else:
             psi_r = rotate_psi(nn_state,data_bases[i],unitary_dict,vis)
-            NLL -= (cplx.norm(psi_r[:,ind].view(-1,1)).log()-Z.log()).item()/batch_size
+            NLL -= (cplx.norm(psi_r[:,ind]).log()-Z.log()).item()/batch_size
     return NLL
 
 def compute_numerical_kl(nn_state,psi_dict,vis,Z,unitary_dict,bases):
@@ -192,15 +192,15 @@ def compute_numerical_kl(nn_state,psi_dict,vis,Z,unitary_dict,bases):
     psi_r = torch.zeros(2,1<<N,dtype=torch.double)
     KL = 0.0
     for i in range(len(vis)):
-        KL += cplx.norm(psi_dict[bases[0]][:,i].view(-1,1))*cplx.norm(psi_dict[bases[0]][:,i].view(-1,1)).log()/float(len(bases))
-        KL -= cplx.norm(psi_dict[bases[0]][:,i].view(-1,1))*(probability(nn_state,vis[i],Z)).log().item()/float(len(bases))
+        KL += cplx.norm(psi_dict[bases[0]][:,i])*cplx.norm(psi_dict[bases[0]][:,i])).log()/float(len(bases))
+        KL -= cplx.norm(psi_dict[bases[0]][:,i])*(probability(nn_state,vis[i],Z)).log().item()/float(len(bases))
     for b in range(1,len(bases)):
         psi_r = rotate_psi(nn_state,bases[b],unitary_dict,vis)
         for ii in range(len(vis)):
-            if(cplx.norm(psi_dict[bases[b]][:,ii].view(-1,1))>0.0):
-                KL += cplx.norm(psi_dict[bases[b]][:,ii].view(-1,1))*cplx.norm(psi_dict[bases[b]][:,ii].view(-1,1)).log()/float(len(bases))
-            KL -= cplx.norm(psi_dict[bases[b]][:,ii].view(-1,1))*cplx.norm(psi_r[:,ii].view(-1,1)).log()/float(len(bases))
-            KL += cplx.norm(psi_dict[bases[b]][:,ii].view(-1,1))*Z.log()/float(len(bases))
+            if(cplx.norm(psi_dict[bases[b]][:,ii]))>0.0):
+                KL += cplx.norm(psi_dict[bases[b]][:,ii])*cplx.norm(psi_dict[bases[b]][:,ii]).log()/float(len(bases))
+            KL -= cplx.norm(psi_dict[bases[b]][:,ii])*cplx.norm(psi_r[:,ii]).log()/float(len(bases))
+            KL += cplx.norm(psi_dict[bases[b]][:,ii])*Z.log()/float(len(bases))
 
     return KL
 
@@ -259,7 +259,7 @@ def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
     Z = partition(nn_state,vis)
     
     for i in range(len(vis)):
-        grad_KL[0] += cplx.norm(psi_dict[bases[0]][:,i].view(-1,1))*nn_state.rbm_am.effective_energy_gradient(vis[i])/float(len(bases))
+        grad_KL[0] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.rbm_am.effective_energy_gradient(vis[i])/float(len(bases))
         grad_KL[0] -= probability(nn_state,vis[i], Z)*nn_state.rbm_am.effective_energy_gradient(vis[i])/float(len(bases))
         #for par in rbm.state_dict():
             #grad_KL['rbm_am'][par] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.rbm_am.effective_energy_gradient(vis[i])[par]/float(len(bases))
@@ -269,8 +269,8 @@ def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
         psi_r = rotate_psi(nn_state,bases[b],unitary_dict,vis)
         for i in range(len(vis)):
             rotated_grad = nn_state.gradient(bases[b],vis[i])
-            grad_KL[0] += cplx.norm(psi_dict[bases[b]][:,i].view(-1,1))*rotated_grad[0]/float(len(bases))
-            grad_KL[1] += cplx.norm(psi_dict[bases[b]][:,i].view(-1,1))*rotated_grad[1]/float(len(bases))
+            grad_KL[0] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[0]/float(len(bases))
+            grad_KL[1] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[1]/float(len(bases))
             grad_KL[0] -=probability(nn_state,vis[i], Z)*nn_state.rbm_am.effective_energy_gradient(vis[i])/float(len(bases))
             #for net in nn_state.networks:
             #    for par in rbm.state_dict():

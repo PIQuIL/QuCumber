@@ -123,12 +123,15 @@ def inner_prod(x, y):
     :returns: The inner product, :math:`\\langle x\\vert y\\rangle`.
     :rtype: torch.doubleTensor
     """
-    if list(x.size())[0] != 2 or list(y.size())[0] != 2:
-        raise ValueError('An input is not of the right dimension.')
-
     z = torch.zeros(2, dtype=torch.double)
-    z[0] = torch.dot(x[0], y[0]) - torch.dot(-x[1], y[1])
-    z[1] = torch.dot(x[0], y[1]) + torch.dot(-x[1], y[0])
+    
+    if len(list(x.size())) == 2 and len(list(y.size())) == 2:
+        z[0] = torch.dot(x[0], y[0]) - torch.dot(-x[1], y[1])
+        z[1] = torch.dot(x[0], y[1]) + torch.dot(-x[1], y[0])
+
+    if len(list(x.size())) == 1 and len(list(y.size())) == 1:
+        z[0] = x[0]*y[0] - (-x[1]*y[1])
+        z[1] = x[0]*y[1] + (-x[1]*y[0])
 
     return z
 
