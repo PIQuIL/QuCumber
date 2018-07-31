@@ -176,7 +176,7 @@ class QuantumReconstruction(Sampler):
                 shuffled_bases = input_bases[random_permutation]
                 pos_batches_bases = [shuffled_bases[batch_start:(batch_start + pos_batch_size)]
                            for batch_start in range(0, len(train_samples), pos_batch_size)]
-            
+             
             
             # DATALOADER
             #pos_batches = DataLoader(train_samples, batch_size=pos_batch_size,
@@ -199,12 +199,17 @@ class QuantumReconstruction(Sampler):
                 #if input_bases is not None:
                 #    pos_batch_bases = input_bases[batch_num*pos_batch_size:(batch_num+1)*;pos_batch_size]
 
-                random_permutation      = torch.randperm(train_samples.shape[0])
-                neg_batch        = train_samples[random_permutation][0:neg_batch_size]
+                if input_bases is None:
+                    random_permutation      = torch.randperm(train_samples.shape[0])
+                    neg_batch        = train_samples[random_permutation][0:neg_batch_size]
+                
                 #neg_batches = [shuffled_samples[batch_start:(batch_start + neg_batch_size)]
                 #           for batch_start in range(0, len(train_samples), neg_batch_size)]
 
-                if input_bases is not None:
+                #if input_bases is not None:
+                else:
+                    random_permutation      = torch.randperm(z_samples.shape[0])
+                    neg_batch = z_samples[random_permutation][0:neg_batch_size]
                     batch_bases = pos_batches_bases[b]
                 self.nn_state.set_visible_layer(neg_batch)
                 all_grads = self.compute_batch_gradients(k, pos_batches[b],batch_bases)

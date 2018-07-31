@@ -133,11 +133,25 @@ def train_complex(num_hidden,
     train_stats = ts.TrainingStatistics(train_samples.shape[-1],frequency=1)
     train_stats.load(bases = bases,target_psi_dict = target_psi_dict)
     
+    tmp = []
+    for i in range(train_samples.shape[0]):
+        flag = 0
+        for j in range(num_visible):
+            if train_bases[i][j] != 'Z':
+                flag = 1
+                break
+        if flag == 0:
+            tmp.append(train_samples[i])
+    
+    z_samples = torch.zeros(len(tmp),num_visible,dtype=torch.double)
+    for i in range(len(tmp)):
+        for j in range(num_visible):
+            z_samples[i][j] = tmp[i][j]
+    
+
     qr = QuantumReconstruction(nn_state)
-    ##data = {"samples":train_data,"bases":train_bases}
-    ##qr.fit(data,epochs, batch_size, num_chains, k,learning_rate,progbar=(not no_prog),target_psi=psi)
     qr.fit(train_samples, epochs, batch_size, num_chains, k,
-            learning_rate,observer=train_stats,input_bases = train_bases,progbar=(no_prog))
+            learning_rate,observer=train_stats,input_bases = train_bases,progbar=(no_prog),z_samples=z_samples)
 
 
 
