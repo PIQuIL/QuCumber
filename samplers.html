@@ -184,12 +184,12 @@
 <span id="samplers"></span><h1>Samplers<a class="headerlink" href="#module-qucumber.samplers" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="qucumber.samplers.Sampler">
-<em class="property">class </em><code class="descclassname">qucumber.samplers.</code><code class="descname">Sampler</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L32"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.Sampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.samplers.</code><code class="descname">Sampler</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L32"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.Sampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Abstract Sampler Class</p>
 <dl class="method">
 <dt id="qucumber.samplers.Sampler.probability_ratio">
-<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L35"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.Sampler.probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L35"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.Sampler.probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the ratio of the probabilities of <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>:</p>
 <div class="math">
 <p><img src="_images/math/a695d163f54641fffebc979f7f9a95a165c460ad.svg" alt="\frac{p(a)}{p(b)}"/></p>
@@ -217,7 +217,7 @@ denominator. Must be the same shape as <code class="docutils literal notranslate
 
 <dl class="method">
 <dt id="qucumber.samplers.Sampler.log_probability_ratio">
-<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L53"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.Sampler.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L53"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.Sampler.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the (natural) logarithm of the ratio of the probabilities
 of <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>:</p>
 <div class="math">
@@ -247,7 +247,7 @@ inputs.</p>
 
 <dl class="method">
 <dt id="qucumber.samplers.Sampler.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L73"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.Sampler.sample" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L73"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.Sampler.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate samples from the sampler.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -273,13 +273,13 @@ inputs.</p>
 
 <dl class="class">
 <dt id="qucumber.samplers.TractableSampler">
-<em class="property">class </em><code class="descclassname">qucumber.samplers.</code><code class="descname">TractableSampler</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L86"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.samplers.</code><code class="descname">TractableSampler</code><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L86"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qucumber.samplers.Sampler" title="qucumber.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">qucumber.samplers.Sampler</span></code></a></p>
 <p>Abstract Class for Tractable Samplers (ie. Samplers whose probability
 densities can be computed easily).</p>
 <dl class="method">
 <dt id="qucumber.samplers.TractableSampler.probability">
-<code class="descname">probability</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L91"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler.probability" title="Permalink to this definition">¶</a></dt>
+<code class="descname">probability</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L91"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler.probability" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probabilities of the given samples.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -297,7 +297,7 @@ densities can be computed easily).</p>
 
 <dl class="method">
 <dt id="qucumber.samplers.TractableSampler.log_probability">
-<code class="descname">log_probability</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L102"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler.log_probability" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_probability</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L102"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler.log_probability" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the (natural) logarithm of the probabilities of the
 given samples.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -316,7 +316,7 @@ given samples.</p>
 
 <dl class="method">
 <dt id="qucumber.samplers.TractableSampler.probability_ratio">
-<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L114"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler.probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L114"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler.probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the ratio of the probabilities of <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>:</p>
 <div class="math">
 <p><img src="_images/math/a695d163f54641fffebc979f7f9a95a165c460ad.svg" alt="\frac{p(a)}{p(b)}"/></p>
@@ -344,7 +344,7 @@ denominator. Must be the same shape as <code class="docutils literal notranslate
 
 <dl class="method">
 <dt id="qucumber.samplers.TractableSampler.log_probability_ratio">
-<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L117"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_probability_ratio</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L117"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.TractableSampler.log_probability_ratio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the (natural) logarithm of the ratio of the probabilities
 of <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>:</p>
 <div class="math">
@@ -376,7 +376,7 @@ inputs.</p>
 
 <dl class="class">
 <dt id="qucumber.samplers.DataSampler">
-<em class="property">class </em><code class="descclassname">qucumber.samplers.</code><code class="descname">DataSampler</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L121"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.DataSampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.samplers.</code><code class="descname">DataSampler</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L121"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.DataSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qucumber.samplers.TractableSampler" title="qucumber.samplers.TractableSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">qucumber.samplers.TractableSampler</span></code></a></p>
 <p>Concrete TractableSampler Class which samples from the given dataset</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -389,7 +389,7 @@ inputs.</p>
 </table>
 <dl class="method">
 <dt id="qucumber.samplers.DataSampler.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>dtype=torch.float32</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L152"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.DataSampler.sample" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>dtype=torch.float32</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L152"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.DataSampler.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate samples from the sampler.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -413,7 +413,7 @@ inputs.</p>
 
 <dl class="method">
 <dt id="qucumber.samplers.DataSampler.probability">
-<code class="descname">probability</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L166"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.DataSampler.probability" title="Permalink to this definition">¶</a></dt>
+<code class="descname">probability</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L166"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.DataSampler.probability" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probabilities of the given samples.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -431,7 +431,7 @@ inputs.</p>
 
 <dl class="method">
 <dt id="qucumber.samplers.DataSampler.log_probability">
-<code class="descname">log_probability</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/5959386/qucumber/samplers.py#L177"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.DataSampler.log_probability" title="Permalink to this definition">¶</a></dt>
+<code class="descname">log_probability</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/504c8e7/qucumber/samplers.py#L177"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.samplers.DataSampler.log_probability" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the (natural) logarithm of the probabilities of the
 given samples.</p>
 <table class="docutils field-list" frame="void" rules="none">
