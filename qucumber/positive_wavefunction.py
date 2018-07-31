@@ -49,7 +49,6 @@ class PositiveWavefunction(Sampler):
         
         
         self.num_pars = self.rbm_am.num_pars
-        #NOTE Is this really necessary?
         self.networks = ["rbm_am"]
         self.device = self.rbm_am.device 
         self.visible_state = torch.zeros(1,self.num_visible,
@@ -112,7 +111,6 @@ class PositiveWavefunction(Sampler):
 
         """
         return self.rbm_am.effective_energy_gradient(v)
-        #return {"rbm_am": self.rbm_am.effective_energy_gradient(v)} 
 
     def sample(self, k_cd):
         """Performs k steps of Block Gibbs sampling 

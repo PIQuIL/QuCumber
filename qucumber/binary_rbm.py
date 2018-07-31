@@ -132,9 +132,9 @@ class BinaryRBM(nn.Module, Sampler):
         :param v: The visible states.
         :type v: torch.Tensor
 
-        :returns: dictionary containing the gradients for different parameters (for the given 
-                  visible states.
-        :rtype: dictionary(torch.Tensor,torch.Tensor,torch.Tensor)
+        :returns: 1d vector containing the gradients for all parameters (computed on the given 
+                  visible states v). 
+        :rtype: torch.Tensor
         """
         prob = F.sigmoid(F.linear(v, self.weights,self.hidden_bias))     
         
@@ -148,9 +148,6 @@ class BinaryRBM(nn.Module, Sampler):
             c_grad = -torch.einsum("ij->j", (prob,))
         
         return parameters_to_vector([W_grad,b_grad,c_grad])
-        #return torch.cat([W_grad.r,b_grad,c_grad])   
-        #return {'weights':W_grad,'visible_bias':b_grad,'hidden_bias':c_grad}
-    
     
     def prob_v_given_h(self, h):
         """Given a hidden unit configuration, compute the probability
