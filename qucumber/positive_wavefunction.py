@@ -46,6 +46,10 @@ class PositiveWavefunction(Sampler):
                            else self.num_visible)
         self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden,
                                             gpu=gpu, seed=seed)
+        
+        
+        self.num_pars = self.rbm_am.num_pars
+        #NOTE Is this really necessary?
         self.networks = ["rbm_am"]
         self.device = self.rbm_am.device 
         self.visible_state = torch.zeros(1,self.num_visible,
@@ -56,46 +60,69 @@ class PositiveWavefunction(Sampler):
                                          dtype=torch.double)
 
     def randomize(self):
+        """Randomize the parameters of the amplitude RBM"""
         self.rbm_am.randomize()
 
     def set_visible_layer(self,v):
-        #NOTE double check this
-        #self.visible_state.resize_(v.shape)
-        #self.hidden_state.resize_(v.shape[0],self.num_hidden)
+        r""" Set the visible state to a given vector/matrix
+        
+        :param v: State to initialize the wavefunction to
+        :type v: torch.Tensor
+        """
+        
         self.visible_state = v
+        if (self.visible_state.shape != v.shape):
+            raise RuntimeError ('Error in set_visible_layer')
+    
     def amplitude(self,v):
+        r""" Compute the amplitude of a given vector/matrix of visible states
+
+        :param v: visible states
+        :type v: torch.tensor
+
+        :returns Matrix/vector containing the amplitudes of v
+        :rtype torch.tensor
+
+        """
         return (-self.rbm_am.effective_energy(v)).exp().sqrt()
     
     def psi(self,v):
+        r""" Compute the wavefunction coefficient  of a given vector/matrix of visible states
+
+        :param v: visible states
+        :type v: torch.tensor
+
+        :returns Complex object containing the wavefunction coefficients of v
+        :rtype torch.tensor
+
+        """
         psi = torch.zeros(2, dtype=torch.double)
         psi[0] = self.amplitude(v)
         psi[1] = 0.0
         return psi
-        #return (-self.rbm_am.effective_energy(v)).exp().sqrt()
 
     def gradient(self,v):
-        return {"rbm_am": self.rbm_am.effective_energy_gradient(v)} 
+        r"""Compute the gradient for a batch of visible states v
 
-    def sample(self, k):
-        """Performs k steps of Block Gibbs sampling given an initial visible
-        state v0.
+        :param v: visible states
+        :type v: torch.tensor
+
+        :returns dictionary with one key (rbm_am)
+        :rtype  dictionary(dictionary(torch.tensor,torch.tensor,torch.tensor)
+
+        """
+        return self.rbm_am.effective_energy_gradient(v)
+        #return {"rbm_am": self.rbm_am.effective_energy_gradient(v)} 
+
+    def sample(self, k_cd):
+        """Performs k steps of Block Gibbs sampling 
+        
 
         :param k: Number of Block Gibbs steps.
         :type k: int
-        :param v0: The initial visible state.
-        :type v0: torch.Tensor
 
-        :returns: Tuple containing the initial visible state, v0,
-                  the hidden state sampled from v0,
-                  the visible state sampled after k steps,
-                  the hidden state sampled after k steps and its corresponding
-
-                  probability vector.
-        :rtype: tuple(torch.Tensor, torch.Tensor,
-                      torch.Tensor, torch.Tensor,
-                      torch.Tensor)
         """
-        for _ in range(k):
+        for _ in range(k_cd):
             self.hidden_state = self.rbm_am.sample_h_given_v(self.visible_state)
             self.visible_state = self.rbm_am.sample_v_given_h(self.hidden_state)
 

@@ -26,6 +26,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
+from torch.nn.utils import parameters_to_vector
 from tqdm import tqdm, tqdm_notebook
 
 #import qucumber.cplx as cplx
@@ -46,7 +47,7 @@ def _warn_on_missing_gpu(gpu):
 
 class BinaryRBM(nn.Module, Sampler):
     def __init__(self, num_visible, num_hidden, zero_weights=False,
-                 gpu=True, seed=None, num_chains = 10):
+                 gpu=True, seed=None, num_chains = 100):
         super(BinaryRBM, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
@@ -78,24 +79,14 @@ class BinaryRBM(nn.Module, Sampler):
                                                         dtype=torch.double),
                                             requires_grad=True)
         else:
-            self.weights = nn.Parameter(
-                (torch.randn(self.num_hidden, self.num_visible,
-                             device=self.device, dtype=torch.double)
-                 / np.sqrt(self.num_visible)),requires_grad=True)
-
-            self.visible_bias = nn.Parameter(
-                    (torch.randn(self.num_visible,device=self.device, 
-                     dtype=torch.double)/np.sqrt(self.num_visible)),requires_grad=True)
-            self.hidden_bias = nn.Parameter(
-                    (torch.randn(self.num_hidden,device=self.device, 
-                     dtype=torch.double)/np.sqrt(self.num_hidden)),requires_grad=True)
+            self.randomize()
         
-    
     def __repr__(self):
         return ("BinaryRBM(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
 
     def randomize(self):
+        """Randomize the parameters of the RBM"""
         self.weights = nn.Parameter(
             (torch.randn(self.num_hidden, self.num_visible,
                          device=self.device, dtype=torch.double)
@@ -108,18 +99,14 @@ class BinaryRBM(nn.Module, Sampler):
                 (torch.randn(self.num_hidden,device=self.device, 
                  dtype=torch.double)/np.sqrt(self.num_hidden)),requires_grad=True)
  
-        #self.weights = torch.randn(self.num_hidden, self.num_visible,device=self.device, dtype=torch.double)/ np.sqrt(self.num_visible)
-        #self.visible_bias = torch.randn(self.num_visible,device=self.device,dtype=torch.double)
-        #self.hidden_bias = torch.randn(self.num_hidden,device=self.device,dtype=torch.double)
-
 
     def effective_energy(self, v):
         r"""The effective energies of the given visible states.
 
         .. math::
 
-            \mathcal{E}(\bm{v}) &= \sum_{j}b_j v_j
-                        + \sum_{i}\log
+            \mathcal{E}(\bm{v}) &= -\sum_{j}b_j v_j
+                        - \sum_{i}\log
                             \left\lbrack 1 +
                                   \exp\left(c_{i} + \sum_{j} W_{ij} v_j\right)
                             \right\rbrack
@@ -145,9 +132,9 @@ class BinaryRBM(nn.Module, Sampler):
         :param v: The visible states.
         :type v: torch.Tensor
 
-        :returns: The gradients of the effective energies for the given 
+        :returns: dictionary containing the gradients for different parameters (for the given 
                   visible states.
-        :rtype: torch.Tensor
+        :rtype: dictionary(torch.Tensor,torch.Tensor,torch.Tensor)
         """
         prob = F.sigmoid(F.linear(v, self.weights,self.hidden_bias))     
         
@@ -160,7 +147,9 @@ class BinaryRBM(nn.Module, Sampler):
             b_grad = -torch.einsum("ij->j", (v,))
             c_grad = -torch.einsum("ij->j", (prob,))
         
-        return {'weights':W_grad,'visible_bias':b_grad,'hidden_bias':c_grad}
+        return parameters_to_vector([W_grad,b_grad,c_grad])
+        #return torch.cat([W_grad.r,b_grad,c_grad])   
+        #return {'weights':W_grad,'visible_bias':b_grad,'hidden_bias':c_grad}
     
     
     def prob_v_given_h(self, h):
