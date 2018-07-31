@@ -166,11 +166,11 @@ class ComplexWavefunction(Sampler):
                 Upsi_v = cplx.scalar_mult(U,self.psi(v))
                 
                 Upsi += Upsi_v            
-                rotated_grad[0] += cplx.VS_mult(Upsi_v,cplx.make_complex_vector(grad[0],torch.zeros_like(grad[0])))
-                rotated_grad[1] += cplx.VS_mult(Upsi_v,cplx.make_complex_vector(grad[1],torch.zeros_like(grad[1]))) 
+                rotated_grad[0] += cplx.scalar_mult(Upsi_v,cplx.make_complex(grad[0],torch.zeros_like(grad[0])))
+                rotated_grad[1] += cplx.scalar_mult(Upsi_v,cplx.make_complex(grad[1],torch.zeros_like(grad[1]))) 
 
-            final_grad.append(cplx.VS_divide(rotated_grad[0],Upsi)[0,:])
-            final_grad.append(-cplx.VS_divide(rotated_grad[1],Upsi)[1,:])
+            final_grad.append(cplx.divide(rotated_grad[0],Upsi)[0,:])
+            final_grad.append(-cplx.divide(rotated_grad[1],Upsi)[1,:])
            #     for net in self.networks:
            #         Upsi_v = cplx.scalar_mult(U,self.psi(v))
            #         tmp = cplx.make_complex_matrix(grad[net]['weights'],torch.zeros(grad[net]['weights'].shape[0],grad[net]['weights'].shape[1],dtype=torch.double))

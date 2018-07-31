@@ -104,7 +104,7 @@ def transform_bases(bases_data):
 def rotate_psi_full(basis,full_unitary_dict,psi):
 
     U = full_unitary_dict[basis]
-    Upsi = cplx.MV_mult(U,psi)
+    Upsi = cplx.matmul(U,psi)
     return Upsi
 
 #def rotate_target_psi(N,psi,basis,unitary_dict,vis):
