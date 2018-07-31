@@ -188,7 +188,6 @@ def generate(param_path, num_samples, k):
     train_stats.scan(0,nn_state)  
 
 
-
     Energy = tfim.Energy(nn_state,n_eq=1000) 
     print(Energy)
     #new_data = (rbm.sample(num_samples, k)).data.numpy()

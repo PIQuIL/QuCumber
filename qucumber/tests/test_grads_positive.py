@@ -6,6 +6,7 @@ import numpy as np
 from positive_wavefunction import PositiveWavefunction
 from quantum_reconstruction import QuantumReconstruction
 import importlib.util
+from torch.nn.utils import parameters_to_vector
 
 def generate_visible_space(num_visible):
     """Generates all possible visible states.
@@ -59,9 +60,9 @@ def probability(nn_state,v, Z):
 def compute_numerical_kl(nn_state,target_psi, vis, Z):
     KL = 0.0
     for i in range(len(vis)):
-        KL += ((target_psi[i,0])**2)*((target_psi[i,0])**2).log().item()
+        KL += ((target_psi[i,0])**2)*((target_psi[i,0])**2).log()
         KL -= ((target_psi[i,0])**2)*(probability(nn_state,vis[i], Z)).log().item()
-    return KL.item()
+    return KL
 
 def compute_numerical_NLL(nn_state,data, Z):
     NLL = 0
@@ -73,17 +74,19 @@ def compute_numerical_NLL(nn_state,data, Z):
     return NLL
 
 def algorithmic_gradKL(nn_state,target_psi,vis):
-    grad_KL={}
-    for rbmType in nn_state.gradient(vis[0]):
-        grad_KL[rbmType] = {}
-        for pars in nn_state.gradient(vis[0])[rbmType]:
-            grad_KL[rbmType][pars]=0
+    #for rbmType in nn_state.gradient(vis[0]):
+    #    grad_KL[rbmType] = {}
+    #    for pars in nn_state.gradient(vis[0])[rbmType]:
+    #        grad_KL[rbmType][pars]=0
     Z = partition(nn_state,vis)
+    grad_KL = torch.zeros(nn_state.rbm_am.num_pars,dtype=torch.double)
     for i in range(len(vis)):
-        for rbmType in nn_state.gradient(vis[i]):
-            for pars in nn_state.gradient(vis[i])[rbmType]:
-                grad_KL[rbmType][pars] += ((target_psi[i,0])**2)*nn_state.gradient(vis[i])[rbmType][pars]            
-                grad_KL[rbmType][pars] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])[rbmType][pars]
+        grad_KL += ((target_psi[i,0])**2)*nn_state.gradient(vis[i]) 
+        grad_KL -=probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])
+        #for rbmType in nn_state.gradient(vis[i]):
+        #    for pars in nn_state.gradient(vis[i])[rbmType]:
+        #        grad_KL[rbmType][pars] += ((target_psi[i,0])**2)*nn_state.gradient(vis[i])[rbmType][pars]            
+        #        grad_KL[rbmType][pars] -= probability(nn_state,vis[i], Z)*nn_state.gradient(vis[i])[rbmType][pars]
     return grad_KL            
 
 def algorithmic_gradNLL(qr,data,k):
@@ -106,7 +109,6 @@ def numeric_gradKL(nn_state,target_psi, param, vis,eps):
         param[i] += eps
 
         num_gradKL.append( (KL_p - KL_m) / (2*eps) )
-    
     return num_gradKL
 
 def numeric_gradNLL(nn_state, param,data,vis,eps):
@@ -131,31 +133,31 @@ def run(qr,target_psi,data, vis, eps,k):
     nn_state = qr.nn_state
     alg_grad_KL = algorithmic_gradKL(nn_state,target_psi,vis)
     alg_grad_NLL = algorithmic_gradNLL(qr,data,k)
-    flat_weights      = nn_state.rbm_am.weights.data.view(-1)
-    flat_weights_grad_KL = alg_grad_KL["rbm_am"]["weights"].view(-1)
-    flat_weights_grad_NLL = alg_grad_NLL["rbm_am"]["weights"].view(-1)
-    num_grad_KL = numeric_gradKL(nn_state,target_psi,flat_weights,vis,eps)
-    num_grad_NLL = numeric_gradNLL(nn_state,flat_weights,data,vis,eps)
+    num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm_am.weights.view(-1),vis,eps) 
+    num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.weights.view(-1),data,vis,eps)
+    counter = 0
     print("\nTesting weights...")
     print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-    for i in range(len(flat_weights)):
-        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],flat_weights_grad_KL[i]),end="", flush=True)
-        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],flat_weights_grad_NLL[i]))
-     
+    for i in range(len(nn_state.rbm_am.weights.view(-1))):
+        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL[counter].item()),end="",flush=True)
+        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL[0][i].item()))
+        counter += 1
+    
     num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm_am.visible_bias,vis,eps)
     num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.visible_bias,data,vis,eps)
     print("\nTesting visible bias...")
     print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
     for i in range(len(nn_state.rbm_am.visible_bias)):
-        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL["rbm_am"]["visible_bias"][i]),end="", flush=True)
-        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["visible_bias"][i]))
+        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL[counter].item()),end="", flush=True)
+        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL[0][counter].item()))
+        counter += 1
  
     num_grad_KL = numeric_gradKL(nn_state,target_psi,nn_state.rbm_am.hidden_bias,vis,eps)
     num_grad_NLL = numeric_gradNLL(nn_state,nn_state.rbm_am.hidden_bias,data,vis,eps)
     print("\nTesting hidden bias...")
     print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
     for i in range(len(nn_state.rbm_am.hidden_bias)):
-        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL["rbm_am"]["hidden_bias"][i]),end="", flush=True)
-        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["hidden_bias"][i]))
-
-    print('')
+        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL[counter].item()),end="", flush=True)
+        print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL[0][counter].item()))
+        counter += 1
+    #print('')

@@ -80,9 +80,18 @@ class QuantumReconstruction(Sampler):
         #        tmp[par]=0.0    
         #    grad[net] = tmp
         #    grad_data[net] = tmp
+        self.nn_state.sample(k)
+        grad_model = self.nn_state.rbm_am.effective_energy_gradient(self.nn_state.visible_state)
+
         if bases_batch is None:
+            grad = [0.0]
+            #grad_data = torch.zeros(self.nn_state.rbm_am.num_pars,dtype=torch.double)
+            #for i in range(samples_batch.shape[0]):
+            #    grad_data += self.nn_state.gradient(samples_batch[i])
             grad_data = self.nn_state.gradient(samples_batch)
+            grad[0] = grad_data/float(samples_batch.shape[0]) - grad_model/float(self.nn_state.visible_state.shape[0])
         else:
+            grad=[0.0,0.0]
             # Positive Phase
             #TODO THIS LOOP IS THE MAIN BOTTLENECK
             grad_data = [torch.zeros(self.nn_state.rbm_am.num_pars,dtype=torch.double),torch.zeros(self.nn_state.rbm_ph.num_pars,dtype=torch.double)]
@@ -94,16 +103,14 @@ class QuantumReconstruction(Sampler):
                 #    for par in getattr(self.nn_state, net).state_dict():
                 #        grad_data[net][par] += data_gradient[net][par]
             
+            grad[0] = grad_data[0]/float(samples_batch.shape[0]) - grad_model/float(self.nn_state.visible_state.shape[0])
+            grad[1] = grad_data[1]/float(samples_batch.shape[0])
         #for net in self.nn_state.networks:
         #    for par in grad_data[net].keys():
         #        grad[net][par] = grad_data[net][par]/float(samples_batch.shape[0])
 
-        self.nn_state.sample(k)
-        grad_model = self.nn_state.rbm_am.effective_energy_gradient(self.nn_state.visible_state)
         
-        grad=[0.0,0.0]
-        grad[0] = grad_data[0]/float(samples_batch.shape[0]) - grad_model/float(self.nn_state.visible_state.shape[0])
-        grad[1] = grad_data[1]/float(samples_batch.shape[0])
+        #grad[0] = grad_data[0]/float(samples_batch.shape[0]) - grad_model/float(self.nn_state.visible_state.shape[0])
         #grad = grad_data/float(samples_batch.shape[0]) - grad_model/float(self.nn_state.visible_state.shape[0]) 
         
         #grad_model = {'rbm_am': self.nn_state.rbm_am.effective_energy_gradient(self.nn_state.visible_state)}
@@ -175,7 +182,7 @@ class QuantumReconstruction(Sampler):
             #                             self.nn_state.rbm_am.hidden_bias],lr=lr)
             batch_bases = None
         callbacks.on_train_start(self)
-        #t0 = time.time()
+        t0 = time.time()
         batch_num = m.ceil(train_samples.shape[0] / pos_batch_size)
         for ep in progress_bar(range(1,epochs+1), desc="Epochs ",
                                disable=disable_progbar):
@@ -230,8 +237,11 @@ class QuantumReconstruction(Sampler):
                 optimizer.zero_grad()  # clear any cached gradients
                 
                 
-                vector_to_grads(all_grads[0],self.nn_state.rbm_am.parameters())
-                vector_to_grads(all_grads[1],self.nn_state.rbm_ph.parameters())
+                for p,net in enumerate(self.nn_state.networks):
+                    rbm = getattr(self.nn_state,net)
+                    vector_to_grads(all_grads[p],rbm.parameters())
+                #vector_to_grads(all_grads[0],self.nn_state.rbm_am.parameters())
+                #vector_to_grads(all_grads[1],self.nn_state.rbm_ph.parameters())
                 # assign all available gradients to the corresponding parameter
                 #for net in self.nn_state.networks:
                 
@@ -251,8 +261,8 @@ class QuantumReconstruction(Sampler):
         #F = self.fidelity(target_psi,vis)
         #print(F.item())
         #callbacks.on_train_end(self)
-        #t1 = time.time()
-        #print("\nElapsed time = %.2f" %(t1-t0)) 
+        t1 = time.time()
+        print("\nElapsed time = %.2f" %(t1-t0)) 
 
 
 def vector_to_grads(vec, parameters):
