@@ -67,9 +67,6 @@ I.C.Weiner\textsuperscript{3*}
 \section*{Abstract}
 {\bf
 % TODO: write your abstract here.
-The abstract is in boldface, and should fit in 8 lines.
-It should be written in a clear and accessible style, emphasizing the context, the problem(s) studied, the methods used, the results obtained, the conclusions reached, and the outlook. You can add a table contents, recommended if your paper is more than 6 pages long.
-
 In this post we present a new open source Python package for quantum state tomography with restricted Boltzmann machines, called QuCumber. The use of machine learning makes it possible to efficiently learn quantum states and reconstruct and access traditionally challenging many-body quantities from experimental measurements. We give examples how to use QuCumber on positive-real and complex wavefunctions and how to extract meaningful observables such as energy, magnetization and fidelity.
 }
 
@@ -167,10 +164,11 @@ If all the measurements have been performed in the same basis and the experiment
 First we load all the packages needed. \textbf{We might have to rename rbm to something like NNQuST} 
 
 \begin{python}
-from rbm import RBM #import NNQuST package
-import numpy as np #generic math function
-import torch #ML package
-\end{python}
+import numpy as np 		#generic math function
+import torch 			#ML package
+from positive_wavefunction import PositiveWavefunction #positive wavefunction
+from quantum_reconstruction import QuantumReconstruction #tomography tool
+\end{python} 
 
 The input data needs to be in a numpy array or a torch tensor. E.g. for a spin system with 10 physical spins and measurements of every spin one input data point will be an array of the form \verb|np.array([1,0,1,1,0,1,0,0,0,1])|, with shape \verb|(10,)|. all the input data together needs to be an array of these arrays, which will have the shape \verb|(N,10)|. Where N is the number of data points in the training set.
 
@@ -192,14 +190,16 @@ epochs = 1000 #number of epochs for the training
 batch_size = 32 #batch size for the training
 k = 1 #Number of Gibbs sampling steps
 learning_rate = 0.01 #Learning Rate
+num_chains = batch_size
 \end{python}
 
 \textbf{take learning rate out here eventually and put it later, when we discuss the callbacks.}
 
 \begin{python}
-rbm = RBM(num_visible=num_visible, num_hidden=num_hidden)
-
-rbm.train(train_set, epochs, batch_size, k=k, lr=learning_rate)
+nn_state = PositiveWavefunction(num_visible = num_visible,
+						                    num_hidden = num_hidden)
+qr = QuantumReconstruction(nn_state)
+qr.fit(train_set, epochs, batch_size, num_chains, k,lr, progbar=False,observer = train_stats)
 \end{python}
 
 This will already train the RBM and eventually approximate the target wavefunction. 
@@ -213,8 +213,8 @@ To save and load the trained Tomography one can run the following code.
 
 \begin{python}
 location = 'some_folder/filename'
-rbm.save(location) #save the weights and biases to some location
-rbm.load(location) #load the weights and biases from some location
+nn_state.save(location) #save the weights and biases to some location
+nn_state.load(location) #load the weights and biases from some location
 \end{python}
 
 \section{What can I do with a trained RBM?}
@@ -224,10 +224,13 @@ rbm.load(location) #load the weights and biases from some location
 Since RBMs are generative models, one can sample new measurements from a trained RBM.
 
 \begin{python}
-num_samples = 100 #number of samples drawn from the RBM
 k = 100 #number of Gibbs steps for each sample
-rbm.sample(num_samples, k)
+nn_state.sample(k)
+nn_state.visible_state #will return a list of samples of the size (num_chains, num_visible)
 \end{python}
+
+\textbf{We might have to describe how to draw a customised number of samples.}
+
 
 \subsection{Observables}
 \label{Sec:Observables}
@@ -243,14 +246,18 @@ Observables like energy, magnetisation, etc. can be calculated directly on the s
 The magnetization of an Ising chain can be calculated simply by averaging over all $\sigma_z$ measurements of the chain. Since the RBM only can sample in the $\sigma_z$ direction, we simply have to average over the sample $\bm{\sigma}$. The only additional step that has to be performed is the convergence from binary values $\{0,1  \}$ to actual spin measurements $\{-1 ,1  \}$.
 
 \begin{python}
-num_samples = 10000 #number of samples drawn from the RBM
 k = 100 #number of Gibbs steps for each sample
-samples = rbm.sample(num_samples, k)
-samples = (samples-1/2)*2 # converge from binary to [-1, 1]
+steps = 100 #number of samplings
 magnetization = 0 #initialize magnetization as 0
-for s in samples: 
-	magnetization += s.sum(0) # sum up every sample separately
-magnetization /= num_samples # devide by number of samples
+
+for i in range(steps):
+	nn_state.sample(k)
+	samples = nn_state.visible_state #returns num_chains samples
+	samples = (samples-1/2)*2 # converge from binary to [-1, 1]
+
+	for s in samples: 
+		magnetization += s.sum(0) # sum up every sample separately
+magnetization_per_spin /= (steps*num_chains*num_visible) # devide by number of samples and number of total spins
 \end{python}
 
 \subsubsection{Example2: Energy of Transverse Field Ising chain}
@@ -282,49 +289,40 @@ with $p_{\lambda}(\bm{\sigma})$ from Equation~\ref{Eq:marginal_distribution}. Th
 The observables.py package contains a few examples like this.
 
 \begin{python}
-from observables import TFIMChainEnergy
-num_samples = 10000 #number of samples drawn from the RBM
-k = 100 #number of Gibbs steps for each sample
-h = 1.0 #define magnetic field strength
-samples = rbm.sample(num_samples, k)
-calc_energy = TFIMChainEnergy(h)
-energy = calc_energy.apply(samples, rbm)
+sys.path.append('../examples/')
+from observables import quantum_ising_chain as TFIM
+# TFIM stands for transverse field ising model
+n_measurements= 50 # number of measurements
+hx=1.0             # Magnetic field
+tfim = TFIM.TransverseFieldIsingChain(hx,n_measurements)
+simulation = tfim.Run(nn_state,n_eq=200) # run 
+
+Energy = simulation['energy']
 \end{python}
 
 \subsection{Fidelity}
 
 If one has access to the full quantum state $\ket{\phi} = \sum_{\bm{\sigma}} \phi(\bm{\sigma}) \ket{ \bm{\sigma}}$ and knows the coefficients $\phi(\bm{\sigma)}$ that are approximated by the RBM $\psi_{\lambda}(\bm{\sigma}) = \sqrt{p_{\lambda}(v)}$ the fidelity can be computed via $\sum_{\bm{\sigma}} \phi(\bm{\sigma)} \psi_{\lambda}(\bm{\sigma})$. This can be used to verify for example that experimental data actually comes from the state that should be prepared in an experiment. Because of the exponential growth of the wave function this is only feasible for small physical systems.
 
-
-The effective energy $\varepsilon$ and the unnormalized probability $p_{\lambda}(v)$ of some configuration 
-\verb|torch.tensor([1,0,1,1,1,1,1,1,0,1])| can be accessed from the trained RBM via
-
-\textbf{We need to rename free energy to effective energy in code!!!}
-
 \begin{python}
-some_configuration = torch.tensor([1,0,1,1,1,1,1,1,0,1], dtype = torch.double)
-effective_energy = rbm.free_energy(some_configuration)
-unnormalized_probability = rbm.unnormalized_probability(some_configuration) 
-\end{python}
-
-The partition function $Z_{\Theta}$ can be calculated by summing over all possible spin configurations, which is also the limiting factor for this approach for bigger systems.
-
-\begin{python}
-visble_space = rbm.generate_visble_space()
-partition_fct = rbm.partition(visible_space)
+import utils.training_statistics as ts
+train_stats = ts.TrainingStatistics(train_samples.shape[-1],log_every)
 \end{python}
 
 To effectively calculate the fidelity with a theoretical state $\\ket{phi}$, one needs to load the coefficients $\phi(\bm{\sigma})$. In this example we create a random state with $2^N$ coefficients, where $N=10$ is the system size.
+
+\textbf{fidelity seems not to work, because partition function is 0.}
 
 \begin{python}
 N = 10 # Define system size
 phi =  torch.abs(torch.randn(2**N)) # generate random vector (this would be the theoretical wave function)
 phi /= phi.norm() # normalize the vector
-effective_energy = rbm.free_energy(some_configuration)
-unnormalized_probability = rbm.unnormalized_probability(some_configuration) 
+train_stats.load_target_psi(phi)
+train_stats.fidelity(PositiveWavefunction)
+fidelity = train_stats.F
 \end{python}
 
-\section{Improve the training accuracy of the RBM}
+\section{Improve the training accuracy of the quantum reconstruction}
 
 So far there is no certainty that the RBM performs well and indeed learns the probability distribution it is supposed to learn. Therefore we introduce the concept of callbacks and also the learning rate. The learning rate is crucial for the success of the training and has to be adjusted if the the RBM performs poorly.
 To tract a certain observable like the energy or the fidelity during the training one can implement it as a class in the \verb|observable.py| file and monitor it via callbacks.
@@ -421,7 +419,7 @@ The Gibbs sampling is done $k$ times back and forth. The contrastive divergence 
 \textbf{MAY BE WE CAN ADD A GLOSSARY HERE FOR ALL THE COMPLEX STUFF}
 
 For the positiv-real wavefunctions there is no additional information contained in the wavefunction $\psi( \boldsymbol{\sigma})$ that could be lost by Borns rule $q(\boldsymbol{\sigma}) = | \psi( \boldsymbol{\sigma} ) |^2$. For negative-real and complex functions the phase information contained in these coefficients will be lost if the measurement is only made in one basis. Therefore in experiments one has to apply local unitary transformations before the measurements to capture the phase information. With this additional information one can successfully perform the quantum state tomography.
-QuCumber also provides the possibility to do QST for complex wavefunctions. The unitary transformations have to be provided in the following form \textbf{ADD UNITARIES EXAMPLE}
+QuCumber also provides the possibility to do QST for complex wavefunctions.
 
 For complex wavefunctions additionally to the marginal distribution (Equation \ref{Eq:marginal_distribution} we need a phase factor that has to be learned by an additional set of hidden units and corresponding network parameters $\mu$ of the RBM
 
@@ -440,23 +438,47 @@ The RBM again is trained by minimizing the negative log-likelihood. Following \c
 
 \subsection{A 2 qubit example}
 
-In this section we guide the reader through a simple example for full state tomography of a complex wavefunction with 2 qubits. On the github repository there is a dataset with measurements, the unitaries that have been applied before the measurement and the actual wavefunction $\ket{\psi}$ the measurements have been sampled from.
+In this section we guide the reader through a simple example for full state tomography of a complex wavefunction with 2 qubits. On the github repository there is a dataset with measurements \verb|'qubits_train_samples.txt'|, the unitaries that have been applied before the measurement \verb|'qubits_train_bases.txt'| and the actual wavefunction $\ket{\psi}$ the measurements have been sampled from \verb|'qubits_psi.txt'|.
 
 Load the files the following way:
 
 \begin{python}
-load files
-measurements = 
-unitaries = 
-psi =
+from complex_wavefunction import ComplexWavefunction
+from quantum_reconstruction import QuantumReconstruction
+import unitaries
+import utils.training_statistics as ts
+train_samples = np.loadtxt('qubits_train_samples.txt', dtype= 'float32')
+target_psi  = torch.tensor(np.loadtxt('qubits_psi.txt', dtype= 'float32'), dtype=torch.double, device = torch.device('cpu'))
+train_bases = np.loadtxt('qubits_train_bases.txt',dtype=str)
+unitary_dict = unitaries.create_dict() # creates dictionary with standard unitaries I, H and K for basis Z, X, Y
 \end{python}
 
 
-We want to do tomography of the 2 qubit state $\ket{\psi} = 1/2 \{ \ket{00} - \ket{01} + \ket{10} - i \ket{11} \}$. If we measure this state in the computational basis we obtain all states ($00$, $01$, $10$ and $11$) with the same probability $p(m) = 1/4$, but we do not learn anything about the phase $i$ or $(-1)$. Therefore we apply local unitaries on the state before we measure in the computational basis. \verb|unitaries| contains the unitaries applied to the respective measurement and has the form  \verb|np.array(['ZZ', 'XZ', 'ZX', ...])|. Which means that the first measurement has been done in the Z basis for both qubits, therefore no unitary has been applied. The second measurement has been done in the XZ basis, which means, that the first qubit has been measured in the X basis. This can be done by applying a Hadamard gate $H$ to the first qubit before measuring it in the computational basis. For measurements in the Y basis one has to apply the $K$ matrix before measuring in Z basis.
+We want to do tomography of the 2 qubit state $\ket{\psi} = 1/2 \{ \ket{00} - \ket{01} + \ket{10} - i \ket{11} \}$ which is the state in \verb|target_psi|. If we measure this state in the computational basis we obtain all states ($\ket{00}$, $\ket{01}$, $\ket{10}$ and $\ket{11}$) with the same probability $p(m) = 1/4$, but we do not learn anything about the phase $i$ or $(-1)$. Therefore we apply local unitaries on the state before we measure in the computational basis. \verb|train_bases| contains the unitaries applied to the respective measurement and has the form  \verb|np.array([['Z','Z'], ['X','Z'], ['Z','X'], ...])|. Which means that the first measurement has been done in the Z basis for both qubits, therefore no unitary has been applied. The second measurement has been done in the XZ basis, which means, that the first qubit has been measured in the X basis. This can be done by applying a Hadamard gate $H$ to the first qubit before measuring it in the computational basis. For measurements in the Y basis one has to apply the $K$ matrix before measuring in Z basis.
+
+Analogous to the positive real wavefunction we define the training parameters,
 
 \begin{python}
-run training
+epochs     = 200
+num_chains = 10
+batch_size = 10
+k          = 10
+lr         = 0.1
+log_every  = 10
 \end{python}
+
+And start training
+
+\begin{python}
+nn_state = ComplexWavefunction(num_visible=nv,num_hidden=nh)
+qr = QuantumReconstruction(nn_state)
+train_stats = ts.TrainingStatistics(train_samples.shape[-1],frequency=1)
+train_stats.load(bases = bases,target_psi_dict = target_psi_dict)
+qr.fit(train_samples, epochs, batch_size, num_chains, k,
+       lr,train_bases, progbar=False,observer=train_stats)
+\end{python}
+
+After the training we can calculate state fidelity, observables or sample from the complex wave function the same way we did from the positive wavefunction. The only difference is, that the sampling only works in the Z basis.
 
 \subsection{Add new unitaries to the dictionary}
 
