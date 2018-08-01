@@ -37,7 +37,7 @@ __all__ = [
     "PositiveWavefunction"
 ]
 
-class PositiveWavefunction(Sampler):
+class PositiveWavefunction(object):
     def __init__(self, num_visible, num_hidden=None, gpu=True, seed=None):
         super(PositiveWavefunction, self).__init__()
         self.num_visible = int(num_visible)
@@ -155,22 +155,22 @@ class PositiveWavefunction(Sampler):
         self.rbm_am.load_state_dict(state_dict, strict=False)
 
     def generate_Hilbert_space(self,size):
-        """Generates all possible visible states.
-    
-        :returns: A tensor of all possible spin configurations.
+        """Generates Hilbert space of dimension 2^size.
+        
+        :returns: A tensor with all the basis states of the Hilbert space.
         :rtype: torch.Tensor
         """
         if (size > self.size_cut):
             raise ValueError('Size of the Hilbert space too large!')
         else: 
-            self.space = torch.zeros((1 << size, size),
+            space = torch.zeros((1 << size, size),
                                 device=self.device, dtype=torch.double)
             for i in range(1 << size):
                 d = i
                 for j in range(size):
                     d, r = divmod(d, 2)
-                    self.space[i, size - j - 1] = int(r)
-            #return space
+                    space[i, size - j - 1] = int(r)
+            return space
 
     def compute_normalization(self):
         """Compute the normalization constant of the wavefunction.

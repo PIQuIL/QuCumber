@@ -45,7 +45,7 @@ def _warn_on_missing_gpu(gpu):
                       ResourceWarning)
 
 
-class BinaryRBM(nn.Module, Sampler):
+class BinaryRBM(nn.Module):
     def __init__(self, num_visible, num_hidden, zero_weights=False,
                  gpu=True, seed=None, num_chains = 100):
         super(BinaryRBM, self).__init__()
