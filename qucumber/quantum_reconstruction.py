@@ -133,7 +133,7 @@ class QuantumReconstruction(Sampler):
         else:
             optimizer = torch.optim.SGD(self.nn_state.rbm_am.parameters(),lr=lr)
             batch_bases = None
-        callbacks.on_train_start(self)
+        callbacks.on_train_start(self.nn_state)
         t0 = time.time()
         batch_num = m.ceil(train_samples.shape[0] / pos_batch_size)
         for ep in progress_bar(range(1,epochs+1), desc="Epochs ",
@@ -150,13 +150,13 @@ class QuantumReconstruction(Sampler):
                 pos_batches_bases = [shuffled_bases[batch_start:(batch_start + pos_batch_size)]
                            for batch_start in range(0, len(train_samples), pos_batch_size)]
              
-            callbacks.on_epoch_start(self, ep)
+            callbacks.on_epoch_start(self.nn_state, ep)
 
             if self.stop_training:  # check for stop_training signal
                 break
             
             for b in range(batch_num):
-                callbacks.on_batch_start(self, ep, b)
+                callbacks.on_batch_start(self.nn_state, ep, b)
 
                 if input_bases is None:
                     random_permutation      = torch.randperm(train_samples.shape[0])
@@ -176,13 +176,12 @@ class QuantumReconstruction(Sampler):
                     vector_to_grads(all_grads[p],rbm.parameters())
                 optimizer.step()  # tell the optimizer to apply the gradients
 
-                callbacks.on_batch_end(self, ep, b)
-            if observer is not None:
-                if ((ep % observer.frequency) == 0): 
-                    #if target_psi is not None:
-                    stat = observer.scan(ep,self.nn_state)
+                callbacks.on_batch_end(self.nn_state, ep, b)
+            #    if ((ep % observer.frequency) == 0): 
+            #        #if target_psi is not None:
+            #        stat = observer.scan(ep,self.nn_state)
 
-            callbacks.on_epoch_end(self, ep)
+            callbacks.on_epoch_end(self.nn_state, ep)
         #F = self.fidelity(target_psi,vis)
         #print(F.item())
         #callbacks.on_train_end(self)

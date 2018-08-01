@@ -2,6 +2,7 @@ import utils.unitaries as unitaries
 from positive_wavefunction import PositiveWavefunction
 from complex_wavefunction import ComplexWavefunction
 from quantum_reconstruction import QuantumReconstruction
+from callbacks import MetricEvaluator
 import click
 import numpy as np
 import torch
@@ -11,6 +12,7 @@ import sys
 sys.path.append("utils/")
 import training_statistics as ts
 sys.path.append("../examples/observables/")
+
 
 
 @click.group(context_settings={"help_option_names": ['-h', '--help']})
@@ -56,8 +58,12 @@ def train_real(num_hidden, epochs, batch_size,
     train_stats = ts.TrainingStatistics(train_samples.shape[-1])
     train_stats.load(target_psi=target_psi)
     qr = QuantumReconstruction(nn_state)
+    
+    callbacks = [MetricEvaluator(10,{'Fidelity':ts.fidelity},target_psi=target_psi)] 
+#    qr.fit(train_samples, epochs, batch_size, num_chains, k,
+#            learning_rate, progbar=no_prog,observer = train_stats)
     qr.fit(train_samples, epochs, batch_size, num_chains, k,
-            learning_rate, progbar=no_prog,observer = train_stats)
+            learning_rate, progbar=no_prog,callbacks = callbacks)
 
     print('\nFinished training. Saving results...')
     nn_state.save('saved_params.pkl')
