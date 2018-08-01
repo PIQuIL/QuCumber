@@ -85,7 +85,6 @@ class ComplexWavefunction(Sampler):
 
         :returns Matrix/vector containing the amplitudes of v
         :rtype torch.tensor
-
         """
         return (-self.rbm_am.effective_energy(v)).exp().sqrt()
     
@@ -97,7 +96,6 @@ class ComplexWavefunction(Sampler):
 
         :returns Matrix/vector containing the phases of v
         :rtype torch.tensor
-
         """
         return -0.5*self.rbm_ph.effective_energy(v)
    
@@ -109,7 +107,6 @@ class ComplexWavefunction(Sampler):
 
         :returns Complex object containing the wavefunction coefficients of v
         :rtype torch.tensor
-
         """
         cos_phase = (self.phase(v)).cos() 
         sin_phase = (self.phase(v)).sin() 
@@ -124,10 +121,7 @@ class ComplexWavefunction(Sampler):
         
         :param basis: A set of basis, (i.e.vector of strings)
         :type basis: np.array
-        
-
         """
-        
         num_U = 0               # Number of 1-local unitary rotations
         rotated_sites = []      # List of site where the rotations are applied
         grad = []               # Gradient
@@ -187,7 +181,6 @@ class ComplexWavefunction(Sampler):
 
         :param k: Number of Block Gibbs steps.
         :type k: int
-
         """
         for _ in range(k):
             self.hidden_state = self.rbm_am.sample_h_given_v(self.visible_state)
@@ -236,7 +229,6 @@ class ComplexWavefunction(Sampler):
         :param location: The location to load the RBM parameters from
         :type location: str or file
         """
-
         try:
             state_dict = torch.load(location)
         except AssertionError as e:
@@ -244,4 +236,3 @@ class ComplexWavefunction(Sampler):
 
         self.rbm_am.load_state_dict(state_dict['rbm_am'], strict=False)
         self.rbm_ph.load_state_dict(state_dict['rbm_ph'], strict=False)
-

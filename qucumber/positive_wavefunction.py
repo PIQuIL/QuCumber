@@ -68,7 +68,6 @@ class PositiveWavefunction(Sampler):
         :param v: State to initialize the wavefunction to
         :type v: torch.Tensor
         """
-        
         self.visible_state = v
         if (self.visible_state.shape != v.shape):
             raise RuntimeError ('Error in set_visible_layer')
@@ -81,7 +80,6 @@ class PositiveWavefunction(Sampler):
 
         :returns Matrix/vector containing the amplitudes of v
         :rtype torch.tensor
-
         """
         return (-self.rbm_am.effective_energy(v)).exp().sqrt()
     
@@ -93,7 +91,6 @@ class PositiveWavefunction(Sampler):
 
         :returns Complex object containing the wavefunction coefficients of v
         :rtype torch.tensor
-
         """
         psi = torch.zeros(2, dtype=torch.double)
         psi[0] = self.amplitude(v)
@@ -108,7 +105,6 @@ class PositiveWavefunction(Sampler):
 
         :returns dictionary with one key (rbm_am)
         :rtype  dictionary(dictionary(torch.tensor,torch.tensor,torch.tensor)
-
         """
         return self.rbm_am.effective_energy_gradient(v)
 
@@ -118,7 +114,6 @@ class PositiveWavefunction(Sampler):
 
         :param k: Number of Block Gibbs steps.
         :type k: int
-
         """
         for _ in range(k_cd):
             self.hidden_state = self.rbm_am.sample_h_given_v(self.visible_state)
@@ -150,7 +145,6 @@ class PositiveWavefunction(Sampler):
         :param location: The location to load the RBM parameters from
         :type location: str or file
         """
-
         try:
             state_dict = torch.load(location)
         except AssertionError as e:
