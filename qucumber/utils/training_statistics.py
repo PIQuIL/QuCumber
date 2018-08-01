@@ -23,26 +23,11 @@ import cplx
 import unitaries
 
 def fidelity(nn_state,target_psi):
-    space = torch.zeros((1 << nn_state.num_visible, nn_state.num_visible),
-                        device="cpu", dtype=torch.double)
-    for i in range(1 << nn_state.num_visible):
-        d = i
-        for j in range(nn_state.num_visible):
-            d, r = divmod(d, 2)
-            space[i, nn_state.num_visible - j - 1] = int(r)
-    
-    free_energies = -nn_state.rbm_am.effective_energy(space)
-    max_free_energy = free_energies.max()
-    
-    f_reduced = free_energies - max_free_energy
-    logZ = max_free_energy + f_reduced.exp().sum().log()
-    Z = logZ.exp()        
-    
+    nn_state.compute_normalization() 
     F = torch.tensor([0., 0.], dtype=torch.double) 
-    #NOTE THIS MUST BE CHANGED
     target_psi = target_psi.t()
-    for i in range(len(space)):
-        psi = nn_state.psi(space[i])/Z.sqrt()
+    for i in range(len(nn_state.space)):
+        psi = nn_state.psi(nn_state.space[i])/(nn_state.Z).sqrt()
         F[0] += target_psi[0,i]*psi[0]+target_psi[1,i]*psi[1]
         F[1] += target_psi[0,i]*psi[1]-target_psi[1,i]*psi[0]
     return  cplx.norm(F)

@@ -51,15 +51,19 @@ def train_real(num_hidden, epochs, batch_size,
     train_samples = torch.tensor(test_data['tfim1d']['train_samples'],dtype = torch.double)
     target_psi=torch.tensor(test_data['tfim1d']['target_psi'],dtype = torch.double)
     #target_psi = load_target_psi(train_samples.shape[-1],target_psi_tmp)
+    num_visible = train_samples.shape[-1]
     num_hidden = train_samples.shape[-1] if num_hidden is None else num_hidden
     nn_state = PositiveWavefunction(num_visible=train_samples.shape[-1],
                       num_hidden=num_hidden, seed=seed)
 
-    train_stats = ts.TrainingStatistics(train_samples.shape[-1])
-    train_stats.load(target_psi=target_psi)
+    #train_stats = ts.TrainingStatistics(num_visible)
+    #train_stats.load(target_psi=target_psi)
     qr = QuantumReconstruction(nn_state)
     
-    callbacks = [MetricEvaluator(10,{'Fidelity':ts.fidelity},target_psi=target_psi)] 
+    if (num_visible <20):
+        nn_state.generate_Hilbert_space(num_visible)
+        callbacks = [MetricEvaluator(10,{'Fidelity':ts.fidelity},target_psi=target_psi)] 
+        
 #    qr.fit(train_samples, epochs, batch_size, num_chains, k,
 #            learning_rate, progbar=no_prog,observer = train_stats)
     qr.fit(train_samples, epochs, batch_size, num_chains, k,

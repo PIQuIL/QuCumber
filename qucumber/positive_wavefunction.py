@@ -47,7 +47,9 @@ class PositiveWavefunction(Sampler):
         self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden,
                                             gpu=gpu, seed=seed)
         
-        
+        self.size_cut=20
+        self.space = None
+        self.Z = 0.0
         self.num_pars = self.rbm_am.num_pars
         self.networks = ["rbm_am"]
         self.device = self.rbm_am.device 
@@ -151,6 +153,36 @@ class PositiveWavefunction(Sampler):
             state_dict = torch.load(location, lambda storage, loc: 'cpu')
 
         self.rbm_am.load_state_dict(state_dict, strict=False)
+
+    def generate_Hilbert_space(self,size):
+        """Generates all possible visible states.
+    
+        :returns: A tensor of all possible spin configurations.
+        :rtype: torch.Tensor
+        """
+        if (size > self.size_cut):
+            raise ValueError('Size of the Hilbert space too large!')
+        else: 
+            self.space = torch.zeros((1 << size, size),
+                                device=self.device, dtype=torch.double)
+            for i in range(1 << size):
+                d = i
+                for j in range(size):
+                    d, r = divmod(d, 2)
+                    self.space[i, size - j - 1] = int(r)
+            #return space
+
+    def compute_normalization(self):
+        """Compute the normalization constant of the wavefunction.
+    
+        :param space: A rank 2 tensor of the entire visible space.
+        :type space: torch.Tensor
+
+        """
+        if (self.space is None):
+            raise ValueError('Missing Hilbert space')
+        else:
+            self.Z = self.rbm_am.compute_partition_function(self.space)
 
     #@staticmethod
     #def autoload(location, gpu=False):
