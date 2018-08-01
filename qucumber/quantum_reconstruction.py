@@ -40,7 +40,7 @@ __all__ = [
     "QuantumReconstruction"
 ]
 
-class QuantumReconstruction(Sampler):
+class QuantumReconstruction(object):
     def __init__(self, nn_state):
         super(QuantumReconstruction, self).__init__()
         self.nn_state = nn_state 
