@@ -42,4 +42,21 @@ def load_data(tr_samples_path,tr_psi_path,tr_bases_path=None,bases_path=None):
             bases.append(tmp)
         data.append(bases)
     return data
-    #return np.loadtxt(tr_samples_path, dtype= 'float32')
+
+
+def extract_refbasis_samples(train_samples,train_bases):
+    tmp = []
+    num_visible=2 
+    for i in range(train_samples.shape[0]):
+        flag = 0
+        for j in range(num_visible):
+            if train_bases[i][j] != 'Z':
+                flag = 1
+                break
+        if flag == 0:
+            tmp.append(train_samples[i])
+    z_samples = torch.zeros(len(tmp),num_visible,dtype=torch.double)
+    for i in range(len(tmp)):
+        for j in range(num_visible):
+            z_samples[i][j] = tmp[i][j]
+    return z_samples
