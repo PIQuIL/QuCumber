@@ -495,7 +495,8 @@ class MetricEvaluator(Callback):
             self.metric_values.append((epoch, metric_vals_for_epoch))
             print('Epoch = %d\t' % epoch,end='',flush=True)
             for metric in self.metrics.keys():
-                print(metric + " = %.5f" % self.last[metric].item() )
+                print(metric + " = %.6f\t" % self.last[metric].item(),end='',flush=True)
+            print()
 
 
 

@@ -55,14 +55,12 @@ def train_real(num_hidden, epochs, batch_size,
     num_hidden = train_samples.shape[-1] if num_hidden is None else num_hidden
     nn_state = PositiveWavefunction(num_visible=train_samples.shape[-1],
                       num_hidden=num_hidden, seed=seed)
-
-    #train_stats = ts.TrainingStatistics(num_visible)
+    #train_stats = ts.TrainingStatistics(num_visible    )
     #train_stats.load(target_psi=target_psi)
     qr = QuantumReconstruction(nn_state)
-    
     if (num_visible <20):
-        nn_state.generate_Hilbert_space(num_visible)
-        callbacks = [MetricEvaluator(10,{'Fidelity':ts.fidelity},target_psi=target_psi)] 
+        nn_state.space = nn_state.generate_Hilbert_space(num_visible)
+        callbacks = [MetricEvaluator(10,{'Fidelity':ts.fidelity,'KL':ts.KL},target_psi=target_psi)] 
         
 #    qr.fit(train_samples, epochs, batch_size, num_chains, k,
 #            learning_rate, progbar=no_prog,observer = train_stats)
@@ -126,10 +124,12 @@ def train_complex(num_hidden,
 
     train_bases = test_data['2qubits']['train_bases']
     train_samples = torch.tensor(test_data['2qubits']['train_samples'],dtype = torch.double)
-    bases = test_data['2qubits']['bases'] 
-    target_psi_dict=torch.tensor(test_data['2qubits']['target_psi'],dtype = torch.double)
-    num_bases = len(bases)
+    bases_data = test_data['2qubits']['bases'] 
+    psi_data=torch.tensor(test_data['2qubits']['target_psi'],dtype = torch.double)
+    #target_psi = target_psi_dict[0:4,:]
+    num_bases = len(bases_data)
     unitary_dict = unitaries.create_dict()
+    bases,target_psi,target_psi_dict = ts.load_psi_dict(psi_data,bases_data)
     
     num_visible      = train_samples.shape[-1]
     num_hidden   = (train_set.shape[-1]
@@ -140,8 +140,8 @@ def train_complex(num_hidden,
     nn_state = ComplexWavefunction(num_visible=num_visible,
                                num_hidden=num_hidden)
    
-    train_stats = ts.TrainingStatistics(train_samples.shape[-1],frequency=1)
-    train_stats.load(bases = bases,target_psi_dict = target_psi_dict)
+#    train_stats = ts.TrainingStatistics(train_samples.shape[-1],frequency=1)
+#    train_stats.load(bases = bases,target_psi_dict = target_psi_dict)
     
     tmp = []
     for i in range(train_samples.shape[0]):
@@ -158,66 +158,69 @@ def train_complex(num_hidden,
         for j in range(num_visible):
             z_samples[i][j] = tmp[i][j]
     
+    if (num_visible <20):
+        nn_state.space = nn_state.generate_Hilbert_space(num_visible)
+        callbacks = [MetricEvaluator(1,{'Fidelity':ts.fidelity,'KL':ts.KL},target_psi=target_psi,bases=bases,target_psi_dict=target_psi_dict)] 
 
     qr = QuantumReconstruction(nn_state)
     qr.fit(train_samples, epochs, batch_size, num_chains, k,
-            learning_rate,observer=train_stats,input_bases = train_bases,progbar=(no_prog),z_samples=z_samples)
+            learning_rate,callbacks = callbacks,input_bases = train_bases,progbar=(no_prog),z_samples=z_samples)#,observer=train_stats)
 
 
 
-@cli.command("simulate")
-@click.option('--param-path', default='saved_params.pkl',
-              show_default=True, type=click.Path(exists=True),
-              help="path to the saved weights and biases")
-@click.option('--num-samples', default=1000, show_default=True, type=int,
-              help="number of samples to be generated.")
-@click.option('-k', default=100, show_default=True, type=int,
-              help="number of Contrastive Divergence steps.")
-def generate(param_path, num_samples, k):
-    """Generate new data from trained RBM parameters."""
-    
-     
-
-    params = load_params(param_path)
-    num_visible = params['rbm_am']['visible_bias'].size()[0]
-    num_hidden  = params['rbm_am']['hidden_bias'].size()[0]
-    seed =1234
-
-    tfim = TFIM.TransverseFieldIsingChain(1.0,1000)
-    
-    nn_state = PositiveWavefunction(num_visible=num_visible,
-                      num_hidden=num_hidden, seed=seed)
-
-    nn_state.load(param_path)
-    with open('tests/data_test.pkl', 'rb') as fin:
-        test_data = pickle.load(fin)
-    target_psi=torch.tensor(test_data['tfim1d']['target_psi'],dtype = torch.double)
-
-    train_stats = ts.TrainingStatistics(num_visible)
-    train_stats.load(target_psi=target_psi)
-    train_stats.scan(0,nn_state)  
-
-
-    Energy = tfim.Energy(nn_state,n_eq=1000) 
-    print(Energy)
-    #new_data = (rbm.sample(num_samples, k)).data.numpy()
-
-    #np.savetxt('generated_samples.txt', new_data, fmt='%d')
-
-#def load_target_psi(N,psi_data):#path_to_target_psi):
-#    #psi_data = np.loadtxt(path_to_target_psi)
-#    D = 2**N#int(len(psi_data)/float(len(bases)))
-#    psi=torch.zeros(2,D, dtype=torch.double)
-#    if (len(psi_data.shape)<2):
-#        psi[0] = torch.tensor(psi_data,dtype=torch.double)
-#        psi[1] = torch.zeros(D,dtype=torch.double)
-#    else:
-#        psi_real = torch.tensor(psi_data[0:D,0],dtype=torch.double)
-#        psi_imag = torch.tensor(psi_data[0:D,1],dtype=torch.double)
-#        psi[0]   = psi_real
-#        psi[1]   = psi_imag
-#        
-#    return psi 
+#@cli.command("simulate")
+#@click.option('--param-path', default='saved_params.pkl',
+#              show_default=True, type=click.Path(exists=True),
+#              help="path to the saved weights and biases")
+#@click.option('--num-samples', default=1000, show_default=True, type=int,
+#              help="number of samples to be generated.")
+#@click.option('-k', default=100, show_default=True, type=int,
+#              help="number of Contrastive Divergence steps.")
+#def generate(param_path, num_samples, k):
+#    """Generate new data from trained RBM parameters."""
+#    
+#     
+#
+#    params = load_params(param_path)
+#    num_visible = params['rbm_am']['visible_bias'].size()[0]
+#    num_hidden  = params['rbm_am']['hidden_bias'].size()[0]
+#    seed =1234
+#
+#    tfim = TFIM.TransverseFieldIsingChain(1.0,1000)
+#    
+#    nn_state = PositiveWavefunction(num_visible=num_visible,
+#                      num_hidden=num_hidden, seed=seed)
+#
+#    nn_state.load(param_path)
+#    with open('tests/data_test.pkl', 'rb') as fin:
+#        test_data = pickle.load(fin)
+#    target_psi=torch.tensor(test_data['tfim1d']['target_psi'],dtype = torch.double)
+#
+#    train_stats = ts.TrainingStatistics(num_visible)
+#    train_stats.load(target_psi=target_psi)
+#    train_stats.scan(0,nn_state)  
+#
+#
+#    Energy = tfim.Energy(nn_state,n_eq=1000) 
+#    print(Energy)
+#    #new_data = (rbm.sample(num_samples, k)).data.numpy()
+#
+#    #np.savetxt('generated_samples.txt', new_data, fmt='%d')
+#
+##def load_target_psi(N,psi_data):#path_to_target_psi):
+##    #psi_data = np.loadtxt(path_to_target_psi)
+##    D = 2**N#int(len(psi_data)/float(len(bases)))
+##    psi=torch.zeros(2,D, dtype=torch.double)
+##    if (len(psi_data.shape)<2):
+##        psi[0] = torch.tensor(psi_data,dtype=torch.double)
+##        psi[1] = torch.zeros(D,dtype=torch.double)
+##    else:
+##        psi_real = torch.tensor(psi_data[0:D,0],dtype=torch.double)
+##        psi_imag = torch.tensor(psi_data[0:D,1],dtype=torch.double)
+##        psi[0]   = psi_real
+##        psi[1]   = psi_imag
+##        
+##    return psi 
 
 if __name__ == '__main__':
     cli()
