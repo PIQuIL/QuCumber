@@ -17,11 +17,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import torch
 import numpy as np
+import torch
+
 
 def vector_to_grads(vec, parameters):
-    r"""Convert one vector to the parameters
+    """Convert one vector to the parameters
 
     Arguments:
         vec (Tensor): a single vector represents the parameters of a model.

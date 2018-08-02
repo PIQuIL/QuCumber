@@ -1,49 +1,45 @@
-import numpy as np
-import sys
-import cmath 
+import cmath
 import math as m
+import sys
 from functools import reduce
+
+import numpy as np
 
 ###########################################################
 # LIST OF 1-QUBIT OPERATORS
 
 # Identity Matrix
-I = np.asarray([[1.,0.],[0.,1.]])
-
+I = np.asarray([[1., 0.], [0., 1.]])
 # Pauli X Matrix
-X = np.asarray([[0.,1.],[1.,0.]])
-
+X = np.asarray([[0., 1.], [1., 0.]])
 # Pauli Y Matrix
-Y = np.asarray([[0.,-1j],[1j,0.]])
-
+Y = np.asarray([[0., -1j], [1j, 0.]])
 # Pauli Z Matrix
-Z = np.asarray([[1.,0.],[0.,-1.]])
-
-# Rotation into the Pauli X basis 
-rotationX = 1./(m.sqrt(2))*np.asarray([[1.,1.],[1.,-1.]])
-
+Z = np.asarray([[1., 0.], [0., -1.]])
+# Rotation into the Pauli X basis
+rotationX = 1./(m.sqrt(2))*np.asarray([[1., 1.], [1., -1.]])
 # Rotation into the Pauli Y basis
-rotationY= 1./(m.sqrt(2))*np.asarray([[1.,-1j],[1.,1j]])
+rotationY = 1./(m.sqrt(2))*np.asarray([[1., -1j], [1., 1j]])
 
-# Rotation of theta around Z
-def R_Z(theta):
-    return np.asarray([[1.,0.],[0.,cmath.exp(-1j*theta)]])
+
+def R_Z(theta):  # Rotation of theta around Z
+    return np.asarray([[1., 0.], [0., cmath.exp(-1j*theta)]])
 
 
 ###########################################################
 # LIST OF 2-QUBITS OPERATORS
 
 # Controlled-NOT
-CX = np.asarray([[1.,0.,0.,0.],
-                 [0.,1.,0.,0.],
-                 [0.,0.,0.,1.],
-                 [0.,0.,1.,0.]])
+CX = np.asarray([[1., 0., 0., 0.],
+                 [0., 1., 0., 0.],
+                 [0., 0., 0., 1.],
+                 [0., 0., 1., 0.]])
 
 ###########################################################
 # N-QUBITS OPERATORS FUNCTIONS
 
-# Pauli X on site i of N qubits
-def sigmaX(N,i):
+
+def sigmaX(N, i):   # Pauli X on site i of N qubits
     ''' Return the many-body operator
         I x I x .. x Sx x I x .. x I
         with Sx acting on qubit i '''
@@ -53,10 +49,10 @@ def sigmaX(N,i):
             OpList.append(X)
         else:
             OpList.append(I)
-    return reduce(np.kron,OpList)
+    return reduce(np.kron, OpList)
 
-# Pauli Y on site i of N qubits
-def sigmaY(N,i):
+
+def sigmaY(N, i):   # Pauli Y on site i of N qubits
     ''' Return the many-body operator
         I x I x .. x Sy x I x .. x I
         with Sx acting on qubit i '''
@@ -67,10 +63,10 @@ def sigmaY(N,i):
         else:
             OpList.append(I)
 
-    return reduce(np.kron,OpList)
+    return reduce(np.kron, OpList)
 
-# Pauli Z on site i of N qubits
-def sigmaZ(N,i):
+
+def sigmaZ(N, i):  # Pauli Z on site i of N qubits
     ''' Return the many-body operator
         I x I x .. x Sz x I x .. x I
         with Sx acting on qubit i '''
@@ -81,10 +77,10 @@ def sigmaZ(N,i):
         else:
             OpList.append(I)
 
-    return reduce(np.kron,OpList)
+    return reduce(np.kron, OpList)
 
-# Pauli X on site i and site j of N qubits
-def sigmaXsigmaX(N,i,j):
+
+def sigmaXsigmaX(N, i, j):  # Pauli X on site i and site j of N qubits
     ''' Return the many-body operator
         I x .. x Sx x I x Sx x I
         with Sx acting on qubit i and j '''
@@ -96,10 +92,10 @@ def sigmaXsigmaX(N,i,j):
             OpList.append(X)
         else:
             OpList.append(I)
-    return reduce(np.kron,OpList)
+    return reduce(np.kron, OpList)
 
-# Pauli Y on site i and site j of N qubits
-def sigmaYsigmaY(N,i,j):
+
+def sigmaYsigmaY(N, i, j):  # Pauli Y on site i and site j of N qubits
     ''' Return the many-body operator
         I x .. x Sy x I x Sy x I
         with Sx acting on qubit i and j '''
@@ -112,10 +108,10 @@ def sigmaYsigmaY(N,i,j):
         else:
             OpList.append(I)
 
-    return reduce(np.kron,OpList)
+    return reduce(np.kron, OpList)
 
-# Pauli Z on site i and site j of N qubits
-def sigmaZsigmaZ(N,i,j):
+
+def sigmaZsigmaZ(N, i, j):  # Pauli Z on site i and site j of N qubits
     ''' Return the many-body operator
         I x .. x Sz x I x Sz x I
         with Sx acting on qubit i and j '''
@@ -128,29 +124,27 @@ def sigmaZsigmaZ(N,i,j):
         else:
             OpList.append(I)
 
-    return reduce(np.kron,OpList)
+    return reduce(np.kron, OpList)
 
 
-# Controlled-NOT on site i of N qubits
-def ControlledNot(N,i):
+def ControlledNot(N, i):  # Controlled-NOT on site i of N qubits
     OpList = []
     for k in range(N-1):
-        if (k==i):
+        if (k == i):
             OpList.append(CX)
         else:
             OpList.append(I)
 
-    return reduce(np.kron,OpList)
+    return reduce(np.kron, OpList)
 
-# Z rotation of theta on site i of N qubits
-def getR_Z(N,i,theta):
-    
+
+def getR_Z(N, i, theta):    # Z rotation of theta on site i of N qubits
+
     OpList = []
     for k in range(N):
-        if (k==i):
+        if (k == i):
             OpList.append(R_Z(theta))
         else:
             OpList.append(I)
 
-    return reduce(np.kron,OpList)
-
+    return reduce(np.kron, OpList)

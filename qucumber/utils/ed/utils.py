@@ -1,5 +1,7 @@
-import numpy as np
 import os
+
+import numpy as np
+
 
 # Write the wavefunction on a file
 def WriteWavefunction(psi,fout):
@@ -68,7 +70,3 @@ def ComputeReducedDensityMatrix(N,rho,l):
         rhoA += np.dot(braMat,np.dot(rho,ketMat))
 
     return rhoA
-
-
-
-
