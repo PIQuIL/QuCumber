@@ -177,9 +177,9 @@ class QuantumReconstruction(object):
                 optimizer.step()  # tell the optimizer to apply the gradients
 
                 callbacks.on_batch_end(self.nn_state, ep, b)
-            #    if ((ep % observer.frequency) == 0): 
-            #        #if target_psi is not None:
-            #        stat = observer.scan(ep,self.nn_state)
+           # if ((ep % observer.frequency) == 0): 
+           #     #if target_psi is not None:
+           #     stat = observer.scan(ep,self.nn_state)
 
             callbacks.on_epoch_end(self.nn_state, ep)
         #F = self.fidelity(target_psi,vis)
