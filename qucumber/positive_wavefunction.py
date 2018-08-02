@@ -28,10 +28,9 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 
-import utils.cplx as cplx
-from qucumber.samplers import Sampler
+import qucumber.utils.cplx as cplx
 from qucumber.callbacks import CallbackList
-from binary_rbm import BinaryRBM
+from qucumber.binary_rbm import BinaryRBM
 
 __all__ = [
     "PositiveWavefunction"
@@ -94,7 +93,7 @@ class PositiveWavefunction(object):
         :returns Complex object containing the wavefunction coefficients of v
         :rtype torch.tensor
         """
-        psi = torch.zeros(2, dtype=torch.double)
+        psi = torch.zeros(2, dtype=torch.double, device = self.device)
         psi[0] = self.amplitude(v)
         psi[1] = 0.0
         return psi

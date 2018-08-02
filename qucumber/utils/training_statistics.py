@@ -19,12 +19,12 @@
 
 import torch
 import numpy as np
-import cplx
-import unitaries
+import qucumber.utils.cplx as cplx
+import qucumber.utils.unitaries as unitaries
 
 def fidelity(nn_state,target_psi,bases=None):
     nn_state.compute_normalization() 
-    F = torch.tensor([0., 0.], dtype=torch.double) 
+    F = torch.tensor([0., 0.], dtype=torch.double, device = nn_state.device) 
     target_psi = target_psi
     for i in range(len(nn_state.space)):
         psi = nn_state.psi(nn_state.space[i])/(nn_state.Z).sqrt()
@@ -34,10 +34,10 @@ def fidelity(nn_state,target_psi,bases=None):
 
 def rotate_psi(nn_state,basis,unitaries,psi=None):
     N=nn_state.num_visible
-    v = torch.zeros(N, dtype=torch.double)
-    psi_r = torch.zeros(2,1<<N,dtype=torch.double)
+    v = torch.zeros(N, dtype=torch.double, device=nn_state.device)
+    psi_r = torch.zeros(2,1<<N,dtype=torch.double,device = nn_state.device)
     for x in range(1<<N):
-        Upsi = torch.zeros(2, dtype=torch.double)
+        Upsi = torch.zeros(2, dtype=torch.double, device=nn_state.device)
         num_nontrivial_U = 0
         nontrivial_sites = []
         for j in range(N):
@@ -54,9 +54,9 @@ def rotate_psi(nn_state,basis,unitaries,psi=None):
                     cnt += 1
                 else:
                     v[j]=nn_state.space[x,j]
-            U = torch.tensor([1., 0.], dtype=torch.double)
+            U = torch.tensor([1., 0.], dtype=torch.double, device=nn_state.device)
             for ii in range(num_nontrivial_U):
-                tmp = unitaries[basis[nontrivial_sites[ii]]][:,int(nn_state.space[x][nontrivial_sites[ii]]),int(v[nontrivial_sites[ii]])]
+                tmp = unitaries[basis[nontrivial_sites[ii]]][:,int(nn_state.space[x][nontrivial_sites[ii]]),int(v[nontrivial_sites[ii]])].to(nn_state.device)
                 U = cplx.scalar_mult(U,tmp)
             if psi is None:
                 Upsi += cplx.scalar_mult(U,nn_state.psi(v))
@@ -70,10 +70,10 @@ def rotate_psi(nn_state,basis,unitaries,psi=None):
 
 
 def KL(nn_state,target_psi,bases=None):
-    psi_r = torch.zeros(2,1<<nn_state.num_visible,dtype=torch.double)
+    psi_r = torch.zeros(2,1<<nn_state.num_visible,dtype=torch.double, device = nn_state.device)
     KL = 0.0
     unitary_dict = unitaries.create_dict()
-    target_psi = target_psi
+    target_psi = target_psi.to(nn_state.device)
     space = nn_state.generate_Hilbert_space(nn_state.num_visible)
     nn_state.compute_normalization()
     if bases is None:
@@ -82,6 +82,7 @@ def KL(nn_state,target_psi,bases=None):
             KL += cplx.norm(target_psi[:,i])*cplx.norm(target_psi[:,i]).log()
             KL -= cplx.norm(target_psi[:,i])*cplx.norm(nn_state.psi(space[i])).log()
             KL += cplx.norm(target_psi[:,i])*nn_state.Z.log()
+            
     else:
         num_bases = len(bases)
         for b in range(1,len(bases)):

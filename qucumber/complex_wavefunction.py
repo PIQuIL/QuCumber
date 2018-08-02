@@ -28,15 +28,11 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 
-from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
-from binary_rbm import BinaryRBM
-#import qucumber.cplx as cplx
-from utils import cplx
-from utils import unitaries
-from qucumber.samplers import Sampler
+from qucumber.binary_rbm import BinaryRBM
+import qucumber.utils.cplx as cplx
+import qucumber.utils.unitaries as unitaries
 from qucumber.callbacks import CallbackList
-from qucumber import unitaries
 
 __all__ = [
     "ComplexWavefunction"
@@ -54,7 +50,7 @@ class ComplexWavefunction(object):
                                   seed=seed)
         self.rbm_ph = BinaryRBM(num_visible, num_hidden, gpu=gpu,
                                   seed=seed+72938)
-               
+              
         self.size_cut=20
         self.space = None
         self.Z = 0.0
@@ -115,7 +111,7 @@ class ComplexWavefunction(object):
         """
         cos_phase = (self.phase(v)).cos() 
         sin_phase = (self.phase(v)).sin() 
-        psi = torch.zeros(2, dtype=torch.double)
+        psi = torch.zeros(2, dtype=torch.double, device=self.device)
         psi[0] = self.amplitude(v)*cos_phase 
         psi[1] = self.amplitude(v)*sin_phase
         return psi
@@ -144,9 +140,9 @@ class ComplexWavefunction(object):
         
         else:
             # Initialize
-            vp = torch.zeros(self.num_visible, dtype=torch.double)
-            rotated_grad = [torch.zeros(2,self.rbm_am.num_pars,dtype=torch.double),torch.zeros(2,self.rbm_ph.num_pars,dtype=torch.double)]
-            Upsi = torch.zeros(2, dtype=torch.double)
+            vp = torch.zeros(self.num_visible, dtype=torch.double, device = self.device)
+            rotated_grad = [torch.zeros(2,self.rbm_am.num_pars,dtype=torch.double, device = self.device),torch.zeros(2,self.rbm_ph.num_pars,dtype=torch.double, device = self.device)]
+            Upsi = torch.zeros(2, dtype=torch.double, device = self.device)
             
             # Sum over the full subspace where the rotation are applied
             #sub_state = self.generate_visible_space(num_U)
@@ -162,10 +158,10 @@ class ComplexWavefunction(object):
                     else:
                         vp[j]=sample[j]         # This site is left unchanged
 
-                U = torch.tensor([1., 0.], dtype=torch.double) #Product of the matrix elements of the unitaries
+                U = torch.tensor([1., 0.], dtype=torch.double, device = self.device) #Product of the matrix elements of the unitaries
                 for ii in range(num_U):
                     tmp = self.unitary_dict[basis[rotated_sites[ii]]][:,int(sample[rotated_sites[ii]]),int(vp[rotated_sites[ii]])]
-                    U = cplx.scalar_mult(U,tmp)
+                    U = cplx.scalar_mult(U,tmp.to(self.device))
                 
                 # Gradient on the current configuration
                 grad_vp = [self.rbm_am.effective_energy_gradient(vp),self.rbm_ph.effective_energy_gradient(vp)]

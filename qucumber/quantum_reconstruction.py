@@ -29,13 +29,14 @@ from torch.utils.data import DataLoader
 from torch.nn.utils import parameters_to_vector
 from tqdm import tqdm, tqdm_notebook
 import time
-import utils.cplx as cplx
-from utils.gradients_utils import vector_to_grads,_check_param_device
-from qucumber.samplers import Sampler
+
+import qucumber.utils.cplx as cplx
+from qucumber.utils.gradients_utils import vector_to_grads,_check_param_device
 from qucumber.callbacks import CallbackList
-from positive_wavefunction import PositiveWavefunction
-from complex_wavefunction import ComplexWavefunction
+from qucumber.positive_wavefunction import PositiveWavefunction
+from qucumber.complex_wavefunction import ComplexWavefunction
 import math as m
+
 __all__ = [
     "QuantumReconstruction"
 ]
@@ -78,7 +79,7 @@ class QuantumReconstruction(object):
         else:
             grad=[0.0,0.0]
             # Initialize
-            grad_data = [torch.zeros(self.nn_state.rbm_am.num_pars,dtype=torch.double),torch.zeros(self.nn_state.rbm_ph.num_pars,dtype=torch.double)]
+            grad_data = [torch.zeros(self.nn_state.rbm_am.num_pars,dtype=torch.double, device=self.nn_state.device),torch.zeros(self.nn_state.rbm_ph.num_pars,dtype=torch.double, device=self.nn_state.device)]
             # Loop over each sample in the batch
             for i in range(samples_batch.shape[0]):
                 # Positive phase: learning signal driven by the data (and bases)

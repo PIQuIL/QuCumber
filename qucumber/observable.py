@@ -18,7 +18,6 @@
 # under the License.
 
 import torch
-from torch.distributions.utils import log_sum_exp
 
 __all__ = [
     "Observable"

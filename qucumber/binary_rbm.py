@@ -29,9 +29,7 @@ from torch.utils.data import DataLoader
 from torch.nn.utils import parameters_to_vector
 from tqdm import tqdm, tqdm_notebook
 
-#import qucumber.cplx as cplx
-import utils.cplx as cplx
-from qucumber.samplers import Sampler
+import qucumber.utils.cplx as cplx
 from qucumber.callbacks import CallbackList
 
 __all__ = [
