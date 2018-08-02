@@ -73,6 +73,8 @@ class TransverseFieldIsingChain(Observable):
         if show_convergence:
             energy_list = []
             sZ_list     = []
+            energy_list.append(self.Energy(nn_state, v0))
+            sZ_list.append(self.SigmaZ(v0))
             for steps in range(n_eq):
                 nn_state.sample(1)
                 samples = nn_state.visible_state
