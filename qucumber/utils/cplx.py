@@ -34,8 +34,7 @@ scalars: s[2]                  >>> 2 = real and imaginary part
 ---------
 """
 
-
-def make_complex(x, y):  # wont work for scalars
+def make_complex(x, y): # wont work for scalars
     """A function that combines the real (x) and imaginary (y) parts of a 
        vector or a matrix.
 
@@ -47,22 +46,21 @@ def make_complex(x, y):  # wont work for scalars
 
     :param y: A vector or matrix.
     :type y: torch.tensor
-
+    
     :returns: The tensor [x,y].
     :rtype: torch.tensor
     """
-    if (len(list(x.size())) == 2) and (len(list(y.size())) == 2):  # matrices
-        z = torch.zeros(2, x.size()[0], x.size()[1], dtype=torch.double)
+    if (len(list(x.size())) == 2) and (len(list(y.size())) == 2): # matrices
+        z = torch.zeros(2, x.size()[0], x.size()[1], dtype=torch.double, device=x.device)
         z[0] = x
         z[1] = y
-    else:  # vectors
-        z = torch.zeros(2, x.size()[0], dtype=torch.double)
+    else: # vectors
+        z = torch.zeros(2, x.size()[0], dtype=torch.double, device=x.device)
         z[0] = x
         z[1] = y
     return z
 
-
-def scalar_mult(x, y):  # replaces MS mult, VS mult. x has to be scalar, y has to be matrix
+def scalar_mult(x,y): #replaces MS mult, VS mult. x has to be scalar, y has to be matrix
     """A function that computes the product between complex matrices and scalars,
        complex vectors and scalars or two complex scalars.
 
@@ -85,13 +83,12 @@ def scalar_mult(x, y):  # replaces MS mult, VS mult. x has to be scalar, y has t
 
     return z
 
-
-def matmul(x, y):
+def matmul(x,y):
     """A function that computes complex matrix-matrix and matrix-vector products.
-
+    
     ..note:: If one wishes to do matrix-vector products, the vector must be the 
              second argument (y).
-
+    
     :param x: A complex matrix.
     :type x: torch.tensor
 
@@ -101,18 +98,17 @@ def matmul(x, y):
     :returns: The product between x and y.
     :rtype: torch.tensor
     """
-    if len(list(y.size())) == 2:  # if one of them is a vector (i.e. wanting to do MV mult)
-        z = torch.zeros(2, x.size()[1], dtype=torch.double)
+    if len(list(y.size())) == 2: # if one of them is a vector (i.e. wanting to do MV mult)
+        z = torch.zeros(2, x.size()[1], dtype=torch.double, device=x.device)
         z[0] = torch.mv(x[0], y[0]) - torch.mv(x[1], y[1])
         z[1] = torch.mv(x[0], y[1]) + torch.mv(x[1], y[0])
 
     if len(list(y.size())) == 3:
-        z = torch.zeros(2, x.size()[1], y.size()[2], dtype=torch.double)
+        z = torch.zeros(2, x.size()[1], y.size()[2], dtype=torch.double, device=x.device)
         z[0] = torch.matmul(x[0], y[0]) - torch.matmul(x[1], y[1])
         z[1] = torch.matmul(x[0], y[1]) + torch.matmul(x[1], y[0])
-
+    
     return z
-
 
 def inner_prod(x, y):
     """A function that returns the inner product of two complex vectors, x and y >>> <x|y>.
@@ -127,8 +123,8 @@ def inner_prod(x, y):
     :returns: The inner product, :math:`\\langle x\\vert y\\rangle`.
     :rtype: torch.doubleTensor
     """
-    z = torch.zeros(2, dtype=torch.double)
-
+    z = torch.zeros(2, dtype=torch.double, device=x.device)
+    
     if len(list(x.size())) == 2 and len(list(y.size())) == 2:
         z[0] = torch.dot(x[0], y[0]) - torch.dot(-x[1], y[1])
         z[1] = torch.dot(x[0], y[1]) + torch.dot(-x[1], y[0])
@@ -138,7 +134,6 @@ def inner_prod(x, y):
         z[1] = x[0]*y[1] + (-x[1]*y[0])
 
     return z
-
 
 def outer_prod(x, y):
     """A function that returns the outer product of two complex vectors, x and y.
@@ -156,16 +151,15 @@ def outer_prod(x, y):
     if len(list(x.size())) < 2 or len(list(y.size())) < 2:
         raise ValueError('An input is not of the right dimension.')
 
-    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=torch.double)
+    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=torch.double, device=x.device)
     z[0] = torch.ger(x[0], y[0]) - torch.ger(x[1], -y[1])
     z[1] = torch.ger(x[0], -y[1]) + torch.ger(x[1], y[0])
 
     return z
 
-
 def conjugate(x):
     """A function that takes the complex transpose of the argument.
-
+    
     :param x: A complex vector or matrix.
     :type x: torch.tensor
 
@@ -173,17 +167,16 @@ def conjugate(x):
     :rtype: torch.tensor
     """
     if len(list(x.size())) == 2:
-        z = torch.zeros(2, x.size()[1], dtype=torch.double)
+        z = torch.zeros(2, x.size()[1], dtype=torch.double, device=x.device)
         z[0] = x[0]
         z[1] = -x[1]
 
     if len(list(x.size())) == 3:
-        z = torch.zeros(2, x.size()[2], x.size()[1], dtype=torch.double)
+        z = torch.zeros(2, x.size()[2], x.size()[1], dtype=torch.double, device=x.device)
         z[0] = torch.transpose(x[0], 0, 1)
         z[1] = -torch.transpose(x[1], 0, 1)
 
     return z
-
 
 def kronecker_prod(x, y):
     """A function that returns the tensor / kronecker product of 2 comlex tensors, x and y.
@@ -202,7 +195,7 @@ def kronecker_prod(x, y):
         raise ValueError('An input is not of the right dimension.')
 
     z = torch.zeros(2, x.size()[1]*y.size()[1],
-                    x.size()[2]*y.size()[2], dtype=torch.double)
+                    x.size()[2]*y.size()[2], dtype=torch.double, device=x.device)
 
     row_count = 0
 
@@ -222,7 +215,6 @@ def kronecker_prod(x, y):
 
     return z
 
-
 def scalar_divide(x, y):
     """A function that computes the division of x by y.
 
@@ -233,13 +225,13 @@ def scalar_divide(x, y):
 
     :returns: x / y
     :rtype: torch.tensor
-    """
+    """ 
     if len(list(x.size())) == 2 or len(list(x.size())) == 1:
         y_star = torch.zeros_like(y)
         y_star[0] = y[0]
         y_star[1] = -y[1]
 
-        numerator = scalar_mult(y_star, x)
+        numerator   = scalar_mult(y_star, x)
         denominator = scalar_mult(y, y_star)[0]
 
     if len(list(x.size())) == 3:
@@ -247,11 +239,10 @@ def scalar_divide(x, y):
         y_star[0] = y[0]
         y_star[1] = -y[1]
 
-        numerator = scalar_mult(y_star, x)
+        numerator   = scalar_mult(y_star, x)
         denominator = scalar_mult(y, y_star)[0]
 
     return numerator / denominator
-
 
 def norm(x):
     """A function that returns the norm of the argument.

@@ -21,10 +21,10 @@ import os
 import subprocess
 import sys
 from operator import attrgetter
-sys.path.insert(0, os.path.abspath('../qucumber'))
 
 import qucumber
 
+sys.path.insert(0, os.path.abspath('../qucumber'))
 
 # -- Project information -----------------------------------------------------
 
