@@ -22,7 +22,7 @@ Version: |release|
    callbacks
    observables
    cplx
-
+   data
 
 Indices and tables
 ==================
