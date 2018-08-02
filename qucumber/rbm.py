@@ -200,8 +200,8 @@ class BinomialRBMModule(nn.Module, Sampler):
         v.copy_(v0)
         h.copy_(ph0)
         for _ in range(k):
-            self.prob_v_given_h(h.bernoulli_(), out=v)
-            self.prob_h_given_v(v.bernoulli_(), out=h)
+            self.prob_v_given_h(torch.bernoulli(h, out=h), out=v)
+            self.prob_h_given_v(torch.bernoulli(v, out=v), out=h)
         if self.gpu:
             torch.cuda.empty_cache()
         return v0, ph0, v, h
@@ -310,7 +310,27 @@ class BinomialRBM(Sampler):
                            else self.num_visible)
         self.rbm_module = BinomialRBMModule(self.num_visible, self.num_hidden,
                                             gpu=gpu, seed=seed)
+        self.device = self.rbm_module.device
         self.stop_training = False
+
+    def effective_energy(self, v):
+        r"""The effective energies of the given visible states.
+
+        .. math::
+
+            \mathcal{E}(\bm{v}) &= \sum_{j}b_j v_j
+                        + \sum_{i}\log
+                            \left\lbrack 1 +
+                                  \exp\left(c_{i} + \sum_{j} W_{ij} v_j\right)
+                            \right\rbrack
+
+        :param v: The visible states.
+        :type v: torch.Tensor
+
+        :returns: The effective energies of the given visible states.
+        :rtype: torch.Tensor
+        """
+        return self.rbm_module.effective_energy(v)
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with

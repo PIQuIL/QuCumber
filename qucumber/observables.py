@@ -19,6 +19,7 @@
 
 import torch
 from torch.distributions.utils import log_sum_exp
+import numpy as np
 
 __all__ = [
     "Observable",
@@ -179,7 +180,8 @@ class Observable:
 
         return {
             "mean": running_mean,
-            "variance": running_var
+            "variance": running_var,
+            "standard_error": np.sqrt(running_var / float(num_samples))
         }
 
 
