@@ -44,7 +44,7 @@ __all__ = [
 
 class ComplexWavefunction(object):
     
-    def __init__(self,num_visible,
+    def __init__(self, unitary_dict, num_visible,
                  num_hidden, gpu=True,
                  seed=1234):
         super(ComplexWavefunction, self).__init__()
@@ -61,7 +61,7 @@ class ComplexWavefunction(object):
  
         self.networks = ["rbm_am","rbm_ph"]
         self.device = self.rbm_am.device
-        self.unitary_dict = unitaries.create_dict()
+        self.unitary_dict = unitary_dict 
         self.visible_state = torch.zeros(1,self.num_visible,
                                          device=self.rbm_am.device,
                                          dtype=torch.double)

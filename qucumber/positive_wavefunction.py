@@ -38,7 +38,7 @@ __all__ = [
 ]
 
 class PositiveWavefunction(object):
-    def __init__(self, num_visible, num_hidden=None, gpu=True, seed=None):
+    def __init__(self, num_visible, num_hidden=None, gpu=True, seed=1234):
         super(PositiveWavefunction, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = (int(num_hidden)

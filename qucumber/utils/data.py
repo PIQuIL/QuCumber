@@ -20,17 +20,35 @@
 import torch
 import numpy as np
 
+def load_data(tr_samples_path,tr_psi_path=None,tr_bases_path=None,bases_path=None):
+    r"""A function that will load in the data required for training.
+    
+    :param tr_samples_path: The path to the training data.
+    :type tr_samples_path: str
+    :param tr_psi_path: The path to the target/true wavefunctio (default = None).
+    :type tr_psi_path: str
+    :param tr_bases_path: The path to the basis data.
+    :type tr_bases_path: str
+    :param bases_path: The path to a file containing all possible bases used in 
+                       the tr_bases_path file.
+    :type bases_path: str
 
-def load_data(tr_samples_path,tr_psi_path,tr_bases_path=None,bases_path=None):
+    :returns: A list of all input parameters.
+    :rtype: list
+    """
     data = [] 
     data.append(torch.tensor(np.loadtxt(tr_samples_path, dtype= 'float32'),dtype=torch.double))
-    target_psi_data = np.loadtxt(tr_psi_path, dtype= 'float32')
-    target_psi = torch.zeros(2,len(target_psi_data), dtype=torch.double)
-    target_psi[0] = torch.tensor(target_psi_data[:,0], dtype=torch.double)
-    target_psi[1] = torch.tensor(target_psi_data[:,1], dtype=torch.double)
-    data.append(target_psi)
+
+    if tr_psi_path is not None:
+        target_psi_data = np.loadtxt(tr_psi_path, dtype= 'float32')
+        target_psi = torch.zeros(2,len(target_psi_data), dtype=torch.double)
+        target_psi[0] = torch.tensor(target_psi_data[:,0], dtype=torch.double)
+        target_psi[1] = torch.tensor(target_psi_data[:,1], dtype=torch.double)
+        data.append(target_psi)
+
     if tr_bases_path is not None:
         data.append(np.loadtxt(tr_bases_path,dtype=str))
+
     if bases_path is not None:
         bases_data = np.loadtxt(bases_path,dtype=str)
         bases = []
@@ -45,6 +63,16 @@ def load_data(tr_samples_path,tr_psi_path,tr_bases_path=None,bases_path=None):
 
 
 def extract_refbasis_samples(train_samples,train_bases):
+    r"""A function that extracts the reference basis samples in the data.
+
+    :param train_samples: The training samples.
+    :type train_samples: numpy.array
+    :param train_bases: The bases of the training samples.
+    :type train_bases: numpy.array
+
+    :returns: The samples in the data that are only in the reference basis.
+    :rtype: torch.tensor
+    """
     tmp = []
     num_visible=2 
     for i in range(train_samples.shape[0]):
