@@ -66,18 +66,35 @@ class TransverseFieldIsingChain(Observable):
                     v[i,j]=0.0
         return v
         
-    def Run(self,nn_state,n_eq=100):
+    def Run(self,nn_state,n_eq=100, show_convergence=False):
         v0 = torch.tensor(self.Randomize(nn_state.num_visible),dtype=torch.double)
         nn_state.set_visible_layer(v0)
-        nn_state.sample(n_eq)
-        samples = nn_state.visible_state 
+       
+        if show_convergence:
+            energy_list = []
+            sZ_list     = []
+            for steps in range(n_eq):
+                nn_state.sample(1)
+                samples = nn_state.visible_state
+                energy_list.append(self.Energy(nn_state, samples))
+                sZ_list.append(self.SigmaZ(samples))
+                nn_state.set_visible_layer(samples)
+                
+            out = {'energy': energy_list,
+                   'sigmaZ': sZ_list
+                  }
+ 
+        else:
+            nn_state.sample(n_eq)
+            samples = nn_state.visible_state 
         
-        energy = self.Energy(nn_state,samples)
-        sZ = self.SigmaZ(samples)
+            energy = self.Energy(nn_state,samples)
+            sZ = self.SigmaZ(samples)
 
-        out = {'energy':energy,
+            out = {'energy':energy,
                 'sigmaZ': sZ
                 }
+
         return out
 
     def Energy(self,nn_state,samples):

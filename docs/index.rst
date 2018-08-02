@@ -6,8 +6,8 @@ Version: |release|
    :maxdepth: 3
    :caption: Introduction
 
+   installation
    tutorial
-   _examples/QuCumberTutorial.ipynb
    _examples/QuCumberTutorialReal.ipynb
    _examples/QuCumberTutorialComplex.ipynb
    theory
