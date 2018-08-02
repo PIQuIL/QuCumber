@@ -46,7 +46,7 @@ def load_data(tr_samples_path,tr_psi_path,tr_bases_path=None,bases_path=None):
 
 def extract_refbasis_samples(train_samples,train_bases):
     tmp = []
-    num_visible=2 
+    num_visible=train_samples.shape[-1]
     for i in range(train_samples.shape[0]):
         flag = 0
         for j in range(num_visible):
