@@ -1,51 +1,15 @@
 ========================
-Installation
+Download the tutorial
 ========================
 
-QuCumber only supports Python 3, not Python 2. If you are using Python 2, please update! You will also want to install the following packages if you have not already.
+Once you have installed QuCumber, we recommend going through our tutorial that is divided into two parts.
 
-#. Pytorch (https://pytorch.org/)
-#. tqdm (https://github.com/tqdm/tqdm)
+#. Training an RBM to reconstruct a positive-real wavefunction (i.e. no phase) from a transverse-field Ising model (TFIM) with ten sites and then generating new data.
+#. Training an RBM to reconstruct a complex wavefunction (i.e. with a phase) from a simple two qubit state and then generating new data.
 
--------
-Windows
--------
+We have made interactive python notebooks that can be downloaded (along with the data required) here:
 
-Navigate to the directory (through command prompt) where pip.exe is installed (usually C:\\Python\\Scripts\\pip.exe) and type::
-    
-    pip.exe install qucumber
+#. :download:`Positive-real wavefunction </examples/01_ising/01_ising.zip>`.
+#. :download:`Complex wavefunction </examples/02_qubits/02_qubits.zip>`.
 
--------------
-Linux / MacOS
--------------
-
-Open up a terminal, then type::
-
-    pip install qucumber
-
-------------
-Operation
-------------
-
-To make sure everything is installed correctly, open a python shell / document and type::
-
-    from qucumber import *
-
-To begin training an RBM on your data, you must initialize a BinomialRBM object with the number of visible units (i.e. sites). For example, given the number of sites, *num_visible*, ::
-    
-    rbm = BinomialRBM(num_visible)
-
-Then, one can now train with ::
-
-    rbm.fit(your_datafile)
-
-Please ensure that your input data is a numpy array or torch tensor. Additional arguments to *fit* can be found here :meth:`qucumber.rbm.BinomialRBM.fit`.
-
-Once your RBM has been trained, you can generate more data by doing the following.::
-
-    rbm.load('saved_params.pkl')
-    num_samples = 1000
-    new_data = (rbm.sample(num_samples)).data.cpu().numpy()
-    np.savetxt('generated_samples.txt', new_data, fmt='%d')
-
-An additional argument to the *sample* function is the number of Gibbs steps, *k*. The default value of *k* is 10. See :meth:`qucumber.rbm.BinomialRBM.sample` for more information. 
+If you wish to simply view the static, non-interactive notebooks, continue to the next page of the documentation.
