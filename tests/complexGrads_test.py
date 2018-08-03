@@ -7,14 +7,14 @@ from qucumber.quantum_reconstruction import QuantumReconstruction
 import pickle
 
 
-def generate_visible_space(num_visible):
+def generate_visible_space(num_visible, device="cpu"):
     """Generates all possible visible states.
 
     :returns: A tensor of all possible spin configurations.
     :rtype: torch.Tensor
     """
     space = torch.zeros((1 << num_visible, num_visible),
-                        device="cpu", dtype=torch.double)
+                        device=device, dtype=torch.double)
     for i in range(1 << num_visible):
         d = i
         for j in range(num_visible):
@@ -32,12 +32,14 @@ def partition(nn_state, visible_space):
     :returns: The natural log of the partition function.
     :rtype: torch.Tensor
     """
+    visible_space = visible_space.to(device=nn_state.device)
     free_energies = -nn_state.rbm_am.effective_energy(visible_space)
     max_free_energy = free_energies.max()
 
     f_reduced = free_energies - max_free_energy
     logZ = max_free_energy + f_reduced.exp().sum().log()
     return logZ.exp()
+
 
 def probability(nn_state, v, Z):
     """Evaluates the probability of the given vector(s) of visible
@@ -51,7 +53,7 @@ def probability(nn_state, v, Z):
     :returns: The probability of the given vector(s) of visible units.
     :rtype: torch.Tensor
     """
-    return (nn_state.amplitude(v))**2 / Z
+    return (nn_state.amplitude(v.to(device=nn_state.device)))**2 / Z
 
 
 def load_target_psi(bases, psi_data):
@@ -67,6 +69,7 @@ def load_target_psi(bases, psi_data):
         psi_dict[bases[b]] = psi
 
     return psi_dict
+
 
 def transform_bases(bases_data):
     bases = []
@@ -84,20 +87,22 @@ def rotate_psi_full(basis, full_unitary_dict, psi):
     Upsi = cplx.matmul(U, psi)
     return Upsi
 
+
 def rotate_psi(nn_state, basis, unitary_dict, vis):
     N = nn_state.num_visible
-    v = torch.zeros(N, dtype=torch.double)
-    psi_r = torch.zeros(2, 1 << N, dtype=torch.double)
+    v = torch.zeros(N, dtype=torch.double, device=nn_state.device)
+    psi_r = torch.zeros(2, 1 << N, dtype=torch.double, device=nn_state.device)
 
     for x in range(1 << N):
-        Upsi = torch.zeros(2, dtype=torch.double)
+        Upsi = torch.zeros(2, dtype=torch.double, device=nn_state.device)
         num_nontrivial_U = 0
         nontrivial_sites = []
         for j in range(N):
             if (basis[j] is not 'Z'):
                 num_nontrivial_U += 1
                 nontrivial_sites.append(j)
-        sub_state = generate_visible_space(num_nontrivial_U)
+        sub_state = generate_visible_space(num_nontrivial_U,
+                                           device=nn_state.device)
 
         for xp in range(1 << num_nontrivial_U):
             cnt = 0
@@ -108,7 +113,8 @@ def rotate_psi(nn_state, basis, unitary_dict, vis):
                 else:
                     v[j] = vis[x, j]
 
-            U = torch.tensor([1., 0.], dtype=torch.double)
+            U = torch.tensor([1., 0.], dtype=torch.double,
+                             device=nn_state.device)
             for ii in range(num_nontrivial_U):
                 tmp = unitary_dict[basis[nontrivial_sites[ii]]]
                 tmp = tmp[:,
@@ -140,7 +146,7 @@ def compute_numerical_NLL(nn_state, data_samples, data_bases, Z,
                     / batch_size)
         else:
             psi_r = rotate_psi(nn_state, data_bases[i], unitary_dict, vis)
-            NLL -= (cplx.norm(psi_r[:,ind]).log()-Z.log()).item()/batch_size
+            NLL -= (cplx.norm(psi_r[:, ind]).log()-Z.log()).item() / batch_size
     return NLL
 
 
@@ -221,9 +227,11 @@ def numeric_gradKL(param, nn_state, psi_dict, vis, unitary_dict, bases, eps):
 
 
 def algorithmic_gradKL(nn_state, psi_dict, vis, unitary_dict, bases):
-    grad_KL = [torch.zeros(nn_state.rbm_am.num_pars, dtype=torch.double),
-               torch.zeros(nn_state.rbm_ph.num_pars, dtype=torch.double)]
-    Z = partition(nn_state, vis)
+    grad_KL = [torch.zeros(nn_state.rbm_am.num_pars,
+                           dtype=torch.double, device=nn_state.device),
+               torch.zeros(nn_state.rbm_ph.num_pars,
+                           dtype=torch.double, device=nn_state.device)]
+    Z = partition(nn_state, vis).to(device=nn_state.device)
 
     for i in range(len(vis)):
         grad_KL[0] += (cplx.norm(psi_dict[bases[0]][:, i])
@@ -250,6 +258,9 @@ def algorithmic_gradKL(nn_state, psi_dict, vis, unitary_dict, bases):
 
 def run(qr, psi_dict, data_samples, data_bases, unitary_dict, bases,
         vis, eps, k):
+    device = qr.nn_state.device
+    data_samples = data_samples.to(device=device)
+    vis = vis.to(device=device)
     alg_grad_NLL = algorithmic_gradNLL(qr, data_samples, data_bases, k)
     alg_grad_KL = algorithmic_gradKL(qr.nn_state, psi_dict, vis,
                                      unitary_dict, bases)
@@ -314,7 +325,7 @@ if __name__ == '__main__':
     seed = 1234
     with open('test_data.pkl', 'rb') as fin:
         test_data = pickle.load(fin)
-    
+
     qucumber.set_random_seed(seed)
     train_bases = test_data['2qubits']['train_bases']
     train_samples = torch.tensor(test_data['2qubits']['train_samples'],
