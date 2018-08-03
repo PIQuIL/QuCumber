@@ -1,8 +1,11 @@
-# QuCumber
+<img src="QuCumber.png" alt="drawing" width="70%" class="center"/>
+
+
 [![Build Status](https://travis-ci.com/PIQuIL/QuCumber.svg?branch=master)](https://travis-ci.com/PIQuIL/QuCumber)
 [![PyPI version](https://badge.fury.io/py/qucumber.svg)](https://badge.fury.io/py/qucumber)
+[![Documentation](https://img.shields.io/badge/documentation-docs-blue.svg)](https://piquil.github.io/QuCumber/)
 
-A Quantum Calculator Used for Many-body Eigenstate Reconstruction.
+## A Quantum Calculator Used for Many-body Eigenstate Reconstruction.
 
 QuCumber is a program that reconstructs an unknown quantum wavefunction
 from a set of measurements.  The measurements should consist of binary counts;
@@ -17,8 +20,8 @@ contained in the original data set.
 QuCumber is developed by the Perimeter Institute Quantum Intelligence Lab (PIQuIL).
 The project is currently in an early-beta, expect some rough edges, bugs, and backward incompatible updates.
 
-## License
-QuCumber is licensed under the Apache License Version 2.0.
+## Requirements
+Python 3.6. QuCumber is written in PyTorch, with CPU and GPU support.  See https://pytorch.org.
 
 ## Features
 QuCumber implements unsupervised generative modelling with a two-layer RBM.
@@ -31,9 +34,12 @@ wavefunction.  Data is thus only required in one basis.  Upcoming versions will
 allow reconstruction of more general wavefunctions and density matrices; in this case
 tomographyically-complete basis sets may be required in the training data.
 
-## Requirements
-Python 3. QuCumber is written in PyTorch, with CPU and GPU support.  See https://pytorch.org.
+
 
 ## Documentation
 
 Documentation can be found [here](https://piquil.github.io/QuCumber/).
+
+
+## License
+QuCumber is licensed under the Apache License Version 2.0.
