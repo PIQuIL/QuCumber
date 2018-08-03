@@ -21,7 +21,6 @@ Version: |release|
    quantum_states
    quantum_reconstruction
    callbacks
-   observables
    cplx
    data
 
