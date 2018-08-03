@@ -20,6 +20,7 @@
 import os.path
 from pathlib import Path
 from inspect import signature
+from collections.abc import MutableSequence
 
 import torch
 import numpy as np
@@ -100,7 +101,7 @@ class Callback:
         pass
 
 
-class CallbackList(Callback):
+class CallbackList(Callback, MutableSequence):
     def __init__(self, callbacks):
         super(CallbackList, self).__init__()
         self.callbacks = list(callbacks)
