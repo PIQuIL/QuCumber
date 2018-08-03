@@ -95,4 +95,3 @@ class LivePlotting(Callback):
 
     def on_train_end(self, rbm):
         self.on_epoch_end(rbm, self.last_epoch)
-#
