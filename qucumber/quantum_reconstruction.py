@@ -52,8 +52,8 @@ class QuantumReconstruction(object):
     def compute_batch_gradients(self, k_cd, samples_batch,bases_batch=None):
         """This function will compute the gradients of a batch of the training
         data (samples_batch). If measurements are taken in bases other than the
-        reference basis, a list of bases (bases_batch) must also be provided
-        .
+        reference basis, a list of bases (bases_batch) must also be provided.
+        
         :param k_cd: Number of contrastive divergence steps in training.
         :type k_cd: int
         :param samples_batch: Batch of the input samples.
@@ -93,7 +93,7 @@ class QuantumReconstruction(object):
         
         return grad
         
-    def fit(self,input_samples,epochs,pos_batch_size, neg_batch_size,k,lr,
+    def fit(self,input_samples,epochs,pos_batch_size, neg_batch_size,k_cd,lr,
             observer=None,
             input_bases = None,z_samples = None,
             progbar=False,callbacks=[]):
@@ -169,7 +169,7 @@ class QuantumReconstruction(object):
                     batch_bases = pos_batches_bases[b]
 
                 self.nn_state.set_visible_layer(neg_batch)
-                all_grads = self.compute_batch_gradients(k, pos_batches[b],batch_bases)
+                all_grads = self.compute_batch_gradients(k_cd, pos_batches[b],batch_bases)
                 optimizer.zero_grad()  # clear any cached gradients
                 
                 for p,net in enumerate(self.nn_state.networks):

@@ -18,6 +18,8 @@ Version: |release|
    :caption: API Reference
 
    rbm
+   quantum_states
+   quantum_reconstruction
    callbacks
    observables
    cplx
