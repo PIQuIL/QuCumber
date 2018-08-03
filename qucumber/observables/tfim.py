@@ -109,7 +109,7 @@ class TFIMChainEnergy(Observable):
             log_flipped_psis, keepdim=True).squeeze()
 
         if self.periodic_bcs:
-            perm_indices = list(range(sampler.shape[-1]))
+            perm_indices = list(range(samples.shape[-1]))
             perm_indices = perm_indices[1:] + [0]
             interaction_terms = ((samples * samples[:, perm_indices])
                                  .sum(1))

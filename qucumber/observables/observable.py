@@ -17,7 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import torch
 import numpy as np
 
 __all__ = [
@@ -93,59 +92,60 @@ class Observable:
         stats = self.statistics(rbm, num_samples, batch_size, **kwargs)
         return stats["variance"]
 
-    def statistics(self, rbm, num_samples, num_chains, burn_in, steps,
-                   **kwargs):
+    def statistics(self, rbm, num_samples,
+                   num_chains=0, burn_in=1000, steps=1):
         """Estimates both the expected value and variance of the observable
         over the distribution defined by the RBM.
 
-        In order to avoid running out of memory, the computations can be
-        performed in batches using the pairwise algorithm detailed in
-        `Chan et al. (1979)`_.
-
         :param rbm: The RBM to draw samples from.
         :type rbm: qucumber.rbm.BinomialRBM
-        :param num_samples: The number of samples to draw.
+        :param num_samples: The number of samples to draw. The actual number of
+                            samples drawn may be slightly higher if
+                            `num_samples % num_chains != 0`.
         :type num_samples: int
-        :param batch_size: The size of the batches; if 0, will only use one
-                           batch containing all drawn samples.
-        :param \**kwargs: Keyword arguments to pass to the RBM's `sample`
-                          function.
+        :param num_chains: The number of Markov chains to run in parallel;
+                           if 0, will use a number of chains equal to
+                           `num_samples`.
+        :type num_chains: int
+        :param burn_in: The number of Gibbs Steps to perform before recording
+                        any samples.
+        :type burn_in: int
+        :param steps: The number of Gibbs Steps to take between each sample.
+        :type steps: int
         :returns: A dictionary containing both the (estimated) expected value
                   (key: "mean") and variance (key: "variance") of the
                   observable.
         :rtype: dict(str, float)
-
-        .. _Chan et al. \(1979\):
-            http://i.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf
         """
 
-        running_sums = torch.tensor([0.0]*num_chains,
-                                    dtype=torch.double,
-                                    device=rbm.device)
-        running_sums_of_squares = torch.tensor([0.0]*num_chains,
-                                               dtype=torch.double,
-                                               device=rbm.device)
-        running_length = 0
+        running_sum = 0.0
+        running_sum_of_squares = 0.0
 
         chains = None
-        for i in range(int(np.ceil(num_samples / num_chains))):
+        num_chains = num_chains if num_chains != 0 else num_samples
+        num_time_steps = int(np.ceil(num_samples / num_chains))
+        for i in range(num_time_steps):
             num_gibbs_steps = burn_in if i == 0 else steps
+
             chains = rbm.sample(num_chains,
                                 k=num_gibbs_steps,
                                 initial_state=chains)
 
-            samples = self.apply(chains, rbm)
+            samples = self.apply(chains, rbm).data
 
-            torch.add(running_sums, samples, out=running_sums)
-            torch.add(running_sums_of_squares, samples.pow(2),
-                      out=running_sums_of_squares)
+            running_sum += samples.sum().item()
+            running_sum_of_squares += samples.pow(2).sum().item()
 
-            running_length += num_chains
+        N = float(num_time_steps * num_chains)  # total number of samples
+        mean = running_sum / N
 
-        means = running_sums / float(running_length)
-        variances = (running_sums_of_squares - running_sums.pow(2)) / float(running_length)
+        variance = (running_sum_of_squares - ((running_sum ** 2) / N))
+        variance /= N - 1
+
+        std_error = np.sqrt(variance / N)
 
         return {
-            "mean": running_mean,
-            "variance": running_var
+            "mean": mean,
+            "variance": variance,
+            "std_error": std_error
         }

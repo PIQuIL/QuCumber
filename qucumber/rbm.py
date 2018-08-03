@@ -198,26 +198,34 @@ class BinomialRBMModule(nn.Module):
         v.copy_(v0)
         h.copy_(ph0)
         for _ in range(k):
-            self.prob_v_given_h(h.bernoulli_(), out=v)
-            self.prob_h_given_v(v.bernoulli_(), out=h)
+            self.prob_v_given_h(torch.bernoulli(h, out=h), out=v)
+            self.prob_h_given_v(torch.bernoulli(v, out=v), out=h)
         if self.gpu:
             torch.cuda.empty_cache()
         return v0, ph0, v, h
 
-    def sample(self, num_samples, k=10):
+    def sample(self, num_samples, k=10, initial_state=None):
         """Samples from the RBM using k steps of Block Gibbs sampling.
 
         :param num_samples: The number of samples to be generated
         :type num_samples: int
         :param k: Number of Block Gibbs steps.
         :type k: int
+        :param initial_state: A set of samples to initialize the Markov Chains
+                              with. If provided, `num_samples` is ignored, and
+                              the number of samples returned will be equal to
+                              `len(initial_state)`.
+        :type initial_state: torch.Tensor
 
         :returns: Samples drawn from the RBM
         :rtype: torch.Tensor
         """
-        dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
-        v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
-                  .to(device=self.device, dtype=torch.double))
+        if initial_state is None:
+            dist = torch.distributions.bernoulli.Bernoulli(probs=0.5)
+            v0 = (dist.sample(torch.Size([num_samples, self.num_visible]))
+                      .to(device=self.device, dtype=torch.double))
+        else:
+            v0 = initial_state
         _, _, v, _ = self.gibbs_sampling(k, v0)
         return v
 
@@ -308,7 +316,27 @@ class BinomialRBM:
                            else self.num_visible)
         self.rbm_module = BinomialRBMModule(self.num_visible, self.num_hidden,
                                             gpu=gpu, seed=seed)
+        self.device = self.rbm_module.device
         self.stop_training = False
+
+    def effective_energy(self, v):
+        r"""The effective energies of the given visible states.
+
+        .. math::
+
+            \mathcal{E}(\bm{v}) &= \sum_{j}b_j v_j
+                        + \sum_{i}\log
+                            \left\lbrack 1 +
+                                  \exp\left(c_{i} + \sum_{j} W_{ij} v_j\right)
+                            \right\rbrack
+
+        :param v: The visible states.
+        :type v: torch.Tensor
+
+        :returns: The effective energies of the given visible states.
+        :rtype: torch.Tensor
+        """
+        return self.rbm_module.effective_energy(v)
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
@@ -428,7 +456,7 @@ class BinomialRBM:
         """Execute the training of the RBM.
 
         :param data: The actual training data
-        :type data: list(float)
+        :type data: torch.Tensor
         :param epochs: The number of parameter (i.e. weights and biases)
                        updates
         :type epochs: int
@@ -498,18 +526,24 @@ class BinomialRBM:
 
         callbacks.on_train_end(self)
 
-    def sample(self, num_samples, k):
+    def sample(self, num_samples, k, initial_state=None):
         """Samples from the RBM using k steps of Block Gibbs sampling.
 
         :param num_samples: The number of samples to be generated
         :type num_samples: int
         :param k: Number of Block Gibbs steps.
         :type k: int
+        :param initial_state: A set of samples to initialize the Markov Chains
+                              with. If provided, `num_samples` is ignored, and
+                              the number of samples returned will be equal to
+                              `len(initial_state)`.
+        :type initial_state: torch.Tensor
 
         :returns: Samples drawn from the RBM.
         :rtype: torch.Tensor
         """
-        return self.rbm_module.sample(num_samples, k)
+        return self.rbm_module.sample(num_samples, k,
+                                      initial_state=initial_state)
 
     def probability_ratio(self, a, b):
         return self.rbm_module.log_probability_ratio(a, b).exp()
