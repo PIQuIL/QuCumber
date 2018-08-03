@@ -1,3 +1,4 @@
+import qucumber
 from qucumber.utils import unitaries
 from qucumber.utils import cplx
 import torch
@@ -67,17 +68,6 @@ def load_target_psi(bases, psi_data):
 
     return psi_dict
 
-
-#def load_target_psi(psi_data):
-#    D = int(len(psi_data))
-#    psi      = torch.zeros(2,D, dtype=torch.double)
-#    psi_real = torch.tensor(psi_data[:,0], dtype=torch.double)
-#    psi_imag = torch.tensor(psi_data[:,1], dtype=torch.double)
-#    psi[0]   = psi_real
-#    psi[1]   = psi_imag
-#    return psi
-
-
 def transform_bases(bases_data):
     bases = []
     for i in range(len(bases_data)):
@@ -88,60 +78,11 @@ def transform_bases(bases_data):
         bases.append(tmp)
     return bases
 
-#def BuildPsiDict(N,bases,target_psi,unitary_dict,vis):
-#
-#    psi_dict = {}
-#    D = int(len(target_psi))
-#    psi_dict[bases[0]] = target_psi
-#    for b in range(1,len(bases)):
-#        print(bases)
-#        psi      = torch.zeros(2,D, dtype=torch.double)
-#        psi_r = rotate_target_psi(N,target_psi,bases[b],unitary_dict,vis)
-#        #psi[0] = torch.tensor(psi_r[0,:], dtype=torch.double)
-#        #psi[1] = torch.tensor(psi_r[1,:], dtype=torch.double)
-#        print(psi_r[0,:])
-#        print()
-#        psi_dict[bases[b]] = psi
-#    return psi_dict
-
 
 def rotate_psi_full(basis, full_unitary_dict, psi):
     U = full_unitary_dict[basis]
     Upsi = cplx.matmul(U, psi)
     return Upsi
-
-
-#def rotate_target_psi(N,psi,basis,unitary_dict,vis):
-#    v = torch.zeros(N, dtype=torch.double)
-#    psi_r = torch.zeros(2,1<<N,dtype=torch.double)
-#    for x in range(1<<N):
-#        Upsi = torch.zeros(2, dtype=torch.double)
-#        psi_torch = torch.zeros(2, dtype=torch.double)
-#        num_nontrivial_U = 0
-#        nontrivial_sites = []
-#        for j in range(N):
-#            if (basis[j] is not 'Z'):
-#                num_nontrivial_U += 1
-#                nontrivial_sites.append(j)
-#        sub_state = generate_visible_space(num_nontrivial_U)
-#
-#        for xp in range(1<<num_nontrivial_U):
-#            cnt = 0
-#            for j in range(N):
-#                if (basis[j] is not 'Z'):
-#                    v[j]=sub_state[xp][cnt]
-#                    cnt += 1
-#                else:
-#                    v[j]=vis[x,j]
-#            U = torch.tensor([1., 0.], dtype=torch.double)
-#            for ii in range(num_nontrivial_U):
-#                tmp = unitary_dict[basis[nontrivial_sites[ii]]]
-#                tmp = tmp[:,int(vis[x][nontrivial_sites[ii]]),
-#                          int(v[nontrivial_sites[ii]])]
-#                U = cplx.scalar_mult(U,tmp)
-#            Upsi += cplx.scalar_mult(U,psi[:,x])
-#        psi_r[:,x] = Upsi
-#    return psi_r
 
 def rotate_psi(nn_state, basis, unitary_dict, vis):
     N = nn_state.num_visible
@@ -371,8 +312,10 @@ if __name__ == '__main__':
     k = 2
     num_chains = 10
     seed = 1234
-    with open('data_test.pkl', 'rb') as fin:
+    with open('test_data.pkl', 'rb') as fin:
         test_data = pickle.load(fin)
+    
+    qucumber.set_random_seed(seed)
     train_bases = test_data['2qubits']['train_bases']
     train_samples = torch.tensor(test_data['2qubits']['train_samples'],
                                  dtype=torch.double)

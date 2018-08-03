@@ -1,13 +1,13 @@
 #from qucumber.binary_rbm import BinaryRBM
-import sys
-sys.path.append('../')
 import torch
 import numpy as np
-from positive_wavefunction import PositiveWavefunction
-from quantum_reconstruction import QuantumReconstruction
+import qucumber
+from qucumber.positive_wavefunction import PositiveWavefunction
+from qucumber.quantum_reconstruction import QuantumReconstruction
 import importlib.util
 from torch.nn.utils import parameters_to_vector
 import pickle
+
 def generate_visible_space(num_visible):
     """Generates all possible visible states.
 
@@ -172,15 +172,15 @@ if __name__ == '__main__':
     k=10
     num_chains=100
     seed = 1234
-    with open('data_test.pkl', 'rb') as fin:
+    with open('test_data.pkl', 'rb') as fin:
         test_data = pickle.load(fin)
-
+    qucumber.set_random_seed(seed) 
     train_samples = torch.tensor(test_data['tfim1d']['train_samples'],dtype = torch.double)
     target_psi=torch.tensor(test_data['tfim1d']['target_psi'],dtype = torch.double)
     nh = train_samples.shape[-1]
     eps = 1.e-6
 
-    nn_state = PositiveWavefunction(num_visible=train_samples.shape[-1],num_hidden=nh, seed=seed)
+    nn_state = PositiveWavefunction(num_visible=train_samples.shape[-1],num_hidden=nh)
     qr = QuantumReconstruction(nn_state)
     vis = generate_visible_space(train_samples.shape[-1])
     run(qr,target_psi,train_samples, vis, eps,k)
