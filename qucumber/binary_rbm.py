@@ -17,48 +17,34 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import warnings
-from itertools import chain
-
 import numpy as np
-from math import sqrt
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.utils.data import DataLoader
 from torch.nn.utils import parameters_to_vector
-from tqdm import tqdm, tqdm_notebook
-from torch.backends import cudnn
-import qucumber.utils.cplx as cplx
-from qucumber.callbacks import CallbackList
+
+from qucumber import _warn_on_missing_gpu
 
 __all__ = [
     "BinaryRBM"
 ]
 
 
-def _warn_on_missing_gpu(gpu):
-    if gpu and not torch.cuda.is_available():
-        warnings.warn("Could not find GPU: will continue with CPU.",
-                      ResourceWarning)
-
-
 class BinaryRBM(nn.Module):
     def __init__(self, num_visible, num_hidden, zero_weights=False,
-                 gpu=True, seed=None, num_chains = 100):
+                 gpu=True, num_chains=100):
         super(BinaryRBM, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
         self.num_chains = int(num_chains)
-        self.num_pars = self.num_visible*self.num_hidden+self.num_visible+self.num_hidden
+        self.num_pars = ((self.num_visible * self.num_hidden)
+                         + self.num_visible + self.num_hidden)
+
         _warn_on_missing_gpu(gpu)
         self.gpu = gpu and torch.cuda.is_available()
-        self.size_cut = 16 #Maximum number of visible units for exact enumeration
-        if seed:
-            if self.gpu:
-                torch.cuda.manual_seed(seed)
-            else:
-                torch.manual_seed(seed)
+
+        # Maximum number of visible units for exact enumeration
+        self.size_cut = 16
 
         self.device = torch.device('cuda') if self.gpu else torch.device('cpu')
 
@@ -77,26 +63,29 @@ class BinaryRBM(nn.Module):
                                                         dtype=torch.double),
                                             requires_grad=True)
         else:
-            self.randomize()
-        
+            self.initialize_parameters()
+
     def __repr__(self):
         return ("BinaryRBM(num_visible={}, num_hidden={}, gpu={})"
                 .format(self.num_visible, self.num_hidden, self.gpu))
 
-    def randomize(self):
+    def initialize_parameters(self):
         """Randomize the parameters of the RBM"""
         self.weights = nn.Parameter(
             (torch.randn(self.num_hidden, self.num_visible,
                          device=self.device, dtype=torch.double)
-             / np.sqrt(self.num_visible)),requires_grad=True)
+             / np.sqrt(self.num_visible)), requires_grad=True)
 
         self.visible_bias = nn.Parameter(
-                (torch.randn(self.num_visible,device=self.device, 
-                 dtype=torch.double)/np.sqrt(self.num_visible)),requires_grad=True)
+            (torch.randn(self.num_visible,
+                         device=self.device, dtype=torch.double)
+             / np.sqrt(self.num_visible)),
+            requires_grad=True)
         self.hidden_bias = nn.Parameter(
-                (torch.randn(self.num_hidden,device=self.device, 
-                 dtype=torch.double)/np.sqrt(self.num_hidden)),requires_grad=True)
- 
+            (torch.randn(self.num_hidden,
+                         device=self.device, dtype=torch.double)
+             / np.sqrt(self.num_hidden)),
+            requires_grad=True)
 
     def effective_energy(self, v):
         r"""The effective energies of the given visible states.
@@ -124,29 +113,29 @@ class BinaryRBM(nn.Module):
 
         return -(visible_bias_term + hidden_bias_term)
 
-    def effective_energy_gradient(self,v):
+    def effective_energy_gradient(self, v):
         """The gradients of the effective energies for the given visible states.
 
         :param v: The visible states.
         :type v: torch.Tensor
 
-        :returns: 1d vector containing the gradients for all parameters (computed on the given 
-                  visible states v). 
+        :returns: 1d vector containing the gradients for all parameters
+                  (computed on the given visible states v).
         :rtype: torch.Tensor
         """
-        prob = torch.sigmoid(F.linear(v, self.weights,self.hidden_bias))     
-        
+        prob = self.prob_h_given_v(v)
+
         if len(v.shape) < 2:
             W_grad = -torch.einsum("j,k->jk", (prob, v))
-            b_grad = -v
-            c_grad = -prob
-        else:        
+            vb_grad = -v
+            hb_grad = -prob
+        else:
             W_grad = -torch.einsum("ij,ik->jk", (prob, v))
-            b_grad = -torch.einsum("ij->j", (v,))
-            c_grad = -torch.einsum("ij->j", (prob,))
-        
-        return parameters_to_vector([W_grad,b_grad,c_grad])
-    
+            vb_grad = -torch.einsum("ij->j", (v,))
+            hb_grad = -torch.einsum("ij->j", (prob,))
+
+        return parameters_to_vector([W_grad, vb_grad, hb_grad])
+
     def prob_v_given_h(self, h):
         """Given a hidden unit configuration, compute the probability
         vector of the visible units being on.
@@ -174,7 +163,6 @@ class BinaryRBM(nn.Module):
         """
         p = torch.sigmoid(F.linear(v, self.weights, self.hidden_bias))
         return p
-
 
     def sample_v_given_h(self, h):
         """Sample/generate a visible state given a hidden state.
@@ -204,22 +192,16 @@ class BinaryRBM(nn.Module):
         h = p.bernoulli()
         return h
 
-    def compute_partition_function(self,space):
+    def compute_partition_function(self, space):
         """The natural logarithm of the partition function of the RBM.
-    
+
         :param space: A rank 2 tensor of the visible space.
         :type space: torch.Tensor
-    
+
         :returns: The natural log of the partition function.
         :rtype: torch.Tensor
         """
-        free_energies = -self.effective_energy(space)
-        max_free_energy = free_energies.max()
-    
-        f_reduced = free_energies - max_free_energy
-        logZ = max_free_energy + f_reduced.exp().sum().log()
-        Z = logZ.exp()        
-        
+        neg_free_energies = -self.effective_energy(space)
+        logZ = neg_free_energies.logsumexp(0)
+        Z = logZ.exp()
         return Z
-
-
