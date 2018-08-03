@@ -9,7 +9,7 @@ Version: |release|
    installation
    tutorial
    _examples/tutorial_quantum_ising.ipynb
-   _examples/tutorial_2qubitsComplex.ipynb
+   _examples/tutorial_qubits.ipynb
    theory
 
 

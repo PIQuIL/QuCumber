@@ -46,7 +46,7 @@ deploy:
       condition: $TRAVIS_PYTHON_VERSION == '3.6'
   - provider: releases
     skip-cleanup: true
-    github-token: "$GITHUB_TOKEN"
+    api-key: "$GITHUB_TOKEN"
     file:
       - dist/*.whl
       - dist/*.tar.gz
