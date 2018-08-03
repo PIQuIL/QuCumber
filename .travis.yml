@@ -22,7 +22,7 @@ python:
   - '3.6'
 
 install:
-  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy click tqdm setuptools wheel flake8 radon
+  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 radon
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp35-cp35m-linux_x86_64.whl; fi
   - travis_retry pip install torchvision
