@@ -3,5 +3,5 @@
 Complex Algebra
 ===============
 
-.. automodule:: qucumber.cplx
+.. automodule:: qucumber.utils.cplx
    :members:

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to QuCumber’s documentation! &mdash; QuCumber 0.1.2 documentation</title>
+  <title>Welcome to QuCumber’s documentation! &mdash; QuCumber 0.2.0 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="tutorial.html" /> 
+    <link rel="next" title="Installation" href="installation.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.1.2
+                0.2.0
               </div>
             
           
@@ -83,19 +83,19 @@
             
               <p class="caption"><span class="caption-text">Introduction</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorial.html">Getting started: quantum state reconstruction using QuCumber</a></li>
-<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialReal.html">Part 1: Reconstruction of a positive wavefunction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Download the tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/tutorial_quantum_ising.html">Part 1: Reconstruction of a positive wavefunction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="samplers.html">Samplers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_states.html">Quantum States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_reconstruction.html">Quantum Reconstruction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Handler</a></li>
 </ul>
 
             
@@ -181,33 +181,21 @@
 </style>
 <div class="section" id="welcome-to-qucumber-s-documentation">
 <h1>Welcome to QuCumber’s documentation!<a class="headerlink" href="#welcome-to-qucumber-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>Version: 0.1.2</p>
+<p>Version: 0.2.0</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Introduction</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#windows">Windows</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#linux-macos">Linux / MacOS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#operation">Operation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#github">Github</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#windows">Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#linux-macos">Linux / MacOS</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorial.html">Getting started: quantum state reconstruction using QuCumber</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="_examples/QuCumberTutorial.html#Download-the-Tutorial">Download the Tutorial</a></li>
-<li class="toctree-l2"><a class="reference internal" href="_examples/QuCumberTutorial.html#Comments-Before-Getting-Started">Comments Before Getting Started</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialReal.html">Part 1: Reconstruction of a positive wavefunction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="_examples/QuCumberTutorialReal.html#Getting-Started">Getting Started</a></li>
-<li class="toctree-l2"><a class="reference internal" href="_examples/QuCumberTutorialReal.html#Training">Training</a></li>
-<li class="toctree-l2"><a class="reference internal" href="_examples/QuCumberTutorialReal.html#After-Training">After Training</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html">Part 2: Training an RBM <em>with</em> a phase</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html#Getting-Started">Getting Started</a></li>
-<li class="toctree-l2"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html#Training">Training</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html#After-Training">After Training</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Download the tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/tutorial_quantum_ising.html">Part 1: Reconstruction of a positive wavefunction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_quantum_ising.html#Getting-Started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_quantum_ising.html#Training">Training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_quantum_ising.html#After-Training">After Training</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
@@ -216,16 +204,16 @@
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">API Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rbm.html#rbm-module">RBM Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbm.html#real-positive-wavefunction-rbm">Real Positive Wavefunction RBM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rbm.html#complex-wavefunction-rbm">Complex Wavefunction RBM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_states.html">Quantum States</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quantum_states.html#positive-wavefunction">Positive Wavefunction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantum_states.html#complex-wavefunction">Complex Wavefunction</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="samplers.html">Samplers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_reconstruction.html">Quantum Reconstruction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Handler</a></li>
 </ul>
 </div>
 </div>
@@ -246,7 +234,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="tutorial.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
@@ -278,7 +266,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.2',
+            VERSION:'0.2.0',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

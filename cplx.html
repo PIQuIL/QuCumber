@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Complex Algebra &mdash; QuCumber 0.1.2 documentation</title>
+  <title>Complex Algebra &mdash; QuCumber 0.2.0 documentation</title>
   
 
   
@@ -28,7 +28,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Observables" href="observables.html" /> 
+    <link rel="next" title="Data Handler" href="data.html" />
+    <link rel="prev" title="Callbacks" href="callbacks.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -57,7 +58,7 @@
             
             
               <div class="version">
-                0.1.2
+                0.2.0
               </div>
             
           
@@ -83,19 +84,19 @@
             
               <p class="caption"><span class="caption-text">Introduction</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorial.html">Getting started: quantum state reconstruction using QuCumber</a></li>
-<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialReal.html">Part 1: Reconstruction of a positive wavefunction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="_examples/QuCumberTutorialComplex.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Download the tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/tutorial_quantum_ising.html">Part 1: Reconstruction of a positive wavefunction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBMs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="samplers.html">Samplers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_states.html">Quantum States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_reconstruction.html">Quantum Reconstruction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Handler</a></li>
 </ul>
 
             
@@ -179,29 +180,31 @@
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="module-qucumber.cplx">
-<span id="complex-algebra"></span><h1>Complex Algebra<a class="headerlink" href="#module-qucumber.cplx" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-qucumber.utils.cplx">
+<span id="complex-algebra"></span><h1>Complex Algebra<a class="headerlink" href="#module-qucumber.utils.cplx" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="qucumber.cplx.make_complex_vector">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">make_complex_vector</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L38"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.make_complex_vector" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that takes two vector (a REAL (x) and IMAGINARY part (y)) and returns the combined complex tensor.</p>
+<dt id="qucumber.utils.cplx.make_complex">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">make_complex</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/6bf5869/qucumber/utils/cplx.py#L41"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.make_complex" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>A function that combines the real (x) and imaginary (y) parts of a</dt>
+<dd>vector or a matrix.</dd>
+<dt>..note:: x and y must have the same shape. Also, this will not work for</dt>
+<dd>rank zero tensors (scalars).</dd>
+</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<em>torch.doubleTensor</em>) – The real part of your vector.</li>
-<li><strong>y</strong> (<em>torch.doubleTensor</em>) – The imaginary part of your vector.</li>
+<li><strong>x</strong> (<em>torch.tensor</em>) – A vector or matrix.</li>
+<li><strong>y</strong> (<em>torch.tensor</em>) – A vector or matrix.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – This function will not execute if x and y do not have the same dimension.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The tensor [x,y].</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The full vector with the real and imaginary parts seperated as previously mentioned.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.tensor</p>
 </td>
 </tr>
 </tbody>
@@ -209,26 +212,29 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="qucumber.cplx.make_complex_matrix">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">make_complex_matrix</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L61"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.make_complex_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that takes two tensors (a REAL (x) and IMAGINARY part (y)) and returns the combine complex tensor.</p>
+<dt id="qucumber.utils.cplx.scalar_mult">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">scalar_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/6bf5869/qucumber/utils/cplx.py#L70"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.scalar_mult" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>A function that computes the product between complex matrices and scalars,</dt>
+<dd>complex vectors and scalars or two complex scalars.</dd>
+<dt>..note:: If one wished to do vector-scalar multiplication or matrix-scalar</dt>
+<dd>multiplication, you must put the vector / matrix as the first
+argument (x).</dd>
+</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<em>torch.doubleTensor</em>) – The real part of your matrix.</li>
-<li><strong>y</strong> (<em>torch.doubleTensor</em>) – The imaginary part of your matrix.</li>
+<li><strong>x</strong> (<em>torch.tensor</em>) – A complex scalar, vector or matrix.</li>
+<li><strong>y</strong> (<em>torch.tensor</em>) – A complex scalar, vector or matrix.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – This function will not execute if x and y do not have the same dimension.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The product between x and y.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The full vector with the real and imaginary parts seperated as previously mentioned.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.tensor</p>
 </td>
 </tr>
 </tbody>
@@ -236,26 +242,27 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="qucumber.cplx.scalar_mult">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">scalar_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L85"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.scalar_mult" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that does complex scalar multiplication between two complex scalars, x and y.</p>
+<dt id="qucumber.utils.cplx.matmul">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">matmul</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/6bf5869/qucumber/utils/cplx.py#L94"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.matmul" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that computes complex matrix-matrix and matrix-vector products.</p>
+<dl class="docutils">
+<dt>..note:: If one wishes to do matrix-vector products, the vector must be the</dt>
+<dd>second argument (y).</dd>
+</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex scalar. (x[0], x[1]) = (real part, imaginary part).</li>
-<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex scalar. (x[0], x[1]) = (real part, imaginary part).</li>
+<li><strong>x</strong> (<em>torch.tensor</em>) – A complex matrix.</li>
+<li><strong>y</strong> (<em>torch.tensor</em>) – A complex vector or matrix.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x or y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The product between x and y.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The product of x and y.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.tensor</p>
 </td>
 </tr>
 </tbody>
@@ -263,117 +270,10 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="qucumber.cplx.VS_mult">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">VS_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L107"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.VS_mult" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that returns x*y, where x is a complex scalar and y is a complex vector.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex scalar.</li>
-<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The vector scalar product of x and y.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="qucumber.cplx.MS_mult">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">MS_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L130"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.MS_mult" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that takes a given input complex matrix (y) and multiplies it by a complex scalar (x).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex scalar.</li>
-<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If y is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if x’s dimension is not 2, the function will not execute.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The matrix-scalar product - x*y.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="qucumber.cplx.MV_mult">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">MV_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L151"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.MV_mult" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that returns x*y, where x is a complex tensor and y is a complex vector.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
-<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If y is not a complex vector (i.e. has 2 dimensions) and if its first dimension is not 2, OR if x is not a complex matrix (i.e. has 3 dimensions) and if its first dimention is not 2, then the function will not execute.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The matrix-vector product, xy.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="qucumber.cplx.MM_mult">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">MM_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L174"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.MM_mult" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that returns x*y, where x and y are complex tensors.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
-<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The matrix-matrix product, xy.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="qucumber.cplx.inner_prod">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">inner_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L196"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.inner_prod" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that returns the inner product of two complex vectors, x and y &gt;&gt;&gt; &lt;x|y&gt;.</p>
+<dt id="qucumber.utils.cplx.inner_prod">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">inner_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/6bf5869/qucumber/utils/cplx.py#L124"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.inner_prod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the inner product of two complex vectors,
+x and y &gt;&gt;&gt; &lt;x|y&gt;.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -384,7 +284,8 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y are not complex vectors with their first
+dimensions being 2, then the function will not execute.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The inner product, <img class="math" src="_images/math/aa061c1002efbb26d7bb39a523ffa550bac269d5.svg" alt="\langle x\vert y\rangle"/>.</p>
@@ -398,8 +299,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="qucumber.cplx.outer_prod">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">outer_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L218"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.outer_prod" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.utils.cplx.outer_prod">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">outer_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/6bf5869/qucumber/utils/cplx.py#L152"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.outer_prod" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that returns the outer product of two complex vectors, x and y.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -411,10 +312,12 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y are not complex vectors with their first dimensions being 2, then the function will not execute.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y are not complex vectors with their first
+dimensions being 2, then the function will not execute.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The outer product between x and y, <img class="math" src="_images/math/1c933d0877be38ba1dfac0fbaa567821ea885c61.svg" alt="\vert x \rangle\langle y\vert"/>.</p>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The outer product between x and y,
+<img class="math" src="_images/math/1c933d0877be38ba1dfac0fbaa567821ea885c61.svg" alt="\vert x \rangle\langle y\vert"/>.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
@@ -425,49 +328,28 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="qucumber.cplx.compT_matrix">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">compT_matrix</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L240"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.compT_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that returns the complex transpose of a complex tensor, x.</p>
+<dt id="qucumber.utils.cplx.conjugate">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">conjugate</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/6bf5869/qucumber/utils/cplx.py#L178"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.conjugate" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that takes the complex transpose of the argument.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex matri.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>torch.tensor</em>) – A complex vector or matrix.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x does not have 3 dimensions and its first dimension isn’t 2, the function cannot execute.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The conjugate of x.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The complex transpose of x.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.tensor</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="function">
-<dt id="qucumber.cplx.compT_vector">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">compT_vector</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L260"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.compT_vector" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that returns the complex conjugate of a complex vector, x.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex vector.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x does not have 2 dimensions and its first dimension isn’t 2, the function cannot execute.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The complex transpose of x.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="qucumber.cplx.kronecker_prod">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">kronecker_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L280"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.kronecker_prod" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function that returns the tensor / kronecker product of 2 comlex tensors, x and y.</p>
+<dt id="qucumber.utils.cplx.kronecker_prod">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">kronecker_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/6bf5869/qucumber/utils/cplx.py#L201"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.kronecker_prod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the tensor / kronecker product of 2 comlpex
+tensors, x and y.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -478,7 +360,8 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y do not have 3 dimensions or their first dimension is not 2, the function cannot execute.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y do not have 3 dimensions or their first
+dimension is not 2, the function cannot execute.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The tensorproduct of x and y, <img class="math" src="_images/math/3299bd9662cbb6422d088bd11b4f6b0dbb678793.svg" alt="x \otimes y"/>.</p>
@@ -492,26 +375,23 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="qucumber.cplx.VS_divide">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">VS_divide</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L318"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.VS_divide" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes x/y, where x is a complex vector and y is a complex scalar.</p>
+<dt id="qucumber.utils.cplx.scalar_divide">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">scalar_divide</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/6bf5869/qucumber/utils/cplx.py#L242"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.scalar_divide" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that computes the division of x by y.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex vector.</li>
-<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex scalar.</li>
+<li><strong>x</strong> (<em>torch.tensor</em>) – The numerator (a complex scalar, vector or matrix).</li>
+<li><strong>y</strong> (<em>torch.tensor</em>) – The denominator (a complex scalar).</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y do not have 2 entries (one for the real and imaginary parts each), then this function will not execute.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">x / y</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/6c169fe22c76e4f834f2a2073cf59946eea9c6ba.svg" alt="\frac{x}{y}"/>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.tensor</p>
 </td>
 </tr>
 </tbody>
@@ -519,35 +399,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="qucumber.cplx.MS_divide">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">MS_divide</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L343"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.MS_divide" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes x/y, where x is a complex tensor and y is a complex scalar.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex matrix.</li>
-<li><strong>y</strong> (<em>torch.doubleTensor</em>) – A complex scalar.i</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x is not a complex tensor (i.e. has 3 dimensions) and if its first dimension is not 2, OR if y’s dimension is not 2, the function will not execute.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/6c169fe22c76e4f834f2a2073cf59946eea9c6ba.svg" alt="\frac{x}{y}"/>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">torch.doubleTensor</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="qucumber.cplx.norm">
-<code class="descclassname">qucumber.cplx.</code><code class="descname">norm</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/b7ac42c/qucumber/cplx.py#L368"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.cplx.norm" title="Permalink to this definition">¶</a></dt>
+<dt id="qucumber.utils.cplx.norm">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">norm</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/6bf5869/qucumber/utils/cplx.py#L272"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that returns the norm of the argument.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -555,11 +408,9 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>torch.doubleTensor</em>) – A complex scalar.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x is not a complex scalar, this function will not execute.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/f66df25f9eb5bec373e5eafae89ccc5fd59bc71e.svg" alt="|x|^2"/>.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/f66df25f9eb5bec373e5eafae89ccc5fd59bc71e.svg" alt="|x|^2"/>.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.doubleTensor</td>
 </tr>
 </tbody>
 </table>
@@ -575,8 +426,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="data.html" class="btn btn-neutral float-right" title="Data Handler" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-        <a href="observables.html" class="btn btn-neutral" title="Observables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+        <a href="callbacks.html" class="btn btn-neutral" title="Callbacks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -607,7 +460,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.2',
+            VERSION:'0.2.0',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

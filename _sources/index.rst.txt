@@ -6,10 +6,10 @@ Version: |release|
    :maxdepth: 3
    :caption: Introduction
 
+   installation
    tutorial
-   _examples/QuCumberTutorial.ipynb
-   _examples/QuCumberTutorialReal.ipynb
-   _examples/QuCumberTutorialComplex.ipynb
+   _examples/tutorial_quantum_ising.ipynb
+   _examples/tutorial_2qubitsComplex.ipynb
    theory
 
 
@@ -18,11 +18,11 @@ Version: |release|
    :caption: API Reference
 
    rbm
-   samplers
+   quantum_states
+   quantum_reconstruction
    callbacks
-   observables
    cplx
-
+   data
 
 Indices and tables
 ==================
