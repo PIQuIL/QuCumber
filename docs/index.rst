@@ -8,8 +8,8 @@ Version: |release|
 
    installation
    tutorial
-   _examples/QuCumberTutorialReal.ipynb
-   _examples/QuCumberTutorialComplex.ipynb
+   _examples/tutorial_quantum_ising.ipynb
+   _examples/tutorial_2qubitsComplex.ipynb
    theory
 
 
@@ -18,7 +18,6 @@ Version: |release|
    :caption: API Reference
 
    rbm
-   samplers
    callbacks
    observables
    cplx
