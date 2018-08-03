@@ -256,7 +256,6 @@ def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
         grad_KL[0] -= probability(nn_state,vis[i], Z)*nn_state.rbm_am.effective_energy_gradient(vis[i])/float(len(bases))
 
     for b in range(1,len(bases)):
-        psi_r = rotate_psi(nn_state,bases[b],unitary_dict,vis)
         for i in range(len(vis)):
             rotated_grad = nn_state.gradient(bases[b],vis[i])
             grad_KL[0] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[0]/float(len(bases))
