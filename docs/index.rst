@@ -18,7 +18,6 @@ Version: |release|
    :caption: API Reference
 
    rbm
-   samplers
    callbacks
    observables
    cplx
