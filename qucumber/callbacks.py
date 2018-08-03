@@ -493,3 +493,10 @@ class MetricEvaluator(Callback):
                     metric_vals_for_epoch[metric_name] = val
             self.last = metric_vals_for_epoch.copy()
             self.metric_values.append((epoch, metric_vals_for_epoch))
+            print('Epoch = %d\t' % epoch,end='',flush=True)
+            for metric in self.metrics.keys():
+                print(metric + " = %.6f\t" % self.last[metric].item(),end='',flush=True)
+            print()
+
+
+

@@ -29,18 +29,19 @@ from torch.utils.data import DataLoader
 from torch.nn.utils import parameters_to_vector
 from tqdm import tqdm, tqdm_notebook
 import time
-import utils.cplx as cplx
-from utils.gradients_utils import vector_to_grads,_check_param_device
-from qucumber.samplers import Sampler
+
+import qucumber.utils.cplx as cplx
+from qucumber.utils.gradients_utils import vector_to_grads,_check_param_device
 from qucumber.callbacks import CallbackList
-from positive_wavefunction import PositiveWavefunction
-from complex_wavefunction import ComplexWavefunction
+from qucumber.positive_wavefunction import PositiveWavefunction
+from qucumber.complex_wavefunction import ComplexWavefunction
 import math as m
+
 __all__ = [
     "QuantumReconstruction"
 ]
 
-class QuantumReconstruction(Sampler):
+class QuantumReconstruction(object):
     def __init__(self, nn_state):
         super(QuantumReconstruction, self).__init__()
         self.nn_state = nn_state 
@@ -78,7 +79,7 @@ class QuantumReconstruction(Sampler):
         else:
             grad=[0.0,0.0]
             # Initialize
-            grad_data = [torch.zeros(self.nn_state.rbm_am.num_pars,dtype=torch.double),torch.zeros(self.nn_state.rbm_ph.num_pars,dtype=torch.double)]
+            grad_data = [torch.zeros(self.nn_state.rbm_am.num_pars,dtype=torch.double, device=self.nn_state.device),torch.zeros(self.nn_state.rbm_ph.num_pars,dtype=torch.double, device=self.nn_state.device)]
             # Loop over each sample in the batch
             for i in range(samples_batch.shape[0]):
                 # Positive phase: learning signal driven by the data (and bases)
@@ -133,7 +134,7 @@ class QuantumReconstruction(Sampler):
         else:
             optimizer = torch.optim.SGD(self.nn_state.rbm_am.parameters(),lr=lr)
             batch_bases = None
-        callbacks.on_train_start(self)
+        callbacks.on_train_start(self.nn_state)
         t0 = time.time()
         batch_num = m.ceil(train_samples.shape[0] / pos_batch_size)
         for ep in progress_bar(range(1,epochs+1), desc="Epochs ",
@@ -150,13 +151,13 @@ class QuantumReconstruction(Sampler):
                 pos_batches_bases = [shuffled_bases[batch_start:(batch_start + pos_batch_size)]
                            for batch_start in range(0, len(train_samples), pos_batch_size)]
              
-            callbacks.on_epoch_start(self, ep)
+            callbacks.on_epoch_start(self.nn_state, ep)
 
             if self.stop_training:  # check for stop_training signal
                 break
             
             for b in range(batch_num):
-                callbacks.on_batch_start(self, ep, b)
+                callbacks.on_batch_start(self.nn_state, ep, b)
 
                 if input_bases is None:
                     random_permutation      = torch.randperm(train_samples.shape[0])
@@ -176,13 +177,12 @@ class QuantumReconstruction(Sampler):
                     vector_to_grads(all_grads[p],rbm.parameters())
                 optimizer.step()  # tell the optimizer to apply the gradients
 
-                callbacks.on_batch_end(self, ep, b)
-            if observer is not None:
-                if ((ep % observer.frequency) == 0): 
-                    #if target_psi is not None:
-                    stat = observer.scan(ep,self.nn_state)
+                callbacks.on_batch_end(self.nn_state, ep, b)
+           # if ((ep % observer.frequency) == 0): 
+           #     #if target_psi is not None:
+           #     stat = observer.scan(ep,self.nn_state)
 
-            callbacks.on_epoch_end(self, ep)
+            callbacks.on_epoch_end(self.nn_state, ep)
         #F = self.fidelity(target_psi,vis)
         #print(F.item())
         #callbacks.on_train_end(self)

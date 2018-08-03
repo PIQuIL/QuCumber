@@ -19,10 +19,8 @@
 import random
 import torch
 import numpy as np
-from torch.distributions.utils import log_sum_exp
-import sys
-sys.path.append('../../../qucumber/')
-from observable import Observable
+
+from qucumber.observable import Observable
 __all__ = [
     "TransverseFieldIsingChain"
 ]
@@ -66,18 +64,37 @@ class TransverseFieldIsingChain(Observable):
                     v[i,j]=0.0
         return v
         
-    def Run(self,nn_state,n_eq=100):
-        v0 = torch.tensor(self.Randomize(nn_state.num_visible),dtype=torch.double)
+    def Run(self,nn_state,n_eq=100, show_convergence=False):
+        v0 = torch.tensor(self.Randomize(nn_state.num_visible),dtype=torch.double, device=nn_state.device)
         nn_state.set_visible_layer(v0)
-        nn_state.sample(n_eq)
-        samples = nn_state.visible_state 
+       
+        if show_convergence:
+            energy_list = []
+            sZ_list     = []
+            energy_list.append(self.Energy(nn_state, v0).item())
+            sZ_list.append(self.SigmaZ(v0).item())
+            for steps in range(n_eq):
+                nn_state.sample(1)
+                samples = nn_state.visible_state
+                energy_list.append(self.Energy(nn_state, samples).item())
+                sZ_list.append(self.SigmaZ(samples).item())
+                nn_state.set_visible_layer(samples)
+                
+            out = {'energy': energy_list,
+                   'sigmaZ': sZ_list
+                  }
+ 
+        else:
+            nn_state.sample(n_eq)
+            samples = nn_state.visible_state 
         
-        energy = self.Energy(nn_state,samples)
-        sZ = self.SigmaZ(samples)
+            energy = self.Energy(nn_state,samples)
+            sZ = self.SigmaZ(samples)
 
-        out = {'energy':energy,
+            out = {'energy':energy,
                 'sigmaZ': sZ
                 }
+
         return out
 
     def Energy(self,nn_state,samples):
@@ -93,8 +110,6 @@ class TransverseFieldIsingChain(Observable):
                         constant).
         :type sampler: qucumber.samplers.Sampler
         """
-        
-        #.data.numpy()    
         samples = to_pm1(samples)
         log_psis = -nn_state.rbm_am.effective_energy(to_01(samples)).div(2.)
 
@@ -110,8 +125,8 @@ class TransverseFieldIsingChain(Observable):
             ).div(2.)
             self._flip_spin(i, samples)  # flip it back
 
-        log_flipped_psis = log_sum_exp(
-            log_flipped_psis, keepdim=True).squeeze()
+        log_flipped_psis = torch.logsumexp(log_flipped_psis, 1, 
+                                           keepdim=True).squeeze()
 
         #if self.pbc:
         #    perm_indices = list(range(nn_state.rbm_am.shape[-1]))

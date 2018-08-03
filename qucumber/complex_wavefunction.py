@@ -28,23 +28,19 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm, tqdm_notebook
 
-from qucumber.samplers import Sampler
 from qucumber.callbacks import CallbackList
-from binary_rbm import BinaryRBM
-#import qucumber.cplx as cplx
-from utils import cplx
-from utils import unitaries
-from qucumber.samplers import Sampler
+from qucumber.binary_rbm import BinaryRBM
+import qucumber.utils.cplx as cplx
+import qucumber.utils.unitaries as unitaries
 from qucumber.callbacks import CallbackList
-from qucumber import unitaries
 
 __all__ = [
     "ComplexWavefunction"
 ]
 
-class ComplexWavefunction(Sampler):
+class ComplexWavefunction(object):
     
-    def __init__(self,num_visible,
+    def __init__(self, unitary_dict, num_visible,
                  num_hidden, gpu=True,
                  seed=1234):
         super(ComplexWavefunction, self).__init__()
@@ -54,9 +50,14 @@ class ComplexWavefunction(Sampler):
                                   seed=seed)
         self.rbm_ph = BinaryRBM(num_visible, num_hidden, gpu=gpu,
                                   seed=seed+72938)
+              
+        self.size_cut=20
+        self.space = None
+        self.Z = 0.0
+ 
         self.networks = ["rbm_am","rbm_ph"]
         self.device = self.rbm_am.device
-        self.unitary_dict = unitaries.create_dict()
+        self.unitary_dict = unitary_dict 
         self.visible_state = torch.zeros(1,self.num_visible,
                                          device=self.rbm_am.device,
                                          dtype=torch.double)
@@ -110,7 +111,7 @@ class ComplexWavefunction(Sampler):
         """
         cos_phase = (self.phase(v)).cos() 
         sin_phase = (self.phase(v)).sin() 
-        psi = torch.zeros(2, dtype=torch.double)
+        psi = torch.zeros(2, dtype=torch.double, device=self.device)
         psi[0] = self.amplitude(v)*cos_phase 
         psi[1] = self.amplitude(v)*sin_phase
         return psi
@@ -139,26 +140,28 @@ class ComplexWavefunction(Sampler):
         
         else:
             # Initialize
-            vp = torch.zeros(self.num_visible, dtype=torch.double)
-            rotated_grad = [torch.zeros(2,self.rbm_am.num_pars,dtype=torch.double),torch.zeros(2,self.rbm_ph.num_pars,dtype=torch.double)]
-            Upsi = torch.zeros(2, dtype=torch.double)
+            vp = torch.zeros(self.num_visible, dtype=torch.double, device = self.device)
+            rotated_grad = [torch.zeros(2,self.rbm_am.num_pars,dtype=torch.double, device = self.device),torch.zeros(2,self.rbm_ph.num_pars,dtype=torch.double, device = self.device)]
+            Upsi = torch.zeros(2, dtype=torch.double, device = self.device)
             
             # Sum over the full subspace where the rotation are applied
-            sub_state = self.generate_visible_space(num_U)
+            #sub_state = self.generate_visible_space(num_U)
+            sub_space = self.generate_Hilbert_space(num_U)
             for x in range(1<<num_U):
                 # Create the correct state for the full system (given the data)
                 cnt = 0
                 for j in range(self.num_visible):
                     if (basis[j] != 'Z'):
-                        vp[j]=sub_state[x][cnt] # This site sums (it is rotated)
+                        #vp[j]=sub_state[x][cnt] # This site sums (it is rotated)
+                        vp[j] = sub_space[x][cnt]
                         cnt += 1
                     else:
                         vp[j]=sample[j]         # This site is left unchanged
 
-                U = torch.tensor([1., 0.], dtype=torch.double) #Product of the matrix elements of the unitaries
+                U = torch.tensor([1., 0.], dtype=torch.double, device = self.device) #Product of the matrix elements of the unitaries
                 for ii in range(num_U):
                     tmp = self.unitary_dict[basis[rotated_sites[ii]]][:,int(sample[rotated_sites[ii]]),int(vp[rotated_sites[ii]])]
-                    U = cplx.scalar_mult(U,tmp)
+                    U = cplx.scalar_mult(U,tmp.to(self.device))
                 
                 # Gradient on the current configuration
                 grad_vp = [self.rbm_am.effective_energy_gradient(vp),self.rbm_ph.effective_energy_gradient(vp)]
@@ -186,22 +189,35 @@ class ComplexWavefunction(Sampler):
             self.hidden_state = self.rbm_am.sample_h_given_v(self.visible_state)
             self.visible_state = self.rbm_am.sample_v_given_h(self.hidden_state)
 
-
-    def generate_visible_space(self,size):
-        """Generates all possible visible states.
-
-        :returns: A tensor of all possible spin configurations.
+    def generate_Hilbert_space(self,size):
+        """Generates Hilbert space of dimension 2^size.
+    
+        :returns: A tensor with all the basis states of the Hilbert space.
         :rtype: torch.Tensor
         """
-        space = torch.zeros((1 << size, size),
-                            device="cpu", dtype=torch.double)
-        for i in range(1 << size):
-            d = i
-            for j in range(size):
-                d, r = divmod(d, 2)
-                space[i, size - j - 1] = int(r)
-        
-        return space
+        if (size > self.size_cut):
+            raise ValueError('Size of the Hilbert space too large!')
+        else: 
+            space = torch.zeros((1 << size, size),
+                                device=self.device, dtype=torch.double)
+            for i in range(1 << size):
+                d = i
+                for j in range(size):
+                    d, r = divmod(d, 2)
+                    space[i, size - j - 1] = int(r)
+            return space
+
+    def compute_normalization(self):
+        """Compute the normalization constant of the wavefunction.
+    
+        :param space: A rank 2 tensor of the entire visible space.
+        :type space: torch.Tensor
+
+        """
+        if (self.space is None):
+            raise ValueError('Missing Hilbert space')
+        else:
+            self.Z = self.rbm_am.compute_partition_function(self.space)
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with

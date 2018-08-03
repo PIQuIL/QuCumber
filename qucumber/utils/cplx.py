@@ -51,11 +51,11 @@ def make_complex(x, y): # wont work for scalars
     :rtype: torch.tensor
     """
     if (len(list(x.size())) == 2) and (len(list(y.size())) == 2): # matrices
-        z = torch.zeros(2, x.size()[0], x.size()[1], dtype=torch.double)
+        z = torch.zeros(2, x.size()[0], x.size()[1], dtype=torch.double, device=x.device)
         z[0] = x
         z[1] = y
     else: # vectors
-        z = torch.zeros(2, x.size()[0], dtype=torch.double)
+        z = torch.zeros(2, x.size()[0], dtype=torch.double, device=x.device)
         z[0] = x
         z[1] = y
     return z
@@ -99,12 +99,12 @@ def matmul(x,y):
     :rtype: torch.tensor
     """
     if len(list(y.size())) == 2: # if one of them is a vector (i.e. wanting to do MV mult)
-        z = torch.zeros(2, x.size()[1], dtype=torch.double)
+        z = torch.zeros(2, x.size()[1], dtype=torch.double, device=x.device)
         z[0] = torch.mv(x[0], y[0]) - torch.mv(x[1], y[1])
         z[1] = torch.mv(x[0], y[1]) + torch.mv(x[1], y[0])
 
     if len(list(y.size())) == 3:
-        z = torch.zeros(2, x.size()[1], y.size()[2], dtype=torch.double)
+        z = torch.zeros(2, x.size()[1], y.size()[2], dtype=torch.double, device=x.device)
         z[0] = torch.matmul(x[0], y[0]) - torch.matmul(x[1], y[1])
         z[1] = torch.matmul(x[0], y[1]) + torch.matmul(x[1], y[0])
     
@@ -123,7 +123,7 @@ def inner_prod(x, y):
     :returns: The inner product, :math:`\\langle x\\vert y\\rangle`.
     :rtype: torch.doubleTensor
     """
-    z = torch.zeros(2, dtype=torch.double)
+    z = torch.zeros(2, dtype=torch.double, device=x.device)
     
     if len(list(x.size())) == 2 and len(list(y.size())) == 2:
         z[0] = torch.dot(x[0], y[0]) - torch.dot(-x[1], y[1])
@@ -151,7 +151,7 @@ def outer_prod(x, y):
     if len(list(x.size())) < 2 or len(list(y.size())) < 2:
         raise ValueError('An input is not of the right dimension.')
 
-    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=torch.double)
+    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=torch.double, device=x.device)
     z[0] = torch.ger(x[0], y[0]) - torch.ger(x[1], -y[1])
     z[1] = torch.ger(x[0], -y[1]) + torch.ger(x[1], y[0])
 
@@ -167,12 +167,12 @@ def conjugate(x):
     :rtype: torch.tensor
     """
     if len(list(x.size())) == 2:
-        z = torch.zeros(2, x.size()[1], dtype=torch.double)
+        z = torch.zeros(2, x.size()[1], dtype=torch.double, device=x.device)
         z[0] = x[0]
         z[1] = -x[1]
 
     if len(list(x.size())) == 3:
-        z = torch.zeros(2, x.size()[2], x.size()[1], dtype=torch.double)
+        z = torch.zeros(2, x.size()[2], x.size()[1], dtype=torch.double, device=x.device)
         z[0] = torch.transpose(x[0], 0, 1)
         z[1] = -torch.transpose(x[1], 0, 1)
 
@@ -195,7 +195,7 @@ def kronecker_prod(x, y):
         raise ValueError('An input is not of the right dimension.')
 
     z = torch.zeros(2, x.size()[1]*y.size()[1],
-                    x.size()[2]*y.size()[2], dtype=torch.double)
+                    x.size()[2]*y.size()[2], dtype=torch.double, device=x.device)
 
     row_count = 0
 
@@ -249,18 +249,8 @@ def norm(x):
 
     :param x: A complex scalar.
     :type x: torch.doubleTensor
-conjugated 
-    :raises ValueError:	If x is not a complex scalar, this function will not execute.
 
     :returns: :math:`|x|^2`.
     :rtype: torch.doubleTensor
     """
-    if list(x.size())[0] != 2:
-        raise ValueError('An input is not of the right dimension.')
-    '''
-    x_conj = torch.zeros_like(x)
-    x_conj[0] = x[0]
-    x_conj[1] = -x[1]
-    '''
-    #return scalar_mult(x_conj, x)[0]
     return inner_prod(x, x)[0]

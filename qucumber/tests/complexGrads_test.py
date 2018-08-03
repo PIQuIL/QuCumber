@@ -6,7 +6,7 @@ import torch
 import numpy as np
 from complex_wavefunction import ComplexWavefunction
 from quantum_reconstruction import QuantumReconstruction
-
+import pickle
 def generate_visible_space(num_visible):
     """Generates all possible visible states.
 
@@ -249,21 +249,11 @@ def numeric_gradKL(param,nn_state,psi_dict,vis,unitary_dict,bases,eps):
 def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
 
     grad_KL = [torch.zeros(nn_state.rbm_am.num_pars,dtype=torch.double),torch.zeros(nn_state.rbm_ph.num_pars,dtype=torch.double)]
-#    grad_KL={}
-#    for net in nn_state.networks:
-#        tmp = {}
-#        rbm = getattr(nn_state, net)
-#        for par in rbm.state_dict():
-#            tmp[par]=0.0    
-#        grad_KL[net] = tmp
     Z = partition(nn_state,vis)
     
     for i in range(len(vis)):
         grad_KL[0] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.rbm_am.effective_energy_gradient(vis[i])/float(len(bases))
         grad_KL[0] -= probability(nn_state,vis[i], Z)*nn_state.rbm_am.effective_energy_gradient(vis[i])/float(len(bases))
-        #for par in rbm.state_dict():
-            #grad_KL['rbm_am'][par] += cplx.norm(psi_dict[bases[0]][:,i])*nn_state.rbm_am.effective_energy_gradient(vis[i])[par]/float(len(bases))
-            #grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.rbm_am.effective_energy_gradient(vis[i])[par]/float(len(bases))
 
     for b in range(1,len(bases)):
         psi_r = rotate_psi(nn_state,bases[b],unitary_dict,vis)
@@ -272,11 +262,6 @@ def algorithmic_gradKL(nn_state,psi_dict,vis,unitary_dict,bases):
             grad_KL[0] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[0]/float(len(bases))
             grad_KL[1] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[1]/float(len(bases))
             grad_KL[0] -=probability(nn_state,vis[i], Z)*nn_state.rbm_am.effective_energy_gradient(vis[i])/float(len(bases))
-            #for net in nn_state.networks:
-            #    for par in rbm.state_dict():
-            #        grad_KL[net][par] += cplx.norm(psi_dict[bases[b]][:,i])*rotated_grad[net][par]/float(len(bases))
-            #for par in rbm.state_dict():
-            #    grad_KL['rbm_am'][par] -= probability(nn_state,vis[i], Z)*nn_state.rbm_am.effective_energy_gradient(vis[i])[par]/float(len(bases))
     return grad_KL            
 
 
@@ -317,34 +302,28 @@ def run(qr,psi_dict,data_samples,data_bases,unitary_dict,bases,vis,eps,k):
             print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL[n][counter].item()))
             counter += 1
  
-        ##flat_weights = rbm.weights.data.view(-1)
-        ##flat_weights_grad_KL = alg_grad_KL[net]["weights"].view(-1)
-        ##flat_weights_grad_NLL = alg_grad_NLL[net]["weights"].view(-1)
-        ##num_grad_KL=numeric_gradKL(flat_weights,qr.nn_state,psi_dict,vis,unitary_dict,bases,eps)
-        ##num_grad_NLL = numeric_gradNLL(qr.nn_state,data_samples,data_bases,unitary_dict,flat_weights,vis,eps)
-        #
-        #print("\nTesting weights...")
-        #print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-        #for i in range(len(flat_weights)):
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],flat_weights_grad_KL[i]),end="", flush=True)
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],flat_weights_grad_NLL[i]))
-        #
-        #num_grad_KL=numeric_gradKL(rbm.visible_bias,qr.nn_state,psi_dict,vis,unitary_dict,bases,eps)
-        #num_grad_NLL = numeric_gradNLL(qr.nn_state,data_samples,data_bases,unitary_dict,rbm.visible_bias,vis,eps)
-        #print("\nTesting visible bias...")
-        #print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-        #for i in range(len(rbm.visible_bias)):
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL[net]["visible_bias"][i]),end="",flush=True)
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["visible_bias"][i]))
- 
-        #num_grad_KL=numeric_gradKL(rbm.hidden_bias,qr.nn_state,psi_dict,vis,unitary_dict,bases,eps)
-        #num_grad_NLL = numeric_gradNLL(qr.nn_state,data_samples,data_bases,unitary_dict,rbm.hidden_bias,vis,eps)
-        #print("\nTesting hidden bias...")
-        #print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-        #for i in range(len(rbm.hidden_bias)):
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_KL[i],alg_grad_KL[net]["hidden_bias"][i]),end="", flush=True)
-        #    print("{: 10.8f}\t{: 10.8f}\t\t".format(num_grad_NLL[i],alg_grad_NLL["rbm_am"]["hidden_bias"][i]))
 
     print('')
 
-
+if __name__ == '__main__':
+   
+    k=2
+    num_chains=10
+    seed=1234 
+    with open('data_test.pkl', 'rb') as fin:
+        test_data = pickle.load(fin)
+    train_bases = test_data['2qubits']['train_bases']
+    train_samples = torch.tensor(test_data['2qubits']['train_samples'],dtype = torch.double)
+    bases_data = test_data['2qubits']['bases'] 
+    target_psi_tmp=torch.tensor(test_data['2qubits']['target_psi'],dtype = torch.double)
+    nh = train_samples.shape[-1]
+    bases = transform_bases(bases_data)
+    unitary_dict = unitaries.create_dict()
+    psi_dict = load_target_psi(bases,target_psi_tmp) 
+    vis = generate_visible_space(train_samples.shape[-1]) 
+    nn_state = ComplexWavefunction(num_visible=train_samples.shape[-1],
+                                   num_hidden=nh,unitary_dict=unitary_dict)
+    qr = QuantumReconstruction(nn_state)
+    eps= 1.e-6
+    run(qr,psi_dict,train_samples,train_bases,unitary_dict,bases,vis,eps,k) 
+ 

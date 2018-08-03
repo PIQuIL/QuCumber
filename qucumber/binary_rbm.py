@@ -29,9 +29,7 @@ from torch.utils.data import DataLoader
 from torch.nn.utils import parameters_to_vector
 from tqdm import tqdm, tqdm_notebook
 
-#import qucumber.cplx as cplx
-import utils.cplx as cplx
-from qucumber.samplers import Sampler
+import qucumber.utils.cplx as cplx
 from qucumber.callbacks import CallbackList
 
 __all__ = [
@@ -45,7 +43,7 @@ def _warn_on_missing_gpu(gpu):
                       ResourceWarning)
 
 
-class BinaryRBM(nn.Module, Sampler):
+class BinaryRBM(nn.Module):
     def __init__(self, num_visible, num_hidden, zero_weights=False,
                  gpu=True, seed=None, num_chains = 100):
         super(BinaryRBM, self).__init__()
@@ -55,7 +53,7 @@ class BinaryRBM(nn.Module, Sampler):
         self.num_pars = self.num_visible*self.num_hidden+self.num_visible+self.num_hidden
         _warn_on_missing_gpu(gpu)
         self.gpu = gpu and torch.cuda.is_available()
-
+        self.size_cut = 16 #Maximum number of visible units for exact enumeration
         if seed:
             if self.gpu:
                 torch.cuda.manual_seed(seed)
@@ -136,7 +134,7 @@ class BinaryRBM(nn.Module, Sampler):
                   visible states v). 
         :rtype: torch.Tensor
         """
-        prob = F.sigmoid(F.linear(v, self.weights,self.hidden_bias))     
+        prob = torch.sigmoid(F.linear(v, self.weights,self.hidden_bias))     
         
         if len(v.shape) < 2:
             W_grad = -torch.einsum("j,k->jk", (prob, v))
@@ -160,7 +158,7 @@ class BinaryRBM(nn.Module, Sampler):
                   hidden state.
         :rtype: torch.Tensor
         """
-        p = F.sigmoid(F.linear(h, self.weights.t(), self.visible_bias))
+        p = torch.sigmoid(F.linear(h, self.weights.t(), self.visible_bias))
         return p
 
     def prob_h_given_v(self, v):
@@ -174,7 +172,7 @@ class BinaryRBM(nn.Module, Sampler):
                   visible state.
         :rtype: torch.Tensor
         """
-        p = F.sigmoid(F.linear(v, self.weights, self.hidden_bias))
+        p = torch.sigmoid(F.linear(v, self.weights, self.hidden_bias))
         return p
 
 
@@ -205,3 +203,23 @@ class BinaryRBM(nn.Module, Sampler):
         p = self.prob_h_given_v(v)
         h = p.bernoulli()
         return h
+
+    def compute_partition_function(self,space):
+        """The natural logarithm of the partition function of the RBM.
+    
+        :param space: A rank 2 tensor of the visible space.
+        :type space: torch.Tensor
+    
+        :returns: The natural log of the partition function.
+        :rtype: torch.Tensor
+        """
+        free_energies = -self.effective_energy(space)
+        max_free_energy = free_energies.max()
+    
+        f_reduced = free_energies - max_free_energy
+        logZ = max_free_energy + f_reduced.exp().sum().log()
+        Z = logZ.exp()        
+        
+        return Z
+
+
