@@ -41,15 +41,12 @@ __all__ = [
 class ComplexWavefunction(object):
     
     def __init__(self, unitary_dict, num_visible,
-                 num_hidden, gpu=True,
-                 seed=1234):
+                 num_hidden, gpu=True):
         super(ComplexWavefunction, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
-        self.rbm_am = BinaryRBM(num_visible, num_hidden, gpu=gpu,
-                                  seed=seed)
-        self.rbm_ph = BinaryRBM(num_visible, num_hidden, gpu=gpu,
-                                  seed=seed+72938)
+        self.rbm_am = BinaryRBM(num_visible, num_hidden, gpu=gpu)
+        self.rbm_ph = BinaryRBM(num_visible, num_hidden, gpu=gpu)
               
         self.size_cut=20
         self.space = None
@@ -66,7 +63,9 @@ class ComplexWavefunction(object):
                                          dtype=torch.double)
 
     def randomize(self):
-        """Randomize the parameters of the amplitude and phase RBM"""
+        r"""Randomize the parameters :math:`\bm{\lambda}=\{\bm{W}^{\bm{\lambda}},
+        \bm{b}^{\bm{\lambda}},\bm{c}^{\bm{\lambda}}\}` and :math:`\bm{\mu}=\{\bm{W}^{\bm{\mu}},
+        \bm{b}^{\bm{\mu}},\bm{c}^{\bm{\mu}}\}` of the amplitude and phase RBM respectively."""
         self.rbm_am.randomize()
         self.rbm_ph.randomize()
         
@@ -79,9 +78,14 @@ class ComplexWavefunction(object):
         self.visible_state = v
    
     def amplitude(self,v):
-        r""" Compute the amplitude of a given vector/matrix of visible states
+        r""" Compute the amplitude of a given vector/matrix of visible states:
+        
+        .. math::
+            
+            \text{amplitude}(\bm{\sigma})=|\psi_{\bm{\lambda\mu}}(\bm{\sigma})|=
+            e^{-\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})/2}
 
-        :param v: visible states
+        :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.tensor
 
         :returns Matrix/vector containing the amplitudes of v
@@ -92,7 +96,11 @@ class ComplexWavefunction(object):
     def phase(self,v):
         r""" Compute the phase of a given vector/matrix of visible states
 
-        :param v: visible states
+        .. math::
+            
+            \text{phase}(\bm{\sigma})=-\mathcal{E}_{\bm{\mu}}(\bm{\sigma})/2
+
+        :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.tensor
 
         :returns Matrix/vector containing the phases of v
@@ -101,13 +109,17 @@ class ComplexWavefunction(object):
         return -0.5*self.rbm_ph.effective_energy(v)
    
     def psi(self,v):
-        r""" Compute the wavefunction coefficient  of a given vector/matrix of visible states
+        r""" Compute the wavefunction of a given vector/matrix of visible states:
 
-        :param v: visible states
+        .. math::
+
+            \psi_{\bm{\lambda\mu}}(\bm{\sigma}) = e^{-[\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})+i\mathcal{E}_{\bm{\mu}}(\bm{\sigma}]/2}
+
+        :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.tensor
 
-        :returns Complex object containing the wavefunction coefficients of v
-        :rtype torch.tensor
+        :returns: Complex object containing the value of the wavefunction for each visible state
+        :rtype: torch.tensor
         """
         cos_phase = (self.phase(v)).cos() 
         sin_phase = (self.phase(v)).sin() 
@@ -178,19 +190,21 @@ class ComplexWavefunction(object):
 
         return grad
 
-    def sample(self, k):
-        """Performs k steps of Block Gibbs sampling given an initial visible
-        state v0.
+    def sample(self, k_cd):
+        r"""Performs k steps of Block Gibbs sampling. One step consists of sampling
+        the hidden state :math:`\bm{h}` from the conditional distribution 
+        :math:`p_{\bm{\lambda}}(\bm{h}\:|\:\bm{v})`, and sampling the visible state
+        :math:`\bm{v}` from the conditional distribution :math:`p_{\bm{\lambda}}(\bm{v}\:|\:\bm{h})`.
 
-        :param k: Number of Block Gibbs steps.
-        :type k: int
+        :param k_cd: Number of Block Gibbs steps.
+        :type k_cd: int
         """
-        for _ in range(k):
+        for _ in range(k_cd):
             self.hidden_state = self.rbm_am.sample_h_given_v(self.visible_state)
             self.visible_state = self.rbm_am.sample_v_given_h(self.hidden_state)
 
     def generate_Hilbert_space(self,size):
-        """Generates Hilbert space of dimension 2^size.
+        r"""Generates Hilbert space of dimension :math:`2^{\text{size}}`.
     
         :returns: A tensor with all the basis states of the Hilbert space.
         :rtype: torch.Tensor
@@ -208,8 +222,13 @@ class ComplexWavefunction(object):
             return space
 
     def compute_normalization(self):
-        """Compute the normalization constant of the wavefunction.
-    
+        r"""Compute the normalization constant of the wavefunction.
+        
+        .. math::
+            
+            Z_{\bm{\lambda}}=\sqrt{\sum_{\bm{\sigma}}|\psi_{\bm{\lambda\mu}}|^2}=
+            \sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}
+
         :param space: A rank 2 tensor of the entire visible space.
         :type space: torch.Tensor
 
