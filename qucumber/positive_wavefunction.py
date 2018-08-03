@@ -59,10 +59,10 @@ class PositiveWavefunction(object):
                                          device=self.rbm_am.device,
                                          dtype=torch.double)
 
-    def randomize(self):
+    def initialize_parameters(self):
         r"""Randomize the parameters :math:`\bm{\lambda}=\{\bm{W},\bm{b},\bm{c}\}` of 
         the RBM parametrizing the wavefunction."""
-        self.rbm_am.randomize()
+        self.rbm_am.initialize_parameters()
 
     def set_visible_layer(self,v):
         r""" Set the visible state to a given vector/matrix

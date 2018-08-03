@@ -62,12 +62,12 @@ class ComplexWavefunction(object):
                                          device=self.rbm_am.device,
                                          dtype=torch.double)
 
-    def randomize(self):
+    def initialize_parameters(self):
         r"""Randomize the parameters :math:`\bm{\lambda}=\{\bm{W}^{\bm{\lambda}},
         \bm{b}^{\bm{\lambda}},\bm{c}^{\bm{\lambda}}\}` and :math:`\bm{\mu}=\{\bm{W}^{\bm{\mu}},
         \bm{b}^{\bm{\mu}},\bm{c}^{\bm{\mu}}\}` of the amplitude and phase RBM respectively."""
-        self.rbm_am.randomize()
-        self.rbm_ph.randomize()
+        self.rbm_am.initialize_parameters()
+        self.rbm_ph.initialize_parameters()
         
     def set_visible_layer(self,v):
         r""" Set the visible state to a given vector/matrix
