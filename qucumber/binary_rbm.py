@@ -134,7 +134,7 @@ class BinaryRBM(nn.Module):
                   visible states v). 
         :rtype: torch.Tensor
         """
-        prob = F.sigmoid(F.linear(v, self.weights,self.hidden_bias))     
+        prob = torch.sigmoid(F.linear(v, self.weights,self.hidden_bias))     
         
         if len(v.shape) < 2:
             W_grad = -torch.einsum("j,k->jk", (prob, v))
@@ -158,7 +158,7 @@ class BinaryRBM(nn.Module):
                   hidden state.
         :rtype: torch.Tensor
         """
-        p = F.sigmoid(F.linear(h, self.weights.t(), self.visible_bias))
+        p = torch.sigmoid(F.linear(h, self.weights.t(), self.visible_bias))
         return p
 
     def prob_h_given_v(self, v):
@@ -172,7 +172,7 @@ class BinaryRBM(nn.Module):
                   visible state.
         :rtype: torch.Tensor
         """
-        p = F.sigmoid(F.linear(v, self.weights, self.hidden_bias))
+        p = torch.sigmoid(F.linear(v, self.weights, self.hidden_bias))
         return p
 
 

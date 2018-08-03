@@ -322,7 +322,7 @@ if __name__ == '__main__':
     psi_dict = load_target_psi(bases,target_psi_tmp) 
     vis = generate_visible_space(train_samples.shape[-1]) 
     nn_state = ComplexWavefunction(num_visible=train_samples.shape[-1],
-                                   num_hidden=nh)
+                                   num_hidden=nh,unitary_dict=unitary_dict)
     qr = QuantumReconstruction(nn_state)
     eps= 1.e-6
     run(qr,psi_dict,train_samples,train_bases,unitary_dict,bases,vis,eps,k) 

@@ -1,4 +1,4 @@
-from qucumber.rbm import BinomialRBM
+#from qucumber.binary_rbm import BinaryRBM
 import sys
 sys.path.append('../')
 import torch
