@@ -1,4 +1,5 @@
-![](QuCumber.png)
+<img src="QuCumber.png" alt="drawing" width="70%"/>
+
 
 [![Build Status](https://travis-ci.com/PIQuIL/QuCumber.svg?branch=master)](https://travis-ci.com/PIQuIL/QuCumber)
 [![PyPI version](https://badge.fury.io/py/qucumber.svg)](https://badge.fury.io/py/qucumber)
@@ -20,7 +21,7 @@ QuCumber is developed by the Perimeter Institute Quantum Intelligence Lab (PIQuI
 The project is currently in an early-beta, expect some rough edges, bugs, and backward incompatible updates.
 
 ## Requirements
-Python 3. QuCumber is written in PyTorch, with CPU and GPU support.  See https://pytorch.org.
+Python 3.6. QuCumber is written in PyTorch, with CPU and GPU support.  See https://pytorch.org.
 
 ## Features
 QuCumber implements unsupervised generative modelling with a two-layer RBM.
