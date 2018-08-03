@@ -20,13 +20,12 @@ import random
 import torch
 import numpy as np
 
-from qucumber.observable import Observable
 __all__ = [
     "TransverseFieldIsingChain"
 ]
 
 
-class TransverseFieldIsingChain(Observable):
+class TransverseFieldIsingChain():
 
     def __init__(self,h,nc,pbc=False):
         super(TransverseFieldIsingChain, self).__init__()
