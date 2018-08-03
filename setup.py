@@ -16,7 +16,7 @@ setuptools.setup(
         'Operating System :: OS Independent'
       ],
       install_requires=[
-        'torch==0.4',
+        'torch==0.4.1',
         'tqdm>=4.23',
         'numpy>=1.14',
         'matplotlib>=2.2'

@@ -31,6 +31,8 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then cd docs && mkdir -p _static _templates && PYTHONPATH=../ make html && cd ../; fi
   - python setup.py sdist bdist_wheel
 
+before_deploy:
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then tar -czvf examples.tar.gz examples; fi
 deploy:
   - provider: pages
     skip-cleanup: true
@@ -41,6 +43,19 @@ deploy:
     on:
       repo: PIQuIL/QuCumber
       branch: master
+      condition: $TRAVIS_PYTHON_VERSION == '3.6'
+  - provider: releases
+    skip-cleanup: true
+    github-token: "$GITHUB_TOKEN"
+    file:
+      - dist/*.whl
+      - dist/*.tar.gz
+      - examples.tar.gz
+    file_glob: true
+    on:
+      repo: PIQuIL/QuCumber
+      tags: true
+      condition: $TRAVIS_PYTHON_VERSION == '3.6'
   - provider: pypi
     user: PIQuIL
     password:

@@ -1,8 +1,9 @@
 .. include:: macros.hrst
 
-RBM
+Quantum Reconstruction
 ==============================
 
-.. autoclass:: qucumber.binary_rbm.BinaryRBM
+.. autoclass:: qucumber.quantum_reconstruction.QuantumReconstruction
     :members:
     :show-inheritance:
+
