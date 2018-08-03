@@ -25,10 +25,10 @@ def load_params(param_file):
 
 # REAL POSITIVE WAVEFUNCTION
 @cli.command("train_real")
-@click.option('--tr-samples-path', default='../examples/01_Ising/tfim1d_N10_train_samples.txt',
+@click.option('--tr-samples-path', default='../examples/01_Ising/tfim1d_train_samples.txt',
               show_default=True, type=click.Path(exists=True),
               help="path to the training data")
-@click.option('--target-psi-path', default='../examples/01_Ising/tfim1d_N10_psi.txt',
+@click.option('--target-psi-path', default='../examples/01_Ising/tfim1d_psi.txt',
               show_default=True, type=click.Path(exists=True),
               help=("path to the file containing the true wavefunctions "
                     "in each basis."))
@@ -117,7 +117,7 @@ def train_complex(tr_samples_path,tr_bases_path,target_psi_path,bases_path,num_h
                         else num_hidden)
 
     nn_state = ComplexWavefunction(num_visible=num_visible,
-                               num_hidden=num_hidden)
+                               num_hidden=num_hidden,unitary_dict=unitary_dict)
    
     
     z_samples = extract_refbasis_samples(train_samples,train_bases)

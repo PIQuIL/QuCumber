@@ -1,7 +1,7 @@
 .. include:: macros.hrst
 
-Complex Algebra
+Data Handler
 ===============
 
-.. automodule:: qucumber.utils.cplx
+.. automodule:: qucumber.utils.data
    :members:
