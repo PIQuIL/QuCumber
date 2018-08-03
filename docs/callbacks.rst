@@ -18,3 +18,5 @@ Callbacks
 
 .. autoclass:: qucumber.callbacks.MetricEvaluator
     :members: get_value, __len__
+
+.. autoclass:: qucumber.callbacks.LivePlotting

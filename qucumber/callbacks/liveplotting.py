@@ -27,6 +27,21 @@ from .callback import Callback
 
 
 class LivePlotting(Callback):
+    r"""Plots metrics.
+    This Callback is called at the end of each epoch.
+
+    :param period: Frequency with which the callback updates the plots
+                   (in epochs).
+    :type period: int
+    :param metric_callback: An instance of
+        :class:`MetricEvaluator<MetricEvaluator>` which computes the metric
+        that we want to check for convergence.
+    :type metric_callback: :class:`MetricEvaluator<MetricEvaluator>`
+    :param metric_name: The name of the metric stored in `metric_callback`.
+    :type metric_name: str
+    :param error_name: The name of the error stored in `metric_callback`.
+    :type error_name: str
+    """
     def __init__(self, period, metric_evaluator, metric_name,
                  error_name=None, total_epochs=None, smooth=True):
         self.period = period
