@@ -15,11 +15,3 @@ Real Positive Wavefunction RBM
 .. autoclass:: qucumber.rbm.BinomialRBM
     :members:
     :show-inheritance:
-
-Complex Wavefunction RBM
------------------------------
-.. note:: Currently under development, use at own risk
-
-.. autoclass:: qucumber.rbm.ComplexRBM
-    :members:
-    :show-inheritance:
