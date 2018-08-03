@@ -183,33 +183,25 @@ class PositiveWavefunction(object):
         else:
             self.Z = self.rbm_am.compute_partition_function(self.space)
 
-    #@staticmethod
-    #def autoload(location, gpu=False):
-    #    """Initializes an RBM from the parameters in the given location,
-    #    ignoring any metadata stored in the file.
+    @staticmethod
+    def autoload(location, gpu=False):
+        """Initializes an RBM from the parameters in the given location,
+        ignoring any metadata stored in the file.
 
-    #    :param location: The location to load the RBM parameters from
-    #    :type location: str or file
+        :param location: The location to load the RBM parameters from
+        :type location: str or file
 
-    #    :returns: A new RBM initialized from the given parameters
-    #    :rtype: BinomialRBM
-    #    """
-    #    '''
-    #    _warn_on_missing_gpu(gpu)
-    #    gpu = gpu and torch.cuda.is_available()
+        :returns: A new RBM initialized from the given parameters
+        :rtype: BinomialRBM
+        """
+        state_dict = torch.load(location)
+        
+        rbm = BinaryRBM(num_visible=len(state_dict["rbm_am"]['visible_bias']),
+                        num_hidden=len(state_dict["rbm_am"]['hidden_bias']),
+                        gpu=gpu,
+                        seed=None)
 
-    #    if gpu:
-    #        state_dict = torch.load(location, lambda storage, loc: 'cuda')
-    #    else:
-    #        state_dict = torch.load(location, lambda storage, loc: 'cpu')
-    #    '''
-    #    state_dict = torch.load(location)
-    #    
-    #    rbm = BinomialRBM(num_visible=len(state_dict['visible_bias']),
-    #                      num_hidden=len(state_dict['hidden_bias']),
-    #                      gpu=gpu,
-    #                      seed=None)
-    #    rbm.rbm.load_state_dict(state_dict, strict=False)
+        rbm.load_state_dict(state_dict, strict=False)
 
-    #    return rbm
+        return rbm
 

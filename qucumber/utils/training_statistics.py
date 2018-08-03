@@ -25,7 +25,7 @@ import qucumber.utils.unitaries as unitaries
 def fidelity(nn_state,target_psi,bases=None):
     nn_state.compute_normalization() 
     F = torch.tensor([0., 0.], dtype=torch.double, device = nn_state.device) 
-    target_psi = target_psi
+    target_psi = target_psi.to(nn_state.device)
     for i in range(len(nn_state.space)):
         psi = nn_state.psi(nn_state.space[i])/(nn_state.Z).sqrt()
         F[0] += target_psi[0,i]*psi[0]+target_psi[1,i]*psi[1]

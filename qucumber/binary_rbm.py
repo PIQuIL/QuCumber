@@ -28,7 +28,7 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torch.nn.utils import parameters_to_vector
 from tqdm import tqdm, tqdm_notebook
-
+from torch.backends import cudnn
 import qucumber.utils.cplx as cplx
 from qucumber.callbacks import CallbackList
 

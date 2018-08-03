@@ -97,7 +97,6 @@ class QuantumReconstruction(object):
             observer=None,
             input_bases = None,z_samples = None,
             progbar=False,callbacks=[]):
-            
         """Execute the training of the RBM.
 
         :param input_samples: The training samples
@@ -161,16 +160,17 @@ class QuantumReconstruction(object):
 
                 if input_bases is None:
                     random_permutation      = torch.randperm(train_samples.shape[0])
-                    neg_batch        = train_samples[random_permutation][0:neg_batch_size]
+                    neg_batch = train_samples[random_permutation][0:neg_batch_size]
                 
                 else:
+                    z_samples = z_samples.to(self.nn_state.device)
                     random_permutation      = torch.randperm(z_samples.shape[0])
                     neg_batch = z_samples[random_permutation][0:neg_batch_size]
                     batch_bases = pos_batches_bases[b]
+
                 self.nn_state.set_visible_layer(neg_batch)
                 all_grads = self.compute_batch_gradients(k, pos_batches[b],batch_bases)
                 optimizer.zero_grad()  # clear any cached gradients
-                
                 
                 for p,net in enumerate(self.nn_state.networks):
                     rbm = getattr(self.nn_state,net)
@@ -178,29 +178,8 @@ class QuantumReconstruction(object):
                 optimizer.step()  # tell the optimizer to apply the gradients
 
                 callbacks.on_batch_end(self.nn_state, ep, b)
-           # if ((ep % observer.frequency) == 0): 
-           #     #if target_psi is not None:
-           #     stat = observer.scan(ep,self.nn_state)
 
             callbacks.on_epoch_end(self.nn_state, ep)
-        #F = self.fidelity(target_psi,vis)
-        #print(F.item())
-        #callbacks.on_train_end(self)
+
         t1 = time.time()
         print("\nElapsed time = %.2f" %(t1-t0)) 
-
-
-
-# FULL GRADIENT
-#self.nn_state.set_visible_layer(neg_batches)
-#self.nn_state.set_visible_layer(train_samples[0:100])
-#all_grads = self.compute_batch_gradients(k, data_samples,train_bases)
-#optimizer.zero_grad()  # clear any cached gradients
-###assign all available gradients to the corresponding parameter
-#for net in self.nn_state.networks:
-#    rbm = getattr(self.nn_state, net)
-#    for param in all_grads[net].keys():
-#        getattr(rbm, param).grad = all_grads[net][param]
-
-#optimizer.step()  # tell the optimizer to apply the gradients
-

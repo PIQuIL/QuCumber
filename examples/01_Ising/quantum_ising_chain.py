@@ -33,22 +33,13 @@ class TransverseFieldIsingChain(Observable):
         self.h = h
         self.pbc = pbc
         self.nc = nc 
+
+
     def __repr__(self):
         return (f"TransverseFieldIsingChain(h={self.h},"
                 f"pbc={self.pbs})")
-#class TFIMChainEnergy(Observable):
-#    """Observable defining the energy of a Transverse Field Ising Model (TFIM)
-#    spin chain with nearest neighbour interactions, and :math:`J=1`.
-#
-#    :param h: The strength of the tranverse field
-#    :type h: float
-#    :param density: Whether to compute the energy per spin site.
-#    :type density: bool
-#    :param periodic_bcs: If `True` use periodic boundary conditions,
-#                         otherwise use open boundary conditions.
-#    :type periodic_bcs: bool
-#    """
-#
+
+
     @staticmethod
     def _flip_spin(i, s):
         s[:, i] *= -1.0
@@ -64,24 +55,39 @@ class TransverseFieldIsingChain(Observable):
                     v[i,j]=0.0
         return v
         
+
     def Run(self,nn_state,n_eq=100, show_convergence=False):
         v0 = torch.tensor(self.Randomize(nn_state.num_visible),dtype=torch.double, device=nn_state.device)
         nn_state.set_visible_layer(v0)
        
         if show_convergence:
             energy_list = []
-            sZ_list     = []
-            energy_list.append(self.Energy(nn_state, v0).item())
-            sZ_list.append(self.SigmaZ(v0).item())
+            err_energy  = []
+
+            sZ_list = []
+            err_sZ  = []
+
+            energy = self.Energy(nn_state, v0, show_convergence)
+            energy_list.append(energy.mean().item())
+            err_energy.append((torch.std(energy)/np.sqrt(energy.size()[0])).item())
+
+            sZ = self.SigmaZ(v0, show_convergence)
+            sZ_list.append(sZ.mean().item())
+            err_sZ.append((torch.std(sZ)/np.sqrt(sZ.size()[0])).item())
+
             for steps in range(n_eq):
                 nn_state.sample(1)
                 samples = nn_state.visible_state
-                energy_list.append(self.Energy(nn_state, samples).item())
-                sZ_list.append(self.SigmaZ(samples).item())
+                energy_list.append(self.Energy(nn_state, samples,
+                                               show_convergence)
+                                   .mean().item())
+                sZ_list.append(self.SigmaZ(samples,
+                                           show_convergence)
+                               .mean() .item())
                 nn_state.set_visible_layer(samples)
                 
-            out = {'energy': energy_list,
-                   'sigmaZ': sZ_list
+            out = {'energy': {'energies': np.array(energy_list), 'error': np.array(err_energy)},
+                   'sigmaZ': {'sZ': np.array(sZ_list), 'error': np.array(err_sZ)}
                   }
  
         else:
@@ -97,7 +103,8 @@ class TransverseFieldIsingChain(Observable):
 
         return out
 
-    def Energy(self,nn_state,samples):
+
+    def Energy(self,nn_state,samples, show_convergence=False):
         """Computes the energy of each sample given a batch of
         samples.
 
@@ -128,12 +135,6 @@ class TransverseFieldIsingChain(Observable):
         log_flipped_psis = torch.logsumexp(log_flipped_psis, 1, 
                                            keepdim=True).squeeze()
 
-        #if self.pbc:
-        #    perm_indices = list(range(nn_state.rbm_am.shape[-1]))
-        #    perm_indices = perm_indices[1:] + [0]
-        #    interaction_terms = ((samples * samples[:, perm_indices])
-        #                         .sum(1))
-        #else:
         interaction_terms = ((samples[:, :-1] * samples[:, 1:])
                                  .sum(1))      # sum over spin sites
 
@@ -141,51 +142,32 @@ class TransverseFieldIsingChain(Observable):
                                   .sub(log_psis)
                                   .exp())  # convert to ratio of probabilities
 
-        energy = (transverse_field_terms
-                  .mul(self.h)
-                  .add(interaction_terms)
-                  .mul(-1.)).mean()
+        if show_convergence:
+            energy = (transverse_field_terms.mul(self.h).add(interaction_terms)
+                      .mul(-1.))
+        
+        else:
+            energy = (transverse_field_terms.mul(self.h).add(interaction_terms)
+                      .mul(-1.)).mean()          
 
         return energy.div(samples.shape[-1])
 
-    def SigmaZ(self, samples, sampler=None):
+    def SigmaZ(self, samples, show_convergence=False):
         """Computes the magnetization of each sample given a batch of samples.
 
         :param samples: A batch of samples to calculate the observable on.
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
-        :param sampler: The sampler that drew the samples. Will be ignored.
-        :type sampler: qucumber.samplers.Sampler
         """
-        return (to_pm1(samples)
-                .mean(1)
-                .abs()).mean()
+        if show_convergence:
+            return (to_pm1(samples)
+                    .mean(1)
+                    .abs())
 
-#class TFIMChainMagnetization(Observable):
-#    """Observable defining the magnetization of a Transverse Field Ising Model
-#    (TFIM) spin chain.
-#    """
-#
-#    def __init__(self):
-#        super(TFIMChainMagnetization, self).__init__()
-#
-#    def __repr__(self):
-#        return "TFIMChainMagnetization()"
-#
-#    def apply(self, samples, sampler=None):
-#        """Computes the magnetization of each sample given a batch of samples.
-#
-#        :param samples: A batch of samples to calculate the observable on.
-#                        Must be using the :math:`\sigma_i = 0, 1` convention.
-#        :type samples: torch.Tensor
-#        :param sampler: The sampler that drew the samples. Will be ignored.
-#        :type sampler: qucumber.samplers.Sampler
-#        """
-#        return (to_pm1(samples)
-#                .mean(1)
-#                .abs())
-#
-
+        else:
+            return (to_pm1(samples)
+                    .mean(1)
+                    .abs()).mean()           
 
 
 def to_pm1(samples):
