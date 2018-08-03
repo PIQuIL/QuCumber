@@ -16,9 +16,10 @@ setuptools.setup(
         'Operating System :: OS Independent'
       ],
       install_requires=[
-        'torch>=0.4.1,<=0.5',
+        'torch==0.4.1',
         'tqdm>=4.23',
-        'numpy>=1.14'
+        'numpy>=1.14',
+        'matplotlib>=2.2'
       ],
       include_package_data=True,
       url='http://github.com/PIQuIL/QuCumber',

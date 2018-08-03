@@ -14,7 +14,8 @@ underlying the measurement data. It can be used for generative modelling, i.e.
 producing new instances of measurements, and to calculate estimators not
 contained in the original data set.
 
-QuCumber is developed by the Perimeter Institue Quantum Intelligence Lab (PIQuIL).
+QuCumber is developed by the Perimeter Institute Quantum Intelligence Lab (PIQuIL).
+The project is currently in an early-beta, expect some rough edges, bugs, and backward incompatible updates.
 
 ## License
 QuCumber is licensed under the Apache License Version 2.0.
