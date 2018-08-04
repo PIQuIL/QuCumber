@@ -1,7 +1,7 @@
 # Minimal makefile for Sphinx documentation
 
 # You can set these variables from the command line.
-SPHINXOPTS    = -aT
+SPHINXOPTS    = -j auto -aT
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = QuCumber
 SOURCEDIR     = .
@@ -29,7 +29,7 @@ help:
 
 test:
 	$(call move_examples)
-	@$(SPHINXBUILD) -n -b dummy "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -nW -b dummy "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 livehtml:
 	$(call move_examples)
@@ -42,7 +42,7 @@ livehtml:
 
 livetest:
 	$(call move_examples)
-	sphinx-autobuild -n \
+	sphinx-autobuild -nW \
 		-z ../qucumber \
 		-i *.swp \
 		-i Makefile \
