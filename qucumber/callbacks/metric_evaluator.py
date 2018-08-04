@@ -17,8 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from .callback import Callback
-
+#from .callback import Callback
+from callback import Callback
 
 class MetricEvaluator(Callback):
     """Evaluate and hold on to the results of the given metric(s).
@@ -49,11 +49,12 @@ class MetricEvaluator(Callback):
     :type metrics: dict(str, callable)
     :param \**metric_kwargs: Keyword arguments to be passed to `metrics`.
     """
-    def __init__(self, period, metrics, **metric_kwargs):
+    def __init__(self, period, metrics, print_flag=False, **metric_kwargs):
         self.period = period
         self.metrics = metrics
         self.metric_values = []
         self.last = {}
+        self.print_flag=print_flag
         self.metric_kwargs = metric_kwargs
 
     def __len__(self):
@@ -87,3 +88,9 @@ class MetricEvaluator(Callback):
                     metric_vals_for_epoch[metric_name] = val
             self.last = metric_vals_for_epoch.copy()
             self.metric_values.append((epoch, metric_vals_for_epoch))
+
+            if (self.print_flag is True):
+                print("Epoch: %.d\t" % epoch,end='',flush=True)
+                for metric in self.metrics.keys():
+                    print(metric + " = %.6f\t" % self.last[metric].item(),end='',flush=True)
+                print()
