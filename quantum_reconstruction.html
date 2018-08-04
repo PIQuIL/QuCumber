@@ -183,67 +183,6 @@
 </style>
 <div class="section" id="quantum-reconstruction">
 <h1>Quantum Reconstruction<a class="headerlink" href="#quantum-reconstruction" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="qucumber.quantum_reconstruction.QuantumReconstruction">
-<em class="property">class </em><code class="descclassname">qucumber.quantum_reconstruction.</code><code class="descname">QuantumReconstruction</code><span class="sig-paren">(</span><em>nn_state</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/158ecf7/qucumber/quantum_reconstruction.py#L44"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.quantum_reconstruction.QuantumReconstruction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<dl class="method">
-<dt id="qucumber.quantum_reconstruction.QuantumReconstruction.compute_batch_gradients">
-<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k_cd</em>, <em>samples_batch</em>, <em>bases_batch=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/158ecf7/qucumber/quantum_reconstruction.py#L52"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.quantum_reconstruction.QuantumReconstruction.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function will compute the gradients of a batch of the training
-data (samples_batch). If measurements are taken in bases other than the
-reference basis, a list of bases (bases_batch) must also be provided.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>k_cd</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of contrastive divergence steps in training.</li>
-<li><strong>samples_batch</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – Batch of the input samples.</li>
-<li><strong>bases_batch</strong> (<em>np.array</em>) – Batch of the input bases</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List containing the gradients of the parameters.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="qucumber.quantum_reconstruction.QuantumReconstruction.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>input_samples</em>, <em>epochs</em>, <em>pos_batch_size</em>, <em>neg_batch_size</em>, <em>k_cd</em>, <em>lr</em>, <em>observer=None</em>, <em>input_bases=None</em>, <em>z_samples=None</em>, <em>progbar=False</em>, <em>callbacks=[]</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/158ecf7/qucumber/quantum_reconstruction.py#L96"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.quantum_reconstruction.QuantumReconstruction.fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute the training of the RBM.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_samples</strong> (<em>np.array</em>) – The training samples</li>
-<li><strong>epochs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – </li>
-<li><strong>pos_batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The size of batches for the positive phase
-taken from the data.</li>
-<li><strong>neg_batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The size of batches for the negative phase
-taken from the data</li>
-<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of contrastive divergence steps</li>
-<li><strong>lr</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – Learning rate</li>
-<li><strong>progbar</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Whether or not to display a progress bar. If “notebook”
-is passed, will use a Jupyter notebook compatible
-progress bar.</li>
-<li><strong>callbacks</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>(</em><a class="reference internal" href="callbacks.html#qucumber.callbacks.Callback" title="qucumber.callbacks.Callback"><em>qucumber.callbacks.Callback</em></a><em>)</em>) – Callbacks to run while training.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 
 
