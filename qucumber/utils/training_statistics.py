@@ -18,7 +18,6 @@
 # under the License.
 
 import torch
-import numpy as np
 import qucumber.utils.cplx as cplx
 import qucumber.utils.unitaries as unitaries
 

@@ -18,7 +18,6 @@
 # under the License.
 
 from collections.abc import MutableSequence
-
 from .callback import Callback
 
 

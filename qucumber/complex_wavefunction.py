@@ -17,29 +17,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import warnings
-from itertools import chain
-
-import numpy as np
-from math import sqrt
 import torch
-from torch import nn
-from torch.nn import functional as F
-from torch.utils.data import DataLoader
-from tqdm import tqdm, tqdm_notebook
-
-from qucumber.callbacks import CallbackList
 from qucumber.binary_rbm import BinaryRBM
 import qucumber.utils.cplx as cplx
-import qucumber.utils.unitaries as unitaries
-from qucumber.callbacks import CallbackList
 
 __all__ = [
     "ComplexWavefunction"
 ]
 
 class ComplexWavefunction(object):
-    
+   
     def __init__(self, unitary_dict, num_visible,
                  num_hidden, gpu=True):
         super(ComplexWavefunction, self).__init__()

@@ -19,8 +19,8 @@
 
 from operator import itemgetter
 
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib import ticker
 
 from .callback import Callback

@@ -17,25 +17,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-#import warnings
-from itertools import chain
-
-import numpy as np
-from math import sqrt
-import torch
-from torch import nn
-from torch.nn import functional as F
-from torch.utils.data import DataLoader
-from torch.nn.utils import parameters_to_vector
-from tqdm import tqdm, tqdm_notebook
 import time
-
-import qucumber.utils.cplx as cplx
-from qucumber.utils.gradients_utils import vector_to_grads,_check_param_device
-from qucumber.callbacks import CallbackList
-from qucumber.positive_wavefunction import PositiveWavefunction
-from qucumber.complex_wavefunction import ComplexWavefunction
 import math as m
+import torch
+from tqdm import tqdm, tqdm_notebook
+
+from qucumber.callbacks import CallbackList
+from qucumber.utils.gradients_utils import vector_to_grads
 
 __all__ = [
     "QuantumReconstruction"
@@ -44,7 +32,7 @@ __all__ = [
 class QuantumReconstruction(object):
     def __init__(self, nn_state):
         super(QuantumReconstruction, self).__init__()
-        self.nn_state = nn_state 
+        self.nn_state = nn_state
         self.num_visible = nn_state.num_visible
         self.stop_training = False
 

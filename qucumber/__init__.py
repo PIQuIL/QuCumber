@@ -3,7 +3,6 @@ __version__ = "0.2.0"
 
 def _warn_on_missing_gpu(gpu):
     import warnings
-
     import torch
 
     if gpu and not torch.cuda.is_available():
@@ -12,7 +11,6 @@ def _warn_on_missing_gpu(gpu):
 
 def set_random_seed(seed, cpu=True, gpu=False, quiet=False):
     import warnings
-
     import torch
 
     if gpu and torch.cuda.is_available():

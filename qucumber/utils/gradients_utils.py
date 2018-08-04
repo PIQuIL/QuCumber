@@ -18,7 +18,7 @@
 # under the License.
 
 import torch
-import numpy as np
+
 
 def vector_to_grads(vec, parameters):
     r"""Convert one vector to the parameters
