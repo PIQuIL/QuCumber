@@ -216,7 +216,7 @@ if __name__ == '__main__':
     eps = 1.e-6
 
     nn_state = PositiveWavefunction(num_visible=train_samples.shape[-1],
-                                    num_hidden=nh, gpu=True)
+                                    num_hidden=nh)
     qr = QuantumReconstruction(nn_state)
     vis = generate_visible_space(train_samples.shape[-1])
     run(qr, target_psi, train_samples, vis, eps, k)
