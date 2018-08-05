@@ -18,8 +18,9 @@
 # under the License.
 
 import torch
-from qucumber.binary_rbm import BinaryRBM
+
 import qucumber.utils.cplx as cplx
+from qucumber.binary_rbm import BinaryRBM
 
 __all__ = [
     "ComplexWavefunction"

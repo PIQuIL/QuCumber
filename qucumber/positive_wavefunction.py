@@ -18,6 +18,7 @@
 # under the License.
 
 import torch
+
 from qucumber.binary_rbm import BinaryRBM
 
 __all__ = [

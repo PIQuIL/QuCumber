@@ -17,8 +17,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import time
 import math as m
+import time
+
 import torch
 from tqdm import tqdm, tqdm_notebook
 
@@ -29,13 +30,13 @@ __all__ = [
     "QuantumReconstruction"
 ]
 
+
 class QuantumReconstruction(object):
     def __init__(self, nn_state):
         super(QuantumReconstruction, self).__init__()
         self.nn_state = nn_state
         self.num_visible = nn_state.num_visible
         self.stop_training = False
-
 
     def compute_batch_gradients(self, k_cd, samples_batch, neg_batch,
                                 bases_batch=None):
