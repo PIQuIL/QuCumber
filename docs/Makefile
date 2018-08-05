@@ -14,7 +14,7 @@ define move_examples
 	find $(SOURCEDIR)/../examples -name '*.ipynb' \
 		-not -path '$(SOURCEDIR)/../examples/.ipynb_checkpoints/*' \
 		-exec cp -prv '{}' '$(BUILDDIR)/../_examples/' ';'
-	rm $(BUILDDIR)/../_examples/*-checkpoint.ipynb
+	rm -f $(BUILDDIR)/../_examples/*-checkpoint.ipynb
 endef
 
 # Put it first so that "make" without argument is like "make help".

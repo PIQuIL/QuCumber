@@ -58,3 +58,5 @@ if __name__ == '__main__':
 
     if num_fails > 0:
         raise RuntimeError(f"License Header missing in {num_fails} files.")
+    else:
+        print("License checking completed successfully.")

@@ -1,4 +1,5 @@
 [flake8]
+max-complexity = 20
 per-file-ignores =
     # Ignore "imported but unused" errors for all __init__.py files.
     # Requires the extension 'flake8-per-file-ignores' which can be installed
