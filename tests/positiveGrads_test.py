@@ -31,12 +31,10 @@ def partition(nn_state, visible_space):
     :returns: The natural log of the partition function.
     :rtype: torch.Tensor
     """
-    free_energies = -nn_state.rbm_am.effective_energy(visible_space)
-    max_free_energy = free_energies.max()
-
-    f_reduced = free_energies - max_free_energy
-    logZ = max_free_energy + f_reduced.exp().sum().log()
-    return logZ.exp()
+    return torch.tensor(
+        nn_state.rbm_am.compute_partition_function(visible_space),
+        dtype=torch.double, device=nn_state.device
+    )
 
 
 def probability(nn_state, v, Z):
@@ -76,7 +74,8 @@ def compute_numerical_NLL(nn_state, data, Z):
 
 def algorithmic_gradKL(nn_state, target_psi, vis):
     Z = partition(nn_state, vis)
-    grad_KL = torch.zeros(nn_state.rbm_am.num_pars, dtype=torch.double)
+    grad_KL = torch.zeros(nn_state.rbm_am.num_pars,
+                          dtype=torch.double, device=nn_state.device)
     for i in range(len(vis)):
         grad_KL += ((target_psi[i, 0])**2)*nn_state.gradient(vis[i])
         grad_KL -= probability(nn_state, vis[i], Z)*nn_state.gradient(vis[i])
@@ -84,8 +83,8 @@ def algorithmic_gradKL(nn_state, target_psi, vis):
 
 
 def algorithmic_gradNLL(qr, data, k):
-    qr.nn_state.set_visible_layer(data)
-    return qr.compute_batch_gradients(k, data)
+    # qr.nn_state.set_visible_layer(data)
+    return qr.compute_batch_gradients(k, data, data)
 
 
 def numeric_gradKL(nn_state, target_psi, param, vis, eps):
@@ -129,6 +128,10 @@ def numeric_gradNLL(nn_state, param, data, vis, eps):
 
 def run(qr, target_psi, data, vis, eps, k):
     nn_state = qr.nn_state
+    data = data.to(device=nn_state.device)
+    vis = vis.to(device=nn_state.device)
+    target_psi = target_psi.to(device=nn_state.device)
+
     alg_grad_KL = algorithmic_gradKL(nn_state, target_psi, vis)
     alg_grad_NLL = algorithmic_gradNLL(qr, data, k)
     num_grad_KL = numeric_gradKL(nn_state, target_psi,
@@ -182,7 +185,8 @@ if __name__ == '__main__':
     seed = 1234
     with open('test_data.pkl', 'rb') as fin:
         test_data = pickle.load(fin)
-    qucumber.set_random_seed(seed)
+
+    qucumber.set_random_seed(seed, cpu=True, gpu=True, quiet=True)
     train_samples = torch.tensor(test_data['tfim1d']['train_samples'],
                                  dtype=torch.double)
     target_psi = torch.tensor(test_data['tfim1d']['target_psi'],
@@ -191,7 +195,7 @@ if __name__ == '__main__':
     eps = 1.e-6
 
     nn_state = PositiveWavefunction(num_visible=train_samples.shape[-1],
-                                    num_hidden=nh)
+                                    num_hidden=nh, gpu=True)
     qr = QuantumReconstruction(nn_state)
     vis = generate_visible_space(train_samples.shape[-1])
     run(qr, target_psi, train_samples, vis, eps, k)

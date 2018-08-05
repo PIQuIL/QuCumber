@@ -24,6 +24,7 @@ __all__ = [
     "PositiveWavefunction"
 ]
 
+
 class PositiveWavefunction(object):
     def __init__(self, num_visible, num_hidden=None, gpu=True):
         super(PositiveWavefunction, self).__init__()
@@ -31,10 +32,11 @@ class PositiveWavefunction(object):
         self.num_hidden = (int(num_hidden)
                            if num_hidden is not None
                            else self.num_visible)
-        self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden,
-                                            gpu=gpu)
 
-         # Maximum size of the Hilbert space for full enumeration
+        self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden,
+                                gpu=gpu)
+
+        # Maximum size of the Hilbert space for full enumeration
         self.size_cut = 20
 
         self.space = None
@@ -42,52 +44,38 @@ class PositiveWavefunction(object):
         self.num_pars = self.rbm_am.num_pars
         self.networks = ["rbm_am"]
         self.device = self.rbm_am.device
-        self.visible_state = torch.zeros(1,self.num_visible,
-                                         device=self.rbm_am.device,
-                                         dtype=torch.double)
-        self.hidden_state = torch.zeros(1,self.num_hidden,
-                                         device=self.rbm_am.device,
-                                         dtype=torch.double)
 
     def initialize_parameters(self):
         r"""Randomize the parameters :math:`\bm{\lambda}=\{\bm{W},\bm{b},\bm{c}\}` of
         the RBM parametrizing the wavefunction."""
         self.rbm_am.initialize_parameters()
 
-    def set_visible_layer(self,v):
-        r""" Set the visible state to a given vector/matrix
-
-        :param v: State to initialize the wavefunction to
-        :type v: torch.Tensor
-        """
-        self.visible_state = v
-        if (self.visible_state.shape != v.shape):
-            raise RuntimeError ('Error in set_visible_layer')
-
-    def psi(self,v):
+    def psi(self, v):
         r""" Compute the wavefunction of a given vector/matrix of visible states:
 
         .. math::
 
-            \psi_{\bm{\lambda}}(\bm{\sigma}) = e^{-\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})/2}
+            \psi_{\bm{\lambda}}(\bm{\sigma})
+                = e^{-\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})/2}
 
-        :param v: visible states :math:`\bm{\sigma}`
+        :param v: visible states, :math:`\bm{\sigma}`
         :type v: torch.tensor
 
-        :returns: Complex object containing the value of the wavefunction for each visible state
+        :returns: Complex object containing the value of the wavefunction for
+                  each visible state
         :rtype: torch.tensor
         """
-        psi = torch.zeros(2, dtype=torch.double, device = self.device)
-        psi[0] = (-self.rbm_am.effective_energy(v)).exp().sqrt()#self.amplitude(v)
+        psi = torch.zeros(2, dtype=torch.double, device=self.device)
+        psi[0] = (-self.rbm_am.effective_energy(v)).exp().sqrt()
         psi[1] = 0.0
         return psi
 
-    def gradient(self,v):
-        r"""Compute the gradient :math:`\nabla_{\bm{\lambda}}\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})` of the effective visible energy for a batch
-        of visible states v.
+    def gradient(self, v):
+        r"""Compute the gradient
+        :math:`\nabla_{\bm{\lambda}}\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})`
+        of the effective visible energy for a batch of visible states v.
 
-
-        :param v: visible states :math:`\bm{\sigma}`
+        :param v: visible states, :math:`\bm{\sigma}`
         :type v: torch.tensor
 
         :returns dictionary with one key (rbm_am)
@@ -95,18 +83,38 @@ class PositiveWavefunction(object):
         """
         return self.rbm_am.effective_energy_gradient(v)
 
-    def sample(self, k_cd):
+    def gibbs_steps(self, k, initial_state, overwrite=False):
+        v = initial_state.to(device=self.device, dtype=torch.double)
+
+        if overwrite is False:
+            v = v.clone()
+
+        h = torch.zeros(v.shape[0], self.num_hidden,
+                        device=self.device, dtype=torch.double)
+
+        for _ in range(k):
+            self.rbm_am.sample_h_given_v(v, out=h)
+            self.rbm_am.sample_v_given_h(h, out=v)
+
+        return v
+
+    def sample(self, num_samples, k, initial_state=None, overwrite=False):
         r"""Performs k steps of Block Gibbs sampling. One step consists of sampling
         the hidden state :math:`\bm{h}` from the conditional distribution
-        :math:`p_{\bm{\lambda}}(\bm{h}\:|\:\bm{v})`, and sampling the visible state
-        :math:`\bm{v}` from the conditional distribution :math:`p_{\bm{\lambda}}(\bm{v}\:|\:\bm{h})`.
+        :math:`p_{\bm{\lambda}}(\bm{h}\:|\:\bm{v})`, and sampling the visible
+        state :math:`\bm{v}` from the conditional distribution
+        :math:`p_{\bm{\lambda}}(\bm{v}\:|\:\bm{h})`.
 
-        :param k_cd: Number of Block Gibbs steps.
-        :type k_cd: int
+        :param k: Number of Block Gibbs steps.
+        :type k: int
         """
-        for _ in range(k_cd):
-            self.hidden_state = self.rbm_am.sample_h_given_v(self.visible_state)
-            self.visible_state = self.rbm_am.sample_v_given_h(self.hidden_state)
+        if initial_state is None:
+            dist = torch.distributions.Bernoulli(probs=0.5)
+            sample_size = torch.Size((num_samples, self.num_visible))
+            initial_state = dist.sample(sample_size) \
+                                .to(device=self.device, dtype=torch.double)
+
+        return self.gibbs_steps(k, initial_state, overwrite=overwrite)
 
     def save(self, location, metadata={}):
         """Saves the RBM parameters to the given location along with
@@ -119,7 +127,7 @@ class PositiveWavefunction(object):
         :type metadata: dict
         """
         # add extra metadata to dictionary before saving it to disk
-        data = {"rbm_am":self.rbm_am.state_dict(), **metadata}
+        data = {"rbm_am": self.rbm_am.state_dict(), **metadata}
         torch.save(data, location)
 
     def load(self, location):
@@ -141,7 +149,7 @@ class PositiveWavefunction(object):
 
         self.rbm_am.load_state_dict(state_dict, strict=False)
 
-    def generate_Hilbert_space(self,size):
+    def generate_hilbert_space(self, size):
         r"""Generates Hilbert space of dimension :math:`2^{\text{size}}`.
 
         :returns: A tensor with all the basis states of the Hilbert space.

@@ -33,12 +33,16 @@ def partition(nn_state, visible_space):
     :rtype: torch.Tensor
     """
     visible_space = visible_space.to(device=nn_state.device)
-    free_energies = -nn_state.rbm_am.effective_energy(visible_space)
-    max_free_energy = free_energies.max()
+    # free_energies = -nn_state.rbm_am.effective_energy(visible_space)
+    # max_free_energy = free_energies.max()
 
-    f_reduced = free_energies - max_free_energy
-    logZ = max_free_energy + f_reduced.exp().sum().log()
-    return logZ.exp()
+    # f_reduced = free_energies - max_free_energy
+    # logZ = max_free_energy + f_reduced.exp().sum().log()
+    # return logZ.exp()
+    return torch.tensor(
+        nn_state.rbm_am.compute_partition_function(visible_space),
+        device=nn_state.device, dtype=torch.double
+    )
 
 
 def probability(nn_state, v, Z):
@@ -59,8 +63,8 @@ def probability(nn_state, v, Z):
 def load_target_psi(bases, psi_data):
     psi_dict = {}
     D = int(len(psi_data)/float(len(bases)))
-    for b in range(len(bases)):
 
+    for b in range(len(bases)):
         psi = torch.zeros(2, D, dtype=torch.double)
         psi_real = torch.tensor(psi_data[b*D:D*(b+1), 0], dtype=torch.double)
         psi_imag = torch.tensor(psi_data[b*D:D*(b+1), 1], dtype=torch.double)
@@ -181,8 +185,9 @@ def compute_numerical_kl(nn_state, psi_dict, vis, Z, unitary_dict, bases):
 
 
 def algorithmic_gradNLL(qr, data_samples, data_bases, k):
-    qr.nn_state.set_visible_layer(data_samples)
-    return qr.compute_batch_gradients(k, data_samples, data_bases)
+    # qr.nn_state.set_visible_layer(data_samples)
+    return qr.compute_batch_gradients(k, data_samples,
+                                      data_samples, data_bases)
 
 
 def numeric_gradNLL(nn_state, data_samples, data_bases,
@@ -261,6 +266,10 @@ def run(qr, psi_dict, data_samples, data_bases, unitary_dict, bases,
     device = qr.nn_state.device
     data_samples = data_samples.to(device=device)
     vis = vis.to(device=device)
+
+    unitary_dict = {k: v.to(device=device) for k, v in unitary_dict.items()}
+    psi_dict = {k: v.to(device=device) for k, v in psi_dict.items()}
+
     alg_grad_NLL = algorithmic_gradNLL(qr, data_samples, data_bases, k)
     alg_grad_KL = algorithmic_gradKL(qr.nn_state, psi_dict, vis,
                                      unitary_dict, bases)
@@ -326,7 +335,7 @@ if __name__ == '__main__':
     with open('test_data.pkl', 'rb') as fin:
         test_data = pickle.load(fin)
 
-    qucumber.set_random_seed(seed)
+    qucumber.set_random_seed(seed, cpu=True, gpu=True, quiet=True)
     train_bases = test_data['2qubits']['train_bases']
     train_samples = torch.tensor(test_data['2qubits']['train_samples'],
                                  dtype=torch.double)
@@ -339,7 +348,8 @@ if __name__ == '__main__':
     psi_dict = load_target_psi(bases, target_psi_tmp)
     vis = generate_visible_space(train_samples.shape[-1])
     nn_state = ComplexWavefunction(num_visible=train_samples.shape[-1],
-                                   num_hidden=nh, unitary_dict=unitary_dict)
+                                   num_hidden=nh, unitary_dict=unitary_dict,
+                                   gpu=True)
     qr = QuantumReconstruction(nn_state)
     eps = 1.e-6
     run(qr, psi_dict, train_samples, train_bases, unitary_dict, bases,

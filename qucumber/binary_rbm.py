@@ -125,7 +125,7 @@ class BinaryRBM(nn.Module):
         """
         prob = self.prob_h_given_v(v)
 
-        if len(v.shape) < 2:
+        if v.dim() < 2:
             W_grad = -torch.einsum("j,k->jk", (prob, v))
             vb_grad = -v
             hb_grad = -prob
@@ -136,60 +136,78 @@ class BinaryRBM(nn.Module):
 
         return parameters_to_vector([W_grad, vb_grad, hb_grad])
 
-    def prob_v_given_h(self, h):
+    def prob_v_given_h(self, h, out=None):
         """Given a hidden unit configuration, compute the probability
         vector of the visible units being on.
 
         :param h: The hidden unit
         :type h: torch.Tensor
+        :param out: The output tensor to write to.
+        :type out: torch.Tensor
 
         :returns: The probability of visible units being active given the
                   hidden state.
         :rtype: torch.Tensor
         """
-        p = torch.sigmoid(F.linear(h, self.weights.t(), self.visible_bias))
+        if h.dim() < 2:  # create extra axis, if needed
+            h = h.unsqueeze(0)
+        p = torch.addmm(self.visible_bias.data, h,
+                        self.weights.data, out=out) \
+                 .sigmoid_() \
+                 .squeeze_(0)  # remove superfluous axis, if it exists
         return p
 
-    def prob_h_given_v(self, v):
+    def prob_h_given_v(self, v, out=None):
         """Given a visible unit configuration, compute the probability
         vector of the hidden units being on.
 
         :param h: The hidden unit.
         :type h: torch.Tensor
+        :param out: The output tensor to write to.
+        :type out: torch.Tensor
 
         :returns: The probability of hidden units being active given the
                   visible state.
         :rtype: torch.Tensor
         """
-        p = torch.sigmoid(F.linear(v, self.weights, self.hidden_bias))
+        if v.dim() < 2:  # create extra axis, if needed
+            v = v.unsqueeze(0)
+        p = torch.addmm(self.hidden_bias.data, v,
+                        self.weights.data.t(), out=out) \
+                 .sigmoid_() \
+                 .squeeze_(0)  # remove superfluous axis, if it exists
         return p
 
-    def sample_v_given_h(self, h):
+    def sample_v_given_h(self, h, out=None):
         """Sample/generate a visible state given a hidden state.
 
         :param h: The hidden state.
         :type h: torch.Tensor
+        :param out: The output tensor to write to.
+        :type out: torch.Tensor
 
         :returns: Tuple containing prob_v_given_h(h) and the sampled visible
                   state.
         :rtype: tuple(torch.Tensor, torch.Tensor)
         """
-        p = self.prob_v_given_h(h)
-        v = p.bernoulli()
+        v = self.prob_v_given_h(h, out=out)
+        v = v.copy_(v.bernoulli())  # overwrite v with its sample
         return v
 
-    def sample_h_given_v(self, v):
+    def sample_h_given_v(self, v, out=None):
         """Sample/generate a hidden state given a visible state.
 
         :param h: The visible state.
         :type h: torch.Tensor
+        :param out: The output tensor to write to.
+        :type out: torch.Tensor
 
         :returns: Tuple containing prob_h_given_v(v) and the sampled hidden
                   state.
         :rtype: tuple(torch.Tensor, torch.Tensor)
         """
-        p = self.prob_h_given_v(v)
-        h = p.bernoulli()
+        h = self.prob_h_given_v(v, out=out)
+        h = h.copy_(h.bernoulli())  # overwrite h with its sample
         return h
 
     def compute_partition_function(self, space):
@@ -203,5 +221,5 @@ class BinaryRBM(nn.Module):
         """
         neg_free_energies = -self.effective_energy(space)
         logZ = neg_free_energies.logsumexp(0)
-        Z = logZ.exp()
+        Z = logZ.exp().item()
         return Z
