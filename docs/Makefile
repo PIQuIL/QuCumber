@@ -55,10 +55,12 @@ gh-pages:
 	$(call move_examples)
 	$(eval VERSION=$(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match))
 	if [ -z $(VERSION) ]; then\
-		echo "Not a main branch/tagged release - skipping docs build.";\
+		echo "Not a branch head/tagged release - skipping docs build.";\
 	else\
 		$(eval BUILDDIR=$(BUILDDIR)/html/$(VERSION))\
 		$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O);\
 	fi
 
-#
+index:
+	touch $(BUILDDIR)/html/.nojekyll
+	echo "<meta http-equiv=\"refresh\" content=\"0; url=./master/index.html\" />" > $(BUILDDIR)/html/index.html

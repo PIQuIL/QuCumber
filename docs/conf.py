@@ -52,9 +52,25 @@ copyright = '2018, PIQuIL'
 author = 'PIQuIL'
 
 # The short X.Y version
-version = qucumber.__version__
-# The full version, including alpha/beta/rc tags
-release = qucumber.__version__
+
+git_ref = subprocess.run("git symbolic-ref -q --short HEAD "
+                         "|| git describe --tags --exact-match",
+                         check=False, shell=True, stdout=subprocess.PIPE)
+
+version = release = None
+
+if git_ref.returncode == 0:
+    if git_ref.stdout and git_ref.stdout[0] == 'v':  # tagged release
+        version = git_ref.stdout[1:].decode('utf-8').strip()
+        release = version
+    elif git_ref.stdout:  # in case of branch head
+        version = git_ref.stdout.decode('utf-8').strip()
+        release = version + "-branch"
+
+if version is None:  # docs are being built for a non-HEAD and untagged commit
+    version = qucumber.__version__.strip()
+    # The full version, including alpha/beta/rc tags
+    release = version + "-unreleased"
 
 # -- General configuration ---------------------------------------------------
 
@@ -135,7 +151,9 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+# html_theme_options = {
+#     "canonical_url": "http://piquil.github.io/QuCumber/master/"
+# }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
