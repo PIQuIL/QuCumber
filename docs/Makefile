@@ -6,6 +6,7 @@ SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = QuCumber
 SOURCEDIR     = .
 BUILDDIR      = _build
+PYTHONPATH    = ../
 
 define move_examples
 	rm -rf $(BUILDDIR)/../_examples
@@ -13,6 +14,7 @@ define move_examples
 	find $(SOURCEDIR)/../examples -name '*.ipynb' \
 		-not -path '$(SOURCEDIR)/../examples/.ipynb_checkpoints/*' \
 		-exec cp -prv '{}' '$(BUILDDIR)/../_examples/' ';'
+	rm $(BUILDDIR)/../_examples/*-checkpoint.ipynb
 endef
 
 # Put it first so that "make" without argument is like "make help".
@@ -48,3 +50,15 @@ livetest:
 		-i Makefile \
 		-b dummy \
 		$(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)
+
+gh-pages:
+	$(call move_examples)
+	$(eval VERSION=$(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match))
+	if [ -z $(VERSION) ]; then\
+		echo "Not a main branch/tagged release - skipping docs build.";\
+	else\
+		$(eval BUILDDIR=$(BUILDDIR)/html/$(VERSION))\
+		$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O);\
+	fi
+
+#

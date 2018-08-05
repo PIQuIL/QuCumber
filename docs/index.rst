@@ -2,6 +2,7 @@ Welcome to QuCumber's documentation!
 ====================================
 Version: |release|
 
+
 .. toctree::
    :maxdepth: 3
    :caption: Introduction
@@ -9,7 +10,7 @@ Version: |release|
    installation
    tutorial
    _examples/tutorial_quantum_ising.ipynb
-   _examples/tutorial_2qubitsComplex.ipynb
+   _examples/tutorial_qubits.ipynb
    theory
 
 

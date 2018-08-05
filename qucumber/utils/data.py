@@ -69,7 +69,7 @@ def extract_refbasis_samples(train_samples, train_bases):
     r"""A function that extracts the reference basis samples in the data.
 
     :param train_samples: The training samples.
-    :type train_samples: :numpy:class:`numpy.array`
+    :type train_samples: numpy.array
     :param train_bases: The bases of the training samples.
     :type train_bases: numpy.array
 

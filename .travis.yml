@@ -32,7 +32,7 @@ script:
   - python .build_tools/travis/license_checker.py
   - pytest
   - flake8 --max-complexity=20
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then cd docs && mkdir -p _static _templates && PYTHONPATH=../ make html && cd ../; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then cd docs && mkdir -p _static _templates && make clean && make gh-pages && cd ../; fi
   - python setup.py sdist bdist_wheel
 
 before_deploy:
@@ -46,7 +46,7 @@ deploy:
     verbose: true
     on:
       repo: PIQuIL/QuCumber
-      branch: master
+      all_branches: true
       condition: $TRAVIS_PYTHON_VERSION == '3.6'
   - provider: releases
     skip-cleanup: true
