@@ -38,32 +38,23 @@ scalars: s[2]                  >>> 2 = real and imaginary part
 """
 
 
-def make_complex(x, y):  # wont work for scalars
+def make_complex(x, y):
     """A function that combines the real (x) and imaginary (y) parts of a
        vector or a matrix.
 
     ..note:: x and y must have the same shape. Also, this will not work for
              rank zero tensors (scalars).
 
-    :param x: A vector or matrix.
-    :type x: torch.tensor
+    :param x: The real part
+    :type x: torch.Tensor
 
-    :param y: A vector or matrix.
-    :type y: torch.tensor
+    :param y: The imaginary part
+    :type y: torch.Tensor
 
     :returns: The tensor [x,y].
-    :rtype: torch.tensor
+    :rtype: torch.Tensor
     """
-    if (len(list(x.size())) == 2) and (len(list(y.size())) == 2):  # matrices
-        z = torch.zeros(2, x.size()[0], x.size()[1],
-                        dtype=torch.double, device=x.device)
-        z[0] = x
-        z[1] = y
-    else:  # vectors
-        z = torch.zeros(2, x.size()[0], dtype=torch.double, device=x.device)
-        z[0] = x
-        z[1] = y
-    return z
+    return torch.cat((x.unsqueeze(0), y.unsqueeze(0)), dim=0)
 
 
 # replaces MS mult, VS mult. x has to be scalar, y has to be matrix
@@ -76,13 +67,13 @@ def scalar_mult(x, y):
              argument (x).
 
     :param x: A complex scalar, vector or matrix.
-    :type x: torch.tensor
+    :type x: torch.Tensor
 
     :param y: A complex scalar, vector or matrix.
-    :type y: torch.tensor
+    :type y: torch.Tensor
 
     :returns: The product between x and y.
-    :rtype: torch.tensor
+    :rtype: torch.Tensor
     """
     z = torch.zeros_like(y)
     z[0] = x[0]*y[0] - x[1]*y[1]
@@ -98,13 +89,13 @@ def matmul(x, y):
              second argument (y).
 
     :param x: A complex matrix.
-    :type x: torch.tensor
+    :type x: torch.Tensor
 
     :param y: A complex vector or matrix.
-    :type y: torch.tensor
+    :type y: torch.Tensor
 
     :returns: The product between x and y.
-    :rtype: torch.tensor
+    :rtype: torch.Tensor
     """
     if len(list(y.size())) == 2:
         # if one of them is a vector (i.e. wanting to do MV mult)
@@ -126,15 +117,15 @@ def inner_prod(x, y):
     x and y >>> <x|y>.
 
     :param x: A complex vector.
-    :type x: torch.doubleTensor
+    :type x: torch.Tensor
     :param y: A complex vector.
-    :type y: torch.doubleTensor
+    :type y: torch.Tensor
 
     :raises ValueError: If x and y are not complex vectors with their first
                         dimensions being 2, then the function will not execute.
 
     :returns: The inner product, :math:`\\langle x\\vert y\\rangle`.
-    :rtype: torch.doubleTensor
+    :rtype: torch.Tensor
     """
     z = torch.zeros(2, dtype=torch.double, device=x.device)
 
@@ -153,16 +144,16 @@ def outer_prod(x, y):
     """A function that returns the outer product of two complex vectors, x and y.
 
     :param x: A complex vector.
-    :type x: torch.doubleTensor
+    :type x: torch.Tensor
     :param y: A complex vector.
-    :type y: torch.doubleTensor
+    :type y: torch.Tensor
 
     :raises ValueError:	If x and y are not complex vectors with their first
                         dimensions being 2, then the function will not execute.
 
     :returns: The outer product between x and y,
         :math:`\\vert x \\rangle\\langle y\\vert`.
-    :rtype: torch.doubleTensor
+    :rtype: torch.Tensor
     """
     if len(list(x.size())) < 2 or len(list(y.size())) < 2:
         raise ValueError('An input is not of the right dimension.')
@@ -176,13 +167,13 @@ def outer_prod(x, y):
 
 
 def conjugate(x):
-    """A function that takes the complex transpose of the argument.
+    """A function that takes the conjugate transpose of the argument.
 
     :param x: A complex vector or matrix.
-    :type x: torch.tensor
+    :type x: torch.Tensor
 
     :returns: The conjugate of x.
-    :rtype: torch.tensor
+    :rtype: torch.Tensor
     """
     if len(list(x.size())) == 2:
         z = torch.zeros(2, x.size()[1], dtype=torch.double, device=x.device)
@@ -203,15 +194,15 @@ def kronecker_prod(x, y):
     tensors, x and y.
 
     :param x: A complex matrix.
-    :type x: torch.doubleTensor
+    :type x: torch.Tensor
     :param y: A complex matrix.
-    :type y: torch.doubleTensor
+    :type y: torch.Tensor
 
     :raises ValueError: If x and y do not have 3 dimensions or their first
                         dimension is not 2, the function cannot execute.
 
     :returns: The tensorproduct of x and y, :math:`x \\otimes y`.
-    :rtype: torch.doubleTensor
+    :rtype: torch.Tensor
     """
     if len(list(x.size())) != 3 or len(list(y.size())) != 3:
         raise ValueError('An input is not of the right dimension.')
@@ -243,12 +234,12 @@ def scalar_divide(x, y):
     """A function that computes the division of x by y.
 
     :param x: The numerator (a complex scalar, vector or matrix).
-    :type x: torch.tensor
+    :type x: torch.Tensor
     :param y: The denominator (a complex scalar).
-    :type y: torch.tensor
+    :type y: torch.Tensor
 
     :returns: x / y
-    :rtype: torch.tensor
+    :rtype: torch.Tensor
     """
     if len(list(x.size())) == 2 or len(list(x.size())) == 1:
         y_star = torch.zeros_like(y)
@@ -273,9 +264,9 @@ def norm(x):
     """A function that returns the norm of the argument.
 
     :param x: A complex scalar.
-    :type x: torch.doubleTensor
+    :type x: torch.Tensor
 
     :returns: :math:`|x|^2`.
-    :rtype: torch.doubleTensor
+    :rtype: torch.Tensor
     """
     return inner_prod(x, x)[0]
