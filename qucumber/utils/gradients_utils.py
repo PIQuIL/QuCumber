@@ -20,13 +20,15 @@
 import torch
 
 
+# based on code found in PyTorch
 def vector_to_grads(vec, parameters):
     r"""Convert one vector to the parameters
 
-    Arguments:
-        vec (Tensor): a single vector represents the parameters of a model.
-        parameters (Iterable[Tensor]): an iterator of Tensors that are the
-            parameters of a model.
+    :param vec: a single vector represents the parameters of a model.
+    :type vec:  torch.Tensor
+    :param parameters: an iterator of Tensors that are the parameters of a
+                       model.
+    :type parameters: torch.Tensor
     """
     # Ensure vec of type Tensor
     if not isinstance(vec, torch.Tensor):
@@ -35,7 +37,7 @@ def vector_to_grads(vec, parameters):
     # Flag for the device where the parameter is located
     param_device = None
 
-    # Pointer for slicing the vector for each parameter
+    # Pointer for slicing the vector for each parameter gradient
     pointer = 0
     for param in parameters:
         # Ensure the parameters are located in the same device
@@ -43,7 +45,9 @@ def vector_to_grads(vec, parameters):
 
         # The length of the parameter
         num_param = torch.prod(torch.LongTensor(list(param.size())))
-        # Slice the vector, reshape it, and replace the old data of the parameter
+
+        # Slice the vector, reshape it, and replace the gradient data of
+        # the parameter
         param.grad = vec[pointer:pointer + num_param].view(param.size()).data
 
         # Increment the pointer
@@ -56,13 +60,14 @@ def _check_param_device(param, old_param_device):
     and single vector form is not supported for multiple allocations,
     e.g. parameters in different GPUs, or mixture of CPU/GPU.
 
-    Arguments:
-        param ([Tensor]): a Tensor of a parameter of a model
-        old_param_device (int): the device where the first parameter of a
-                                model is allocated.
+    :param param: a Tensor of a parameter of a model
+    :type param: torch.Tensor
+    :param old_param_device: the device where the first parameter of a model
+                             is allocated.
+    :type old_param_device: int
 
-    Returns:
-        old_param_device (int): report device for the first time
+    :returns: old_param_device
+    :rtype: int
     """
 
     # Meet the first parameter

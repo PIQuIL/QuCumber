@@ -296,7 +296,7 @@ def linkcode_resolve(domain, info):
     except Exception:
         line_number = ''
 
-    return ('https://github.com/MelkoCollective/QuCumber/blob'
+    return ('https://github.com/PIQuIL/QuCumber/blob'
             '/{revision}/qucumber/{file_name}#L{line_number}'
             .format(revision=revision,
                     file_name=file_name,
