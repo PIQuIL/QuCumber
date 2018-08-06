@@ -28,7 +28,7 @@ def vector_to_grads(vec, parameters):
     :type vec:  torch.Tensor
     :param parameters: an iterator of Tensors that are the parameters of a
                        model.
-    :type parameters: torch.Tensor
+    :type parameters: list[torch.Tensor]
     """
     # Ensure vec of type Tensor
     if not isinstance(vec, torch.Tensor):
@@ -44,7 +44,7 @@ def vector_to_grads(vec, parameters):
         param_device = _check_param_device(param, param_device)
 
         # The length of the parameter
-        num_param = torch.prod(torch.LongTensor(list(param.size())))
+        num_param = param.numel()
 
         # Slice the vector, reshape it, and replace the gradient data of
         # the parameter
@@ -66,7 +66,7 @@ def _check_param_device(param, old_param_device):
                              is allocated.
     :type old_param_device: int
 
-    :returns: old_param_device
+    :returns: old_param_device or -1
     :rtype: int
     """
 
@@ -74,12 +74,13 @@ def _check_param_device(param, old_param_device):
     if old_param_device is None:
         old_param_device = param.get_device() if param.is_cuda else -1
     else:
-        warn = False
+        different_devices = False
         if param.is_cuda:  # Check if in same GPU
-            warn = (param.get_device() != old_param_device)
+            different_devices = (param.get_device() != old_param_device)
         else:  # Check if in CPU
-            warn = (old_param_device != -1)
-        if warn:
+            different_devices = (old_param_device != -1)
+
+        if different_devices:
             raise TypeError('Found two parameters on different devices, '
                             'this is currently not supported.')
     return old_param_device
