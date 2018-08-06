@@ -52,13 +52,12 @@ livetest:
 		$(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)
 
 gh-pages:
-	$(call move_examples)
-	$(eval VERSION=$(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match))
+	@$(call move_examples)
 	if [ -z $(VERSION) ]; then\
 		echo "Not a branch head/tagged release - skipping docs build.";\
 	else\
 		$(eval BUILDDIR=$(BUILDDIR)/html/$(VERSION))\
-		$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O);\
+		$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" -aT $(O);\
 	fi
 
 index:
