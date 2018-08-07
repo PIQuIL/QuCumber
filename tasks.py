@@ -18,6 +18,7 @@
 # under the License.
 
 import os
+import shutil
 from datetime import datetime
 
 from invoke import task
@@ -72,20 +73,24 @@ def build_docs(c):
     dir_contents = os.listdir()
     dir_contents = ((set(dir_contents) - set(all_refs))
                     | (set(all_refs) - set(refs)))
+    dir_contents -= set(["docs", ".git"])
+    print("going to delete")
     for item in dir_contents:
         if os.path.isfile(item):
+            print("deleting: " + item)
             os.remove(item)
         elif os.path.isdir(item):
-            os.rmdir(item)
+            print("deleting: " + item)
+            shutil.rmtree(item)
 
     c.run("mv ./docs/_build/html/* ./")
+    c.run("rm -rf ./docs/")
     c.run("git add -A")
     c.run("git commit -m \"({}) - Deploy docs to GitHub Pages.\""
-          .format(datetime.today().strftime("%Y-%m-%d"))
+          .format(datetime.today().strftime("%Y-%m-%d")))
 
     # c.run("git push")
 
     # TODO: clear gh-pages file tree, and pop out build contents into root
     # then commit and push everything
-
-    # c.run("git checkout {}".format(old_ref))  # revert to old_ref once done
+    c.run("git checkout {}".format(old_ref))  # revert to old_ref once done
