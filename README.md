@@ -1,4 +1,4 @@
-<img src="QuCumber.png" alt="QuCumber" width="70%" class="center"/>
+![QuCumber](https://raw.githubusercontent.com/PIQuIL/QuCumber/master/docs/_static/img/QuCumber_readme.png")
 
 
 [![Build Status](https://travis-ci.com/PIQuIL/QuCumber.svg?branch=master)](https://travis-ci.com/PIQuIL/QuCumber)
