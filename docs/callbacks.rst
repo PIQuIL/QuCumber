@@ -3,20 +3,20 @@
 Callbacks
 =========
 
-.. autoclass:: qucumber.callbacks.Callback
+.. autoclass:: qucumber.callbacks.callback.Callback
     :members:
 
-.. autoclass:: qucumber.callbacks.LambdaCallback
+.. autoclass:: qucumber.callbacks.lambda_callback.LambdaCallback
 
-.. autoclass:: qucumber.callbacks.ModelSaver
+.. autoclass:: qucumber.callbacks.model_saver.ModelSaver
 
-.. autoclass:: qucumber.callbacks.Logger
+.. autoclass:: qucumber.callbacks.logger.Logger
 
-.. autoclass:: qucumber.callbacks.EarlyStopping
+.. autoclass:: qucumber.callbacks.early_stopping.EarlyStopping
 
-.. autoclass:: qucumber.callbacks.VarianceBasedEarlyStopping
+.. autoclass:: qucumber.callbacks.variance_based_early_stopping.VarianceBasedEarlyStopping
 
-.. autoclass:: qucumber.callbacks.MetricEvaluator
+.. autoclass:: qucumber.callbacks.metric_evaluator.MetricEvaluator
     :members: get_value, __len__
 
-.. autoclass:: qucumber.callbacks.LivePlotting
+.. autoclass:: qucumber.callbacks.liveplotting.LivePlotting

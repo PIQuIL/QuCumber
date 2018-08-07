@@ -19,31 +19,13 @@
 
 import torch
 
-"""
-A module that allows torch to handle complex algebra.
----------
-SYNTAX / ORDERING OF INDICES
-matrices / tensors: m[2][i][j] >>> 2 = real and imaginary part
-                               >>> i = number of rows in the real and
-                                       imaginary parts
-                               >>> j = number of columns in the real and
-                                       imaginary parts
-
-vectors: v[2][i]               >>> 2 = real and imaginary part
-                               >>> i = number of rows in the real and
-                                       imaginary parts
-
-scalars: s[2]                  >>> 2 = real and imaginary part
----------
-"""
-
 
 def make_complex(x, y):
     """A function that combines the real (x) and imaginary (y) parts of a
-       vector or a matrix.
+    vector or a matrix.
 
-    ..note:: x and y must have the same shape. Also, this will not work for
-             rank zero tensors (scalars).
+    .. note:: x and y must have the same shape. Also, this will not work for rank
+              zero tensors.
 
     :param x: The real part
     :type x: torch.Tensor
@@ -57,14 +39,13 @@ def make_complex(x, y):
     return torch.cat((x.unsqueeze(0), y.unsqueeze(0)), dim=0)
 
 
-# replaces MS mult, VS mult. x has to be scalar, y has to be matrix
 def scalar_mult(x, y):
     """A function that computes the product between complex matrices and scalars,
-       complex vectors and scalars or two complex scalars.
+    complex vectors and scalars or two complex scalars.
 
-    ..note:: If one wished to do vector-scalar multiplication or matrix-scalar
-             multiplication, you must put the vector / matrix as the first
-             argument (x).
+    .. note:: If one wishes to do vector-scalar multiplication or matrix-scalar
+              multiplication, you must put the vector / matrix as the first 
+              argument (x).
 
     :param x: A complex scalar, vector or matrix.
     :type x: torch.Tensor
@@ -85,8 +66,8 @@ def scalar_mult(x, y):
 def matmul(x, y):
     """A function that computes complex matrix-matrix and matrix-vector products.
 
-    ..note:: If one wishes to do matrix-vector products, the vector must be the
-             second argument (y).
+    .. note:: If one wishes to do matrix-vector products, the vector must be the 
+              second argument (y).
 
     :param x: A complex matrix.
     :type x: torch.Tensor
@@ -114,7 +95,7 @@ def matmul(x, y):
 
 def inner_prod(x, y):
     """A function that returns the inner product of two complex vectors,
-    x and y >>> <x|y>.
+    x and y (<x|y>).
 
     :param x: A complex vector.
     :type x: torch.Tensor
