@@ -50,16 +50,3 @@ livetest:
 		-i Makefile \
 		-b dummy \
 		$(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)
-
-gh-pages:
-	@$(call move_examples)
-	if [ -z $(VERSION) ]; then\
-		echo "Not a branch head/tagged release - skipping docs build.";\
-	else\
-		$(eval BUILDDIR=$(BUILDDIR)/html/$(VERSION))\
-		$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" -aT $(O);\
-	fi
-
-index:
-	touch $(BUILDDIR)/html/.nojekyll
-	echo "<meta http-equiv=\"refresh\" content=\"0; url=./master/index.html\" />" > $(BUILDDIR)/html/index.html
