@@ -1,4 +1,4 @@
-<img src="QuCumber.png" alt="drawing" width="70%" class="center"/>
+<img src="QuCumber.png" alt="QuCumber" width="70%" class="center"/>
 
 
 [![Build Status](https://travis-ci.com/PIQuIL/QuCumber.svg?branch=master)](https://travis-ci.com/PIQuIL/QuCumber)
