@@ -1,7 +1,7 @@
 <img src="QuCumber.png" alt="drawing" width="70%" class="center"/>
 
-
 [![Build Status](https://travis-ci.com/PIQuIL/QuCumber.svg?branch=master)](https://travis-ci.com/PIQuIL/QuCumber)
+[![codecov](https://codecov.io/gh/PIQuIL/QuCumber/branch/master/graph/badge.svg)](https://codecov.io/gh/PIQuIL/QuCumber)
 [![PyPI version](https://badge.fury.io/py/qucumber.svg)](https://badge.fury.io/py/qucumber)
 [![Documentation](https://img.shields.io/badge/documentation-docs-blue.svg)](https://piquil.github.io/QuCumber/)
 
@@ -21,9 +21,11 @@ QuCumber is developed by the Perimeter Institute Quantum Intelligence Lab (PIQuI
 The project is currently in an early-beta, expect some rough edges, bugs, and backward incompatible updates.
 
 ## Requirements
-Python 3.6. QuCumber is written in PyTorch, with CPU and GPU support.  See https://pytorch.org.
+
+Python 3.6. QuCumber is written using [PyTorch](https://pytorch.org), with CPU and GPU support.
 
 ## Features
+
 QuCumber implements unsupervised generative modelling with a two-layer RBM.
 Each layer is a number of binary stochastic variables (with values 0 or 1).  The size of the visible
 layer corresponds to the input data, i.e. the number of qubits.  The size of the hidden
@@ -34,12 +36,10 @@ wavefunction.  Data is thus only required in one basis.  Upcoming versions will
 allow reconstruction of more general wavefunctions and density matrices; in this case
 tomographyically-complete basis sets may be required in the training data.
 
-
-
 ## Documentation
 
 Documentation can be found [here](https://piquil.github.io/QuCumber/).
 
-
 ## License
+
 QuCumber is licensed under the Apache License Version 2.0.

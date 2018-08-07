@@ -8,6 +8,10 @@ git:
 matrix:
   fast_finish: true
 
+cache:
+  - packages
+  - pip
+
 addons:
   apt:
     packages:
@@ -21,8 +25,12 @@ addons:
 python:
   - '3.6'
 
+jobs:
+  include:
+    - stage: test
+
 install:
-  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 flake8-per-file-ignores radon
+  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 flake8-per-file-ignores radon pytest codecov
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl; fi
   - travis_retry pip install torchvision
 
@@ -33,6 +41,9 @@ script:
   - flake8
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then cd docs && mkdir -p _static _templates && make clean && make html && cd ../; fi
   - python setup.py sdist bdist_wheel
+
+after_success:
+  - codecov -t $CODECOV_TOKEN
 
 before_deploy:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then tar -czvf examples.tar.gz examples; fi

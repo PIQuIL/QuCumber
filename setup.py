@@ -1,4 +1,5 @@
 import setuptools
+
 import qucumber
 
 with open("README.md", "r") as fh:

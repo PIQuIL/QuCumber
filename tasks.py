@@ -17,6 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import os
+from datetime import datetime
 
 from invoke import task
 
@@ -34,10 +36,12 @@ def build_docs(c):
                  .split('\n')[0].strip() \
                  .split('/')[-1]
 
+    all_refs = c.run("git tag --list", hide='out').stdout.split('\n')
+    all_refs = [tag for tag in all_refs if tag]
+    all_refs += ALLOWED_BRANCHES
+
     if head_name == "master":
-        refs = c.run("git tag --list", hide='out').stdout.split('\n')
-        refs = [tag for tag in refs if tag]
-        refs += ALLOWED_BRANCHES
+        refs = [r for r in all_refs]  # copy all_refs
     else:
         refs = [head_name]
 
@@ -65,7 +69,23 @@ def build_docs(c):
 
     c.run("git checkout gh-pages")
 
+    dir_contents = os.listdir()
+    dir_contents = ((set(dir_contents) - set(all_refs))
+                    | (set(all_refs) - set(refs)))
+    for item in dir_contents:
+        if os.path.isfile(item):
+            os.remove(item)
+        elif os.path.isdir(item):
+            os.rmdir(item)
+
+    c.run("mv ./docs/_build/html/* ./")
+    c.run("git add -A")
+    c.run("git commit -m \"({}) - Deploy docs to GitHub Pages.\""
+          .format(datetime.today().strftime("%Y-%m-%d"))
+
+    # c.run("git push")
+
     # TODO: clear gh-pages file tree, and pop out build contents into root
     # then commit and push everything
 
-    c.run("git checkout {}".format(old_ref))  # revert to old_ref once done
+    # c.run("git checkout {}".format(old_ref))  # revert to old_ref once done

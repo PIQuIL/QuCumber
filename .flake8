@@ -1,4 +1,6 @@
 [flake8]
+application-import-names = qucumber
+import-order-style = pep8
 max-complexity = 20
 per-file-ignores =
     # Ignore "imported but unused" errors for all __init__.py files.
