@@ -24,8 +24,8 @@ def make_complex(x, y):
     """A function that combines the real (x) and imaginary (y) parts of a
     vector or a matrix.
 
-    .. note:: x and y must have the same shape. Also, this will not work for rank
-              zero tensors.
+    .. note:: x and y must have the same shape. Also, this will not work for
+              rank zero tensors.
 
     :param x: The real part
     :type x: torch.Tensor
@@ -44,7 +44,7 @@ def scalar_mult(x, y):
     complex vectors and scalars or two complex scalars.
 
     .. note:: If one wishes to do vector-scalar multiplication or matrix-scalar
-              multiplication, you must put the vector / matrix as the first 
+              multiplication, you must put the vector / matrix as the first
               argument (x).
 
     :param x: A complex scalar, vector or matrix.
@@ -66,8 +66,8 @@ def scalar_mult(x, y):
 def matmul(x, y):
     """A function that computes complex matrix-matrix and matrix-vector products.
 
-    .. note:: If one wishes to do matrix-vector products, the vector must be the 
-              second argument (y).
+    .. note:: If one wishes to do matrix-vector products, the vector must be
+              the second argument (y).
 
     :param x: A complex matrix.
     :type x: torch.Tensor
@@ -122,7 +122,8 @@ def inner_prod(x, y):
 
 
 def outer_prod(x, y):
-    """A function that returns the outer product of two complex vectors, x and y.
+    """A function that returns the outer product of two complex vectors, x
+    and y.
 
     :param x: A complex vector.
     :type x: torch.Tensor
