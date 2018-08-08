@@ -38,7 +38,7 @@ script:
   - inv license-check
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv build-docs; fi # docs must be built BEFORE installation
   - python setup.py install
-  - cd ./tests/ && pytest && cd ../
+  - cd ./tests/ && pytest --ignore=test_complexGrads.py --ignore=test_positiveGrads.py && cd ../
   - flake8 --exit-zero  # remove this flag once code is all cleaned up
   - python setup.py sdist bdist_wheel
 
