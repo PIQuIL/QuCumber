@@ -157,7 +157,7 @@ class TestGradsPos(unittest.TestCase):
 
     def percent_diff(self, a, b):
         numerator   = torch.abs(a-b)*100.
-        denominator = 0.5*(a+b)
+        denominator = torch.abs(0.5*(a+b))
         return numerator / denominator
 
     def assertAlmostEqual(self, a, b, tol, msg=None):
@@ -179,7 +179,7 @@ class TestGradsPos(unittest.TestCase):
 
         high_tol = torch.tensor(1e-9, dtype = torch.double)
         low_tol  = torch.tensor(1e-5, dtype = torch.double)
-        pdiff    = torch.tensor(40., dtype = torch.double)
+        pdiff    = torch.tensor(100, dtype = torch.double)
         
         with open('test_data.pkl', 'rb') as fin:
             test_data = pickle.load(fin)
@@ -247,24 +247,22 @@ class TestGradsPos(unittest.TestCase):
             print("{: 10.8f}\t{: 10.8f}\t\t"
                   .format(num_grad_nll[i], alg_grad_nll[0][counter].item()))
             counter += 1
-        
-        print (num_grad_kl)
 
         self.assertAlmostEqual(num_grad_kl,
-                               alg_grad_kl[len(nn_state.rbm_am.weights.view(-1)):counter-1],
+                               alg_grad_kl[len(nn_state.rbm_am.weights.view(-1)):counter],
                                high_tol,
-                               msg="KL grads are not close enough for weights!"
+                               msg="KL grads are not close enough for visible biases!"
                               )
 
         self.assertPercentDiff(num_grad_nll, 
-                               alg_grad_nll[0][len(nn_state.rbm_am.weights.view(-1)):counter-1],
+                               alg_grad_nll[0][len(nn_state.rbm_am.weights.view(-1)):counter],
                                pdiff,
-                               msg="NLL grads are not close enough for weights!"
+                               msg="NLL grads are not close enough for visible biases!"
                               )
          
-        num_grad_kl = PGU.numeric_gradkl(nn_state, target_psi,
+        num_grad_kl = PGU.numeric_gradKL(nn_state, target_psi,
                                          nn_state.rbm_am.hidden_bias, vis, eps)
-        num_grad_nll = PGU.numeric_gradnll(nn_state, nn_state.rbm_am.hidden_bias,
+        num_grad_nll = PGU.numeric_gradNLL(nn_state, nn_state.rbm_am.hidden_bias,
                                            data, vis, eps)
     
         print("\ntesting hidden bias...")
@@ -276,19 +274,19 @@ class TestGradsPos(unittest.TestCase):
             print("{: 10.8f}\t{: 10.8f}\t\t"
                   .format(num_grad_nll[i], alg_grad_nll[0][counter].item()))
             counter += 1
-        
+       
         self.assertAlmostEqual(num_grad_kl,
                                alg_grad_kl[(len(nn_state.rbm_am.weights.view(-1))+
-                                            len(nn_state.rbm_amp.visible_bias)):counter-1],
+                                            len(nn_state.rbm_am.visible_bias)):counter],
                                high_tol,
-                               msg="KL grads are not close enough for weights!"
+                               msg="KL grads are not close enough for hidden biases!"
                               )
 
         self.assertPercentDiff(num_grad_nll, 
                                alg_grad_nll[0][(len(nn_state.rbm_am.weights.view(-1))+
-                                                len(nn_state.rbm_amp.visible_bias)):counter-1],
+                                                len(nn_state.rbm_am.visible_bias)):counter],
                                pdiff,
-                               msg="NLL grads are not close enough for weights!"
+                               msg="NLL grads are not close enough for hidden biases!"
                               )
         
 

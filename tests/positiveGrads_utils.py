@@ -102,8 +102,8 @@ def algorithmic_gradKL(nn_state, target_psi, vis):
 
 
 def algorithmic_gradNLL(qr, data, k):
-    qr.nn_state.set_visible_layer(data)
-    return qr.compute_batch_gradients(k, data)
+    #qr.nn_state.set_visible_layer(data)
+    return qr.compute_batch_gradients(k, data, data)
 
 
 def numeric_gradKL(nn_state, target_psi, param, vis, eps):
