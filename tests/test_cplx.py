@@ -116,7 +116,6 @@ class TestCplx(unittest.TestCase):
         self.assertTensorsEqual(cplx.outer_prod(vector, vector), expect,
                                 msg="Outer product failed!")
 
-
     def test_conjugate(self):
         vector = torch.tensor([[1, 2], [3, 4]], dtype=torch.double)
 
@@ -174,6 +173,7 @@ class TestCplx(unittest.TestCase):
 
         self.assertTensorsEqual(cplx.norm(scalar), expect,
                                 msg="Norm failed!")
+
 
 if __name__ == '__main__':
     unittest.main()
