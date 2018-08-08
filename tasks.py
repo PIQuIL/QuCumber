@@ -22,12 +22,20 @@ import shutil
 from datetime import datetime
 
 from invoke import task
+from jinja2 import FileSystemLoader, Environment
 
 ALLOWED_BRANCHES = ["master", "develop"]
 
 
 # Master should rebuild *everything*
 # tags/other branches should only build themselves
+
+env = Environment(
+    loader=FileSystemLoader('./docs/_templates')
+)
+
+versions_template = env.get_template("versions.html")
+
 
 @task
 def build_docs(c):
@@ -39,7 +47,7 @@ def build_docs(c):
 
     all_refs = c.run("git tag --list", hide='out').stdout.split('\n')
     all_refs = [tag for tag in all_refs if tag]
-    all_refs += ALLOWED_BRANCHES
+    all_refs = ALLOWED_BRANCHES + sorted(all_refs)
 
     if head_name == "master":
         refs = [r for r in all_refs]  # copy all_refs
@@ -56,17 +64,17 @@ def build_docs(c):
 
             b_dir = "_build/html/{}".format(ref)
             build_dirs += b_dir
-
-            c.run("sphinx-build -b html ./ {} -aT".format(b_dir))
+            version_str = ref
+            release_str = ref
+            c.run("QUCUMBER_VERSION={}; ".format(version_str)
+                  + "QUCUMBER_RELEASE={}; ".format(release_str)
+                  + "sphinx-build -b html ./ {} -aT".format(b_dir))
 
         if head_name == "master":
             c.run("touch _build/html/.nojekyll")
-            c.run('echo \"<meta http-equiv=\\"refresh\\" content=\\"0; '
-                  'url=./master/index.html\\" />\" > _build/html/index.html')
-
-            for ref in refs:
-                c.run('echo _build/html/{}/index.html '.format(ref)
-                      + '>> _build/html/versions.html')
+            c.run('mv _templates/index.html _build/html/index.html')
+            with open("_build/html/versions.html", 'wb') as f:
+                f.write(versions_template.render(refs=refs))
 
     c.run("git checkout gh-pages")
 
@@ -74,7 +82,8 @@ def build_docs(c):
     dir_contents = ((set(dir_contents) - set(all_refs))
                     | (set(all_refs) - set(refs)))
     dir_contents -= set(["docs", ".git"])
-    print("going to delete")
+
+    print("going to delete: " + str(dir_contents))
     for item in dir_contents:
         if os.path.isfile(item):
             print("deleting: " + item)
