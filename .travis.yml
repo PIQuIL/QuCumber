@@ -37,6 +37,9 @@ script:
   - cd ./tests/ && pytest --ignore=test_complexGrads.py --ignore=test_positiveGrads.py && cd ../
   - flake8 --exit-zero  # remove this flag once code is all cleaned up
   - python setup.py sdist bdist_wheel
+  - echo $TRAVIS_TYPE
+  - echo $TRAVIS_BRANCH
+  - echo $TRAVIS_TAG
 
 after_success:
   - codecov -t $CODECOV_TOKEN
