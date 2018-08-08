@@ -25,10 +25,6 @@ addons:
 python:
   - '3.6'
 
-jobs:
-  include:
-    - stage: test
-
 install:
   - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 flake8-per-file-ignores radon pytest codecov invoke
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl; fi
@@ -60,7 +56,7 @@ deploy:
       condition: |
         type = push AND \
         (branch IN (master, develop) OR tag IS present) AND \
-        env(TRAVIS_PYTHON_VERSION) = '3.6'
+        env(TRAVIS_PYTHON_VERSION) = 3.6
   - provider: releases
     skip-cleanup: true
     github-token: "$GITHUB_TOKEN"
