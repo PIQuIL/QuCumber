@@ -23,8 +23,6 @@ import pickle
 
 import torch
 
-import numpy as np
-
 import positiveGrads_utils as PGU
 
 import qucumber
@@ -194,7 +192,7 @@ class TestGradsPos(unittest.TestCase):
         num_visible = data.shape[-1]
         num_hidden  = num_visible
 
-        nn_state   = PositiveWavefunction(data.shape[-1],data.shape[-1],gpu=False)
+        nn_state   = PositiveWavefunction(num_visible,num_hidden,gpu=False)
         qr         = QuantumReconstruction(nn_state)
         data       = data.to(device=nn_state.device)
         vis        = PGU.generate_visible_space(data.shape[-1]) 
