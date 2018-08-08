@@ -144,5 +144,6 @@ def license_check(c):
 
 @task(license_check)
 def full_test(c):
-    c.run("pytest")
+    with c.cd("./tests/"):
+        c.run("pytest")
     c.run("flake8")

@@ -30,7 +30,7 @@ jobs:
     - stage: test
 
 install:
-  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 flake8-per-file-ignores radon pytest codecov
+  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 flake8-per-file-ignores radon pytest codecov invoke
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl; fi
   - travis_retry pip install torchvision
 
@@ -38,7 +38,7 @@ script:
   - inv license-check
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]];  inv build-docs  # docs must be built BEFORE installation
   - python setup.py install
-  - pytest
+  - cd ./tests/ && pytest && cd ../
   - flake8
   - python setup.py sdist bdist_wheel
 
