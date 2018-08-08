@@ -1,0 +1,249 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "IN DEVELOPMENT\n",
+    "\n",
+    "# Part 2: Training an RBM *with* a phase\n",
+    "\n",
+    "## Getting Started\n",
+    "\n",
+    "The following imports are needed to run this tutorial."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import torch\n",
+    "import numpy as np\n",
+    "import csv\n",
+    "import pickle\n",
+    "\n",
+    "from qucumber.binary_rbm import BinaryRBM\n",
+    "from qucumber.quantum_reconstruction import QuantumReconstruction\n",
+    "from qucumber.complex_wavefunction import ComplexWavefunction\n",
+    "from qucumber.callbacks import MetricEvaluator\n",
+    "\n",
+    "import qucumber.utils.data as data              # for importing data\n",
+    "import qucumber.utils.cplx as cplx              # for complex algebra in torch\n",
+    "import qucumber.utils.unitaries as unitaries    # for importing unitary operators / gates\\\n",
+    "import qucumber.utils.training_statistics as ts # for training evaluation"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The _BinaryRBM_ class in *binary_rbm.py* contains the generic properties of an RBM with a binary visible and hidden layer (e.g. it's effective energy and sampling the hidden and visible layers). \n",
+    "\n",
+    "The actual quantum wavefunction reconstruction occurs in the _QuantumReconstruction_ class in *quantum_reconstruction.py*. A _QuantumReconstruction_ object is initialized with a neural network state (in this case, a *ComplexWavefunction* object).\n",
+    "\n",
+    "*MetricEvaluator* in *callbacks.py* contains functions that allow the user to evaluate the quality of the training (i.e. based on the fidelity or KL divergence).\n",
+    "\n",
+    "## Training\n",
+    "\n",
+    "Let's go through training a complex wavefunction. To evaluate how the RBM is training, we will compute the full KL divergence and the fidelity between the true wavefunction of the system and the wavefunction the RBM reconstructs. We first need to load our training data and the true wavefunction of this system. However, we also need the corresponding file that contains all of the measurements that each site is in. The dummy dataset we will train our RBM on is a two qubit system who's wavefunction has random amplitudes and phases."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "train_samples_path = 'qubits_train_samples.txt'\n",
+    "train_bases_path   = 'qubits_train_bases.txt'\n",
+    "bases_path         = 'qubits_bases.txt'\n",
+    "psi_path           = 'qubits_psi.txt'\n",
+    "\n",
+    "train_samples,target_psi,train_bases,bases = data.load_data(train_samples_path, \n",
+    "                                                            psi_path, \n",
+    "                                                            train_bases_path, \n",
+    "                                                            bases_path)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The following arguments are required to construct a **ComplexWavefunction** neural network state:\n",
+    "\n",
+    "1. **A dictionary of unitary operators**. This will contain the (2 x 2) unitary matrices / gates.\n",
+    "2. **The number of visible units**. This is 2 for the case of our dataset.\n",
+    "3. **The number of hidden units in the hidden layer of the RBM**. This number is set to the number of visible units by default (10 in the case of our dataset)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "unitary_dict = unitaries.create_dict()\n",
+    "'''If you would like to add your own quantum gates from your experiment to \n",
+    "   \"unitary_dict\", do:\n",
+    "   unitary_dict = unitaries.create_dict(name='your_name', \n",
+    "                                        unitary=torch.tensor([[real part], \n",
+    "                                                              [imaginary part]], \n",
+    "                                                             dtype=torch.double)\n",
+    "                                                             \n",
+    "   For example: \n",
+    "   unitaries = unitary_library.create_dict(name='qucumber', \n",
+    "                                           unitary=torch.tensor([ [[1.,0.],[0.,1.]] \n",
+    "                                                                  [[0.,0.],[0.,0.]] ], \n",
+    "                                                                dtype=torch.double))\n",
+    "                                                                                             \n",
+    "   By default, unitary_library.create_dict() contains the idenity matrix and the \n",
+    "   hadamard and K gates with keys Z, X and Y, respectively.\n",
+    "'''\n",
+    "\n",
+    "nv = train_samples.shape[-1]\n",
+    "nh = nv\n",
+    "\n",
+    "nn_state = ComplexWavefunction(unitary_dict, num_visible=nv, num_hidden=nh, gpu=False)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now we can specify the parameters of the training process:\n",
+    "\n",
+    "1. **epochs**: the number of epochs, i.e. training cycles that will be performed; 50 should be fine\n",
+    "2. **batch_size**: the number of data points used in the positive phase of the gradient; we'll go with 50\n",
+    "3. **num_chains**: the number of data points used in the negative phase of the gradient. We'll go with 10\n",
+    "4. **CD**: the number of contrastive divergence steps; CD=1 seems to be good enough in most cases\n",
+    "5. **lr**: the learning rate; we will use a learning rate of 0.1 here\n",
+    "6. **log_every**: how often you would like the program to update you during the training; we choose 10 - that is, every 10 epochs the program will print out the fidelity. This parameter is required in the MetricEvaluator."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "epochs     = 50\n",
+    "num_chains = 10\n",
+    "batch_size = 50\n",
+    "CD         = 5\n",
+    "lr         = 0.1\n",
+    "log_every  = 10"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Once we initialize the parameters of the *ComplexWavefunction* and the *MetricEvaluator*, we can now begin training. Our *QuantumReconstruction* object, *qr* (see below), contains a function called *fit* that executes the training process."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nn_state.space = nn_state.generate_Hilbert_space(nv) # generate the entire visible space of the system.\n",
+    "callbacks      = [MetricEvaluator(log_every,{'Fidelity':ts.fidelity,'KL':ts.KL},target_psi=target_psi,bases=bases)]\n",
+    "z_samples      = data.extract_refbasis_samples(train_samples,train_bases) # required for the negative phase of the\n",
+    "                                                                          # gradient of the effective energy\n",
+    "\n",
+    "qr = QuantumReconstruction(nn_state)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch = 10\tFidelity = 0.938047\tKL = 0.033838\t\n",
+      "Epoch = 20\tFidelity = 0.968853\tKL = 0.020733\t\n",
+      "Epoch = 30\tFidelity = 0.978688\tKL = 0.017808\t\n",
+      "Epoch = 40\tFidelity = 0.982974\tKL = 0.014539\t\n",
+      "Epoch = 50\tFidelity = 0.981129\tKL = 0.015424\t\n",
+      "\n",
+      "Elapsed time = 70.06\n"
+     ]
+    }
+   ],
+   "source": [
+    "nn_state.initialize_parameters() # randomize the network parameters.\n",
+    "qr.fit(train_samples, epochs, batch_size, num_chains, CD,\n",
+    "       lr, input_bases=train_bases, progbar=False, callbacks = callbacks,\n",
+    "       z_samples = z_samples)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### After Training \n",
+    "\n",
+    "After training your RBM, the *fit* function will have stored your trained weights and biases for the amplitude and the phase. Now, you have the option to generate new data from the trained RBM. The *rbm_real* object has a *sample* function that takes the following arguments.\n",
+    "\n",
+    "1. The number of samples you wish to generate, *num_samples*.\n",
+    "2. The number of contrastive divergence steps performed to generate the samples, *CD*."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "num_samples = 2000\n",
+    "CD          = 200\n",
+    "\n",
+    "nn_state.sample(CD)\n",
+    "samples = nn_state.visible_state"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We can save the RBM parameters and the newly generated samples using the *save* function within the ComplexWavefunction object."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nn_state.save('saved_parameters.pkl', metadata={'Samples':samples})"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

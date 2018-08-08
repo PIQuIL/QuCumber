@@ -1,0 +1,620 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Quantum States &mdash; QuCumber develop documentation</title>
+  
+
+  
+  
+  
+  
+    <link rel="canonical" href="http://piquil.github.io/QuCumber/master/quantum_states.html"/>
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quantum Reconstruction" href="quantum_reconstruction.html" />
+    <link rel="prev" title="RBM" href="rbm.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuCumber
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                develop
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Download the tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/tutorial_quantum_ising.html">Part 1: Reconstruction of a positive wavefunction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/tutorial_qubits.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBM</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quantum States</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#positive-wavefunction">Positive Wavefunction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#complex-wavefunction">Complex Wavefunction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_reconstruction.html">Quantum Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Handler</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">QuCumber</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Quantum States</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/quantum_states.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="quantum-states">
+<h1>Quantum States<a class="headerlink" href="#quantum-states" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="positive-wavefunction">
+<h2>Positive Wavefunction<a class="headerlink" href="#positive-wavefunction" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction">
+<em class="property">class </em><code class="descclassname">qucumber.positive_wavefunction.</code><code class="descname">PositiveWavefunction</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden=None</em>, <em>gpu=True</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L29"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction.initialize_parameters">
+<code class="descname">initialize_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L49"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction.initialize_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomize the parameters <img class="math" src="_images/math/dde1aa7cbf8d91812ab5ca721813fbaf801ac922.svg" alt="\bm{\lambda}=\{\bm{W},\bm{b},\bm{c}\}"/> of
+the RBM parametrizing the wavefunction.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction.psi">
+<code class="descname">psi</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L54"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction.psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the wavefunction of a given vector/matrix of visible states:</p>
+<div class="math">
+<p><img src="_images/math/5b53320a42a11d926b13c64d61040c2b31086efe.svg" alt="\psi_{\bm{\lambda}}(\bm{\sigma})
+    = e^{-\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})/2}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.tensor</em>) – visible states, <img class="math" src="_images/math/f90139bab128bf316fa20f8362ee4f0b7209516c.svg" alt="\bm{\sigma}"/></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Complex object containing the value of the wavefunction for
+each visible state</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.tensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction.gradient">
+<code class="descname">gradient</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L74"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction.gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the gradient
+<img class="math" src="_images/math/55afb04e03a9860daee3756391710ad9fe1213bb.svg" alt="\nabla_{\bm{\lambda}}\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})"/>
+of the effective visible energy for a batch of visible states v.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.tensor</em>) – visible states, <img class="math" src="_images/math/f90139bab128bf316fa20f8362ee4f0b7209516c.svg" alt="\bm{\sigma}"/></td>
+</tr>
+</tbody>
+</table>
+<p>:returns dictionary with one key (rbm_am)
+:rtype  dictionary(dictionary(torch.tensor,torch.tensor,torch.tensor)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction.sample">
+<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k</em>, <em>initial_state=None</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L102"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs k steps of Block Gibbs sampling. One step consists of sampling
+the hidden state <img class="math" src="_images/math/f322fe8370bda5f6cb6dc73d2de821528a27475b.svg" alt="\bm{h}"/> from the conditional distribution
+<img class="math" src="_images/math/dc8a5cdfe4b089484f54561f088c8a3c20d57535.svg" alt="p_{\bm{\lambda}}(\bm{h}\:|\:\bm{v})"/>, and sampling the visible
+state <img class="math" src="_images/math/c8d0c6e0222221b488bfd67ca91a2a10ce1c6b0a.svg" alt="\bm{v}"/> from the conditional distribution
+<img class="math" src="_images/math/9bfa3dfeb6284f121d43f99fea73134b9233de4e.svg" alt="p_{\bm{\lambda}}(\bm{v}\:|\:\bm{h})"/>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of Block Gibbs steps.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>metadata={}</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L120"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the RBM parameters to the given location along with
+any given metadata.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>file</em>) – The location to save the RBM parameters + metadata</li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Any extra metadata to store alongside the RBM
+parameters</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L134"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the RBM parameters from the given location ignoring any
+metadata stored in the file. Overwrites the RBM’s parameters.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The RBM object on which this function is called must
+have the same shape as the one who’s parameters are being
+loaded.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>file</em>) – The location to load the RBM parameters from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction.generate_hilbert_space">
+<code class="descname">generate_hilbert_space</code><span class="sig-paren">(</span><em>size</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L153"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction.generate_hilbert_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates Hilbert space of dimension <img class="math" src="_images/math/310f13b3bd89880102174489400b5526076dbc07.svg" alt="2^{\text{size}}"/>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tensor with all the basis states of the Hilbert space.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction.compute_normalization">
+<code class="descname">compute_normalization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L171"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction.compute_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the normalization constant of the wavefunction.</p>
+<div class="math">
+<p><img src="_images/math/34840e035678d0f95fe5fe9e710b507eeac6728e.svg" alt="Z_{\bm{\lambda}}=\sqrt{\sum_{\bm{\sigma}}|\psi_{\bm{\lambda}}|^2}=
+\sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>space</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A rank 2 tensor of the entire visible space.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="qucumber.positive_wavefunction.PositiveWavefunction.autoload">
+<em class="property">static </em><code class="descname">autoload</code><span class="sig-paren">(</span><em>location</em>, <em>gpu=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/positive_wavefunction.py#L188"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.positive_wavefunction.PositiveWavefunction.autoload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes an RBM from the parameters in the given location,
+ignoring any metadata stored in the file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>file</em>) – The location to load the RBM parameters from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A new RBM initialized from the given parameters</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">BinomialRBM</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="complex-wavefunction">
+<h2>Complex Wavefunction<a class="headerlink" href="#complex-wavefunction" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction">
+<em class="property">class </em><code class="descclassname">qucumber.complex_wavefunction.</code><code class="descname">ComplexWavefunction</code><span class="sig-paren">(</span><em>unitary_dict</em>, <em>num_visible</em>, <em>num_hidden</em>, <em>gpu=True</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L30"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.initialize_parameters">
+<code class="descname">initialize_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L49"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.initialize_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomize the parameters
+<img class="math" src="_images/math/7917e30dfa7c700a66deffefe719e7a16f2fd3c5.svg" alt="\bm{\lambda}=\{\bm{W}^{\bm{\lambda}},
+\bm{b}^{\bm{\lambda}},\bm{c}^{\bm{\lambda}}\}"/> and
+<img class="math" src="_images/math/1314e5933365daf017bca683148dc3b3675881f1.svg" alt="\bm{\mu}=\{\bm{W}^{\bm{\mu}},
+\bm{b}^{\bm{\mu}},\bm{c}^{\bm{\mu}}\}"/> of the amplitude and phase
+RBMs respectively.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.amplitude">
+<code class="descname">amplitude</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L59"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.amplitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the amplitude of a given vector/matrix of visible states:</p>
+<div class="math">
+<p><img src="_images/math/8946a650a38fb13b027ed480a0ff2f60ff197c68.svg" alt="\text{amplitude}(\bm{\sigma})=|\psi_{\bm{\lambda\mu}}(\bm{\sigma})|=
+e^{-\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})/2}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.tensor</em>) – visible states <img class="math" src="_images/math/f90139bab128bf316fa20f8362ee4f0b7209516c.svg" alt="\bm{\sigma}"/></td>
+</tr>
+</tbody>
+</table>
+<p>:returns Matrix/vector containing the amplitudes of v
+:rtype torch.tensor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.phase">
+<code class="descname">phase</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L75"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the phase of a given vector/matrix of visible states</p>
+<div class="math">
+<p><img src="_images/math/1dcc7677924be7318e1a5efef61c0c6e7acefbd9.svg" alt="\text{phase}(\bm{\sigma})=-\mathcal{E}_{\bm{\mu}}(\bm{\sigma})/2"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.tensor</em>) – visible states <img class="math" src="_images/math/f90139bab128bf316fa20f8362ee4f0b7209516c.svg" alt="\bm{\sigma}"/></td>
+</tr>
+</tbody>
+</table>
+<p>:returns Matrix/vector containing the phases of v
+:rtype torch.tensor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.psi">
+<code class="descname">psi</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L90"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the wavefunction of a given vector/matrix of visible states:</p>
+<div class="math">
+<p><img src="_images/math/8d10242be1463e33cf1b56f39b03cf5130e4ecbd.svg" alt="\psi_{\bm{\lambda\mu}}(\bm{\sigma})
+    = e^{-[\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})
+            + i\mathcal{E}_{\bm{\mu}}(\bm{\sigma}]/2}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<em>torch.tensor</em>) – visible states <img class="math" src="_images/math/f90139bab128bf316fa20f8362ee4f0b7209516c.svg" alt="\bm{\sigma}"/></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Complex object containing the value of the wavefunction for
+each visible state</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">torch.tensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.gradient">
+<code class="descname">gradient</code><span class="sig-paren">(</span><em>basis</em>, <em>sample</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L117"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the gradient of a set (v_state) of samples, measured
+in different bases</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>basis</strong> (<em>np.array</em>) – A set of basis, (i.e.vector of strings)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.sample">
+<code class="descname">sample</code><span class="sig-paren">(</span><em>num_samples</em>, <em>k</em>, <em>initial_state=None</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L209"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs k steps of Block Gibbs sampling. One step consists of sampling
+the hidden state <img class="math" src="_images/math/f322fe8370bda5f6cb6dc73d2de821528a27475b.svg" alt="\bm{h}"/> from the conditional distribution
+<img class="math" src="_images/math/dc8a5cdfe4b089484f54561f088c8a3c20d57535.svg" alt="p_{\bm{\lambda}}(\bm{h}\:|\:\bm{v})"/>, and sampling the visible
+state <img class="math" src="_images/math/c8d0c6e0222221b488bfd67ca91a2a10ce1c6b0a.svg" alt="\bm{v}"/> from the conditional distribution
+<img class="math" src="_images/math/9bfa3dfeb6284f121d43f99fea73134b9233de4e.svg" alt="p_{\bm{\lambda}}(\bm{v}\:|\:\bm{h})"/>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>k_cd</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of Block Gibbs steps.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.generate_hilbert_space">
+<code class="descname">generate_hilbert_space</code><span class="sig-paren">(</span><em>size</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L227"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.generate_hilbert_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates Hilbert space of dimension <img class="math" src="_images/math/310f13b3bd89880102174489400b5526076dbc07.svg" alt="2^{\text{size}}"/>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tensor with all the basis states of the Hilbert space.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.compute_normalization">
+<code class="descname">compute_normalization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L245"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.compute_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the normalization constant of the wavefunction.</p>
+<div class="math">
+<p><img src="_images/math/0dfc9ea7d7eb51cf8ffc9289a0ad4bdac477b802.svg" alt="Z_{\bm{\lambda}}=
+\sqrt{\sum_{\bm{\sigma}}|\psi_{\bm{\lambda\mu}}|^2}=
+\sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>space</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A rank 2 tensor of the entire visible space.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>metadata={}</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L263"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the RBM parameters to the given location along with
+any given metadata.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>file</em>) – The location to save the RBM parameters + metadata</li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – Any extra metadata to store alongside the RBM
+parameters</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.complex_wavefunction.ComplexWavefunction.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/7d429e2/qucumber/complex_wavefunction.py#L281"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.complex_wavefunction.ComplexWavefunction.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the RBM parameters from the given location ignoring any
+metadata stored in the file. Overwrites the RBM’s parameters.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The RBM object on which this function is called must
+have the same shape as the one who’s parameters are being
+loaded.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>file</em>) – The location to load the RBM parameters from</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="quantum_reconstruction.html" class="btn btn-neutral float-right" title="Quantum Reconstruction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="rbm.html" class="btn btn-neutral" title="RBM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, PIQuIL.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+    <h1>QuCumber Documentation</h1>
+    <h2>Versions:</h2>
+    <ul>
+    
+    </ul>
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'develop',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
