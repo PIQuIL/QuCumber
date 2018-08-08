@@ -21,9 +21,8 @@ import pickle
 
 import torch
 
-import qucumber
-from qucumber.complex_wavefunction import ComplexWavefunction
-from qucumber.quantum_reconstruction import QuantumReconstruction
+import numpy as np
+
 from qucumber.utils import cplx, unitaries
 
 
@@ -228,7 +227,7 @@ def numeric_gradNLL(nn_state, data_samples, data_bases,
         param[i] += eps
 
         num_gradNLL.append((NLL_p - NLL_m) / (2*eps))
-    return num_gradNLL
+    return torch.tensor(np.array(num_gradNLL), dtype = torch.double)
 
 
 def numeric_gradKL(param, nn_state, psi_dict, vis, unitary_dict, bases, eps):
@@ -248,7 +247,7 @@ def numeric_gradKL(param, nn_state, psi_dict, vis, unitary_dict, bases, eps):
         param[i] += eps
 
         num_gradKL.append((KL_p - KL_m) / (2*eps))
-    return num_gradKL
+    return torch.stack(num_gradKL)
 
 
 def algorithmic_gradKL(nn_state, psi_dict, vis, unitary_dict, bases):
@@ -279,97 +278,3 @@ def algorithmic_gradKL(nn_state, psi_dict, vis, unitary_dict, bases):
                            * nn_state.rbm_am.effective_energy_gradient(vis[i])
                            / float(len(bases)))
     return grad_KL
-
-
-def run(qr, psi_dict, data_samples, data_bases, unitary_dict, bases,
-        vis, eps, k):
-    device = qr.nn_state.device
-    data_samples = data_samples.to(device=device)
-    vis = vis.to(device=device)
-
-    unitary_dict = {k: v.to(device=device) for k, v in unitary_dict.items()}
-    psi_dict = {k: v.to(device=device) for k, v in psi_dict.items()}
-
-    alg_grad_NLL = algorithmic_gradNLL(qr, data_samples, data_bases, k)
-    alg_grad_KL = algorithmic_gradKL(qr.nn_state, psi_dict, vis,
-                                     unitary_dict, bases)
-    for n, net in enumerate(qr.nn_state.networks):
-        counter = 0
-        print('\n\nRBM: %s' % net)
-        rbm = getattr(qr.nn_state, net)
-
-        num_grad_KL = numeric_gradKL(rbm.weights.view(-1), qr.nn_state,
-                                     psi_dict, vis, unitary_dict, bases, eps)
-        num_grad_NLL = numeric_gradNLL(qr.nn_state, data_samples, data_bases,
-                                       unitary_dict, rbm.weights.view(-1),
-                                       vis, eps)
-
-        print("\nTesting weights...")
-        print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-        for i in range(len(rbm.weights.view(-1))):
-            print("{: 10.8f}\t{: 10.8f}\t\t"
-                  .format(num_grad_KL[i], alg_grad_KL[n][counter].item()),
-                  end="", flush=True)
-            print("{: 10.8f}\t{: 10.8f}\t\t"
-                  .format(num_grad_NLL[i], alg_grad_NLL[n][i].item()))
-            counter += 1
-
-        num_grad_KL = numeric_gradKL(rbm.visible_bias, qr.nn_state, psi_dict,
-                                     vis, unitary_dict, bases, eps)
-        num_grad_NLL = numeric_gradNLL(qr.nn_state, data_samples, data_bases,
-                                       unitary_dict, rbm.visible_bias,
-                                       vis, eps)
-
-        print("\nTesting visible bias...")
-        print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-        for i in range(len(rbm.visible_bias)):
-            print("{: 10.8f}\t{: 10.8f}\t\t"
-                  .format(num_grad_KL[i], alg_grad_KL[n][counter].item()),
-                  end="", flush=True)
-            print("{: 10.8f}\t{: 10.8f}\t\t"
-                  .format(num_grad_NLL[i], alg_grad_NLL[n][counter].item()))
-            counter += 1
-
-        num_grad_KL = numeric_gradKL(rbm.hidden_bias, qr.nn_state, psi_dict,
-                                     vis, unitary_dict, bases, eps)
-        num_grad_NLL = numeric_gradNLL(qr.nn_state, data_samples, data_bases,
-                                       unitary_dict, rbm.hidden_bias,
-                                       vis, eps)
-        print("\nTesting hidden bias...")
-        print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-        for i in range(len(rbm.hidden_bias)):
-            print("{: 10.8f}\t{: 10.8f}\t\t"
-                  .format(num_grad_KL[i], alg_grad_KL[n][counter].item()),
-                  end="", flush=True)
-            print("{: 10.8f}\t{: 10.8f}\t\t"
-                  .format(num_grad_NLL[i], alg_grad_NLL[n][counter].item()))
-            counter += 1
-
-    print('')
-
-
-if __name__ == '__main__':
-    k = 2
-    num_chains = 10
-    seed = 1234
-    with open('test_data.pkl', 'rb') as fin:
-        test_data = pickle.load(fin)
-
-    qucumber.set_random_seed(seed, cpu=True, gpu=True, quiet=True)
-    train_bases = test_data['2qubits']['train_bases']
-    train_samples = torch.tensor(test_data['2qubits']['train_samples'],
-                                 dtype=torch.double)
-    bases_data = test_data['2qubits']['bases']
-    target_psi_tmp = torch.tensor(test_data['2qubits']['target_psi'],
-                                  dtype=torch.double)
-    nh = train_samples.shape[-1]
-    bases = transform_bases(bases_data)
-    unitary_dict = unitaries.create_dict()
-    psi_dict = load_target_psi(bases, target_psi_tmp)
-    vis = generate_visible_space(train_samples.shape[-1])
-    nn_state = ComplexWavefunction(num_visible=train_samples.shape[-1],
-                                   num_hidden=nh, unitary_dict=unitary_dict)
-    qr = QuantumReconstruction(nn_state)
-    eps = 1.e-6
-    run(qr, psi_dict, train_samples, train_bases, unitary_dict, bases,
-        vis, eps, k)

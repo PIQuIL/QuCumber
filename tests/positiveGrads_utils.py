@@ -21,9 +21,7 @@ import pickle
 
 import torch
 
-import qucumber
-from qucumber.positive_wavefunction import PositiveWavefunction
-from qucumber.quantum_reconstruction import QuantumReconstruction
+import numpy as np
 
 
 def generate_visible_space(num_visible, device="cpu"):
@@ -32,7 +30,7 @@ def generate_visible_space(num_visible, device="cpu"):
     :returns: A tensor of all possible spin configurations.
     :rtype: torch.Tensor
     """
-    space = torch.zeros((1 << num_visible, num_visible),
+    space = torch.zeros((2**num_visible, num_visible),
                         device=device, dtype=torch.double)
     for i in range(1 << num_visible):
         d = i
@@ -104,7 +102,7 @@ def algorithmic_gradKL(nn_state, target_psi, vis):
 
 
 def algorithmic_gradNLL(qr, data, k):
-    # qr.nn_state.set_visible_layer(data)
+    #qr.nn_state.set_visible_layer(data)
     return qr.compute_batch_gradients(k, data, data)
 
 
@@ -125,7 +123,7 @@ def numeric_gradKL(nn_state, target_psi, param, vis, eps):
 
         num_gradKL.append((KL_p - KL_m) / (2*eps))
 
-    return num_gradKL
+    return torch.stack(num_gradKL)
 
 
 def numeric_gradNLL(nn_state, param, data, vis, eps):
@@ -144,79 +142,5 @@ def numeric_gradNLL(nn_state, param, data, vis, eps):
         param[i] += eps
 
         num_gradNLL.append((NLL_p - NLL_m) / (2*eps))
-    return num_gradNLL
 
-
-def run(qr, target_psi, data, vis, eps, k):
-    nn_state = qr.nn_state
-    data = data.to(device=nn_state.device)
-    vis = vis.to(device=nn_state.device)
-    target_psi = target_psi.to(device=nn_state.device)
-
-    alg_grad_KL = algorithmic_gradKL(nn_state, target_psi, vis)
-    alg_grad_NLL = algorithmic_gradNLL(qr, data, k)
-    num_grad_KL = numeric_gradKL(nn_state, target_psi,
-                                 nn_state.rbm_am.weights.view(-1), vis, eps)
-    num_grad_NLL = numeric_gradNLL(nn_state, nn_state.rbm_am.weights.view(-1),
-                                   data, vis, eps)
-    counter = 0
-    print("\nTesting weights...")
-    print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-    for i in range(len(nn_state.rbm_am.weights.view(-1))):
-        print("{: 10.8f}\t{: 10.8f}\t\t"
-              .format(num_grad_KL[i], alg_grad_KL[counter].item()),
-              end="", flush=True)
-        print("{: 10.8f}\t{: 10.8f}\t\t"
-              .format(num_grad_NLL[i], alg_grad_NLL[0][i].item()))
-        counter += 1
-
-    num_grad_KL = numeric_gradKL(nn_state, target_psi,
-                                 nn_state.rbm_am.visible_bias, vis, eps)
-    num_grad_NLL = numeric_gradNLL(nn_state, nn_state.rbm_am.visible_bias,
-                                   data, vis, eps)
-    print("\nTesting visible bias...")
-    print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-    for i in range(len(nn_state.rbm_am.visible_bias)):
-        print("{: 10.8f}\t{: 10.8f}\t\t"
-              .format(num_grad_KL[i], alg_grad_KL[counter].item()),
-              end="", flush=True)
-        print("{: 10.8f}\t{: 10.8f}\t\t"
-              .format(num_grad_NLL[i], alg_grad_NLL[0][counter].item()))
-        counter += 1
-
-    num_grad_KL = numeric_gradKL(nn_state, target_psi,
-                                 nn_state.rbm_am.hidden_bias, vis, eps)
-    num_grad_NLL = numeric_gradNLL(nn_state, nn_state.rbm_am.hidden_bias,
-                                   data, vis, eps)
-
-    print("\nTesting hidden bias...")
-    print("Numerical KL\tAlg KL\t\t\tNumerical NLL\tAlg NLL")
-    for i in range(len(nn_state.rbm_am.hidden_bias)):
-        print("{: 10.8f}\t{: 10.8f}\t\t"
-              .format(num_grad_KL[i], alg_grad_KL[counter].item()),
-              end="", flush=True)
-        print("{: 10.8f}\t{: 10.8f}\t\t"
-              .format(num_grad_NLL[i], alg_grad_NLL[0][counter].item()))
-        counter += 1
-
-
-if __name__ == '__main__':
-    k = 10
-    num_chains = 100
-    seed = 1234
-    with open('test_data.pkl', 'rb') as fin:
-        test_data = pickle.load(fin)
-
-    qucumber.set_random_seed(seed, cpu=True, gpu=True, quiet=True)
-    train_samples = torch.tensor(test_data['tfim1d']['train_samples'],
-                                 dtype=torch.double)
-    target_psi = torch.tensor(test_data['tfim1d']['target_psi'],
-                              dtype=torch.double)
-    nh = train_samples.shape[-1]
-    eps = 1.e-6
-
-    nn_state = PositiveWavefunction(num_visible=train_samples.shape[-1],
-                                    num_hidden=nh)
-    qr = QuantumReconstruction(nn_state)
-    vis = generate_visible_space(train_samples.shape[-1])
-    run(qr, target_psi, train_samples, vis, eps, k)
+    return torch.tensor(np.array(num_gradNLL), dtype = torch.double)
