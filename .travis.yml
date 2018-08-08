@@ -53,10 +53,7 @@ deploy:
     on:
       repo: PIQuIL/QuCumber
       all_branches: true
-      condition: |
-        type = push AND \
-        (branch IN (master, develop) OR tag IS present) AND \
-        env(TRAVIS_PYTHON_VERSION) = 3.6
+      condition: type = push AND (branch IN (master, develop) OR tag IS present) AND env(TRAVIS_PYTHON_VERSION) = 3.6
   - provider: releases
     skip-cleanup: true
     github-token: "$GITHUB_TOKEN"
