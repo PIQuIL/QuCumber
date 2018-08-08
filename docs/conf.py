@@ -52,9 +52,12 @@ copyright = '2018, PIQuIL'
 author = 'PIQuIL'
 
 # The short X.Y version
-version = os.environ.get("QUCUMBER_VERSION", qucumber.__version__.strip())
+# version = os.environ.get("QUCUMBER_VERSION", qucumber.__version__.strip())
 # The full version, including alpha/beta/rc tags
-release = os.environ.get("QUCUMBER_RELEASE", version)
+# release = os.environ.get("QUCUMBER_RELEASE", version)
+version = release = qucumber.__version__.strip()
+
+print("Building version: " + version + "; release: " + release)
 
 # -- General configuration ---------------------------------------------------
 
@@ -135,9 +138,9 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {
-#     "canonical_url": "http://piquil.github.io/QuCumber/master/"
-# }
+html_theme_options = {
+    "canonical_url": "http://piquil.github.io/QuCumber/master/"
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

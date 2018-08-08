@@ -35,11 +35,11 @@ install:
   - travis_retry pip install torchvision
 
 script:
-  - python .build_tools/travis/license_checker.py
+  - inv license-check
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]];  inv build-docs  # docs must be built BEFORE installation
   - python setup.py install
   - pytest
   - flake8
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then cd docs && mkdir -p _static _templates && make clean && make html && cd ../; fi
   - python setup.py sdist bdist_wheel
 
 after_success:

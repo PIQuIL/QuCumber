@@ -1,8 +1,9 @@
-{% extends "layout.html" %}
 {% block body %}
+    <h1>QuCumber Documentation</h1>
+    <h2>Versions:</h2>
     <ul>
     {% for ref in refs %}
-        <li><a href="{{ ref }}">{{ ref }}</a></li>
+        <li><a href="{{ ref }}/index.html">{{ ref }}</a></li>
     {% endfor %}
     </ul>
 {% endblock %}
