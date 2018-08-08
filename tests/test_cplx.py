@@ -174,3 +174,6 @@ class TestCplx(unittest.TestCase):
 
         self.assertTensorsEqual(cplx.norm(scalar), expect,
                                 msg="Norm failed!")
+
+if __name__ == '__main__':
+    unittest.main()
