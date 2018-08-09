@@ -58,41 +58,6 @@ class TFIMChainEnergy(Observable):
         p = torch.ones(self.nc, N) * 0.5
         return torch.bernoulli(p)
 
-    ''' 
-    def Run(self, nn_state, n_eq):
-        v = self.Randomize(nn_state.num_visible).to(dtype=torch.double,
-                                                    device=nn_state.device)
-
-        num_samples = self.nc
-        if self.show_convergence:
-            energy_list = []
-            err_energy = []
-
-            sZ_list = []
-            err_sZ = []
-
-            energy = self.Energy(nn_state, v)
-            energy_list.append(energy.apply(v, nn_state).mean())
-            err_energy.append(energy.apply(v, nn_state).std_error())
-
-            for steps in range(n_eq):
-                v = nn_state.gibbs_steps(1, v, overwrite=True)
-                energy_list.append(self.Energy(nn_state, v,
-                                               show_convergence)
-                                   .mean().item())
-
-            out = {'energy': np.array(energy_list),
-                   'error':    np.array(err_energy)
-                  }
-
-        else:
-            
-            out = {'error':  self.std_error(nn_state, num_samples),
-                   'energy': self.expected_value(nn_state, num_samples)
-                  }
-
-        return out
-    '''
 
     def Energy(self, nn_state, samples):
         """Computes the eneself.Energy(nn_state, v)rgy of each sample given a batch of
@@ -126,12 +91,7 @@ class TFIMChainEnergy(Observable):
         transverse_field_terms = (log_flipped_psis
                                   .sub(log_psis)
                                   .exp())  # convert to ratio of probabilities
-        '''
-        if self.show_convergence:
-            energy = (transverse_field_terms.mul(self.h).add(interaction_terms)
-                      .mul(-1.))
-        '''
-        #else:
+
         energy = (transverse_field_terms.mul(self.h).add(interaction_terms)
                   .mul(-1.))
 
@@ -201,14 +161,6 @@ class TFIMChainMagnetization(Observable):
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
         """
-        '''
-        if self.show_convergence:
-            return (to_pm1(samples)
-                    .mean(1)
-                    .abs())
-        '''
-
-        #else:
         return (to_pm1(samples)
                 .mean(1)
                 .abs())
