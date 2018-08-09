@@ -222,4 +222,4 @@ class BinaryRBM(nn.Module):
         neg_free_energies = -self.effective_energy(space)
         logZ = neg_free_energies.logsumexp(0)
         Z = logZ.exp().item()
-        return Z
+        return torch.tensor(Z, dtype = torch.double, device = self.device)

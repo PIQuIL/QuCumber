@@ -71,6 +71,7 @@ class Observable:
         stats = self.statistics(rbm, num_samples, batch_size, **kwargs)
         return stats["mean"]
 
+
     def variance(self, rbm, num_samples, batch_size=0, **kwargs):
         """Estimates the variance (using the sample variance) of the observable
         over the distribution defined by the RBM.
@@ -92,6 +93,12 @@ class Observable:
         stats = self.statistics(rbm, num_samples, batch_size, **kwargs)
         return stats["variance"]
 
+
+    def std_error(self, rbm, num_samples, batch_size=0, **kwargs):
+        stats = self.statistics(rbm, num_samples, batch_size, **kwargs)
+        return stats["std_error"]   
+
+ 
     def statistics(self, rbm, num_samples,
                    num_chains=0, burn_in=1000, steps=1):
         """Estimates both the expected value and variance of the observable
