@@ -374,8 +374,8 @@ div.nboutput div.output_area.stderr {
 
 <span class="kn">from</span> <span class="nn">qucumber.callbacks</span> <span class="k">import</span> <span class="n">MetricEvaluator</span>
 
-<span class="kn">import</span> <span class="nn">qucumber.utils.data</span> <span class="k">as</span> <span class="nn">data</span>
 <span class="kn">import</span> <span class="nn">qucumber.utils.training_statistics</span> <span class="k">as</span> <span class="nn">ts</span>
+<span class="kn">import</span> <span class="nn">qucumber.utils.data</span> <span class="k">as</span> <span class="nn">data</span>
 
 <span class="kn">import</span> <span class="nn">quantum_ising_chain</span>
 <span class="kn">from</span> <span class="nn">quantum_ising_chain</span> <span class="k">import</span> <span class="n">TFIMChainEnergy</span><span class="p">,</span> <span class="n">TFIMChainMagnetization</span>
@@ -383,20 +383,30 @@ div.nboutput div.output_area.stderr {
 </pre></div>
 </div>
 </div>
-<p>The <em>BinaryRBM</em> class in <em>binary_rbm.py</em> contains the generic
-properties of an RBM with a binary visible and hidden layer (e.g. it’s
-effective energy and sampling the hidden and visible layers).</p>
+<p><em>BinaryRBM</em> contains generic properties of an RBM with a binary visible
+and hidden layer (e.g. functions for its effective energy and sampling
+the hidden and visible layers).</p>
 <p>The actual quantum wavefunction reconstruction occurs in the
-<em>QuantumReconstruction</em> class in <em>quantum_reconstruction.py</em>. A
-<em>QuantumReconstruction</em> object is initialized with a neural network
-state (in this case, a PositiveWavefunction object).</p>
-<p><em>callbacks.py</em> contains functions that allow the user to evaluate the
-quality of the training (i.e. based on the fidelity or KL divergence).</p>
+<em>QuantumReconstruction</em>. A <em>QuantumReconstruction</em> object is initialized
+with a neural network state (in this case, a <em>PositiveWavefunction</em>
+object).</p>
+<p><em>callbacks</em> contains functions that allow the user to evaluate the
+quality of the training (i.e. based on the fidelity or KL divergence).
+<em>training_statistics</em> contains the utilities in order to calculate
+these training evaluators.</p>
+<p><em>data</em> contains functions that handle loading the training data.</p>
+<p><em>quantum_ising_chain</em> is not a part of QuCumber; it comprises of
+classes and functions that will calculate the energy and magnetization
+of a transverse-field Ising model (TFIM). <em>quantum_ising_chain</em>
+inherits properties from the <em>Observables</em> class (part of QuCumber - see
+observables.py). We encourage users to follow a similar structure to
+<em>quantum_ising_chain</em> when calculating observables for other systems
+(i.e. not a TFIM).</p>
 </div>
 <div class="section" id="Training">
 <h2>Training<a class="headerlink" href="#Training" title="Permalink to this headline">¶</a></h2>
 <p>Let’s beging with training the RBM on a positive wavefunction. We
-consider the quantum Ising model with Hamiltonian
+consider the quantum Ising model with the Hamiltonian
 <img class="math" src="../_images/math/1508bda9d0f65fd9a59943cdeb04b20de94a70a5.svg" alt="H=-J\sum_{\langle i j \rangle} S^z_i S^z_j - h \sum_i S^x_i"/> at
 its quantum critical point <img class="math" src="../_images/math/938c78ddadc27b3f253378a1244a1b079fed702a.svg" alt="h/J=1"/>. The training data has been
 generated and is contained in the file
@@ -429,6 +439,8 @@ dataset.</li>
 number is set to the number of visible units by default (10 in the
 case of our dataset).</li>
 </ol>
+<p>One may also choose to run this tutorial on a GPU by adding in “gpu =
+True” as an argument to <strong>PositiveWavefunction</strong>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [3]:
@@ -445,17 +457,16 @@ case of our dataset).</li>
 <p>Now we can specify the parameters of the training process:</p>
 <ol class="arabic simple">
 <li><strong>epochs</strong>: the number of epochs, i.e. training cycles that will be
-performed; 1000 should be fine</li>
+performed.</li>
 <li><strong>batch_size</strong>: the number of data points used in the positive phase
-of the gradient; we’ll go with 100</li>
+of the gradient.</li>
 <li><strong>num_chains</strong>: the number of data points used in the negative phase
 of the gradient. Keeping this larger than the <em>batch_size</em> is
-preferred; we’ll go with 200</li>
-<li><strong>CD</strong>: the number of contrastive divergence steps; CD=1 seems to be
-good enough in most cases</li>
-<li><strong>lr</strong>: the learning rate; we will use a learning rate of 0.01 here</li>
+preferred.</li>
+<li><strong>CD</strong>: the number of contrastive divergence steps.</li>
+<li><strong>lr</strong>: the learning rate.</li>
 <li><strong>log_every</strong>: how often you would like the program to update you
-during the training; we choose 50 - that is, every 50 epochs the
+during the training; say we choose 50 - that is, every 50 epochs the
 program will print out the fidelity. This parameter is required in
 the <em>MetricEvaluator</em>.</li>
 </ol>
@@ -474,9 +485,9 @@ the <em>MetricEvaluator</em>.</li>
 </pre></div>
 </div>
 </div>
-<p>Once we initialize the parameters of the <em>PositiveWavefunction</em> and the
-<em>MetricEvaluator</em>, we can now begin training. Our
-<em>QuantumReconstruction</em> object, <em>qr</em> (see below), contains a function
+<p>Once we initialize the parameters of the <strong>PositiveWavefunction</strong> and
+the <strong>MetricEvaluator</strong>, we can begin training. Our
+<strong>QuantumReconstruction</strong> object, <em>qr</em> (see below), contains a function
 called <em>fit</em> that executes the training process.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -498,7 +509,7 @@ called <em>fit</em> that executes the training process.</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">nn_state</span><span class="o">.</span><span class="n">initialize_parameters</span><span class="p">()</span> <span class="c1"># randomize the network parameters.</span>
-<span class="n">qr</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">num_chains</span><span class="p">,</span> <span class="n">CD</span><span class="p">,</span><span class="n">lr</span><span class="p">,</span> <span class="n">progbar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">)</span>
+<span class="n">qr</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">num_chains</span><span class="p">,</span> <span class="n">CD</span><span class="p">,</span> <span class="n">lr</span><span class="p">,</span> <span class="n">progbar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -507,28 +518,28 @@ called <em>fit</em> that executes the training process.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Epoch: 50       Fidelity = 0.787401     KL = 0.439033
-Epoch: 100      Fidelity = 0.897493     KL = 0.207404
-Epoch: 150      Fidelity = 0.933462     KL = 0.132912
-Epoch: 200      Fidelity = 0.951272     KL = 0.097734
-Epoch: 250      Fidelity = 0.959852     KL = 0.081630
-Epoch: 300      Fidelity = 0.969695     KL = 0.061640
-Epoch: 350      Fidelity = 0.975301     KL = 0.049799
-Epoch: 400      Fidelity = 0.979603     KL = 0.040833
-Epoch: 450      Fidelity = 0.983630     KL = 0.032812
-Epoch: 500      Fidelity = 0.985786     KL = 0.028575
-Epoch: 550      Fidelity = 0.986068     KL = 0.028170
-Epoch: 600      Fidelity = 0.988019     KL = 0.024227
-Epoch: 650      Fidelity = 0.989111     KL = 0.022129
-Epoch: 700      Fidelity = 0.988914     KL = 0.022483
-Epoch: 750      Fidelity = 0.989487     KL = 0.021257
-Epoch: 800      Fidelity = 0.990881     KL = 0.018465
-Epoch: 850      Fidelity = 0.990876     KL = 0.018377
-Epoch: 900      Fidelity = 0.991588     KL = 0.017015
-Epoch: 950      Fidelity = 0.992118     KL = 0.015930
-Epoch: 1000     Fidelity = 0.992614     KL = 0.014897
+Epoch: 50       Fidelity = 0.805643     KL = 0.398929
+Epoch: 100      Fidelity = 0.918037     KL = 0.161559
+Epoch: 150      Fidelity = 0.945717     KL = 0.107650
+Epoch: 200      Fidelity = 0.965527     KL = 0.069063
+Epoch: 250      Fidelity = 0.976701     KL = 0.046738
+Epoch: 300      Fidelity = 0.981118     KL = 0.037610
+Epoch: 350      Fidelity = 0.983946     KL = 0.032158
+Epoch: 400      Fidelity = 0.988306     KL = 0.023474
+Epoch: 450      Fidelity = 0.989824     KL = 0.020578
+Epoch: 500      Fidelity = 0.989882     KL = 0.020447
+Epoch: 550      Fidelity = 0.991785     KL = 0.016671
+Epoch: 600      Fidelity = 0.991949     KL = 0.016241
+Epoch: 650      Fidelity = 0.992224     KL = 0.015684
+Epoch: 700      Fidelity = 0.992276     KL = 0.015569
+Epoch: 750      Fidelity = 0.993354     KL = 0.013352
+Epoch: 800      Fidelity = 0.993704     KL = 0.012709
+Epoch: 850      Fidelity = 0.992048     KL = 0.016135
+Epoch: 900      Fidelity = 0.994572     KL = 0.010908
+Epoch: 950      Fidelity = 0.993769     KL = 0.012580
+Epoch: 1000     Fidelity = 0.994645     KL = 0.010701
 
-Elapsed time = 105.18
+Elapsed time = 108.96
 </pre></div></div>
 </div>
 </div>
@@ -539,13 +550,14 @@ weights and biases. Now, we can generate samples from the trained RBM
 and calculate physical observables.</p>
 <p>We have created an example python file called <em>quantum_ising_chain.py</em>
 that calculates the energy and magnetization of a TFIM.</p>
-<p><em>quantum_ising_chain</em> (imported as <em>TFIM</em>) comprises of a class called
-<em>TransverseFieldIsingChain</em>. A <em>TransverseFieldIsingChain</em> is
-instantiated with the following arguments:</p>
+<p><em>quantum_ising_chain</em> comprises of two classes: one to calculate the
+energy of a TFIM (<strong>TFIMChainEnergy</strong>) and one to calculate the
+magnetization of a TFIM (<strong>TFIMChainMagnetization</strong>). The following
+arguments are required to instatiate those objects.</p>
 <ol class="arabic simple">
-<li><strong>hx</strong>: This is the <em>h</em> value of the TFIM (1 in the case of our
-dataset).</li>
-<li><strong>n_measurements</strong>: The number of samples to be generated from the
+<li><strong>h</strong>: This is the <em>h/J</em> value of the TFIM (1 in the case of our
+dataset). This is only needed in <strong>TFIMChainEnergy</strong>.</li>
+<li><strong>n_samples</strong>: The number of samples to be generated from the
 trained RBM. These samples will be used to calculate the observables.</li>
 </ol>
 <div class="nbinput nblast docutils container">
@@ -554,26 +566,29 @@ trained RBM. These samples will be used to calculate the observables.</li>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">n_measurements</span> <span class="o">=</span> <span class="mi">5000</span>
-<span class="n">h</span>              <span class="o">=</span> <span class="mi">1</span>
+<span></span><span class="n">h</span>         <span class="o">=</span> <span class="mi">1</span>
+<span class="n">n_samples</span> <span class="o">=</span> <span class="mi">5000</span>
 
-<span class="n">tfim_energy</span>    <span class="o">=</span> <span class="n">TFIMChainEnergy</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">n_measurements</span><span class="p">)</span>
-<span class="n">tfim_sZ</span>        <span class="o">=</span> <span class="n">TFIMChainMagnetization</span><span class="p">(</span><span class="n">n_measurements</span><span class="p">)</span>
+<span class="n">tfim_energy</span> <span class="o">=</span> <span class="n">TFIMChainEnergy</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span>
+<span class="n">tfim_sZ</span>     <span class="o">=</span> <span class="n">TFIMChainMagnetization</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<p>To go ahead and calculate the energy and magnetization of the 50,000
-generated samples, the <em>tfim</em> object has a function called <em>run</em> which
-will output a dictionary containing the energy (key: ‘energy’) and the
-magnetization (key: ‘sigmaZ’).</p>
+<p>As stated previously, the <strong>TFIMChainEnergy</strong> and
+<strong>TFIMChainMagnetization</strong> classes inherit properties from
+<strong>Observables</strong>. To go ahead and calculate the energy and magnetization
+along with their respective standard errors, we call the <em>statistics</em>
+function in <strong>Observables</strong>, which requires the neural network state (in
+this case, <strong>PositiveWavefunction</strong>) and the number of samples that are
+to be generated.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">energy_stats</span> <span class="o">=</span> <span class="n">tfim_energy</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span> <span class="n">n_measurements</span><span class="p">)</span>
-<span class="n">sZ_stats</span>     <span class="o">=</span> <span class="n">tfim_sZ</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span> <span class="n">n_measurements</span><span class="p">)</span>
+<span></span><span class="n">energy_stats</span> <span class="o">=</span> <span class="n">tfim_energy</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span>
+<span class="n">sZ_stats</span>     <span class="o">=</span> <span class="n">tfim_sZ</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mean energy: &#39;</span><span class="p">,</span><span class="n">energy_stats</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">],</span><span class="s1">&#39; +/- &#39;</span><span class="p">,</span><span class="n">energy_stats</span><span class="p">[</span><span class="s1">&#39;std_error&#39;</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mean magnetization: &#39;</span><span class="p">,</span><span class="n">sZ_stats</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">],</span><span class="s1">&#39; +/- &#39;</span><span class="p">,</span><span class="n">sZ_stats</span><span class="p">[</span><span class="s1">&#39;std_error&#39;</span><span class="p">])</span>
@@ -585,18 +600,22 @@ magnetization (key: ‘sigmaZ’).</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Mean energy:  -1.2340710453409314  +/-  0.0007449074079883636
-Mean magnetization:  0.5492400000000001  +/-  0.004453745799922808
+Mean energy:  -1.2346806605038514  +/-  0.0006359546056420108
+Mean magnetization:  0.5481600000000002  +/-  0.004394995571922161
 </pre></div></div>
 </div>
+<p>The exact value for the energy is -1.2381, and for the magnetization is
+0.5610. To see the how quickly the energy and magnetization converge as
+a function of the sampling step, <em>n_eq</em>, the code below will do the
+trick.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [10]:
+<span></span>In [9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">n_eq</span> <span class="o">=</span> <span class="mi">200</span>
-<span class="n">dict_observables</span> <span class="o">=</span> <span class="n">quantum_ising_chain</span><span class="o">.</span><span class="n">Convergence</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span> <span class="n">tfim_energy</span><span class="p">,</span> <span class="n">tfim_sZ</span><span class="p">,</span> <span class="n">n_measurements</span><span class="p">,</span> <span class="n">n_eq</span><span class="p">)</span>
+<span class="n">dict_observables</span> <span class="o">=</span> <span class="n">quantum_ising_chain</span><span class="o">.</span><span class="n">Convergence</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span> <span class="n">tfim_energy</span><span class="p">,</span> <span class="n">tfim_sZ</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_eq</span><span class="p">)</span>
 
 <span class="n">energy</span>     <span class="o">=</span> <span class="n">dict_observables</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">][</span><span class="s1">&#39;energies&#39;</span><span class="p">]</span>
 <span class="n">err_energy</span> <span class="o">=</span> <span class="n">dict_observables</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">][</span><span class="s1">&#39;error&#39;</span><span class="p">]</span>
@@ -631,7 +650,7 @@ Mean magnetization:  0.5492400000000001  +/-  0.004453745799922808
 </div>
 <div class="nboutput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[10]:
+<span></span>Out[9]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -643,20 +662,19 @@ Mean magnetization:  0.5492400000000001  +/-  0.004453745799922808
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_quantum_ising_15_1.png" src="../_images/_examples_tutorial_quantum_ising_15_1.png" />
+<img alt="../_images/_examples_tutorial_quantum_ising_16_1.png" src="../_images/_examples_tutorial_quantum_ising_16_1.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_quantum_ising_15_2.png" src="../_images/_examples_tutorial_quantum_ising_15_2.png" />
+<img alt="../_images/_examples_tutorial_quantum_ising_16_2.png" src="../_images/_examples_tutorial_quantum_ising_16_2.png" />
 </div>
 </div>
 <p>You can see a brief transient period in each observable, before the
 state of the machine “warms up” to equilibrium. After that, the values
-fluctuate around the mean. The exact value for the energy is -1.2381,
-and for the magnetization is 0.5610.</p>
+fluctuate around the mean.</p>
 </div>
 </div>
 
