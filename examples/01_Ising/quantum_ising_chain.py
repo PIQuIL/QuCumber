@@ -195,7 +195,7 @@ def Convergence(nn_state, tfim_energy, tfim_sZ, n_measurements, n_eq):
     sZ_list = []
     err_sZ  = []
 
-    v = torch.bernoulli(torch.ones(n_measurements, nn_state.num_visible, dtype = torch.double)*0.5)
+    v = torch.bernoulli(torch.ones(n_measurements, nn_state.num_visible, dtype = torch.double, device = nn_state.device)*0.5)
 
     energy = tfim_energy.Energy(nn_state, v)
     energy_list.append(energy.mean().item())
