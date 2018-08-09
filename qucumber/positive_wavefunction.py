@@ -17,6 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import numpy as np
 import torch
 
 from qucumber.binary_rbm import BinaryRBM
@@ -159,14 +160,10 @@ class PositiveWavefunction(object):
         if (size > self.size_cut):
             raise ValueError('Size of the Hilbert space too large!')
         else:
-            space = torch.zeros((1 << size, size),
-                                device=self.device, dtype=torch.double)
-            for i in range(1 << size):
-                d = i
-                for j in range(size):
-                    d, r = divmod(d, 2)
-                    space[i, size - j - 1] = int(r)
-            return space
+            d = np.arange(2 ** size)
+            space = (((d[:, None] & (1 << np.arange(size)))) > 0)[:, ::-1]
+            space = space.astype(int)
+            return torch.tensor(space, dtype=torch.double, device=self.device)
 
     def compute_normalization(self):
         r"""Compute the normalization constant of the wavefunction.

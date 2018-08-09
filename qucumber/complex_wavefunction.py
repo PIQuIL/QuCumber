@@ -17,6 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import numpy as np
 import torch
 
 import qucumber.utils.cplx as cplx
@@ -121,15 +122,13 @@ class ComplexWavefunction(object):
         :param basis: A set of basis, (i.e.vector of strings)
         :type basis: np.array
         """
-        num_U = 0               # Number of 1-local unitary rotations
-        rotated_sites = []      # List of site where the rotations are applied
+        num_U = 0               # Number of 1-local unitary rotations1
         grad = []               # Gradient
+        basis = np.array(list(basis))
 
-        # Read where the unitary rotations are applied
-        for j in range(self.num_visible):
-            if (basis[j] != 'Z'):
-                num_U += 1
-                rotated_sites.append(j)
+        # Sites where the unitary rotations are applied
+        rotated_sites = np.where(basis != "Z")[0]
+        num_U = len(rotated_sites)
 
         # If the basis is the reference one ('ZZZ..Z')
         if (num_U == 0):
@@ -148,26 +147,22 @@ class ComplexWavefunction(object):
 
             # Sum over the full subspace where the rotation are applied
             sub_space = self.generate_hilbert_space(num_U)
-            for x in range(1 << num_U):
+            for x in range(2 ** num_U):
                 # Create the correct state for the full system (given the data)
-                cnt = 0
-                for j in range(self.num_visible):
-                    if (basis[j] != 'Z'):
-                        # This site sums (it is rotated)
-                        vp[j] = sub_space[x][cnt]
-                        cnt += 1
-                    else:
-                        vp[j] = sample[j]  # This site is left unchanged
+                vp = sample.clone()
+                vp[rotated_sites] = sub_space[x]
 
                 # Product of the matrix elements of the unitaries
-                U = torch.tensor([1., 0.], dtype=torch.double,
-                                 device=self.device)
-                for ii in range(num_U):
-                    tmp = self.unitary_dict[basis[rotated_sites[ii]]]
+                U = 1.
+                for rs in rotated_sites:
+                    tmp = self.unitary_dict[basis[rs]]
                     tmp = tmp[:,
-                              int(sample[rotated_sites[ii]]),
-                              int(vp[rotated_sites[ii]])]
-                    U = cplx.scalar_mult(U, tmp.to(self.device))
+                              int(sample[rs]),
+                              int(vp[rs])]
+                    # U = cplx.scalar_mult(U, tmp.to(self.device))
+                    U *= complex(tmp[0].item(), tmp[1].item())
+                U = torch.tensor([U.real, U.imag], dtype=torch.double,
+                                 device=self.device)
 
                 # Gradient on the current configuration
                 grad_vp = [self.rbm_am.effective_energy_gradient(vp),
@@ -233,14 +228,10 @@ class ComplexWavefunction(object):
         if (size > self.size_cut):
             raise ValueError('Size of the Hilbert space too large!')
         else:
-            space = torch.zeros((1 << size, size),
-                                device=self.device, dtype=torch.double)
-            for i in range(1 << size):
-                d = i
-                for j in range(size):
-                    d, r = divmod(d, 2)
-                    space[i, size - j - 1] = int(r)
-            return space
+            d = np.arange(2 ** size)
+            space = (((d[:, None] & (1 << np.arange(size)))) > 0)[:, ::-1]
+            space = space.astype(int)
+            return torch.tensor(space, dtype=torch.double, device=self.device)
 
     def compute_normalization(self):
         r"""Compute the normalization constant of the wavefunction.
