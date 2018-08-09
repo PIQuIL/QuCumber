@@ -113,59 +113,6 @@ After the data set is used to train the parameters of the RBM, it becomes a comp
 
 Below we provide a starting point for writing code in QuCumber.  However, there is much more theory to learn on the physics of wavefunction reconstruction with RBMs. For the necessary background, please consult the relevant scientific literature, in particular Refs.~\cite{Torlai2016thermo, torlai2018tomography, CarleoTroyer2017Science}, and the theoretical tutorial provided in the documentation for QuCumber.  
 
-\subsection{An Overview of Terms}
-
-We begin with a short overview of terms relevant for RBMs, that we will refer to in the remainder of the document.  For more detail we refer to the code documentation on \verb|github.com/PIQuIL/QuCumber|, and References~\cite{hinton2002training, hinton2012practical}.
-
-\begin{itemize}
-
-\item {\it Batch}.  The subset of data selected for one iteration of training in stochastic gradient descent.
-
-\item {\it Biases}.  For a visible unit $v_j$ and a hidden unit $h_i$, the respective biases in the RBM energy are $b_j$ and $c_i$. They act like a magnetic field term in the energy Eq~(\ref{RBMenergy}).
-
-\item {\it Energy}.  In analogy to statistical physics the energy of an RBM is defined given the joint configuration $(v,h)$ of visible and hidden units:
-\begin{equation}
-E_{\bm{\lambda}}(v,h) = - \sum\limits_{j=1}^V b_j v_j - \sum\limits_{i=1}^H c_i h_i - \sum\limits_{ij} h_i W_{ij} v_j, \label{RBMenergy} 
-\end{equation}
-
-\item {\it Effective energy}.  Energy traced over the hidden units $h$:
-\begin{equation}
-\mathcal{E}_{\bm{\lambda}}(v) = - \sum\limits_{j=1}^V b_j v_j - \sum\limits_{i=1}^H \log \left\{ 1 + \exp \left( \sum\limits_{j} W_{ij}v_j +c_i\right) \right\}, \label{RBMeffectiveenergy} 
-\end{equation}
-
-\item {\it Epoch}.  A single pass through an entire training set of data.
-
-\item {\it Hidden Units}.  There are $H$ units in the second layer of the RBM, denoted by the vector $h=(h_1, ..., h_H)$, representing latent variables and are referred to as ``hidden".  The number of hidden units $H$ can be adjusted to tune the representational capacity of the RBM.
-
-\item {\it Joint distribution}.  The RBM assigns a probability to each joint configuration $(v,h)$ according to the Boltzmann distribution of the energy,
-\begin{equation}
-    p_{\bm{\lambda}}(v,h) = \frac{1}{Z_{\bm{\lambda}}} e^{-E_{\bm{\lambda}}(v,h)},
-\end{equation}
-
-\item {\it Marginal distribution}.  Obtained by marginalizing the joint distribution, e.g.
-\begin{equation}
-\label{Eq:marginal_distribution}
-    p_{\bm{\lambda}}(v) = \frac{1}{Z_{\bm{\lambda}}} \sum\limits_{h\in \mathcal{H}} e^{-E_{\bm{\lambda}}(v,h)} = \frac{1}{Z_{\bm{\lambda}}} e^{- \mathcal{E}_{\bm{\lambda}}(v)}.
-\end{equation}
-
-\item {\it QuCumber}. A quantum calculator used for many-body eigenstate reconstruction.
-
-\item {\it Parameters}.  An RBM's energy is defined via a set of neural network parameters $\bm{\lambda} = \{b,c,W\}$, consisting of weights and biases.
-
-\item {\it Partition function}. The normalizing constant of the Boltzmann distribution.  It is obtained by summing over all possible pairs of visible and hidden vectors,
-\begin{equation}
-    Z_{\bm{\lambda}} = \sum\limits_{v\in \mathcal{V}}\sum\limits_{h\in \mathcal{H}} e^{-E_{\bm{\lambda}}(v,h)}.
-\end{equation}
-
-\item {\it Restricted Boltzmann Machine}.  A two-layer network with bidirectionally connected stochastic processing units.  ``Restricted" refers to the connections (or weights) between the visible and hidden units. Each visible unit is connected with each hidden unit, but there are no intra-layer connections.
-
-\item {\it Visible Units}.  There are $V$ units in the first layer of the RBM, denoted by the vector $v=(v_1, ..., v_V)$, which correspond to the experimental data and are therefore called ``visible".  The number of visible units $V$ is fixed to the number of physical qubits.
-
-\item {\it Weights}.  $W_{ij}$ is the symmetric connection or interaction between the visible unit $v_j$ and the hidden unit $h_i$.
-
-\end{itemize}
-
-
 
 \section{First example: QuCumber for real-positive wavefunctions}
 
@@ -176,7 +123,8 @@ The most important and straightforward case occurs when the wavefunction is posi
 \end{equation}
 In this case, QuCumber provides its most efficient methods for reconstruction, which is highly parallelizable.  In section~\ref{Sec:Training_QuCumber_on_complex_wavefunctions} we expand this approach to the case of a general wavefunction with complex expansion coefficients.
 
-\subsection{Training QuCumber on Data}
+\subsection{Training QuCumber on TFIM Data}
+\label{Sec:Training_TFIM}
 
 To begin with wavefunction reconstruction, the input data needs to be in a numpy array or a torch tensor. E.g. for a spin system with 10 physical spins and measurements of every spin one input data point will be an array of the form \verb|np.array([1,0,1,1,0,1,0,0,0,1])|, with shape \verb|(10,)|. all the input data together needs to be an array of these arrays, which will have the shape \verb|(N,10)|. Where N is the number of data points in the training set.
 
@@ -188,10 +136,10 @@ from positive_wavefunction import PositiveWavefunction #positive wavefunction
 from quantum_reconstruction import QuantumReconstruction #tomography tool
 \end{python} 
 
-For a dummy test we can define a training set of a thousand (\verb|N=1000|) spin measurements, where the spins point in the same direction \verb|np.array([1,1,1,1,1,1,1,1,1,1])|:
+For a first training of the RBM we can use a real data set, which contains samples from a transverse field Ising model (TFIM). We provide these samples on \verb|add page or what ever path|, which can be loaded the following way:
 
 \begin{python}
-train_set = np.array([[1]*10]*1000) #define a dummy training set with the correct input shape
+train_set =  np.loadtxt('tfim1d_N10_train_samples.txt')
 \end{python}
 
 To run the RBM training we define the model parameters. The number of visible units (\verb|num_visible|) is given by the length of one training sample. (In our case it is $10$). 
@@ -222,35 +170,6 @@ QR.fit(train_set, epochs, batch_size, num_chains, k_cd,lr, progbar=False)
 
 After the training we teached the RBM the distribution of our training samples, which was in this very simple case always a string of '1'. If we sample from this trained wavefunction (For instructions see Section \ref{Sec:Sampling_a-Trained_RBM}) it will almost always return a string of '1' because it learned that the training data \verb|train_set| contains to 100\% this particular string.
 
-\subsection{Training TFIM}
-\label{Sec:Training_TFIM}
-
-After training a positive real wavefunction on a dummy data set we will now train it on a a real data set, which contains samples from a transverse field Ising model (TFIM). We provide these samples on \verb|add page or what ever path|, which can be loaded the following way:
-
-\begin{python}
-train_set =  np.loadtxt('tfim1d_N10_train_samples.txt')
-\end{python}
-
-The training is exactly the same as with the dummy set. \textbf{Do We have to rewrite the whole code? Everything below is copy paste from before.}
-
-\begin{python}
-import numpy as np 		#generic math function
-import torch 			#ML package
-from positive_wavefunction import PositiveWavefunction #positive wavefunction
-from quantum_reconstruction import QuantumReconstruction #tomography tool
-
-num_visible = 10 #number of visible units (has to be equal to input data dimension)
-num_hidden = 10 #number of hidden units
-epochs = 10 #number of epochs for the training
-batch_size = 32 #batch size for the training
-k = 1 #Number of Gibbs sampling steps
-learning_rate = 0.01 #Learning Rate
-num_chains = batch_size
-nn_state = PositiveWavefunction(num_visible = num_visible,
-						                    num_hidden = num_hidden)
-QR = QuantumReconstruction(nn_state)
-QR.fit(train_set, epochs, batch_size, num_chains, k,lr, progbar=False)
-\end{python}
 
 \subsection{Saving and loading the trained RBM}
 
@@ -386,14 +305,16 @@ To effectively calculate the fidelity with a theoretical state $\ket{\phi}$, one
 
 \begin{python}
 N = 10 # Define system size
-phi =  torch.abs(torch.randn(2**N)) # generate random vector (this would be the theoretical wave function)
+phi =  np.textload(...) # load wavefunction of TFIM
 phi /= phi.norm() # normalize the vector
 train_stats.load_target_psi(phi)
 train_stats.fidelity(PositiveWavefunction)
 fidelity = train_stats.F
 \end{python}
 
-\section{Improve the training accuracy of the quantum reconstruction}
+\textbf{Load wavefunction of TFIM and calculate fidelity with the trained RBM from TFIM}
+
+\section{Callbacks and monitoring the training}
 
 So far there is no certainty that the RBM performs well and indeed learns the probability distribution it is supposed to learn. Therefore we introduce the concept of callbacks and also the learning rate. The learning rate is crucial for the success of the training and has to be adjusted if the the RBM performs poorly.
 To tract a certain observable like the energy or the fidelity during the training one can implement it as a class in the \textbf{This should be outdated!!} \verb|observable.py| file and monitor it via callbacks.
@@ -580,6 +501,59 @@ possible physical system with binary measurement outputs. If the user knows, tha
 After successful training of the RBM one has full access to the wavefunction, respectively to the probability distribution of the measurements of the system. One can sample new measurements, calculate observables or the fidelity to any other state. We provide example code for any of these tasks to give the user a first impression of the implementation of 
 
 In the future QuCumber will be extended to the application of quantum state tomography on mixed states, multinomial quantum systems, like boson systems and eventually on continuous variable systems.
+
+\section{Glossary}
+
+We list an overview of terms relevant for RBMs, and to give a summary of terms discussed in the document.  For more detail we refer to the code documentation on \verb|github.com/PIQuIL/QuCumber|, and References~\cite{hinton2002training, hinton2012practical}.
+
+\begin{itemize}
+
+\item {\it Batch}.  The subset of data selected for one iteration of training in stochastic gradient descent.
+
+\item {\it Biases}.  For a visible unit $v_j$ and a hidden unit $h_i$, the respective biases in the RBM energy are $b_j$ and $c_i$. They act like a magnetic field term in the energy Eq~(\ref{RBMenergy}).
+
+\item {\it Energy}.  In analogy to statistical physics the energy of an RBM is defined given the joint configuration $(v,h)$ of visible and hidden units:
+\begin{equation}
+E_{\bm{\lambda}}(v,h) = - \sum\limits_{j=1}^V b_j v_j - \sum\limits_{i=1}^H c_i h_i - \sum\limits_{ij} h_i W_{ij} v_j, \label{RBMenergy} 
+\end{equation}
+
+\item {\it Effective energy}.  Energy traced over the hidden units $h$:
+\begin{equation}
+\mathcal{E}_{\bm{\lambda}}(v) = - \sum\limits_{j=1}^V b_j v_j - \sum\limits_{i=1}^H \log \left\{ 1 + \exp \left( \sum\limits_{j} W_{ij}v_j +c_i\right) \right\}, \label{RBMeffectiveenergy} 
+\end{equation}
+
+\item {\it Epoch}.  A single pass through an entire training set of data.
+
+\item {\it Hidden Units}.  There are $H$ units in the second layer of the RBM, denoted by the vector $h=(h_1, ..., h_H)$, representing latent variables and are referred to as ``hidden".  The number of hidden units $H$ can be adjusted to tune the representational capacity of the RBM.
+
+\item {\it Joint distribution}.  The RBM assigns a probability to each joint configuration $(v,h)$ according to the Boltzmann distribution of the energy,
+\begin{equation}
+    p_{\bm{\lambda}}(v,h) = \frac{1}{Z_{\bm{\lambda}}} e^{-E_{\bm{\lambda}}(v,h)},
+\end{equation}
+
+\item {\it Marginal distribution}.  Obtained by marginalizing the joint distribution, e.g.
+\begin{equation}
+\label{Eq:marginal_distribution}
+    p_{\bm{\lambda}}(v) = \frac{1}{Z_{\bm{\lambda}}} \sum\limits_{h\in \mathcal{H}} e^{-E_{\bm{\lambda}}(v,h)} = \frac{1}{Z_{\bm{\lambda}}} e^{- \mathcal{E}_{\bm{\lambda}}(v)}.
+\end{equation}
+
+\item {\it QuCumber}. A quantum calculator used for many-body eigenstate reconstruction.
+
+\item {\it Parameters}.  An RBM's energy is defined via a set of neural network parameters $\bm{\lambda} = \{b,c,W\}$, consisting of weights and biases.
+
+\item {\it Partition function}. The normalizing constant of the Boltzmann distribution.  It is obtained by summing over all possible pairs of visible and hidden vectors,
+\begin{equation}
+    Z_{\bm{\lambda}} = \sum\limits_{v\in \mathcal{V}}\sum\limits_{h\in \mathcal{H}} e^{-E_{\bm{\lambda}}(v,h)}.
+\end{equation}
+
+\item {\it Restricted Boltzmann Machine}.  A two-layer network with bidirectionally connected stochastic processing units.  ``Restricted" refers to the connections (or weights) between the visible and hidden units. Each visible unit is connected with each hidden unit, but there are no intra-layer connections.
+
+\item {\it Visible Units}.  There are $V$ units in the first layer of the RBM, denoted by the vector $v=(v_1, ..., v_V)$, which correspond to the experimental data and are therefore called ``visible".  The number of visible units $V$ is fixed to the number of physical qubits.
+
+\item {\it Weights}.  $W_{ij}$ is the symmetric connection or interaction between the visible unit $v_j$ and the hidden unit $h_i$.
+
+\end{itemize}
+
 
 \section*{Acknowledgements}
 \textbf{Yes, Spanish acknowledgements are crazy long...}
