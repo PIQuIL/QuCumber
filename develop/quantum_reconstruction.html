@@ -188,11 +188,11 @@
 <h1>Quantum Reconstruction<a class="headerlink" href="#quantum-reconstruction" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="qucumber.quantum_reconstruction.QuantumReconstruction">
-<em class="property">class </em><code class="descclassname">qucumber.quantum_reconstruction.</code><code class="descname">QuantumReconstruction</code><span class="sig-paren">(</span><em>nn_state</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/79c3a03/qucumber/quantum_reconstruction.py#L34"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.quantum_reconstruction.QuantumReconstruction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.quantum_reconstruction.</code><code class="descname">QuantumReconstruction</code><span class="sig-paren">(</span><em>nn_state</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/3e4242b/qucumber/quantum_reconstruction.py#L34"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.quantum_reconstruction.QuantumReconstruction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="qucumber.quantum_reconstruction.QuantumReconstruction.compute_batch_gradients">
-<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k_cd</em>, <em>samples_batch</em>, <em>neg_batch</em>, <em>bases_batch=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/79c3a03/qucumber/quantum_reconstruction.py#L41"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.quantum_reconstruction.QuantumReconstruction.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_batch_gradients</code><span class="sig-paren">(</span><em>k_cd</em>, <em>samples_batch</em>, <em>neg_batch</em>, <em>bases_batch=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/3e4242b/qucumber/quantum_reconstruction.py#L41"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.quantum_reconstruction.QuantumReconstruction.compute_batch_gradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will compute the gradients of a batch of the training
 data (samples_batch). If measurements are taken in bases other than the
 reference basis, a list of bases (bases_batch) must also be provided.</p>
@@ -221,7 +221,7 @@ negative phase.</li>
 
 <dl class="method">
 <dt id="qucumber.quantum_reconstruction.QuantumReconstruction.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>input_samples</em>, <em>epochs</em>, <em>pos_batch_size</em>, <em>neg_batch_size</em>, <em>k_cd</em>, <em>lr</em>, <em>observer=None</em>, <em>input_bases=None</em>, <em>z_samples=None</em>, <em>progbar=False</em>, <em>callbacks=[]</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/79c3a03/qucumber/quantum_reconstruction.py#L103"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.quantum_reconstruction.QuantumReconstruction.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>input_samples</em>, <em>epochs</em>, <em>pos_batch_size</em>, <em>neg_batch_size</em>, <em>k_cd</em>, <em>lr</em>, <em>observer=None</em>, <em>input_bases=None</em>, <em>z_samples=None</em>, <em>progbar=False</em>, <em>callbacks=[]</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/3e4242b/qucumber/quantum_reconstruction.py#L103"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.quantum_reconstruction.QuantumReconstruction.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the training of the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
