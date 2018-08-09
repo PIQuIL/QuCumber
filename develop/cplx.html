@@ -1,0 +1,499 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Complex Algebra &mdash; QuCumber develop documentation</title>
+  
+
+  
+  
+  
+  
+    <link rel="canonical" href="http://piquil.github.io/QuCumber/master/cplx.html"/>
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data Handler" href="data.html" />
+    <link rel="prev" title="Observables" href="observables.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuCumber
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                develop
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Download the tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/tutorial_quantum_ising.html">Part 1: Reconstruction of a positive wavefunction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/tutorial_qubits.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="rbm.html">RBM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_states.html">Quantum States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_reconstruction.html">Quantum Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Handler</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">QuCumber</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Complex Algebra</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/cplx.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="module-qucumber.utils.cplx">
+<span id="complex-algebra"></span><h1>Complex Algebra<a class="headerlink" href="#module-qucumber.utils.cplx" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="qucumber.utils.cplx.make_complex">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">make_complex</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/c475148/qucumber/utils/cplx.py#L23"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.make_complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that combines the real (x) and imaginary (y) parts of a
+vector or a matrix.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">x and y must have the same shape. Also, this will not work for
+rank zero tensors.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The real part</li>
+<li><strong>y</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The imaginary part</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The tensor [x,y].</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.utils.cplx.scalar_mult">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">scalar_mult</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/c475148/qucumber/utils/cplx.py#L42"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.scalar_mult" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that computes the product between complex matrices and scalars,
+complex vectors and scalars or two complex scalars.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If one wishes to do vector-scalar multiplication or matrix-scalar
+multiplication, you must put the vector / matrix as the first
+argument (x).</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex scalar, vector or matrix.</li>
+<li><strong>y</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex scalar, vector or matrix.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The product between x and y.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.utils.cplx.matmul">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">matmul</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/c475148/qucumber/utils/cplx.py#L66"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.matmul" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that computes complex matrix-matrix and matrix-vector products.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If one wishes to do matrix-vector products, the vector must be
+the second argument (y).</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex matrix.</li>
+<li><strong>y</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex vector or matrix.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The product between x and y.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.utils.cplx.inner_prod">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">inner_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/c475148/qucumber/utils/cplx.py#L96"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.inner_prod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the inner product of two complex vectors,
+x and y (&lt;x|y&gt;).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex vector.</li>
+<li><strong>y</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex vector.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y are not complex vectors with their first
+dimensions being 2, then the function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The inner product, <img class="math" src="_images/math/aa061c1002efbb26d7bb39a523ffa550bac269d5.svg" alt="\langle x\vert y\rangle"/>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.utils.cplx.outer_prod">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">outer_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/c475148/qucumber/utils/cplx.py#L124"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.outer_prod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the outer product of two complex vectors, x
+and y.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex vector.</li>
+<li><strong>y</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex vector.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y are not complex vectors with their first
+dimensions being 2, then the function will not execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The outer product between x and y,
+<img class="math" src="_images/math/1c933d0877be38ba1dfac0fbaa567821ea885c61.svg" alt="\vert x \rangle\langle y\vert"/>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.utils.cplx.conjugate">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">conjugate</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/c475148/qucumber/utils/cplx.py#L151"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.conjugate" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that takes the conjugate transpose of the argument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex vector or matrix.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The conjugate of x.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.utils.cplx.kronecker_prod">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">kronecker_prod</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/c475148/qucumber/utils/cplx.py#L174"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.kronecker_prod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the tensor / kronecker product of 2 comlpex
+tensors, x and y.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex matrix.</li>
+<li><strong>y</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex matrix.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><strong>ValueError</strong></a> – If x and y do not have 3 dimensions or their first
+dimension is not 2, the function cannot execute.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The tensorproduct of x and y, <img class="math" src="_images/math/3299bd9662cbb6422d088bd11b4f6b0dbb678793.svg" alt="x \otimes y"/>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.utils.cplx.scalar_divide">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">scalar_divide</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/c475148/qucumber/utils/cplx.py#L215"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.scalar_divide" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that computes the division of x by y.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The numerator (a complex scalar, vector or matrix).</li>
+<li><strong>y</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The denominator (a complex scalar).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">x / y</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qucumber.utils.cplx.norm">
+<code class="descclassname">qucumber.utils.cplx.</code><code class="descname">norm</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/c475148/qucumber/utils/cplx.py#L245"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.utils.cplx.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that returns the norm of the argument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A complex scalar.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/f66df25f9eb5bec373e5eafae89ccc5fd59bc71e.svg" alt="|x|^2"/>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="data.html" class="btn btn-neutral float-right" title="Data Handler" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="observables.html" class="btn btn-neutral" title="Observables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, PIQuIL.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+    <h1>QuCumber Documentation</h1>
+    <h2>Versions:</h2>
+    <ul>
+    
+    </ul>
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'develop',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
