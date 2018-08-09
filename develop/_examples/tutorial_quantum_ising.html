@@ -377,7 +377,9 @@ div.nboutput div.output_area.stderr {
 <span class="kn">import</span> <span class="nn">qucumber.utils.data</span> <span class="k">as</span> <span class="nn">data</span>
 <span class="kn">import</span> <span class="nn">qucumber.utils.training_statistics</span> <span class="k">as</span> <span class="nn">ts</span>
 
-<span class="kn">import</span> <span class="nn">quantum_ising_chain</span> <span class="k">as</span> <span class="nn">TFIM</span> <span class="c1"># for calculating observables after training. More later...</span>
+<span class="kn">import</span> <span class="nn">quantum_ising_chain</span>
+<span class="kn">from</span> <span class="nn">quantum_ising_chain</span> <span class="k">import</span> <span class="n">TFIMChainEnergy</span><span class="p">,</span> <span class="n">TFIMChainMagnetization</span>
+                                <span class="c1"># for calculating observables after training. More later...</span>
 </pre></div>
 </div>
 </div>
@@ -436,7 +438,7 @@ case of our dataset).</li>
 <span></span><span class="n">nv</span> <span class="o">=</span> <span class="n">train_samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 <span class="n">nh</span> <span class="o">=</span> <span class="n">nv</span>
 
-<span class="n">nn_state</span> <span class="o">=</span> <span class="n">PositiveWavefunction</span><span class="p">(</span><span class="n">num_visible</span><span class="o">=</span><span class="n">nv</span><span class="p">,</span><span class="n">num_hidden</span><span class="o">=</span><span class="n">nh</span><span class="p">)</span>
+<span class="n">nn_state</span> <span class="o">=</span> <span class="n">PositiveWavefunction</span><span class="p">(</span><span class="n">num_visible</span><span class="o">=</span><span class="n">nv</span><span class="p">,</span><span class="n">num_hidden</span><span class="o">=</span><span class="n">nh</span><span class="p">,</span><span class="n">gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -482,8 +484,8 @@ called <em>fit</em> that executes the training process.</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">nn_state</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">nn_state</span><span class="o">.</span><span class="n">generate_Hilbert_space</span><span class="p">(</span><span class="n">nv</span><span class="p">)</span> <span class="c1"># generate the entire visible space of the system.</span>
-<span class="n">callbacks</span> <span class="o">=</span> <span class="p">[</span><span class="n">MetricEvaluator</span><span class="p">(</span><span class="n">log_every</span><span class="p">,{</span><span class="s1">&#39;Fidelity&#39;</span><span class="p">:</span><span class="n">ts</span><span class="o">.</span><span class="n">fidelity</span><span class="p">,</span><span class="s1">&#39;KL&#39;</span><span class="p">:</span><span class="n">ts</span><span class="o">.</span><span class="n">KL</span><span class="p">},</span><span class="n">target_psi</span><span class="o">=</span><span class="n">target_psi</span><span class="p">)]</span>
+<span></span><span class="n">nn_state</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="n">nn_state</span><span class="o">.</span><span class="n">generate_hilbert_space</span><span class="p">(</span><span class="n">nv</span><span class="p">)</span> <span class="c1"># generate the entire visible space of the system.</span>
+<span class="n">callbacks</span> <span class="o">=</span> <span class="p">[</span><span class="n">MetricEvaluator</span><span class="p">(</span><span class="n">log_every</span><span class="p">,{</span><span class="s1">&#39;Fidelity&#39;</span><span class="p">:</span><span class="n">ts</span><span class="o">.</span><span class="n">fidelity</span><span class="p">,</span><span class="s1">&#39;KL&#39;</span><span class="p">:</span><span class="n">ts</span><span class="o">.</span><span class="n">KL</span><span class="p">},</span><span class="n">target_psi</span><span class="o">=</span><span class="n">target_psi</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
 
 <span class="n">qr</span> <span class="o">=</span> <span class="n">QuantumReconstruction</span><span class="p">(</span><span class="n">nn_state</span><span class="p">)</span>
 </pre></div>
@@ -505,28 +507,28 @@ called <em>fit</em> that executes the training process.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Epoch = 50      Fidelity = 0.785383     KL = 0.441264
-Epoch = 100     Fidelity = 0.894514     KL = 0.208556
-Epoch = 150     Fidelity = 0.935645     KL = 0.125355
-Epoch = 200     Fidelity = 0.958977     KL = 0.080373
-Epoch = 250     Fidelity = 0.970116     KL = 0.058963
-Epoch = 300     Fidelity = 0.977806     KL = 0.043968
-Epoch = 350     Fidelity = 0.979086     KL = 0.041768
-Epoch = 400     Fidelity = 0.981559     KL = 0.037034
-Epoch = 450     Fidelity = 0.985201     KL = 0.029750
-Epoch = 500     Fidelity = 0.987439     KL = 0.025278
-Epoch = 550     Fidelity = 0.988868     KL = 0.022384
-Epoch = 600     Fidelity = 0.991312     KL = 0.017393
-Epoch = 650     Fidelity = 0.991913     KL = 0.016160
-Epoch = 700     Fidelity = 0.992833     KL = 0.014334
-Epoch = 750     Fidelity = 0.992946     KL = 0.014146
-Epoch = 800     Fidelity = 0.993429     KL = 0.013104
-Epoch = 850     Fidelity = 0.993416     KL = 0.013208
-Epoch = 900     Fidelity = 0.994565     KL = 0.010874
-Epoch = 950     Fidelity = 0.994806     KL = 0.010380
-Epoch = 1000    Fidelity = 0.995174     KL = 0.009641
+Epoch: 50       Fidelity = 0.787401     KL = 0.439033
+Epoch: 100      Fidelity = 0.897493     KL = 0.207404
+Epoch: 150      Fidelity = 0.933462     KL = 0.132912
+Epoch: 200      Fidelity = 0.951272     KL = 0.097734
+Epoch: 250      Fidelity = 0.959852     KL = 0.081630
+Epoch: 300      Fidelity = 0.969695     KL = 0.061640
+Epoch: 350      Fidelity = 0.975301     KL = 0.049799
+Epoch: 400      Fidelity = 0.979603     KL = 0.040833
+Epoch: 450      Fidelity = 0.983630     KL = 0.032812
+Epoch: 500      Fidelity = 0.985786     KL = 0.028575
+Epoch: 550      Fidelity = 0.986068     KL = 0.028170
+Epoch: 600      Fidelity = 0.988019     KL = 0.024227
+Epoch: 650      Fidelity = 0.989111     KL = 0.022129
+Epoch: 700      Fidelity = 0.988914     KL = 0.022483
+Epoch: 750      Fidelity = 0.989487     KL = 0.021257
+Epoch: 800      Fidelity = 0.990881     KL = 0.018465
+Epoch: 850      Fidelity = 0.990876     KL = 0.018377
+Epoch: 900      Fidelity = 0.991588     KL = 0.017015
+Epoch: 950      Fidelity = 0.992118     KL = 0.015930
+Epoch: 1000     Fidelity = 0.992614     KL = 0.014897
 
-Elapsed time = 125.45
+Elapsed time = 105.18
 </pre></div></div>
 </div>
 </div>
@@ -553,9 +555,10 @@ trained RBM. These samples will be used to calculate the observables.</li>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">n_measurements</span> <span class="o">=</span> <span class="mi">5000</span>
-<span class="n">hx</span>             <span class="o">=</span> <span class="mi">1</span>
+<span class="n">h</span>              <span class="o">=</span> <span class="mi">1</span>
 
-<span class="n">tfim</span>           <span class="o">=</span> <span class="n">TFIM</span><span class="o">.</span><span class="n">TransverseFieldIsingChain</span><span class="p">(</span><span class="n">hx</span><span class="p">,</span><span class="n">n_measurements</span><span class="p">)</span>
+<span class="n">tfim_energy</span>    <span class="o">=</span> <span class="n">TFIMChainEnergy</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">n_measurements</span><span class="p">)</span>
+<span class="n">tfim_sZ</span>        <span class="o">=</span> <span class="n">TFIMChainMagnetization</span><span class="p">(</span><span class="n">n_measurements</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -569,22 +572,45 @@ magnetization (key: ‘sigmaZ’).</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">energy_stats</span> <span class="o">=</span> <span class="n">tfim_energy</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span> <span class="n">n_measurements</span><span class="p">)</span>
+<span class="n">sZ_stats</span>     <span class="o">=</span> <span class="n">tfim_sZ</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span> <span class="n">n_measurements</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mean energy: &#39;</span><span class="p">,</span><span class="n">energy_stats</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">],</span><span class="s1">&#39; +/- &#39;</span><span class="p">,</span><span class="n">energy_stats</span><span class="p">[</span><span class="s1">&#39;std_error&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mean magnetization: &#39;</span><span class="p">,</span><span class="n">sZ_stats</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">],</span><span class="s1">&#39; +/- &#39;</span><span class="p">,</span><span class="n">sZ_stats</span><span class="p">[</span><span class="s1">&#39;std_error&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Mean energy:  -1.2340710453409314  +/-  0.0007449074079883636
+Mean magnetization:  0.5492400000000001  +/-  0.004453745799922808
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">n_eq</span> <span class="o">=</span> <span class="mi">200</span>
-<span class="n">simulation</span> <span class="o">=</span> <span class="n">tfim</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span><span class="n">n_eq</span><span class="p">,</span> <span class="n">show_convergence</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">dict_observables</span> <span class="o">=</span> <span class="n">quantum_ising_chain</span><span class="o">.</span><span class="n">Convergence</span><span class="p">(</span><span class="n">nn_state</span><span class="p">,</span> <span class="n">tfim_energy</span><span class="p">,</span> <span class="n">tfim_sZ</span><span class="p">,</span> <span class="n">n_measurements</span><span class="p">,</span> <span class="n">n_eq</span><span class="p">)</span>
+
+<span class="n">energy</span>     <span class="o">=</span> <span class="n">dict_observables</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">][</span><span class="s1">&#39;energies&#39;</span><span class="p">]</span>
+<span class="n">err_energy</span> <span class="o">=</span> <span class="n">dict_observables</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">][</span><span class="s1">&#39;error&#39;</span><span class="p">]</span>
+
+<span class="n">sZ</span>     <span class="o">=</span> <span class="n">dict_observables</span><span class="p">[</span><span class="s1">&#39;sigmaZ&#39;</span><span class="p">][</span><span class="s1">&#39;sZ&#39;</span><span class="p">]</span>
+<span class="n">err_sZ</span> <span class="o">=</span> <span class="n">dict_observables</span><span class="p">[</span><span class="s1">&#39;sigmaZ&#39;</span><span class="p">][</span><span class="s1">&#39;error&#39;</span><span class="p">]</span>
 
 <span class="n">step</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_eq</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
 
-<span class="n">Energy</span>     <span class="o">=</span> <span class="n">simulation</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">][</span><span class="s1">&#39;energies&#39;</span><span class="p">]</span>
-<span class="n">err_energy</span> <span class="o">=</span> <span class="n">simulation</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">][</span><span class="s1">&#39;error&#39;</span><span class="p">]</span>
-
-<span class="n">sigmaZ</span> <span class="o">=</span> <span class="n">simulation</span><span class="p">[</span><span class="s1">&#39;sigmaZ&#39;</span><span class="p">][</span><span class="s1">&#39;sZ&#39;</span><span class="p">]</span>
-<span class="n">err_sZ</span> <span class="o">=</span> <span class="n">simulation</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">][</span><span class="s1">&#39;error&#39;</span><span class="p">]</span>
-
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
-<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
 <span class="n">ax1</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="o">-</span><span class="mf">1.2381</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
-<span class="n">ax1</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">Energy</span><span class="o">-</span><span class="n">err_energy</span><span class="p">,</span> <span class="n">Energy</span><span class="o">+</span><span class="n">err_energy</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">energy</span><span class="o">-</span><span class="n">err_energy</span><span class="p">,</span> <span class="n">energy</span><span class="o">+</span><span class="n">err_energy</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
 <span class="n">ax1</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
 <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n_eq</span><span class="p">)</span>
 <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">1.26</span><span class="p">,</span><span class="o">-</span><span class="mf">1.22</span><span class="p">)</span>
@@ -593,9 +619,9 @@ magnetization (key: ‘sigmaZ’).</p>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
-<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">sigmaZ</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">sZ</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
 <span class="n">ax2</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">0.5610</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
-<span class="n">ax2</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">sigmaZ</span><span class="o">-</span><span class="n">err_sZ</span><span class="p">,</span> <span class="n">sigmaZ</span><span class="o">+</span><span class="n">err_sZ</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">sZ</span><span class="o">-</span><span class="n">err_sZ</span><span class="p">,</span> <span class="n">sZ</span><span class="o">+</span><span class="n">err_sZ</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
 <span class="n">ax2</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
 <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">n_eq</span><span class="p">)</span>
 <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;CD Step&#39;</span><span class="p">)</span>
@@ -605,7 +631,7 @@ magnetization (key: ‘sigmaZ’).</p>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[8]:
+<span></span>Out[10]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -617,14 +643,14 @@ magnetization (key: ‘sigmaZ’).</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_quantum_ising_14_1.png" src="../_images/_examples_tutorial_quantum_ising_14_1.png" />
+<img alt="../_images/_examples_tutorial_quantum_ising_15_1.png" src="../_images/_examples_tutorial_quantum_ising_15_1.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_quantum_ising_14_2.png" src="../_images/_examples_tutorial_quantum_ising_14_2.png" />
+<img alt="../_images/_examples_tutorial_quantum_ising_15_2.png" src="../_images/_examples_tutorial_quantum_ising_15_2.png" />
 </div>
 </div>
 <p>You can see a brief transient period in each observable, before the
