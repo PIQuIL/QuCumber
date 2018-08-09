@@ -19,6 +19,8 @@
 
 import torch
 
+import numpy as np
+
 import qucumber.utils.cplx as cplx
 import qucumber.utils.unitaries as unitaries
 
@@ -46,7 +48,7 @@ def rotate_psi(nn_state, basis, unitaries, psi=None):
             if (basis[j] != 'Z'):
                 num_nontrivial_U += 1
                 nontrivial_sites.append(j)
-        sub_state = nn_state.generate_Hilbert_space(num_nontrivial_U)
+        sub_state = nn_state.generate_hilbert_space(num_nontrivial_U)
 
         for xp in range(1 << num_nontrivial_U):
             cnt = 0
@@ -82,7 +84,7 @@ def KL(nn_state, target_psi, bases=None):
     KL = 0.0
     unitary_dict = unitaries.create_dict()
     target_psi = target_psi.to(nn_state.device)
-    space = nn_state.generate_Hilbert_space(nn_state.num_visible)
+    space = nn_state.generate_hilbert_space(nn_state.num_visible)
     nn_state.compute_normalization()
     if bases is None:
         num_bases = 1
@@ -90,7 +92,7 @@ def KL(nn_state, target_psi, bases=None):
             KL += cplx.norm(target_psi[:, i])*cplx.norm(target_psi[:, i]).log()
             KL -= (cplx.norm(target_psi[:, i])
                    * cplx.norm(nn_state.psi(space[i])).log())
-            KL += cplx.norm(target_psi[:, i])*nn_state.Z.log()
+            KL += cplx.norm(target_psi[:, i])*(nn_state.Z).log()
 
     else:
         num_bases = len(bases)
@@ -104,7 +106,7 @@ def KL(nn_state, target_psi, bases=None):
                            * cplx.norm(target_psi_r[:, ii]).log())
                 KL -= (cplx.norm(target_psi_r[:, ii])
                        * cplx.norm(psi_r[:, ii]).log().item())
-                KL += cplx.norm(target_psi_r[:, ii])*nn_state.Z.log()
+                KL += cplx.norm(target_psi_r[:, ii])*(nn_state.Z).log()
     return KL/float(num_bases)
 
 
