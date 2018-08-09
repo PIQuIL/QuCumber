@@ -17,8 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-#from .callback import Callback
-from callback import Callback
+from .callback import Callback
+
 
 class MetricEvaluator(Callback):
     """Evaluate and hold on to the results of the given metric(s).
