@@ -188,11 +188,11 @@
 <h1>Observables<a class="headerlink" href="#observables" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="qucumber.observables.Observable">
-<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">Observable</code><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/4772bcd/qucumber/observables/observable.py#L27"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">qucumber.observables.</code><code class="descname">Observable</code><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/2699511/qucumber/observables/observable.py#L27"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base class for observables.</p>
 <dl class="method">
 <dt id="qucumber.observables.Observable.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>rbm</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/4772bcd/qucumber/observables/observable.py#L30"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.apply" title="Permalink to this definition">¶</a></dt>
+<code class="descname">apply</code><span class="sig-paren">(</span><em>samples</em>, <em>rbm</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/2699511/qucumber/observables/observable.py#L30"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the value of the observable, row-wise, on a batch of
 samples. Must be implemented by any subclasses.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -211,7 +211,7 @@ samples. Must be implemented by any subclasses.</p>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>rbm</em>, <em>num_samples</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/4772bcd/qucumber/observables/observable.py#L41"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.sample" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sample</code><span class="sig-paren">(</span><em>rbm</em>, <em>num_samples</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/2699511/qucumber/observables/observable.py#L41"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draws samples of the <em>observable</em> using the given RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -231,7 +231,7 @@ function.</li>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.expected_value">
-<code class="descname">expected_value</code><span class="sig-paren">(</span><em>rbm</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/4772bcd/qucumber/observables/observable.py#L53"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.expected_value" title="Permalink to this definition">¶</a></dt>
+<code class="descname">expected_value</code><span class="sig-paren">(</span><em>rbm</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/2699511/qucumber/observables/observable.py#L53"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.expected_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates the expected value of the observable over the distribution
 defined by the RBM.</p>
 <p>In order to avoid running out of memory, the expected value computation
@@ -262,7 +262,7 @@ function.</li>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.variance">
-<code class="descname">variance</code><span class="sig-paren">(</span><em>rbm</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/4772bcd/qucumber/observables/observable.py#L74"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.variance" title="Permalink to this definition">¶</a></dt>
+<code class="descname">variance</code><span class="sig-paren">(</span><em>rbm</em>, <em>num_samples</em>, <em>batch_size=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/2699511/qucumber/observables/observable.py#L74"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.variance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates the variance (using the sample variance) of the observable
 over the distribution defined by the RBM.</p>
 <p>In order to avoid running out of memory, the variance computation
@@ -293,7 +293,7 @@ function.</li>
 
 <dl class="method">
 <dt id="qucumber.observables.Observable.statistics">
-<code class="descname">statistics</code><span class="sig-paren">(</span><em>rbm</em>, <em>num_samples</em>, <em>num_chains=0</em>, <em>burn_in=1000</em>, <em>steps=1</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/4772bcd/qucumber/observables/observable.py#L95"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.statistics" title="Permalink to this definition">¶</a></dt>
+<code class="descname">statistics</code><span class="sig-paren">(</span><em>rbm</em>, <em>num_samples</em>, <em>num_chains=0</em>, <em>burn_in=1000</em>, <em>steps=1</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/PIQuIL/QuCumber/blob/2699511/qucumber/observables/observable.py#L95"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.observables.Observable.statistics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimates both the expected value and variance of the observable
 over the distribution defined by the RBM.</p>
 <table class="docutils field-list" frame="void" rules="none">
