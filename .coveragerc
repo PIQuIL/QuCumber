@@ -1,0 +1,11 @@
+[run]
+branch = True
+source = qucumber
+
+[report]
+omit =
+    **/__init__.py 
+    setup.py
+    tasks.py
+    tests/*
+

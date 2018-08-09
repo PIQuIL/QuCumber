@@ -137,7 +137,7 @@ def outer_prod(x, y):
         :math:`\\vert x \\rangle\\langle y\\vert`.
     :rtype: torch.Tensor
     """
-    if len(list(x.size())) < 2 or len(list(y.size())) < 2:
+    if len(list(x.size())) != 2 or len(list(y.size())) != 2:
         raise ValueError('An input is not of the right dimension.')
 
     z = torch.zeros(2, x.size()[1], y.size()[1],

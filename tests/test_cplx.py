@@ -116,6 +116,19 @@ class TestCplx(unittest.TestCase):
         self.assertTensorsEqual(cplx.outer_prod(vector, vector), expect,
                                 msg="Outer product failed!")
 
+    def test_outer_prod_error_small(self):
+        # take outer prod of 2 rank 1 tensors, instead of rank 2
+        tensor = torch.tensor([1, 2], dtype=torch.double)
+        with self.assertRaises(ValueError):
+            cplx.outer_prod(tensor, tensor)
+
+    def test_outer_prod_error_large(self):
+        # take outer prod of 2 rank 3 tensors, instead of rank 2
+        tensor = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+                              dtype=torch.double)
+        with self.assertRaises(ValueError):
+            cplx.outer_prod(tensor, tensor)
+
     def test_conjugate(self):
         vector = torch.tensor([[1, 2], [3, 4]], dtype=torch.double)
 
@@ -144,6 +157,18 @@ class TestCplx(unittest.TestCase):
 
         self.assertTensorsEqual(cplx.kronecker_prod(matrix, matrix), expect,
                                 msg="Kronecker product failed!")
+
+    def test_kronecker_prod_error_small(self):
+        # take KronProd of 2 rank 2 tensors, instead of rank 3
+        tensor = torch.tensor([[1, 2], [3, 4]], dtype=torch.double)
+        with self.assertRaises(ValueError):
+            cplx.kronecker_prod(tensor, tensor)
+
+    def test_kronecker_prod_error_large(self):
+        # take KronProd of 2 rank 4 tensors, instead of rank 3
+        tensor = torch.arange(16, dtype=torch.double).reshape(2, 2, 2, 2)
+        with self.assertRaises(ValueError):
+            cplx.kronecker_prod(tensor, tensor)
 
     def test_vector_scalar_divide(self):
         scalar = torch.tensor([1, 2], dtype=torch.double)

@@ -17,6 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import os.path
 import pickle
 import unittest
 
@@ -28,6 +29,7 @@ from qucumber.positive_wavefunction import PositiveWavefunction
 from qucumber.quantum_reconstruction import QuantumReconstruction
 from qucumber.utils import unitaries
 from .grads_utils import ComplexGradsUtils, PosGradsUtils
+from . import __location__
 
 
 class TestAllGrads(unittest.TestCase):
@@ -60,7 +62,7 @@ class TestAllGrads(unittest.TestCase):
         tol = torch.tensor(1e-9, dtype=torch.double)
         pdiff = torch.tensor(100, dtype=torch.double)
 
-        with open('test_data.pkl', 'rb') as fin:
+        with open(os.path.join(__location__, 'test_data.pkl'), 'rb') as fin:
             test_data = pickle.load(fin)
 
         qucumber.set_random_seed(seed, cpu=True, gpu=True, quiet=True)
@@ -187,7 +189,7 @@ class TestAllGrads(unittest.TestCase):
         tol = torch.tensor(1e-9, dtype=torch.double)
         pdiff = torch.tensor(100, dtype=torch.double)
 
-        with open('test_data.pkl', 'rb') as fin:
+        with open(os.path.join(__location__, 'test_data.pkl'), 'rb') as fin:
             test_data = pickle.load(fin)
 
         qucumber.set_random_seed(seed, cpu=True, gpu=True, quiet=True)

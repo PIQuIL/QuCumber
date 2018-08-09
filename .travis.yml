@@ -34,12 +34,13 @@ script:
   - inv license-check
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv build-docs; fi # docs must be built BEFORE installation
   - python setup.py install
-  - cd ./tests/ && pytest --ignore=test_grads.py && cd ../  # don't test gradients on travis
+  - if [[ $TRAVIS_BRANCH != "master" ]]; then cd ./tests/ && pytest -s -k 'not test_grads' && cd ../; fi # don't test gradients if not on master all_branch
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then cd ./tests/ && pytest --cov=qucumber --no-cov-on-fail --cov-report=term-missing:skip-covered -s  && cd ../; fi
   - flake8 --exit-zero  # remove this flag once code is all cleaned up
   - python setup.py sdist bdist_wheel
 
 after_success:
-  - codecov -t $CODECOV_TOKEN
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then codecov; fi
 
 before_deploy:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then tar -czvf examples.tar.gz examples; fi

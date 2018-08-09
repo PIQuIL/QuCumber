@@ -77,9 +77,10 @@ def build_docs(c):
             c.run("pip uninstall -y qucumber", echo=True)
             c.run("git checkout -- ../qucumber/__init__.py", echo=True)
 
+        c.run("touch _build/html/.nojekyll", echo=True)
+
         if head_name == "master":
             c.run("git checkout -q master", echo=True)
-            c.run("touch _build/html/.nojekyll", echo=True)
             c.run('cp _templates/index.html _build/html/index.html', echo=True)
             with open("./docs/_build/html/versions.html", 'w') as f:
                 f.write(versions_template.render(
