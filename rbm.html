@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>RBM &mdash; QuCumber 0.2.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quantum States" href="quantum_states.html" />
+    <link rel="prev" title="Theory" href="theory.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuCumber
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Download the tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/tutorial_quantum_ising.html">Part 1: Reconstruction of a positive wavefunction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_examples/tutorial_qubits.html">Part 2: Training an RBM <em>with</em> a phase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">RBM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_states.html">Quantum States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantum_reconstruction.html">Quantum Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cplx.html">Complex Algebra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Handler</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">QuCumber</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>RBM</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/rbm.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="rbm">
+<h1>RBM<a class="headerlink" href="#rbm" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="qucumber.binary_rbm.BinaryRBM">
+<em class="property">class </em><code class="descclassname">qucumber.binary_rbm.</code><code class="descname">BinaryRBM</code><span class="sig-paren">(</span><em>num_visible</em>, <em>num_hidden</em>, <em>zero_weights=False</em>, <em>gpu=True</em>, <em>num_chains=100</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a4028a9/qucumber/binary_rbm.py#L33"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.binary_rbm.BinaryRBM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="method">
+<dt id="qucumber.binary_rbm.BinaryRBM.initialize_parameters">
+<code class="descname">initialize_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a4028a9/qucumber/binary_rbm.py#L72"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.binary_rbm.BinaryRBM.initialize_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomize the parameters of the RBM</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.binary_rbm.BinaryRBM.effective_energy">
+<code class="descname">effective_energy</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a4028a9/qucumber/binary_rbm.py#L90"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.binary_rbm.BinaryRBM.effective_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>The effective energies of the given visible states.</p>
+<div class="math">
+<p><img src="_images/math/60d4b1930185c5abe223746c9dc2471345cf0a54.svg" alt="\mathcal{E}(\bm{v}) &amp;= -\sum_{j}b_j v_j
+            - \sum_{i}\log
+                \left\lbrack 1 +
+                      \exp\left(c_{i} + \sum_{j} W_{ij} v_j\right)
+                \right\rbrack"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The visible states.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The effective energies of the given visible states.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.binary_rbm.BinaryRBM.effective_energy_gradient">
+<code class="descname">effective_energy_gradient</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a4028a9/qucumber/binary_rbm.py#L116"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.binary_rbm.BinaryRBM.effective_energy_gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>The gradients of the effective energies for the given visible states.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The visible states.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">1d vector containing the gradients for all parameters
+(computed on the given visible states v).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.binary_rbm.BinaryRBM.prob_v_given_h">
+<code class="descname">prob_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a4028a9/qucumber/binary_rbm.py#L139"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.binary_rbm.BinaryRBM.prob_v_given_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a hidden unit configuration, compute the probability
+vector of the visible units being on.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The hidden unit</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The probability of visible units being active given the
+hidden state.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.binary_rbm.BinaryRBM.prob_h_given_v">
+<code class="descname">prob_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a4028a9/qucumber/binary_rbm.py#L153"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.binary_rbm.BinaryRBM.prob_h_given_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a visible unit configuration, compute the probability
+vector of the hidden units being on.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The hidden unit.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The probability of hidden units being active given the
+visible state.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.binary_rbm.BinaryRBM.sample_v_given_h">
+<code class="descname">sample_v_given_h</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a4028a9/qucumber/binary_rbm.py#L167"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.binary_rbm.BinaryRBM.sample_v_given_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample/generate a visible state given a hidden state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The hidden state.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tuple containing prob_v_given_h(h) and the sampled visible
+state.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)">tuple</a>(<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a>, <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.binary_rbm.BinaryRBM.sample_h_given_v">
+<code class="descname">sample_h_given_v</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a4028a9/qucumber/binary_rbm.py#L181"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.binary_rbm.BinaryRBM.sample_h_given_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample/generate a hidden state given a visible state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>h</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – The visible state.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tuple containing prob_h_given_v(v) and the sampled hidden
+state.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)">tuple</a>(<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a>, <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="qucumber.binary_rbm.BinaryRBM.compute_partition_function">
+<code class="descname">compute_partition_function</code><span class="sig-paren">(</span><em>space</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MelkoCollective/QuCumber/blob/a4028a9/qucumber/binary_rbm.py#L195"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qucumber.binary_rbm.BinaryRBM.compute_partition_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>The natural logarithm of the partition function of the RBM.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>space</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))"><em>torch.Tensor</em></a>) – A rank 2 tensor of the visible space.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The natural log of the partition function.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (0.4.1 ))">torch.Tensor</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="quantum_states.html" class="btn btn-neutral float-right" title="Quantum States" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="theory.html" class="btn btn-neutral" title="Theory" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, PIQuIL.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
