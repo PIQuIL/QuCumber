@@ -23,8 +23,7 @@ import torch
 from qucumber.utils import cplx
 
 
-class PosGradsUtils():
-
+class PosGradsUtils:
     def __init__(self, nn_state):
         self.nn_state = nn_state
 
@@ -34,8 +33,9 @@ class PosGradsUtils():
         :returns: A tensor of all possible spin configurations.
         :rtype: torch.Tensor
         """
-        space = torch.zeros((2**N, N), dtype=torch.double,
-                            device=self.nn_state.device)
+        space = torch.zeros(
+            (2 ** N, N), dtype=torch.double, device=self.nn_state.device
+        )
         for i in range(1 << N):
             d = i
             for j in range(N):
@@ -55,7 +55,8 @@ class PosGradsUtils():
         """
         return torch.tensor(
             self.nn_state.rbm_am.compute_partition_function(visible_space),
-            dtype=torch.double, device=self.nn_state.device
+            dtype=torch.double,
+            device=self.nn_state.device,
         )
 
     def probability(self, v, Z):
@@ -70,14 +71,13 @@ class PosGradsUtils():
         :returns: The probability of the given vector(s) of visible units.
         :rtype: torch.Tensor
         """
-        return (self.nn_state.psi(v.to(device=self.nn_state.device))[0])**2 / Z
+        return (self.nn_state.psi(v.to(device=self.nn_state.device))[0]) ** 2 / Z
 
     def compute_numerical_kl(self, target_psi, vis, Z):
         KL = 0.0
         for i in range(len(vis)):
-            KL += ((target_psi[i, 0])**2)*((target_psi[i, 0])**2).log()
-            KL -= (((target_psi[i, 0])**2)
-                   * (self.probability(vis[i], Z)).log().item())
+            KL += ((target_psi[i, 0]) ** 2) * ((target_psi[i, 0]) ** 2).log()
+            KL -= ((target_psi[i, 0]) ** 2) * (self.probability(vis[i], Z)).log().item()
         return KL
 
     def compute_numerical_NLL(self, data, Z):
@@ -85,19 +85,20 @@ class PosGradsUtils():
         batch_size = len(data)
 
         for i in range(batch_size):
-            NLL -= (self.probability(data[i], Z).log().item()
-                    / float(batch_size))
+            NLL -= self.probability(data[i], Z).log().item() / float(batch_size)
 
         return NLL
 
     def algorithmic_gradKL(self, target_psi, vis):
         Z = self.partition(vis)
-        grad_KL = torch.zeros(self.nn_state.rbm_am.num_pars,
-                              dtype=torch.double, device=self.nn_state.device)
+        grad_KL = torch.zeros(
+            self.nn_state.rbm_am.num_pars,
+            dtype=torch.double,
+            device=self.nn_state.device,
+        )
         for i in range(len(vis)):
-            grad_KL += ((target_psi[i, 0])**2) * self.nn_state.gradient(vis[i])
-            grad_KL -= (self.probability(vis[i], Z)
-                        * self.nn_state.gradient(vis[i]))
+            grad_KL += ((target_psi[i, 0]) ** 2) * self.nn_state.gradient(vis[i])
+            grad_KL -= self.probability(vis[i], Z) * self.nn_state.gradient(vis[i])
         return grad_KL
 
     def algorithmic_gradNLL(self, qr, data, k):
@@ -111,14 +112,14 @@ class PosGradsUtils():
             Z = self.partition(vis)
             KL_p = self.compute_numerical_kl(target_psi, vis, Z)
 
-            param[i] -= 2*eps
+            param[i] -= 2 * eps
 
             Z = self.partition(vis)
             KL_m = self.compute_numerical_kl(target_psi, vis, Z)
 
             param[i] += eps
 
-            num_gradKL.append((KL_p - KL_m) / (2*eps))
+            num_gradKL.append((KL_p - KL_m) / (2 * eps))
 
         return torch.stack(num_gradKL)
 
@@ -130,20 +131,19 @@ class PosGradsUtils():
             Z = self.partition(vis)
             NLL_p = self.compute_numerical_NLL(data, Z)
 
-            param[i] -= 2*eps
+            param[i] -= 2 * eps
 
             Z = self.partition(vis)
             NLL_m = self.compute_numerical_NLL(data, Z)
 
             param[i] += eps
 
-            num_gradNLL.append((NLL_p - NLL_m) / (2*eps))
+            num_gradNLL.append((NLL_p - NLL_m) / (2 * eps))
 
         return torch.tensor(np.array(num_gradNLL), dtype=torch.double)
 
 
-class ComplexGradsUtils():
-
+class ComplexGradsUtils:
     def __init__(self, nn_state):
         self.nn_state = nn_state
 
@@ -153,8 +153,9 @@ class ComplexGradsUtils():
         :returns: A tensor of all possible spin configurations.
         :rtype: torch.Tensor
         """
-        space = torch.zeros((2**N, N), dtype=torch.double,
-                            device=self.nn_state.device)
+        space = torch.zeros(
+            (2 ** N, N), dtype=torch.double, device=self.nn_state.device
+        )
         for i in range(1 << N):
             d = i
             for j in range(N):
@@ -174,7 +175,8 @@ class ComplexGradsUtils():
         """
         return torch.tensor(
             self.nn_state.rbm_am.compute_partition_function(visible_space),
-            dtype=torch.double, device=self.nn_state.device
+            dtype=torch.double,
+            device=self.nn_state.device,
         )
 
     def probability(self, v, Z):
@@ -189,20 +191,20 @@ class ComplexGradsUtils():
         :returns: The probability of the given vector(s) of visible units.
         :rtype: torch.Tensor
         """
-        return (self.nn_state.amplitude(
-            v.to(device=self.nn_state.device)
-        ))**2 / Z
+        return (self.nn_state.amplitude(v.to(device=self.nn_state.device))) ** 2 / Z
 
     def load_target_psi(self, bases, psi_data):
         psi_dict = {}
-        D = int(len(psi_data)/float(len(bases)))
+        D = int(len(psi_data) / float(len(bases)))
 
         for b in range(len(bases)):
             psi = torch.zeros(2, D, dtype=torch.double)
-            psi_real = torch.tensor(psi_data[b*D:D*(b+1), 0],
-                                    dtype=torch.double)
-            psi_imag = torch.tensor(psi_data[b*D:D*(b+1), 1],
-                                    dtype=torch.double)
+            psi_real = torch.tensor(
+                psi_data[b * D : D * (b + 1), 0], dtype=torch.double
+            )
+            psi_imag = torch.tensor(
+                psi_data[b * D : D * (b + 1), 1], dtype=torch.double
+            )
             psi[0] = psi_real
             psi[1] = psi_imag
             psi_dict[bases[b]] = psi
@@ -227,16 +229,14 @@ class ComplexGradsUtils():
     def rotate_psi(self, basis, unitary_dict, vis):
         N = self.nn_state.num_visible
         v = torch.zeros(N, dtype=torch.double, device=self.nn_state.device)
-        psi_r = torch.zeros(2, 1 << N, dtype=torch.double,
-                            device=self.nn_state.device)
+        psi_r = torch.zeros(2, 1 << N, dtype=torch.double, device=self.nn_state.device)
 
         for x in range(1 << N):
-            Upsi = torch.zeros(2, dtype=torch.double,
-                               device=self.nn_state.device)
+            Upsi = torch.zeros(2, dtype=torch.double, device=self.nn_state.device)
             num_nontrivial_U = 0
             nontrivial_sites = []
             for j in range(N):
-                if (basis[j] is not 'Z'):
+                if basis[j] is not "Z":
                     num_nontrivial_U += 1
                     nontrivial_sites.append(j)
             sub_state = self.generate_visible_space(num_nontrivial_U)
@@ -244,19 +244,22 @@ class ComplexGradsUtils():
             for xp in range(1 << num_nontrivial_U):
                 cnt = 0
                 for j in range(N):
-                    if (basis[j] is not 'Z'):
+                    if basis[j] is not "Z":
                         v[j] = sub_state[xp][cnt]
                         cnt += 1
                     else:
                         v[j] = vis[x, j]
 
-                U = torch.tensor([1., 0.], dtype=torch.double,
-                                 device=self.nn_state.device)
+                U = torch.tensor(
+                    [1., 0.], dtype=torch.double, device=self.nn_state.device
+                )
                 for ii in range(num_nontrivial_U):
                     tmp = unitary_dict[basis[nontrivial_sites[ii]]]
-                    tmp = tmp[:,
-                              int(vis[x][nontrivial_sites[ii]]),
-                              int(v[nontrivial_sites[ii]])]
+                    tmp = tmp[
+                        :,
+                        int(vis[x][nontrivial_sites[ii]]),
+                        int(v[nontrivial_sites[ii]]),
+                    ]
                     U = cplx.scalar_mult(U, tmp)
 
                 Upsi += cplx.scalar_mult(U, self.nn_state.psi(v))
@@ -264,8 +267,7 @@ class ComplexGradsUtils():
             psi_r[:, x] = Upsi
         return psi_r
 
-    def compute_numerical_NLL(self, data_samples, data_bases, Z,
-                              unitary_dict, vis):
+    def compute_numerical_NLL(self, data_samples, data_bases, Z, unitary_dict, vis):
         NLL = 0
         batch_size = len(data_samples)
         b_flag = 0
@@ -273,71 +275,74 @@ class ComplexGradsUtils():
             bitstate = []
             for j in range(self.nn_state.num_visible):
                 ind = 0
-                if (data_bases[i][j] != 'Z'):
+                if data_bases[i][j] != "Z":
                     b_flag = 1
                 bitstate.append(int(data_samples[i, j].item()))
             ind = int("".join(str(i) for i in bitstate), 2)
-            if (b_flag == 0):
-                NLL -= ((self.probability(data_samples[i], Z)).log().item()
-                        / batch_size)
+            if b_flag == 0:
+                NLL -= (self.probability(data_samples[i], Z)).log().item() / batch_size
             else:
                 psi_r = self.rotate_psi(data_bases[i], unitary_dict, vis)
-                NLL -= ((cplx.norm(psi_r[:, ind]).log()-Z.log()).item()
-                        / batch_size)
+                NLL -= (cplx.norm(psi_r[:, ind]).log() - Z.log()).item() / batch_size
         return NLL
 
     def compute_numerical_kl(self, psi_dict, vis, Z, unitary_dict, bases):
         N = self.nn_state.num_visible
-        psi_r = torch.zeros(2, 1 << N, dtype=torch.double,
-                            device=self.nn_state.device)
+        psi_r = torch.zeros(2, 1 << N, dtype=torch.double, device=self.nn_state.device)
         KL = 0.0
         for i in range(len(vis)):
-            KL += (cplx.norm(psi_dict[bases[0]][:, i])
-                   * cplx.norm(psi_dict[bases[0]][:, i]).log()
-                   / float(len(bases)))
-            KL -= (cplx.norm(psi_dict[bases[0]][:, i])
-                   * self.probability(vis[i], Z).log().item()
-                   / float(len(bases)))
+            KL += (
+                cplx.norm(psi_dict[bases[0]][:, i])
+                * cplx.norm(psi_dict[bases[0]][:, i]).log()
+                / float(len(bases))
+            )
+            KL -= (
+                cplx.norm(psi_dict[bases[0]][:, i])
+                * self.probability(vis[i], Z).log().item()
+                / float(len(bases))
+            )
 
         for b in range(1, len(bases)):
             psi_r = self.rotate_psi(bases[b], unitary_dict, vis)
             for ii in range(len(vis)):
-                if(cplx.norm(psi_dict[bases[b]][:, ii]) > 0.0):
-                    KL += (cplx.norm(psi_dict[bases[b]][:, ii])
-                           * cplx.norm(psi_dict[bases[b]][:, ii]).log()
-                           / float(len(bases)))
+                if cplx.norm(psi_dict[bases[b]][:, ii]) > 0.0:
+                    KL += (
+                        cplx.norm(psi_dict[bases[b]][:, ii])
+                        * cplx.norm(psi_dict[bases[b]][:, ii]).log()
+                        / float(len(bases))
+                    )
 
-                KL -= (cplx.norm(psi_dict[bases[b]][:, ii])
-                       * cplx.norm(psi_r[:, ii]).log()
-                       / float(len(bases)))
-                KL += (cplx.norm(psi_dict[bases[b]][:, ii])
-                       * Z.log()
-                       / float(len(bases)))
+                KL -= (
+                    cplx.norm(psi_dict[bases[b]][:, ii])
+                    * cplx.norm(psi_r[:, ii]).log()
+                    / float(len(bases))
+                )
+                KL += cplx.norm(psi_dict[bases[b]][:, ii]) * Z.log() / float(len(bases))
 
         return KL
 
     def algorithmic_gradNLL(self, qr, data_samples, data_bases, k):
-        return qr.compute_batch_gradients(k, data_samples,
-                                          data_samples, data_bases)
+        return qr.compute_batch_gradients(k, data_samples, data_samples, data_bases)
 
-    def numeric_gradNLL(self, data_samples, data_bases, unitary_dict, param,
-                        vis, eps):
+    def numeric_gradNLL(self, data_samples, data_bases, unitary_dict, param, vis, eps):
         num_gradNLL = []
         for i in range(len(param)):
             param[i] += eps
 
             Z = self.partition(vis)
-            NLL_p = self.compute_numerical_NLL(data_samples, data_bases, Z,
-                                               unitary_dict, vis)
-            param[i] -= 2*eps
+            NLL_p = self.compute_numerical_NLL(
+                data_samples, data_bases, Z, unitary_dict, vis
+            )
+            param[i] -= 2 * eps
 
             Z = self.partition(vis)
-            NLL_m = self.compute_numerical_NLL(data_samples, data_bases, Z,
-                                               unitary_dict, vis)
+            NLL_m = self.compute_numerical_NLL(
+                data_samples, data_bases, Z, unitary_dict, vis
+            )
 
             param[i] += eps
 
-            num_gradNLL.append((NLL_p - NLL_m) / (2*eps))
+            num_gradNLL.append((NLL_p - NLL_m) / (2 * eps))
 
         return torch.tensor(np.array(num_gradNLL), dtype=torch.double)
 
@@ -347,27 +352,31 @@ class ComplexGradsUtils():
             param[i] += eps
 
             Z = self.partition(vis)
-            KL_p = self.compute_numerical_kl(psi_dict, vis, Z,
-                                             unitary_dict, bases)
+            KL_p = self.compute_numerical_kl(psi_dict, vis, Z, unitary_dict, bases)
 
-            param[i] -= 2*eps
+            param[i] -= 2 * eps
 
             Z = self.partition(vis)
-            KL_m = self.compute_numerical_kl(psi_dict, vis, Z,
-                                             unitary_dict, bases)
+            KL_m = self.compute_numerical_kl(psi_dict, vis, Z, unitary_dict, bases)
             param[i] += eps
 
-            num_gradKL.append((KL_p - KL_m) / (2*eps))
+            num_gradKL.append((KL_p - KL_m) / (2 * eps))
 
         return torch.stack(num_gradKL)
 
     def algorithmic_gradKL(self, psi_dict, vis, unitary_dict, bases):
-        grad_KL = [torch.zeros(self.nn_state.rbm_am.num_pars,
-                               dtype=torch.double,
-                               device=self.nn_state.device),
-                   torch.zeros(self.nn_state.rbm_ph.num_pars,
-                               dtype=torch.double,
-                               device=self.nn_state.device)]
+        grad_KL = [
+            torch.zeros(
+                self.nn_state.rbm_am.num_pars,
+                dtype=torch.double,
+                device=self.nn_state.device,
+            ),
+            torch.zeros(
+                self.nn_state.rbm_ph.num_pars,
+                dtype=torch.double,
+                device=self.nn_state.device,
+            ),
+        ]
         Z = self.partition(vis).to(device=self.nn_state.device)
 
         for i in range(len(vis)):
@@ -385,12 +394,16 @@ class ComplexGradsUtils():
         for b in range(1, len(bases)):
             for i in range(len(vis)):
                 rotated_grad = self.nn_state.gradient(bases[b], vis[i])
-                grad_KL[0] += (cplx.norm(psi_dict[bases[b]][:, i])
-                               * rotated_grad[0]
-                               / float(len(bases)))
-                grad_KL[1] += (cplx.norm(psi_dict[bases[b]][:, i])
-                               * rotated_grad[1]
-                               / float(len(bases)))
+                grad_KL[0] += (
+                    cplx.norm(psi_dict[bases[b]][:, i])
+                    * rotated_grad[0]
+                    / float(len(bases))
+                )
+                grad_KL[1] += (
+                    cplx.norm(psi_dict[bases[b]][:, i])
+                    * rotated_grad[1]
+                    / float(len(bases))
+                )
                 grad_KL[0] -= (
                     self.probability(vis[i], Z)
                     * self.nn_state.rbm_am.effective_energy_gradient(vis[i])

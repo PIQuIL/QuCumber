@@ -23,14 +23,11 @@ import torch
 import qucumber.utils.cplx as cplx
 from qucumber.binary_rbm import BinaryRBM
 
-__all__ = [
-    "ComplexWavefunction"
-]
+__all__ = ["ComplexWavefunction"]
 
 
 class ComplexWavefunction(object):
-    def __init__(self, unitary_dict, num_visible,
-                 num_hidden, gpu=True):
+    def __init__(self, unitary_dict, num_visible, num_hidden, gpu=True):
         super(ComplexWavefunction, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
@@ -44,8 +41,9 @@ class ComplexWavefunction(object):
 
         self.networks = ["rbm_am", "rbm_ph"]
         self.device = self.rbm_am.device
-        self.unitary_dict = {k: v.to(device=self.device)
-                             for k, v in unitary_dict.items()}
+        self.unitary_dict = {
+            k: v.to(device=self.device) for k, v in unitary_dict.items()
+        }
 
     def initialize_parameters(self):
         r"""Randomize the parameters
@@ -122,8 +120,8 @@ class ComplexWavefunction(object):
         :param basis: A set of basis, (i.e.vector of strings)
         :type basis: np.array
         """
-        num_U = 0               # Number of 1-local unitary rotations1
-        grad = []               # Gradient
+        num_U = 0  # Number of 1-local unitary rotations1
+        grad = []  # Gradient
         basis = np.array(list(basis))
 
         # Sites where the unitary rotations are applied
@@ -131,18 +129,22 @@ class ComplexWavefunction(object):
         num_U = len(rotated_sites)
 
         # If the basis is the reference one ('ZZZ..Z')
-        if (num_U == 0):
+        if num_U == 0:
             grad.append(self.rbm_am.effective_energy_gradient(sample))  # Real
-            grad.append(0.0)                                       # Imaginary
+            grad.append(0.0)  # Imaginary
 
         else:
             # Initialize
-            vp = torch.zeros(self.num_visible, dtype=torch.double,
-                             device=self.device)
-            rotated_grad = [torch.zeros(2, getattr(self, net).num_pars,
-                                        dtype=torch.double,
-                                        device=self.device)
-                            for net in self.networks]
+            vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
+            rotated_grad = [
+                torch.zeros(
+                    2,
+                    getattr(self, net).num_pars,
+                    dtype=torch.double,
+                    device=self.device,
+                )
+                for net in self.networks
+            ]
             Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
 
             # Sum over the full subspace where the rotation are applied
@@ -156,29 +158,28 @@ class ComplexWavefunction(object):
                 U = 1.
                 for rs in rotated_sites:
                     tmp = self.unitary_dict[basis[rs]]
-                    tmp = tmp[:,
-                              int(sample[rs]),
-                              int(vp[rs])]
+                    tmp = tmp[:, int(sample[rs]), int(vp[rs])]
                     # U = cplx.scalar_mult(U, tmp.to(self.device))
                     U *= complex(tmp[0].item(), tmp[1].item())
-                U = torch.tensor([U.real, U.imag], dtype=torch.double,
-                                 device=self.device)
+                U = torch.tensor(
+                    [U.real, U.imag], dtype=torch.double, device=self.device
+                )
 
                 # Gradient on the current configuration
-                grad_vp = [self.rbm_am.effective_energy_gradient(vp),
-                           self.rbm_ph.effective_energy_gradient(vp)]
+                grad_vp = [
+                    self.rbm_am.effective_energy_gradient(vp),
+                    self.rbm_ph.effective_energy_gradient(vp),
+                ]
 
                 # NN state rotated in this bases
                 Upsi_v = cplx.scalar_mult(U, self.psi(vp))
 
                 Upsi += Upsi_v
                 rotated_grad[0] += cplx.scalar_mult(
-                    Upsi_v,
-                    cplx.make_complex(grad_vp[0], torch.zeros_like(grad_vp[0]))
+                    Upsi_v, cplx.make_complex(grad_vp[0], torch.zeros_like(grad_vp[0]))
                 )
                 rotated_grad[1] += cplx.scalar_mult(
-                    Upsi_v,
-                    cplx.make_complex(grad_vp[1], torch.zeros_like(grad_vp[1]))
+                    Upsi_v, cplx.make_complex(grad_vp[1], torch.zeros_like(grad_vp[1]))
                 )
 
             grad.append(cplx.scalar_divide(rotated_grad[0], Upsi)[0, :])
@@ -192,8 +193,9 @@ class ComplexWavefunction(object):
         if overwrite is False:
             v = v.clone()
 
-        h = torch.zeros(v.shape[0], self.num_hidden,
-                        device=self.device, dtype=torch.double)
+        h = torch.zeros(
+            v.shape[0], self.num_hidden, device=self.device, dtype=torch.double
+        )
 
         for _ in range(k):
             self.rbm_am.sample_h_given_v(v, out=h)
@@ -214,8 +216,9 @@ class ComplexWavefunction(object):
         if initial_state is None:
             dist = torch.distributions.Bernoulli(probs=0.5)
             sample_size = torch.Size((num_samples, self.num_visible))
-            initial_state = dist.sample(sample_size) \
-                                .to(device=self.device, dtype=torch.double)
+            initial_state = dist.sample(sample_size).to(
+                device=self.device, dtype=torch.double
+            )
 
         return self.gibbs_steps(k, initial_state, overwrite=overwrite)
 
@@ -225,8 +228,8 @@ class ComplexWavefunction(object):
         :returns: A tensor with all the basis states of the Hilbert space.
         :rtype: torch.Tensor
         """
-        if (size > self.size_cut):
-            raise ValueError('Size of the Hilbert space too large!')
+        if size > self.size_cut:
+            raise ValueError("Size of the Hilbert space too large!")
         else:
             d = np.arange(2 ** size)
             space = (((d[:, None] & (1 << np.arange(size)))) > 0)[:, ::-1]
@@ -246,8 +249,8 @@ class ComplexWavefunction(object):
         :type space: torch.Tensor
 
         """
-        if (self.space is None):
-            raise ValueError('Missing Hilbert space')
+        if self.space is None:
+            raise ValueError("Missing Hilbert space")
         else:
             self.Z = self.rbm_am.compute_partition_function(self.space)
 
@@ -265,7 +268,7 @@ class ComplexWavefunction(object):
         data = {
             "rbm_am": self.rbm_am.state_dict(),
             "rbm_ph": self.rbm_ph.state_dict(),
-            **metadata
+            **metadata,
         }
         torch.save(data, location)
 
@@ -284,7 +287,7 @@ class ComplexWavefunction(object):
         try:
             state_dict = torch.load(location)
         except AssertionError as e:
-            state_dict = torch.load(location, lambda storage, loc: 'cpu')
+            state_dict = torch.load(location, lambda storage, loc: "cpu")
 
-        self.rbm_am.load_state_dict(state_dict['rbm_am'], strict=False)
-        self.rbm_ph.load_state_dict(state_dict['rbm_ph'], strict=False)
+        self.rbm_am.load_state_dict(state_dict["rbm_am"], strict=False)
+        self.rbm_ph.load_state_dict(state_dict["rbm_ph"], strict=False)

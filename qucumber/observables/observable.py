@@ -19,9 +19,7 @@
 
 import numpy as np
 
-__all__ = [
-    "Observable"
-]
+__all__ = ["Observable"]
 
 
 class Observable:
@@ -71,7 +69,6 @@ class Observable:
         stats = self.statistics(rbm, num_samples, batch_size, **kwargs)
         return stats["mean"]
 
-
     def variance(self, rbm, num_samples, batch_size=0, **kwargs):
         """Estimates the variance (using the sample variance) of the observable
         over the distribution defined by the RBM.
@@ -93,14 +90,11 @@ class Observable:
         stats = self.statistics(rbm, num_samples, batch_size, **kwargs)
         return stats["variance"]
 
-
     def std_error(self, rbm, num_samples, batch_size=0, **kwargs):
         stats = self.statistics(rbm, num_samples, batch_size, **kwargs)
-        return stats["std_error"]   
+        return stats["std_error"]
 
- 
-    def statistics(self, rbm, num_samples,
-                   num_chains=0, burn_in=1000, steps=1):
+    def statistics(self, rbm, num_samples, num_chains=0, burn_in=1000, steps=1):
         """Estimates both the expected value and variance of the observable
         over the distribution defined by the RBM.
 
@@ -134,9 +128,7 @@ class Observable:
         for i in range(num_time_steps):
             num_gibbs_steps = burn_in if i == 0 else steps
 
-            chains = rbm.sample(num_chains,
-                                k=num_gibbs_steps,
-                                initial_state=chains)
+            chains = rbm.sample(num_chains, k=num_gibbs_steps, initial_state=chains)
 
             samples = self.apply(chains, rbm).data
 
@@ -146,13 +138,9 @@ class Observable:
         N = float(num_time_steps * num_chains)  # total number of samples
         mean = running_sum / N
 
-        variance = (running_sum_of_squares - ((running_sum ** 2) / N))
+        variance = running_sum_of_squares - ((running_sum ** 2) / N)
         variance /= N - 1
 
         std_error = np.sqrt(variance / N)
 
-        return {
-            "mean": mean,
-            "variance": variance,
-            "std_error": std_error
-        }
+        return {"mean": mean, "variance": variance, "std_error": std_error}

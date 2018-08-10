@@ -25,20 +25,20 @@ from torch.nn.utils import parameters_to_vector
 
 from qucumber import _warn_on_missing_gpu
 
-__all__ = [
-    "BinaryRBM"
-]
+__all__ = ["BinaryRBM"]
 
 
 class BinaryRBM(nn.Module):
-    def __init__(self, num_visible, num_hidden, zero_weights=False,
-                 gpu=True, num_chains=100):
+    def __init__(
+        self, num_visible, num_hidden, zero_weights=False, gpu=True, num_chains=100
+    ):
         super(BinaryRBM, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
         self.num_chains = int(num_chains)
-        self.num_pars = ((self.num_visible * self.num_hidden)
-                         + self.num_visible + self.num_hidden)
+        self.num_pars = (
+            (self.num_visible * self.num_hidden) + self.num_visible + self.num_hidden
+        )
 
         _warn_on_missing_gpu(gpu)
         self.gpu = gpu and torch.cuda.is_available()
@@ -46,46 +46,65 @@ class BinaryRBM(nn.Module):
         # Maximum number of visible units for exact enumeration
         self.size_cut = 16
 
-        self.device = torch.device('cuda') if self.gpu else torch.device('cpu')
+        self.device = torch.device("cuda") if self.gpu else torch.device("cpu")
 
         if zero_weights:
-            self.weights = nn.Parameter((torch.zeros(self.num_hidden,
-                                                     self.num_visible,
-                                                     device=self.device,
-                                                     dtype=torch.double)),
-                                        requires_grad=True)
-            self.visible_bias = nn.Parameter(torch.zeros(self.num_visible,
-                                                         device=self.device,
-                                                         dtype=torch.double),
-                                             requires_grad=True)
-            self.hidden_bias = nn.Parameter(torch.zeros(self.num_hidden,
-                                                        device=self.device,
-                                                        dtype=torch.double),
-                                            requires_grad=True)
+            self.weights = nn.Parameter(
+                (
+                    torch.zeros(
+                        self.num_hidden,
+                        self.num_visible,
+                        device=self.device,
+                        dtype=torch.double,
+                    )
+                ),
+                requires_grad=True,
+            )
+            self.visible_bias = nn.Parameter(
+                torch.zeros(self.num_visible, device=self.device, dtype=torch.double),
+                requires_grad=True,
+            )
+            self.hidden_bias = nn.Parameter(
+                torch.zeros(self.num_hidden, device=self.device, dtype=torch.double),
+                requires_grad=True,
+            )
         else:
             self.initialize_parameters()
 
     def __repr__(self):
-        return ("BinaryRBM(num_visible={}, num_hidden={}, gpu={})"
-                .format(self.num_visible, self.num_hidden, self.gpu))
+        return "BinaryRBM(num_visible={}, num_hidden={}, gpu={})".format(
+            self.num_visible, self.num_hidden, self.gpu
+        )
 
     def initialize_parameters(self):
         """Randomize the parameters of the RBM"""
         self.weights = nn.Parameter(
-            (torch.randn(self.num_hidden, self.num_visible,
-                         device=self.device, dtype=torch.double)
-             / np.sqrt(self.num_visible)), requires_grad=True)
+            (
+                torch.randn(
+                    self.num_hidden,
+                    self.num_visible,
+                    device=self.device,
+                    dtype=torch.double,
+                )
+                / np.sqrt(self.num_visible)
+            ),
+            requires_grad=True,
+        )
 
         self.visible_bias = nn.Parameter(
-            (torch.randn(self.num_visible,
-                         device=self.device, dtype=torch.double)
-             / np.sqrt(self.num_visible)),
-            requires_grad=True)
+            (
+                torch.randn(self.num_visible, device=self.device, dtype=torch.double)
+                / np.sqrt(self.num_visible)
+            ),
+            requires_grad=True,
+        )
         self.hidden_bias = nn.Parameter(
-            (torch.randn(self.num_hidden,
-                         device=self.device, dtype=torch.double)
-             / np.sqrt(self.num_hidden)),
-            requires_grad=True)
+            (
+                torch.randn(self.num_hidden, device=self.device, dtype=torch.double)
+                / np.sqrt(self.num_hidden)
+            ),
+            requires_grad=True,
+        )
 
     def effective_energy(self, v):
         r"""The effective energies of the given visible states.
@@ -107,9 +126,9 @@ class BinaryRBM(nn.Module):
         if len(v.shape) < 2:
             v = v.view(1, -1)
         visible_bias_term = torch.mv(v, self.visible_bias)
-        hidden_bias_term = F.softplus(
-            F.linear(v, self.weights, self.hidden_bias)
-        ).sum(1)
+        hidden_bias_term = F.softplus(F.linear(v, self.weights, self.hidden_bias)).sum(
+            1
+        )
 
         return -(visible_bias_term + hidden_bias_term)
 
@@ -151,10 +170,11 @@ class BinaryRBM(nn.Module):
         """
         if h.dim() < 2:  # create extra axis, if needed
             h = h.unsqueeze(0)
-        p = torch.addmm(self.visible_bias.data, h,
-                        self.weights.data, out=out) \
-                 .sigmoid_() \
-                 .squeeze_(0)  # remove superfluous axis, if it exists
+        p = (
+            torch.addmm(self.visible_bias.data, h, self.weights.data, out=out)
+            .sigmoid_()
+            .squeeze_(0)
+        )  # remove superfluous axis, if it exists
         return p
 
     def prob_h_given_v(self, v, out=None):
@@ -172,10 +192,11 @@ class BinaryRBM(nn.Module):
         """
         if v.dim() < 2:  # create extra axis, if needed
             v = v.unsqueeze(0)
-        p = torch.addmm(self.hidden_bias.data, v,
-                        self.weights.data.t(), out=out) \
-                 .sigmoid_() \
-                 .squeeze_(0)  # remove superfluous axis, if it exists
+        p = (
+            torch.addmm(self.hidden_bias.data, v, self.weights.data.t(), out=out)
+            .sigmoid_()
+            .squeeze_(0)
+        )  # remove superfluous axis, if it exists
         return p
 
     def sample_v_given_h(self, h, out=None):
@@ -222,4 +243,4 @@ class BinaryRBM(nn.Module):
         neg_free_energies = -self.effective_energy(space)
         logZ = neg_free_energies.logsumexp(0)
         Z = logZ.exp().item()
-        return torch.tensor(Z, dtype = torch.double, device = self.device)
+        return torch.tensor(Z, dtype=torch.double, device=self.device)

@@ -42,8 +42,16 @@ class LivePlotting(Callback):
     :param error_name: The name of the error stored in `metric_callback`.
     :type error_name: str
     """
-    def __init__(self, period, metric_evaluator, metric_name,
-                 error_name=None, total_epochs=None, smooth=True):
+
+    def __init__(
+        self,
+        period,
+        metric_evaluator,
+        metric_name,
+        error_name=None,
+        total_epochs=None,
+        smooth=True,
+    ):
         self.period = period
         self.metric_evaluator = metric_evaluator
         self.metric_name = metric_name
@@ -59,9 +67,7 @@ class LivePlotting(Callback):
             self.ax.set_xlim(0, self.total_epochs)
 
         self.ax.grid()
-        self.ax.xaxis.set_major_locator(
-            ticker.MultipleLocator(min(self.period, 5.))
-        )
+        self.ax.xaxis.set_major_locator(ticker.MultipleLocator(min(self.period, 5.)))
         self.fig.show()
         self.fig.canvas.draw()
 
@@ -69,39 +75,44 @@ class LivePlotting(Callback):
         if epoch % self.period == 0:
             self.last_epoch = epoch
 
-            epochs = np.array(list(
-                map(itemgetter(0), self.metric_evaluator.metric_values)
-            ))
+            epochs = np.array(
+                list(map(itemgetter(0), self.metric_evaluator.metric_values))
+            )
 
-            metric_values = np.array(list(
-                map(itemgetter(self.metric_name),
-                    map(itemgetter(1), self.metric_evaluator.metric_values))
-            ))
+            metric_values = np.array(
+                list(
+                    map(
+                        itemgetter(self.metric_name),
+                        map(itemgetter(1), self.metric_evaluator.metric_values),
+                    )
+                )
+            )
 
             self.ax.clear()
             p = self.ax.plot(epochs, metric_values)
 
             if self.error_name is not None:
-                std_error = np.array(list(
-                    map(itemgetter(self.error_name),
-                        map(itemgetter(1),
-                            self.metric_evaluator.metric_values))
-                ))
+                std_error = np.array(
+                    list(
+                        map(
+                            itemgetter(self.error_name),
+                            map(itemgetter(1), self.metric_evaluator.metric_values),
+                        )
+                    )
+                )
 
                 lower = metric_values - std_error
                 upper = metric_values + std_error
 
-                self.ax.fill_between(epochs, lower, upper,
-                                     color=p[0].get_color(),
-                                     alpha=0.4)
+                self.ax.fill_between(
+                    epochs, lower, upper, color=p[0].get_color(), alpha=0.4
+                )
 
             y_avg = np.max(np.abs(metric_values))
             y_log_avg = np.log10(y_avg) if y_avg != 0 else -1.
             y_tick_exp = int(np.sign(y_log_avg) * np.ceil(np.abs(y_log_avg)))
             y_tick_interval = (10 ** y_tick_exp) / 2.
-            self.ax.yaxis.set_major_locator(
-                ticker.MultipleLocator(y_tick_interval)
-            )
+            self.ax.yaxis.set_major_locator(ticker.MultipleLocator(y_tick_interval))
 
             self.ax.set_xlabel("Epochs")
             self.ax.set_ylabel(self.metric_name)

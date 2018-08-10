@@ -49,8 +49,8 @@ class EarlyStopping(Callback):
     :param metric_name: The name of the metric stored in `metric_callback`.
     :type metric_name: str
     """
-    def __init__(self, period, tolerance, patience,
-                 metric_callback, metric_name):
+
+    def __init__(self, period, tolerance, patience, metric_callback, metric_name):
         self.period = period
         self.tolerance = tolerance
         self.patience = int(patience)
@@ -65,11 +65,13 @@ class EarlyStopping(Callback):
             if len(self.past_metric_values) >= self.patience:
                 change_in_metric = (
                     past_metric_values[-self.patience][-1][self.metric_name]
-                    - past_metric_values[-1][-1][self.metric_name])
+                    - past_metric_values[-1][-1][self.metric_name]
+                )
 
                 relative_change = (
                     change_in_metric
-                    / past_metric_values[-self.patience][-1][self.metric_name])
+                    / past_metric_values[-self.patience][-1][self.metric_name]
+                )
 
                 if abs(relative_change) < self.tolerance:
                     rbm.stop_training = True

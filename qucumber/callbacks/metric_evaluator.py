@@ -51,6 +51,7 @@ class MetricEvaluator(Callback):
     :type verbose: bool
     :param \**metric_kwargs: Keyword arguments to be passed to `metrics`.
     """
+
     def __init__(self, period, metrics, verbose=False, **metric_kwargs):
         self.period = period
         self.metrics = metrics
@@ -93,6 +94,7 @@ class MetricEvaluator(Callback):
             self.metric_values.append((epoch, metric_vals_for_epoch))
 
             if self.verbose is True:
-                print("Epoch: {}\t".format(epoch), end='', flush=True)
-                print("\t".join("{} = {:.6f}".format(k, v)
-                                for k, v in self.last.items()))
+                print("Epoch: {}\t".format(epoch), end="", flush=True)
+                print(
+                    "\t".join("{} = {:.6f}".format(k, v) for k, v in self.last.items())
+                )

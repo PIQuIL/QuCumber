@@ -22,9 +22,7 @@ import numpy as np
 
 from qucumber.observables import Observable
 
-__all__ = [
-    "TransverseFieldIsingChain"
-]
+__all__ = ["TransverseFieldIsingChain"]
 
 
 class TFIMChainEnergy(Observable):
@@ -39,25 +37,22 @@ class TFIMChainEnergy(Observable):
                          otherwise use open boundary conditions.
     :type periodic_bcs: bool
     """
+
     def __init__(self, h, nc):
         super(TFIMChainEnergy, self).__init__()
-        self.h                = h
-        self.nc               = nc
-
+        self.h = h
+        self.nc = nc
 
     def apply(self, samples, nn_state):
         return self.Energy(nn_state, samples)
-
 
     @staticmethod
     def _flip_spin(i, s):
         s[:, i] *= -1.0
 
-
     def Randomize(self, N):
         p = torch.ones(self.nc, N) * 0.5
         return torch.bernoulli(p)
-
 
     def Energy(self, nn_state, samples):
         """Computes the eneself.Energy(nn_state, v)rgy of each sample given a batch of
@@ -71,9 +66,9 @@ class TFIMChainEnergy(Observable):
         log_psis = -nn_state.rbm_am.effective_energy(to_01(samples)).div(2.)
 
         shape = log_psis.shape + (samples.shape[-1],)
-        log_flipped_psis = torch.zeros(*shape,
-                                       dtype=torch.double,
-                                       device=nn_state.rbm_am.device)
+        log_flipped_psis = torch.zeros(
+            *shape, dtype=torch.double, device=nn_state.rbm_am.device
+        )
 
         for i in range(samples.shape[-1]):  # sum over spin sites
             self._flip_spin(i, samples)  # flip the spin at site i
@@ -82,18 +77,17 @@ class TFIMChainEnergy(Observable):
             ).div(2.)
             self._flip_spin(i, samples)  # flip it back
 
-        log_flipped_psis = torch.logsumexp(log_flipped_psis, 1,
-                                           keepdim=True).squeeze()
+        log_flipped_psis = torch.logsumexp(log_flipped_psis, 1, keepdim=True).squeeze()
 
-        interaction_terms = ((samples[:, :-1] * samples[:, 1:])
-                             .sum(1))      # sum over spin sites
+        interaction_terms = (samples[:, :-1] * samples[:, 1:]).sum(
+            1
+        )  # sum over spin sites
 
-        transverse_field_terms = (log_flipped_psis
-                                  .sub(log_psis)
-                                  .exp())  # convert to ratio of probabilities
+        transverse_field_terms = log_flipped_psis.sub(
+            log_psis
+        ).exp()  # convert to ratio of probabilities
 
-        energy = (transverse_field_terms.mul(self.h).add(interaction_terms)
-                  .mul(-1.))
+        energy = transverse_field_terms.mul(self.h).add(interaction_terms).mul(-1.)
 
         return energy.div(samples.shape[-1])
 
@@ -102,14 +96,13 @@ class TFIMChainMagnetization(Observable):
     """Observable defining the magnetization of a Transverse Field Ising Model
     (TFIM) spin chain.
     """
+
     def __init__(self, nc):
         super(TFIMChainMagnetization, self).__init__()
         self.nc = nc
 
-
     def __repr__(self):
         return "TFIMChainMagnetization()"
-
 
     def apply(self, samples, nn_state):
         """Computes the magnetization of each sample given a batch of samples.
@@ -120,15 +113,14 @@ class TFIMChainMagnetization(Observable):
         """
         return self.SigmaZ(samples)
 
-
     def Randomize(self, N):
         p = torch.ones(self.nc, N) * 0.5
         return torch.bernoulli(p)
 
-
     def Run(self, nn_state, n_eq):
-        v = self.Randomize(nn_state.num_visible).to(dtype=torch.double,
-                                                    device=nn_state.device)
+        v = self.Randomize(nn_state.num_visible).to(
+            dtype=torch.double, device=nn_state.device
+        )
 
         num_samples = self.nc
         if self.show_convergence:
@@ -138,21 +130,20 @@ class TFIMChainMagnetization(Observable):
 
             sZ = self.SigmaZ(v)
             sZ_list.append(sZ.apply(v, nn_state).mean())
-            err_sZ.append((torch.std(sZ)/np.sqrt(sZ.size()[0])).item())
+            err_sZ.append((torch.std(sZ) / np.sqrt(sZ.size()[0])).item())
 
             for steps in range(n_eq):
                 v = nn_state.gibbs_steps(1, v, overwrite=True)
                 sZ_list.append(self.SigmaZ(v, show_convergence).mean().item())
 
-            out = {'sZ':    np.array(sZ_list),
-                   'error': np.array(err_sZ)
-                  }
+            out = {"sZ": np.array(sZ_list), "error": np.array(err_sZ)}
 
         else:
-            
-            out = {'error':  self.std_error(nn_state, num_samples), 
-                   'sZ': self.expected_value(nn_state, num_samples)
-                  }
+
+            out = {
+                "error": self.std_error(nn_state, num_samples),
+                "sZ": self.expected_value(nn_state, num_samples),
+            }
 
     def SigmaZ(self, samples):
         """Computes the magnetization of each sample given a batch of samples.
@@ -161,9 +152,7 @@ class TFIMChainMagnetization(Observable):
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
         """
-        return (to_pm1(samples)
-                .mean(1)
-                .abs())
+        return to_pm1(samples).mean(1).abs()
 
 
 def to_pm1(samples):
@@ -190,12 +179,20 @@ def to_01(samples):
 
 def Convergence(nn_state, tfim_energy, tfim_sZ, n_measurements, n_eq):
     energy_list = []
-    err_energy  = []
+    err_energy = []
 
     sZ_list = []
-    err_sZ  = []
+    err_sZ = []
 
-    v = torch.bernoulli(torch.ones(n_measurements, nn_state.num_visible, dtype = torch.double, device = nn_state.device)*0.5)
+    v = torch.bernoulli(
+        torch.ones(
+            n_measurements,
+            nn_state.num_visible,
+            dtype=torch.double,
+            device=nn_state.device,
+        )
+        * 0.5
+    )
 
     energy = tfim_energy.Energy(nn_state, v)
     energy_list.append(energy.mean().item())
@@ -203,27 +200,22 @@ def Convergence(nn_state, tfim_energy, tfim_sZ, n_measurements, n_eq):
 
     sZ = tfim_sZ.SigmaZ(v)
     sZ_list.append(sZ.mean().item())
-    err_sZ.append((torch.std(sZ)/np.sqrt(sZ.size()[0])).item())
+    err_sZ.append((torch.std(sZ) / np.sqrt(sZ.size()[0])).item())
 
     for steps in range(n_eq):
         v = nn_state.gibbs_steps(1, v, overwrite=True)
-        
+
         energy = tfim_energy.Energy(nn_state, v)
         energy_list.append(energy.mean().item())
         err_energy.append(torch.std(energy).div(np.sqrt(energy.size()[0])).item())
-        
+
         sZ = tfim_sZ.SigmaZ(v)
         sZ_list.append(sZ.mean().item())
-        err_sZ.append((torch.std(sZ)/np.sqrt(sZ.size()[0])).item())
+        err_sZ.append((torch.std(sZ) / np.sqrt(sZ.size()[0])).item())
 
-    out = {'energy': {
-                      'energies': np.array(energy_list),
-                      'error':    np.array(err_energy)
-                     },
-           'sigmaZ': {
-                      'sZ':    np.array(sZ_list),
-                      'error': np.array(err_sZ)
-                     }
-          }
-    
+    out = {
+        "energy": {"energies": np.array(energy_list), "error": np.array(err_energy)},
+        "sigmaZ": {"sZ": np.array(sZ_list), "error": np.array(err_sZ)},
+    }
+
     return out

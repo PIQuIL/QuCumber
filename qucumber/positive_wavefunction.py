@@ -22,21 +22,18 @@ import torch
 
 from qucumber.binary_rbm import BinaryRBM
 
-__all__ = [
-    "PositiveWavefunction"
-]
+__all__ = ["PositiveWavefunction"]
 
 
 class PositiveWavefunction(object):
     def __init__(self, num_visible, num_hidden=None, gpu=True):
         super(PositiveWavefunction, self).__init__()
         self.num_visible = int(num_visible)
-        self.num_hidden = (int(num_hidden)
-                           if num_hidden is not None
-                           else self.num_visible)
+        self.num_hidden = (
+            int(num_hidden) if num_hidden is not None else self.num_visible
+        )
 
-        self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden,
-                                gpu=gpu)
+        self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
 
         # Maximum size of the Hilbert space for full enumeration
         self.size_cut = 20
@@ -91,8 +88,9 @@ class PositiveWavefunction(object):
         if overwrite is False:
             v = v.clone()
 
-        h = torch.zeros(v.shape[0], self.num_hidden,
-                        device=self.device, dtype=torch.double)
+        h = torch.zeros(
+            v.shape[0], self.num_hidden, device=self.device, dtype=torch.double
+        )
 
         for _ in range(k):
             self.rbm_am.sample_h_given_v(v, out=h)
@@ -113,8 +111,9 @@ class PositiveWavefunction(object):
         if initial_state is None:
             dist = torch.distributions.Bernoulli(probs=0.5)
             sample_size = torch.Size((num_samples, self.num_visible))
-            initial_state = dist.sample(sample_size) \
-                                .to(device=self.device, dtype=torch.double)
+            initial_state = dist.sample(sample_size).to(
+                device=self.device, dtype=torch.double
+            )
 
         return self.gibbs_steps(k, initial_state, overwrite=overwrite)
 
@@ -147,7 +146,7 @@ class PositiveWavefunction(object):
         try:
             state_dict = torch.load(location)
         except AssertionError as e:
-            state_dict = torch.load(location, lambda storage, loc: 'cpu')
+            state_dict = torch.load(location, lambda storage, loc: "cpu")
 
         self.rbm_am.load_state_dict(state_dict, strict=False)
 
@@ -157,8 +156,8 @@ class PositiveWavefunction(object):
         :returns: A tensor with all the basis states of the Hilbert space.
         :rtype: torch.Tensor
         """
-        if (size > self.size_cut):
-            raise ValueError('Size of the Hilbert space too large!')
+        if size > self.size_cut:
+            raise ValueError("Size of the Hilbert space too large!")
         else:
             d = np.arange(2 ** size)
             space = (((d[:, None] & (1 << np.arange(size)))) > 0)[:, ::-1]
@@ -177,8 +176,8 @@ class PositiveWavefunction(object):
         :type space: torch.Tensor
 
         """
-        if (self.space is None):
-            raise ValueError('Missing Hilbert space')
+        if self.space is None:
+            raise ValueError("Missing Hilbert space")
         else:
             self.Z = self.rbm_am.compute_partition_function(self.space)
 
@@ -195,10 +194,12 @@ class PositiveWavefunction(object):
         """
         state_dict = torch.load(location)
 
-        rbm = BinaryRBM(num_visible=len(state_dict["rbm_am"]['visible_bias']),
-                        num_hidden=len(state_dict["rbm_am"]['hidden_bias']),
-                        gpu=gpu,
-                        seed=None)
+        rbm = BinaryRBM(
+            num_visible=len(state_dict["rbm_am"]["visible_bias"]),
+            num_hidden=len(state_dict["rbm_am"]["hidden_bias"]),
+            gpu=gpu,
+            seed=None,
+        )
 
         rbm.load_state_dict(state_dict, strict=False)
 

@@ -57,8 +57,8 @@ def scalar_mult(x, y):
     :rtype: torch.Tensor
     """
     z = torch.zeros_like(y)
-    z[0] = x[0]*y[0] - x[1]*y[1]
-    z[1] = x[0]*y[1] + x[1]*y[0]
+    z[0] = x[0] * y[0] - x[1] * y[1]
+    z[1] = x[0] * y[1] + x[1] * y[0]
 
     return z
 
@@ -85,8 +85,9 @@ def matmul(x, y):
         z[1] = torch.mv(x[0], y[1]) + torch.mv(x[1], y[0])
 
     if len(list(y.size())) == 3:
-        z = torch.zeros(2, x.size()[1], y.size()[2],
-                        dtype=torch.double, device=x.device)
+        z = torch.zeros(
+            2, x.size()[1], y.size()[2], dtype=torch.double, device=x.device
+        )
         z[0] = torch.matmul(x[0], y[0]) - torch.matmul(x[1], y[1])
         z[1] = torch.matmul(x[0], y[1]) + torch.matmul(x[1], y[0])
 
@@ -115,8 +116,8 @@ def inner_prod(x, y):
         z[1] = torch.dot(x[0], y[1]) + torch.dot(-x[1], y[0])
 
     if len(list(x.size())) == 1 and len(list(y.size())) == 1:
-        z[0] = x[0]*y[0] - (-x[1]*y[1])
-        z[1] = x[0]*y[1] + (-x[1]*y[0])
+        z[0] = x[0] * y[0] - (-x[1] * y[1])
+        z[1] = x[0] * y[1] + (-x[1] * y[0])
 
     return z
 
@@ -138,10 +139,9 @@ def outer_prod(x, y):
     :rtype: torch.Tensor
     """
     if len(list(x.size())) != 2 or len(list(y.size())) != 2:
-        raise ValueError('An input is not of the right dimension.')
+        raise ValueError("An input is not of the right dimension.")
 
-    z = torch.zeros(2, x.size()[1], y.size()[1],
-                    dtype=torch.double, device=x.device)
+    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=torch.double, device=x.device)
     z[0] = torch.ger(x[0], y[0]) - torch.ger(x[1], -y[1])
     z[1] = torch.ger(x[0], -y[1]) + torch.ger(x[1], y[0])
 
@@ -163,8 +163,9 @@ def conjugate(x):
         z[1] = -x[1]
 
     if len(list(x.size())) == 3:
-        z = torch.zeros(2, x.size()[2], x.size()[1],
-                        dtype=torch.double, device=x.device)
+        z = torch.zeros(
+            2, x.size()[2], x.size()[1], dtype=torch.double, device=x.device
+        )
         z[0] = torch.transpose(x[0], 0, 1)
         z[1] = -torch.transpose(x[1], 0, 1)
 
@@ -187,11 +188,15 @@ def kronecker_prod(x, y):
     :rtype: torch.Tensor
     """
     if len(list(x.size())) != 3 or len(list(y.size())) != 3:
-        raise ValueError('An input is not of the right dimension.')
+        raise ValueError("An input is not of the right dimension.")
 
-    z = torch.zeros(2, x.size()[1]*y.size()[1],
-                    x.size()[2]*y.size()[2],
-                    dtype=torch.double, device=x.device)
+    z = torch.zeros(
+        2,
+        x.size()[1] * y.size()[1],
+        x.size()[2] * y.size()[2],
+        dtype=torch.double,
+        device=x.device,
+    )
 
     row_count = 0
 
@@ -201,10 +206,12 @@ def kronecker_prod(x, y):
             for j in range(x.size()[2]):
                 for l in range(y.size()[2]):
 
-                    z[0][row_count][column_count] = x[0][i][j] * \
-                        y[0][k][l] - x[1][i][j]*y[1][k][l]
-                    z[1][row_count][column_count] = x[0][i][j] * \
-                        y[1][k][l] + x[1][i][j]*y[0][k][l]
+                    z[0][row_count][column_count] = (
+                        x[0][i][j] * y[0][k][l] - x[1][i][j] * y[1][k][l]
+                    )
+                    z[1][row_count][column_count] = (
+                        x[0][i][j] * y[1][k][l] + x[1][i][j] * y[0][k][l]
+                    )
 
                     column_count += 1
             row_count += 1

@@ -56,8 +56,10 @@ class VarianceBasedEarlyStopping(Callback):
     :param variance_name: The name of the variance stored in `metric_callback`.
     :type variance_name: str
     """
-    def __init__(self, period, tolerance, patience,
-                 metric_callback, metric_name, variance_name):
+
+    def __init__(
+        self, period, tolerance, patience, metric_callback, metric_name, variance_name
+    ):
         self.period = period
         self.tolerance = tolerance
         self.patience = int(patience)
@@ -70,12 +72,11 @@ class VarianceBasedEarlyStopping(Callback):
     def on_epoch_end(self, rbm, epoch):
         if epoch % self.period == 0:
             if len(self.metric_callback) >= self.patience:
-                change_in_metric = (
-                    self.value_getter(self.metric_name, -self.patience)
-                    - self.value_getter(self.metric_name))
+                change_in_metric = self.value_getter(
+                    self.metric_name, -self.patience
+                ) - self.value_getter(self.metric_name)
 
-                std_dev = np.sqrt(
-                    self.value_getter(self.variance_name, -self.patience))
+                std_dev = np.sqrt(self.value_getter(self.variance_name, -self.patience))
 
                 if abs(change_in_metric) < (std_dev * self.tolerance):
                     rbm.stop_training = True

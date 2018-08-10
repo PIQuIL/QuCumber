@@ -32,8 +32,9 @@ def vector_to_grads(vec, parameters):
     """
     # Ensure vec of type Tensor
     if not isinstance(vec, torch.Tensor):
-        raise TypeError('expected torch.Tensor, but got: {}'
-                        .format(torch.typename(vec)))
+        raise TypeError(
+            "expected torch.Tensor, but got: {}".format(torch.typename(vec))
+        )
     # Flag for the device where the parameter is located
     param_device = None
 
@@ -48,7 +49,7 @@ def vector_to_grads(vec, parameters):
 
         # Slice the vector, reshape it, and replace the gradient data of
         # the parameter
-        param.grad = vec[pointer:pointer + num_param].view(param.size()).data
+        param.grad = vec[pointer : pointer + num_param].view(param.size()).data
 
         # Increment the pointer
         pointer += num_param
@@ -76,11 +77,13 @@ def _check_param_device(param, old_param_device):
     else:
         different_devices = False
         if param.is_cuda:  # Check if in same GPU
-            different_devices = (param.get_device() != old_param_device)
+            different_devices = param.get_device() != old_param_device
         else:  # Check if in CPU
-            different_devices = (old_param_device != -1)
+            different_devices = old_param_device != -1
 
         if different_devices:
-            raise TypeError('Found two parameters on different devices, '
-                            'this is currently not supported.')
+            raise TypeError(
+                "Found two parameters on different devices, "
+                "this is currently not supported."
+            )
     return old_param_device

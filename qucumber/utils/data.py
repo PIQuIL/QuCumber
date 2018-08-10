@@ -21,8 +21,7 @@ import numpy as np
 import torch
 
 
-def load_data(tr_samples_path, tr_psi_path=None,
-              tr_bases_path=None, bases_path=None):
+def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=None):
     r"""A function that will load in the data required for training.
 
     :param tr_samples_path: The path to the training data.
@@ -39,11 +38,12 @@ def load_data(tr_samples_path, tr_psi_path=None,
     :rtype: list
     """
     data = []
-    data.append(torch.tensor(np.loadtxt(tr_samples_path, dtype='float32'),
-                             dtype=torch.double))
+    data.append(
+        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"), dtype=torch.double)
+    )
 
     if tr_psi_path is not None:
-        target_psi_data = np.loadtxt(tr_psi_path, dtype='float32')
+        target_psi_data = np.loadtxt(tr_psi_path, dtype="float32")
         target_psi = torch.zeros(2, len(target_psi_data), dtype=torch.double)
         target_psi[0] = torch.tensor(target_psi_data[:, 0], dtype=torch.double)
         target_psi[1] = torch.tensor(target_psi_data[:, 1], dtype=torch.double)
@@ -81,7 +81,7 @@ def extract_refbasis_samples(train_samples, train_bases):
     for i in range(train_samples.shape[0]):
         flag = 0
         for j in range(num_visible):
-            if train_bases[i][j] != 'Z':
+            if train_bases[i][j] != "Z":
                 flag = 1
                 break
         if flag == 0:

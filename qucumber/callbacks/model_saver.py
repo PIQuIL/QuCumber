@@ -52,9 +52,15 @@ class ModelSaver(Callback):
     :type metadata_only: bool
     """
 
-    def __init__(self, period, folder_path, file_name,
-                 save_initial=True,
-                 metadata=None, metadata_only=False):
+    def __init__(
+        self,
+        period,
+        folder_path,
+        file_name,
+        save_initial=True,
+        metadata=None,
+        metadata_only=False,
+    ):
         self.folder_path = folder_path
         self.period = period
         self.file_name = file_name
@@ -81,8 +87,7 @@ class ModelSaver(Callback):
 
     def on_train_start(self, rbm):
         if self.save_initial:
-            save_path = os.path.join(self.path,
-                                     self.file_name.format("initial"))
+            save_path = os.path.join(self.path, self.file_name.format("initial"))
             self._save(rbm, 0, save_path)
 
     def on_epoch_end(self, rbm, epoch):
