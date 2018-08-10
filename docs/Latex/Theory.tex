@@ -244,7 +244,7 @@ sampled configurations ${\bm{\sigma}^{(k)}}$:
 \label{Eq:}
 \mathcal{\langle O \rangle} \approx \frac{1}{N} \sum_{k=1}^N \mathcal{O}_L({\bm{\sigma}}^{(k)}).
 \end{align}
-\textcolor{red}{[CHECK definitions of $k$, $N$, and $M$ below...]}
+\textcolor{red}{[CHECK definitions of $k$, $N$, and $M$ below... Also need to crosscheck with code. What it really returns.]}
 Most observables depend on the physics system under study, e.g.~the Hamiltonian that underlies the original model, the lattice connectivity, locality, etc.  Therefore, we now turn to a discussion of a specific model example. In Section \ref{Sec:Training_TFIM} we trained an RBM on the TFIM data. Now we will show how to calculate several quantities of interest from this trained wavefunction.
 
 \subsection{Example: Magnetization and Energy of a TFIM chain}
@@ -274,12 +274,12 @@ Calculating the energy for a sample $\ket{\bm{\sigma} }= \ket{\sigma_1 \dots  \s
 %This is because the Hamiltonian is not a diagonal observable. 
 If we write the wavefunction in its expanded form reads $\ket{\psi} = \sum_{\bm{\sigma}} \psi(\bm{\sigma}) \ket{\bm{\sigma}} $, we calculate the expectation value of the Hamiltonian using the local observable,
 \begin{align}
-\mathcal{\langle O \rangle}_L({\bm{\sigma}}) &= \sum_{ \bm{\sigma'}} H_{\bm{\sigma}, \bm{\sigma}'} \cdot \psi(\bm{\sigma}') / \psi(\bm{\sigma}) \\
+\braket{ H}_L({\bm{\sigma}}) &= \sum_{ \bm{\sigma'}} H_{\bm{\sigma}, \bm{\sigma}'} \cdot \psi(\bm{\sigma}') / \psi(\bm{\sigma}) \\
 &=   \left[ -\sum_i \sigma_i \sigma_{i+1} - h \sum_i \frac{\psi(\sigma_1, \sigma_2, \dots , -\sigma_i, \sigma_{i+1} \dots)}{\psi (\bm{\sigma})} \right]
 \end{align}
 giving an estimator
 \begin{equation}
-\mathcal{\langle O \rangle} \approx \frac{1}{M} \sum_k^M \left[ -\sum_i \sigma_i \sigma_{i+1} - h \sum_i \frac{\psi (\bm{\sigma}_{-i})}{\psi (\bm{\sigma})} \right]
+\braket{ H} \approx \frac{1}{M} \sum_k^M \left[ -\sum_i \sigma_i \sigma_{i+1} - h \sum_i \frac{\psi (\bm{\sigma}_{-i})}{\psi (\bm{\sigma})} \right]
 \end{equation}
 Here we first used that $H_{\bm{\sigma}, \bm{\sigma}'}  = \braket{\bm{\sigma} | H | \bm{\sigma}'} = -\sum_i \delta_{\bm{\sigma}, \bm{\sigma}'} - h \sum_i \delta_{\sigma_1, \sigma_1'} \dots \delta_{\sigma_i, -\sigma_i'} \dots$. And define $\bm{\sigma}_{-i} = \sigma_1, \sigma_2, \dots , -\sigma_i, \sigma_{i+1} \dots$, which is the sample $\bm{\sigma}$ with the i-th spin flipped.
 % The expectation value can be approximated by drawing $M$ samples and averaging over them.
@@ -319,7 +319,6 @@ To effectively calculate the fidelity with a theoretical state $\ket{\phi}$, one
 \begin{python}
 N = 10 # Define system size
 phi =  np.textload(...) # load wavefunction of TFIM
-phi /= phi.norm() # normalize the vector
 train_stats.load_target_psi(phi)
 train_stats.fidelity(PositiveWavefunction)
 fidelity = train_stats.F
@@ -328,7 +327,7 @@ fidelity = train_stats.F
 \textcolor{red}{[Let's load wavefunction of TFIM and calculate fidelity with the trained RBM from TFIM]}
 
 \section{Callbacks and monitoring the training}
-\label{Callbacks}
+\label{Sec:Callbacks}
 
 So far there is no certainty that the RBM performs well and indeed learns the probability distribution it is supposed to learn. Therefore we introduce the concept of callbacks and also the learning rate. The learning rate is crucial for the success of the training and has to be adjusted if the the RBM performs poorly.
 To tract a certain observable like the energy or the fidelity during the training one can implement it as a class in the \textbf{This should be outdated!!} \verb|observable.py| file and monitor it via callbacks.
@@ -380,7 +379,9 @@ unitary_dict = unitaries.create_dict() # creates dictionary with standard unitar
 \end{python}
 
 
-We want to do tomography of the 2 qubit state $\ket{\psi} = 1/2 \{ \ket{00} - \ket{01} + \ket{10} - i \ket{11} \}$ which is the state in \verb|target_psi|. If we measure this state in the computational basis Z we obtain all states ($\ket{00}$, $\ket{01}$, $\ket{10}$ and $\ket{11}$) with the same probability $p = 1/4$, but we do not learn anything about the phase $i$ or $(-1)$. Therefore we apply the local unitaries
+We want to do tomography of the 2 qubit state $\ket{\psi} = 1/2 \{ \ket{00} - \ket{01} + \ket{10} - i \ket{11} \}$ which is the state in \verb|target_psi|. \textcolor{red}{[Say that this is not the state in the file or generate test example for this state]}
+If we measure this state in the computational basis Z we obtain all states ($\ket{00}$, $\ket{01}$, $\ket{10}$ and $\ket{11}$) with the same probability $p = 1/4$, but we do not learn anything about the phase $i$ or $(-1)$. 
+Therefore we apply the local unitaries
 
 \begin{align}
 H = \frac{1}{\sqrt{2}} 
@@ -504,6 +505,9 @@ For now we only used maximally one local unitary that is not the identity. So ma
 
 \verb|np.array(['X','Z','new_unitary','Z','Y','X'])|
 
+Apart from the training there is no difference in the positiv-real and the complex wavefunctions. The observables and callbacks are caculated as described in Section \ref{Sec:Sampling_a-Trained_RBM} and \ref{Sec:Callbacks}.
+The sampling from the RBM is also exactly the same for both cases. The complex RBM can only be sampled in the original basis, which was in our case the \verb|'Z'| basis.
+\textcolor{red}{[Double check this with code]}
 %\section{Off diagonal observables in a trained complex wavefunction}
 %
 %We might add here an example for a non-trivial observable for complex wavefunctions.
