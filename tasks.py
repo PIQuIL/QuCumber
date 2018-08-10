@@ -75,7 +75,7 @@ def build_docs(c):
                 c.run("pip install torch==0.4", echo=True)
 
             c.run("pip install -e ../", echo=True)
-            c.run("python -m " + "sphinx -b html ./ {} -aqT".format(b_dir), echo=True)
+            c.run("python -m sphinx -b html ./ {} -aqT".format(b_dir), echo=True)
             c.run("pip uninstall -y qucumber", echo=True)
             c.run("git checkout -- ../qucumber/__init__.py", echo=True)
 
@@ -101,26 +101,26 @@ EXCLUDED_FILES = ["setup.py"]
 EXTENSIONS = [".py"]
 
 
-def check_license(file_path):
+def is_license_missing(file_path):
     with open(file_path, "r") as f:
         file_contents = f.read().replace("\n", "")
         f.seek(0)  # go back to start of file
         file_len = len(f.readlines())
 
     if file_len < LENGTH_CUTOFF:
-        return 0
+        return False
 
     if any(excl in file_path for excl in EXCLUDED_FILES):
-        return 0
+        return False
 
     with open("LICENSE_HEADER", "r") as lh:
         header = [line.strip() for line in lh.readlines() if line.strip()]
 
     if any(line not in file_contents for line in header):
         print("License Header missing in file: " + file_path)
-        return 1
+        return True
 
-    return 0
+    return False
 
 
 @task
@@ -132,7 +132,7 @@ def license_check(c):
     )
 
     for path in paths:
-        num_fails += check_license(str(path))
+        num_fails += int(is_license_missing(str(path)))
 
     if num_fails > 0:
         raise RuntimeError(f"License Header missing in {num_fails} files.")
@@ -141,12 +141,35 @@ def license_check(c):
 
 
 ##############################################################################
-# --- Full Test --------------------------------------------------------------
+# --- PyTest -----------------------------------------------------------------
 ##############################################################################
 
 
-@task(license_check)
-def full_test(c):
-    with c.cd("./tests/"):
-        c.run("pytest")
+@task
+def pytest(c, skip_grads=True, coverage=False, show_output=True):
+    flags = []
+    if show_output:
+        flags.append("-s")
+    if skip_grads:
+        flags.append("-k 'not test_grads'")
+    if coverage:
+        flags.append("--cov=qucumber")
+        flags.append("--no-cov-on-fail")
+        flags.append("--cov-report=term-missing")
+
+    c.run("pytest " + " ".join(flags))
+
+
+##############################################################################
+# --- Code Formatting --------------------------------------------------------
+##############################################################################
+
+
+@task
+def flake8(c):
     c.run("flake8")
+
+
+@task
+def blacken(c):
+    c.run("black ./")

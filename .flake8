@@ -1,7 +1,18 @@
 [flake8]
 application-import-names = qucumber
 import-order-style = pep8
-max-complexity = 20
+max-line-length = 80
+select = C,E,F,W,B,B950
+ignore =
+    E203,   # not PEP8 compliant (doesn't like whitespace before ':' which is annoying when slicing)
+    E501,   # B950 takes care of this better (max-line-length)
+    W503    # not PEP8 compliant (this wants line breaks AFTER binary ops instead of before)
+max-complexity = 15
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist
 per-file-ignores =
     # Ignore "imported but unused" errors for all __init__.py files.
     # Requires the extension 'flake8-per-file-ignores' which can be installed

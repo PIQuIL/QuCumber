@@ -57,8 +57,8 @@ def scalar_mult(x, y):
     :rtype: torch.Tensor
     """
     z = torch.zeros_like(y)
-    z[0] = x[0] * y[0] - x[1] * y[1]
-    z[1] = x[0] * y[1] + x[1] * y[0]
+    z[0] = (x[0] * y[0]) - (x[1] * y[1])
+    z[1] = (x[0] * y[1]) + (x[1] * y[0])
 
     return z
 
@@ -116,8 +116,8 @@ def inner_prod(x, y):
         z[1] = torch.dot(x[0], y[1]) + torch.dot(-x[1], y[0])
 
     if len(list(x.size())) == 1 and len(list(y.size())) == 1:
-        z[0] = x[0] * y[0] - (-x[1] * y[1])
-        z[1] = x[0] * y[1] + (-x[1] * y[0])
+        z[0] = (x[0] * y[0]) - (-x[1] * y[1])
+        z[1] = (x[0] * y[1]) + (-x[1] * y[0])
 
     return z
 
@@ -206,11 +206,11 @@ def kronecker_prod(x, y):
             for j in range(x.size()[2]):
                 for l in range(y.size()[2]):
 
-                    z[0][row_count][column_count] = (
-                        x[0][i][j] * y[0][k][l] - x[1][i][j] * y[1][k][l]
+                    z[0][row_count][column_count] = (x[0][i][j] * y[0][k][l]) - (
+                        x[1][i][j] * y[1][k][l]
                     )
-                    z[1][row_count][column_count] = (
-                        x[0][i][j] * y[1][k][l] + x[1][i][j] * y[0][k][l]
+                    z[1][row_count][column_count] = (x[0][i][j] * y[1][k][l]) + (
+                        x[1][i][j] * y[0][k][l]
                     )
 
                     column_count += 1

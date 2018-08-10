@@ -22,8 +22,6 @@ import numpy as np
 
 from qucumber.observables import Observable
 
-__all__ = ["TransverseFieldIsingChain"]
-
 
 class TFIMChainEnergy(Observable):
     """Observable defining the energy of a Transverse Field Ising Model (TFIM)
@@ -79,13 +77,11 @@ class TFIMChainEnergy(Observable):
 
         log_flipped_psis = torch.logsumexp(log_flipped_psis, 1, keepdim=True).squeeze()
 
-        interaction_terms = (samples[:, :-1] * samples[:, 1:]).sum(
-            1
-        )  # sum over spin sites
+        # sum over spin sites
+        interaction_terms = (samples[:, :-1] * samples[:, 1:]).sum(1)
 
-        transverse_field_terms = log_flipped_psis.sub(
-            log_psis
-        ).exp()  # convert to ratio of probabilities
+        # convert to ratio of probabilities
+        transverse_field_terms = log_flipped_psis.sub(log_psis).exp()
 
         energy = transverse_field_terms.mul(self.h).add(interaction_terms).mul(-1.)
 
@@ -124,7 +120,6 @@ class TFIMChainMagnetization(Observable):
 
         num_samples = self.nc
         if self.show_convergence:
-
             sZ_list = []
             err_sZ = []
 
@@ -132,18 +127,18 @@ class TFIMChainMagnetization(Observable):
             sZ_list.append(sZ.apply(v, nn_state).mean())
             err_sZ.append((torch.std(sZ) / np.sqrt(sZ.size()[0])).item())
 
-            for steps in range(n_eq):
+            for _steps in range(n_eq):
                 v = nn_state.gibbs_steps(1, v, overwrite=True)
-                sZ_list.append(self.SigmaZ(v, show_convergence).mean().item())
+                sZ_list.append(self.SigmaZ(v, self.show_convergence).mean().item())
 
             out = {"sZ": np.array(sZ_list), "error": np.array(err_sZ)}
-
         else:
-
             out = {
                 "error": self.std_error(nn_state, num_samples),
                 "sZ": self.expected_value(nn_state, num_samples),
             }
+
+        return out
 
     def SigmaZ(self, samples):
         """Computes the magnetization of each sample given a batch of samples.
@@ -202,7 +197,7 @@ def Convergence(nn_state, tfim_energy, tfim_sZ, n_measurements, n_eq):
     sZ_list.append(sZ.mean().item())
     err_sZ.append((torch.std(sZ) / np.sqrt(sZ.size()[0])).item())
 
-    for steps in range(n_eq):
+    for _steps in range(n_eq):
         v = nn_state.gibbs_steps(1, v, overwrite=True)
 
         energy = tfim_energy.Energy(nn_state, v)

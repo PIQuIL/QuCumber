@@ -26,7 +26,7 @@ python:
   - '3.6'
 
 install:
-  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 flake8-per-file-ignores radon pytest codecov pytest-cov invoke
+  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 flake8-per-file-ignores flake8-bugbear radon pytest codecov pytest-cov invoke
   - travis_retry pip install -U git+https://github.com/emerali/sphinxcontrib-versioning
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl; fi
   - travis_retry pip install torchvision
@@ -35,8 +35,8 @@ script:
   - inv license-check
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv build-docs; fi # docs must be built BEFORE installation
   - python setup.py install
-  - if [[ $TRAVIS_BRANCH != "master" ]]; then cd ./tests/ && pytest -s -k 'not test_grads' && cd ../; fi # don't test gradients if not on master all_branch
-  - if [[ $TRAVIS_BRANCH == "master" ]]; then cd ./tests/ && pytest --cov=qucumber --no-cov-on-fail --cov-report=term-missing:skip-covered -s  && cd ../; fi
+  - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -k 'not test_grads'; fi # don't test gradients if not on master all_branch
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest --cov=qucumber --no-cov-on-fail --cov-report=term-missing:skip-covered -s; fi
   - ls -a
   - flake8 --exit-zero  # remove this flag once code is all cleaned up
   - python setup.py sdist bdist_wheel

@@ -117,7 +117,7 @@ class PositiveWavefunction(object):
 
         return self.gibbs_steps(k, initial_state, overwrite=overwrite)
 
-    def save(self, location, metadata={}):
+    def save(self, location, metadata=None):
         """Saves the RBM parameters to the given location along with
         any given metadata.
 
@@ -128,6 +128,7 @@ class PositiveWavefunction(object):
         :type metadata: dict
         """
         # add extra metadata to dictionary before saving it to disk
+        metadata = metadata if metadata else {}
         data = {"rbm_am": self.rbm_am.state_dict(), **metadata}
         torch.save(data, location)
 

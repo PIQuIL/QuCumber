@@ -42,3 +42,5 @@ def set_random_seed(seed, cpu=True, gpu=False, quiet=False):
 
     if cpu:
         torch.manual_seed(seed)
+
+def normalize_types()

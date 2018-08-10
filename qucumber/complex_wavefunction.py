@@ -254,7 +254,7 @@ class ComplexWavefunction(object):
         else:
             self.Z = self.rbm_am.compute_partition_function(self.space)
 
-    def save(self, location, metadata={}):
+    def save(self, location, metadata=None):
         """Saves the RBM parameters to the given location along with
         any given metadata.
 
@@ -265,6 +265,7 @@ class ComplexWavefunction(object):
         :type metadata: dict
         """
         # add extra metadata to dictionary before saving it to disk
+        metadata = metadata if metadata else {}
         data = {
             "rbm_am": self.rbm_am.state_dict(),
             "rbm_ph": self.rbm_ph.state_dict(),

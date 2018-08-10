@@ -112,7 +112,7 @@ class QuantumReconstruction(object):
         input_bases=None,
         z_samples=None,
         progbar=False,
-        callbacks=[],
+        callbacks=None,
     ):
         """Execute the training of the RBM.
 
@@ -139,7 +139,7 @@ class QuantumReconstruction(object):
         """
         disable_progbar = progbar is False
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
-        callbacks = CallbackList(callbacks)
+        callbacks = CallbackList(callbacks if callbacks else [])
 
         train_samples = torch.tensor(
             input_samples, device=self.nn_state.device, dtype=torch.double
