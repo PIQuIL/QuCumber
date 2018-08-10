@@ -41,9 +41,7 @@ import subprocess
 import sys
 from operator import attrgetter
 
-import qucumber
-
-sys.path.insert(0, os.path.abspath('../qucumber'))
+sys.path.insert(0, os.path.abspath('../'))
 
 # -- Project information -----------------------------------------------------
 
@@ -51,11 +49,15 @@ project = 'QuCumber'
 copyright = '2018, PIQuIL'
 author = 'PIQuIL'
 
-# The short X.Y version
-# version = os.environ.get("QUCUMBER_VERSION", qucumber.__version__.strip())
-# The full version, including alpha/beta/rc tags
-# release = os.environ.get("QUCUMBER_RELEASE", version)
-version = release = qucumber.__version__.strip()
+
+init_file = {}
+with open('../qucumber/__init__.py', 'r') as f:
+    # The short X.Y version
+    exec(f.read(), init_file)
+    version = init_file['__version__']
+    # The full version, including alpha/beta/rc tags
+    release = version
+
 
 print("Building version: " + version + "; release: " + release)
 

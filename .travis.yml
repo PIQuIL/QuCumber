@@ -55,8 +55,8 @@ deploy:
     verbose: true
     on:
       repo: PIQuIL/QuCumber
-      all_branches: true
-      condition: ($TRAVIS_BRANCH = "master") && ($TRAVIS_PYTHON_VERSION = '3.6') #($TRAVIS_EVENT_TYPE = "push") && (($TRAVIS_BRANCH = "master") || ($TRAVIS_BRANCH = "develop") || ( -z "$TRAVIS_TAG" )) && ($TRAVIS_PYTHON_VERSION = '3.6')
+      branch: master
+      condition: $TRAVIS_PYTHON_VERSION == '3.6'
   - provider: releases
     skip-cleanup: true
     api-key: "$GITHUB_TOKEN"

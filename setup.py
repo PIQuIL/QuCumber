@@ -1,14 +1,18 @@
 import setuptools
 
-import qucumber
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+init_file = {}
+with open("./qucumber/__init__.py", 'r') as f:
+    exec(f.read(), init_file)
+
+
 setuptools.setup(
       name='qucumber',
-      version=qucumber.__version__,
-      description='Neural network quantum state tomography.',
+      version=init_file['__version__'],
+      description='Neural Network Quantum State Tomography.',
       long_description=long_description,
       long_description_content_type='text/markdown',
       classifiers=[
