@@ -114,6 +114,52 @@ class ComplexWavefunction(object):
         psi[1] = amplitude * sin_phase
         return psi
 
+    def init_gradient(self, basis, sites):
+        Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
+        vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
+        Us = np.array(torch.stack([self.unitary_dict[b] for b in basis[sites]]))
+        rotated_grad = [
+            torch.zeros(
+                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
+            )
+            for net in self.networks
+        ]
+        return Upsi, vp, Us, rotated_grad
+
+    def rotated_gradient(self, grad, basis, sites, sample):
+        Upsi, vp, Us, rotated_grad = self.init_gradient(basis, sites)
+        int_sample = np.array(sample[sites].round().int())
+        vp = sample.round().clone()
+
+        for x in range(2 ** sites.size):
+            vp = sample.round().clone()
+            vp[sites] = self.subspace_vector(
+                sites.size, x
+            )  # overwrite rotated elements
+            # Gradient on the current configuration
+            grad_vp = [
+                self.rbm_am.effective_energy_gradient(vp),
+                self.rbm_ph.effective_energy_gradient(vp),
+            ]
+            # Gradient from the rotation
+            int_vp = np.array(vp[sites].round().int())
+            all_Us = Us[np.arange(sites.size), :, int_sample, int_vp]
+            U = np.prod(all_Us[:, 0] + 1j * all_Us[:, 1])
+            U = torch.tensor([U.real, U.imag], dtype=torch.double, device=self.device)
+            Upsi_v = cplx.scalar_mult(U, self.psi(vp))
+            Upsi += Upsi_v
+            rotated_grad[0] += cplx.scalar_mult(
+                Upsi_v, cplx.make_complex(grad_vp[0], torch.zeros_like(grad_vp[0]))
+            )
+            rotated_grad[1] += cplx.scalar_mult(
+                Upsi_v, cplx.make_complex(grad_vp[1], torch.zeros_like(grad_vp[1]))
+            )
+
+        grad.append(cplx.scalar_divide(rotated_grad[0], Upsi)[0, :])
+        grad.append(-cplx.scalar_divide(rotated_grad[1], Upsi)[1, :])
+
+        return grad
+
     def gradient(self, basis, sample):
         r"""Compute the gradient of a set (v_state) of samples, measured
         in different bases
@@ -121,69 +167,14 @@ class ComplexWavefunction(object):
         :param basis: A set of basis, (i.e.vector of strings)
         :type basis: np.array
         """
-
         grad = []
         basis = np.array(list(basis))  # list is silly, but works for now
-        rotated_sites = np.where(basis != "Z")[
-            0
-        ]  # Sites where the unitary rotations are applied
-        num_U = len(rotated_sites)
-
-        if num_U == 0:
+        rot_sites = np.where(basis != "Z")[0]
+        if rot_sites.size == 0:
             grad.append(self.rbm_am.effective_energy_gradient(sample))  # Real
             grad.append(0.0)  # Imaginary
         else:
-            Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
-            vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
-            rotated_grad = [
-                torch.zeros(
-                    2,
-                    getattr(self, net).num_pars,
-                    dtype=torch.double,
-                    device=self.device,
-                )
-                for net in self.networks
-            ]
-
-            # sub_space = self.generate_hilbert_space(num_U)
-            rotated_matrices = [self.unitary_dict[b] for b in basis[rotated_sites]]
-            rotated_matrices = np.array(torch.stack(rotated_matrices))
-            samples = np.array(sample[rotated_sites].round().int())
-            vp = sample.round().clone()
-
-            for x in range(2 ** num_U):
-                vp = sample.round().clone()
-                vp[rotated_sites] = self.subspace_vector(num_U, x)  # overwrite rotated elements
-                vps = np.array(vp[rotated_sites].round().int())
-
-                # Product of the matrix elements of the unitaries
-                T = rotated_matrices[np.arange(num_U), :, samples, vps]
-                U = np.prod(T[:, 0] + 1j * T[:, 1])
-
-                U = torch.tensor(
-                    [U.real, U.imag], dtype=torch.double, device=self.device
-                )
-
-                # Gradient on the current configuration
-                grad_vp = [
-                    self.rbm_am.effective_energy_gradient(vp),
-                    self.rbm_ph.effective_energy_gradient(vp),
-                ]
-
-                # NN state rotated in this bases
-                Upsi_v = cplx.scalar_mult(U, self.psi(vp))
-                Upsi += Upsi_v
-
-                rotated_grad[0] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp[0], torch.zeros_like(grad_vp[0]))
-                )
-                rotated_grad[1] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp[1], torch.zeros_like(grad_vp[1]))
-                )
-
-            grad.append(cplx.scalar_divide(rotated_grad[0], Upsi)[0, :])
-            grad.append(-cplx.scalar_divide(rotated_grad[1], Upsi)[1, :])
-
+            grad = self.rotated_gradient(grad, basis, rot_sites, sample)
         return grad
 
     def gibbs_steps(self, k, initial_state, overwrite=False):

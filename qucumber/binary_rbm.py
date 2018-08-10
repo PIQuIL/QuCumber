@@ -125,12 +125,11 @@ class BinaryRBM(nn.Module):
         """
         if len(v.shape) < 2:
             v = v.view(1, -1)
-        visible_bias_term = torch.mv(v, self.visible_bias)
-        hidden_bias_term = F.softplus(F.linear(v, self.weights, self.hidden_bias)).sum(
-            1
-        )
 
-        return -(visible_bias_term + hidden_bias_term)
+        visible_bias_term = torch.mv(v, self.visible_bias)
+        hid_bias_term = F.softplus(F.linear(v, self.weights, self.hidden_bias)).sum(1)
+
+        return -(visible_bias_term + hid_bias_term)
 
     def effective_energy_gradient(self, v):
         """The gradients of the effective energies for the given visible states.
