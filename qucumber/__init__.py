@@ -17,8 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-__version__ = "0.2.1"
-
 
 def _warn_on_missing_gpu(gpu):
     import warnings
@@ -42,5 +40,3 @@ def set_random_seed(seed, cpu=True, gpu=False, quiet=False):
 
     if cpu:
         torch.manual_seed(seed)
-
-def normalize_types()

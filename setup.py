@@ -5,9 +5,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 init_file = {}
-with open("./qucumber/__init__.py", "r") as f:
+with open("./qucumber/__version__.py", "r") as f:
     exec(f.read(), init_file)
 
+with open("./requirements.txt", "r") as f:
+    install_requires = [req.strip() for req in f.readlines()]
 
 setuptools.setup(
     name="qucumber",
@@ -20,7 +22,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    install_requires=["torch==0.4.1", "tqdm>=4.23", "numpy>=1.14", "matplotlib>=2.2"],
+    install_requires=install_requires,
     include_package_data=True,
     url="http://github.com/PIQuIL/QuCumber",
     author="PIQuIL",

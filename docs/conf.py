@@ -51,7 +51,7 @@ author = "PIQuIL"
 
 
 init_file = {}
-with open("../qucumber/__init__.py", "r") as f:
+with open("../qucumber/__version__.py", "r") as f:
     # The short X.Y version
     exec(f.read(), init_file)
     version = init_file["__version__"]
@@ -251,7 +251,7 @@ intersphinx_mapping = {
 
 
 # adapted from scikit-learn's github_link.py
-# https://github.com/scikit-learn/scikit-learn/blob/master/doc/sphinxext/github_link.py
+# https://github.com/scikit-learn/scikit-learn/blob/1870d6d/doc/sphinxext/github_link.py
 
 
 def _get_git_revision():
