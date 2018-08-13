@@ -17,7 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import math as m
+from itertools import chain
+from math import ceil
 import time
 
 import torch
@@ -25,8 +26,6 @@ from tqdm import tqdm, tqdm_notebook
 
 from qucumber.callbacks import CallbackList
 from qucumber.utils.gradients_utils import vector_to_grads
-
-__all__ = ["QuantumReconstruction"]
 
 
 class QuantumReconstruction(object):
@@ -56,7 +55,7 @@ class QuantumReconstruction(object):
         """
         # Negative phase: learning signal driven by the amplitude RBM of
         # the NN state
-        vk = self.nn_state.gibbs_steps(k_cd, neg_batch)
+        vk = self.nn_state.rbm_am.gibbs_steps(k_cd, neg_batch)
         grad_model = self.nn_state.rbm_am.effective_energy_gradient(vk)
 
         # If measurements are taken in the reference bases only
@@ -108,7 +107,6 @@ class QuantumReconstruction(object):
         neg_batch_size,
         k_cd,
         lr,
-        observer=None,
         input_bases=None,
         z_samples=None,
         progbar=False,
@@ -147,9 +145,13 @@ class QuantumReconstruction(object):
 
         if len(self.nn_state.networks) > 1:
             optimizer = torch.optim.SGD(
-                (
-                    list(self.nn_state.rbm_am.parameters())
-                    + list(self.nn_state.rbm_ph.parameters())
+                list(
+                    chain(
+                        *[
+                            getattr(self.nn_state, net).parameters()
+                            for net in self.nn_state.networks
+                        ]
+                    )
                 ),
                 lr=lr,
             )
@@ -160,10 +162,10 @@ class QuantumReconstruction(object):
         callbacks.on_train_start(self.nn_state)
 
         t0 = time.time()
-        batch_num = m.ceil(train_samples.shape[0] / pos_batch_size)
-        for ep in progress_bar(
-            range(1, epochs + 1), desc="Epochs ", disable=disable_progbar
-        ):
+        batch_num = ceil(train_samples.shape[0] / pos_batch_size)
+        for ep in progress_bar(range(epochs), desc="Epochs ", disable=disable_progbar):
+            if self.stop_training:  # check for stop_training signal
+                break
 
             random_permutation = torch.randperm(train_samples.shape[0])
             shuffled_samples = train_samples[random_permutation]
@@ -183,9 +185,6 @@ class QuantumReconstruction(object):
 
             callbacks.on_epoch_start(self.nn_state, ep)
 
-            if self.stop_training:  # check for stop_training signal
-                break
-
             for b in range(batch_num):
                 callbacks.on_batch_start(self.nn_state, ep, b)
 
@@ -199,10 +198,10 @@ class QuantumReconstruction(object):
                     neg_batch = z_samples[random_permutation][0:neg_batch_size]
                     batch_bases = pos_batches_bases[b]
 
-                # self.nn_state.set_visible_layer(neg_batch)
                 all_grads = self.compute_batch_gradients(
                     k_cd, pos_batches[b], neg_batch, batch_bases
                 )
+
                 optimizer.zero_grad()  # clear any cached gradients
 
                 for p, net in enumerate(self.nn_state.networks):
@@ -215,5 +214,6 @@ class QuantumReconstruction(object):
 
             callbacks.on_epoch_end(self.nn_state, ep)
 
+        callbacks.on_train_end(self.nn_state)
         t1 = time.time()
         print("\nElapsed time = %.2f" % (t1 - t0))
