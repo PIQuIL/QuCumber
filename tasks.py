@@ -21,7 +21,9 @@
 import pathlib
 from itertools import chain
 
-from invoke import task
+from invoke import task, Collection
+from invocations.pytest import test, coverage
+from invocations.checks import blacken
 from jinja2 import Environment, FileSystemLoader
 
 ##############################################################################
@@ -29,7 +31,7 @@ from jinja2 import Environment, FileSystemLoader
 ##############################################################################
 
 ALLOWED_BRANCHES = ["master", "develop"]
-REQUIRES_TORCH_040 = ["v0.1.2"]  # tags which required torch 0.4.0
+IGNORED_TAGS = ["v0.1.2", "v0.2.0"]
 
 # Jinja stuff for making the versions.html page
 versions_template = Environment(
@@ -49,7 +51,7 @@ def build_docs(c):
     )
 
     all_refs = c.run("git tag --list", hide="out").stdout.split("\n")
-    all_refs = [tag for tag in all_refs if tag]
+    all_refs = [tag for tag in all_refs if tag and tag not in IGNORED_TAGS]
     all_refs = ALLOWED_BRANCHES + sorted(all_refs)
 
     if head_name == "master":
@@ -63,16 +65,14 @@ def build_docs(c):
 
         for ref in refs:
             c.run("git checkout -q " + ref, echo=True)
+
             c.run(
-                "sed -i 's/^__version__.*$/__version__ = \"{}\"/g'".format(ref)
-                + " ../qucumber/__init__.py",
+                "sed -i 's/^__version__.*$/__version__ = \"{}\"/g' ".format(ref)
+                + "../qucumber/__version__.py",
                 echo=True,
             )
 
             b_dir = "_build/html/{}".format(ref)
-
-            if ref in REQUIRES_TORCH_040:
-                c.run("pip install torch==0.4", echo=True)
 
             c.run("pip install -e ../", echo=True)
             c.run("python -m sphinx -b html ./ {} -aqT".format(b_dir), echo=True)
@@ -146,18 +146,18 @@ def license_check(c):
 
 
 @task
-def pytest(c, skip_grads=True, coverage=False, show_output=True):
+def pytest(c, k=None, coverage=False, show_output=True):
     flags = []
     if show_output:
         flags.append("-s")
-    if skip_grads:
-        flags.append("-k 'not test_grads'")
+    if k is not None:
+        flags.append("-k '{}'".format(k))
     if coverage:
         flags.append("--cov=qucumber")
         flags.append("--no-cov-on-fail")
         flags.append("--cov-report=term-missing")
 
-    c.run("pytest " + " ".join(flags))
+    c.run("pytest " + " ".join(flags), pty=True)
 
 
 ##############################################################################
@@ -171,5 +171,8 @@ def flake8(c):
 
 
 @task
-def blacken(c):
+def blacken_alt(c):
     c.run("black ./")
+
+
+ns = Collection(build_docs, license_check, flake8, blacken, test, coverage)
