@@ -21,19 +21,21 @@
 import os.path
 
 import torch
+import pytest
 
 import qucumber
-from qucumber.nn_states import PositiveWavefunction
+from qucumber.nn_states import PositiveWavefunction, ComplexWavefunction
 from . import __location__
 
 INIT_SEED = 1234  # seed to initialize model params with
 SAMPLING_SEED = 1337  # seed to draw samples from the model with
 
 
-def test_model_saving_and_loading_pos():
+@pytest.mark.parametrize("wvfn_type", [PositiveWavefunction, ComplexWavefunction])
+def test_model_saving_and_loading(wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
-    nn_state = PositiveWavefunction(10, gpu=False)
+    nn_state = wvfn_type(10, gpu=False)
 
     model_path = os.path.join(__location__, "positive_wavefunction")
 
@@ -43,7 +45,7 @@ def test_model_saving_and_loading_pos():
     # don't worry about floating-point wonkyness
     orig_sample = nn_state.sample(k=10).to(dtype=torch.uint8)
 
-    nn_state2 = PositiveWavefunction(10, gpu=False)
+    nn_state2 = wvfn_type(10, gpu=False)
     nn_state2.load(model_path)
 
     qucumber.set_random_seed(SAMPLING_SEED, cpu=True, gpu=False, quiet=True)
@@ -52,7 +54,7 @@ def test_model_saving_and_loading_pos():
     msg = "Got different sample after reloading model!"
     assert torch.equal(orig_sample, post_load_sample), msg
 
-    nn_state3 = PositiveWavefunction.autoload(model_path, gpu=False)
+    nn_state3 = wvfn_type.autoload(model_path, gpu=False)
 
     qucumber.set_random_seed(SAMPLING_SEED, cpu=True, gpu=False, quiet=True)
     post_autoload_sample = nn_state3.sample(k=10).to(dtype=torch.uint8)
@@ -61,3 +63,12 @@ def test_model_saving_and_loading_pos():
     assert torch.equal(orig_sample, post_autoload_sample), msg
 
     os.remove(model_path)
+
+
+def test_positive_wavefunction_phase():
+    nn_state = PositiveWavefunction(10, gpu=False)
+
+    vis_state = torch.ones(10)
+
+    msg = "PositiveWavefunction is giving a non-zero phase!"
+    assert torch.equal(nn_state.phase(vis_state), torch.zeros(10)), msg
