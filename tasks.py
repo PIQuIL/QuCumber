@@ -21,9 +21,9 @@
 import pathlib
 from itertools import chain
 
-from invoke import task, Collection
-from invocations.pytest import test, coverage
 from invocations.checks import blacken
+from invocations.pytest import coverage, test
+from invoke import Collection, task
 from jinja2 import Environment, FileSystemLoader
 
 ##############################################################################
