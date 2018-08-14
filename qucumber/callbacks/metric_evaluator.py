@@ -61,8 +61,7 @@ class MetricEvaluator(Callback):
         self.metric_kwargs = metric_kwargs
 
     def __len__(self):
-        """Return the number of timesteps that metrics have been evaluated for.
-        """
+        """Return the number of timesteps that metrics have been evaluated for."""
         return len(self.metric_values)
 
     def get_value(self, name, index=None):

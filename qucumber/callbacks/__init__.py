@@ -6,4 +6,5 @@ from .liveplotting import *
 from .logger import *
 from .metric_evaluator import *
 from .model_saver import *
+from .timer import *
 from .variance_based_early_stopping import *

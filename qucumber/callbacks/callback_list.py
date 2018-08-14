@@ -37,9 +37,7 @@ class CallbackList(Callback, MutableSequence):
         if isinstance(value, Callback):
             self.callbacks[key] = value
         else:
-            raise TypeError(
-                "value must be an instance of " "qucumber.callbacks.Callback"
-            )
+            raise TypeError("value must be an instance of qucumber.callbacks.Callback")
 
     def __delitem__(self, index):
         del self.callbacks[index]
@@ -54,9 +52,7 @@ class CallbackList(Callback, MutableSequence):
         if isinstance(value, Callback):
             self.callbacks.insert(index, value)
         else:
-            raise TypeError(
-                "value must be an instance of " "qucumber.callbacks.Callback"
-            )
+            raise TypeError("value must be an instance of qucumber.callbacks.Callback")
 
     def on_train_start(self, rbm):
         for cb in self.callbacks:
