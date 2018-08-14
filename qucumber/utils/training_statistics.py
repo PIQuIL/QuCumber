@@ -44,10 +44,10 @@ def rotate_psi(nn_state, basis, unitaries, psi=None):
         Upsi = torch.zeros(2, dtype=torch.double, device=nn_state.device)
         num_nontrivial_U = 0
         nontrivial_sites = []
-        for j in range(N):
-            if basis[j] != "Z":
+        for jj in range(N):
+            if basis[jj] != "Z":
                 num_nontrivial_U += 1
-                nontrivial_sites.append(j)
+                nontrivial_sites.append(jj)
         sub_state = nn_state.generate_hilbert_space(num_nontrivial_U)
 
         for xp in range(1 << num_nontrivial_U):

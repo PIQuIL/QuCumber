@@ -1,5 +1,5 @@
-Z Z 
-X Z 
-Z X 
-Y Z 
-Z Y 
+Z Z
+X Z
+Z X
+Y Z
+Z Y
