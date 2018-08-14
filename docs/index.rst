@@ -11,6 +11,7 @@ Version: |release|
    tutorial
    _examples/tutorial_quantum_ising.ipynb
    _examples/tutorial_qubits.ipynb
+   _examples/tutorial_observables.ipynb
    theory
 
 

@@ -22,6 +22,8 @@ import numpy as np
 
 from qucumber.observables import Observable
 
+__all__ = ["TFIMChainEnergy", "TFIMChainMagnetization"]
+
 
 class TFIMChainEnergy(Observable):
     """Observable defining the energy of a Transverse Field Ising Model (TFIM)
@@ -112,33 +114,6 @@ class TFIMChainMagnetization(Observable):
     def Randomize(self, N):
         p = torch.ones(self.nc, N) * 0.5
         return torch.bernoulli(p)
-
-    def Run(self, nn_state, n_eq):
-        v = self.Randomize(nn_state.num_visible).to(
-            dtype=torch.double, device=nn_state.device
-        )
-
-        num_samples = self.nc
-        if self.show_convergence:
-            sZ_list = []
-            err_sZ = []
-
-            sZ = self.SigmaZ(v)
-            sZ_list.append(sZ.apply(v, nn_state).mean())
-            err_sZ.append((torch.std(sZ) / np.sqrt(sZ.size()[0])).item())
-
-            for _steps in range(n_eq):
-                v = nn_state.gibbs_steps(1, v, overwrite=True)
-                sZ_list.append(self.SigmaZ(v, self.show_convergence).mean().item())
-
-            out = {"sZ": np.array(sZ_list), "error": np.array(err_sZ)}
-        else:
-            out = {
-                "error": self.std_error(nn_state, num_samples),
-                "sZ": self.expected_value(nn_state, num_samples),
-            }
-
-        return out
 
     def SigmaZ(self, samples):
         """Computes the magnetization of each sample given a batch of samples.

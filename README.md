@@ -18,7 +18,7 @@ producing new instances of measurements, and to calculate estimators not
 contained in the original data set.
 
 QuCumber is developed by the Perimeter Institute Quantum Intelligence Lab (PIQuIL).
-The project is currently in an early-beta, expect some rough edges, bugs, and backward incompatible updates.
+The project is currently in an early-beta. So, expect some rough edges, bugs, and backward incompatible updates.
 
 ## Requirements
 
