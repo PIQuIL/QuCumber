@@ -63,15 +63,21 @@ def assertPercentDiff(a, b, pdiff, msg=None):
     assert torch.equal(result, expect), msg
 
 
-@pytest.fixture(scope="module", params=[
-    False,
-    pytest.param(True,
-                 marks=[
-                     pytest.mark.skipif(not torch.cuda.is_available(),
-                                        reason="GPU required"),
-                     pytest.mark.gpu,
-                 ]),
-])
+@pytest.fixture(
+    scope="module",
+    params=[
+        False,
+        pytest.param(
+            True,
+            marks=[
+                pytest.mark.skipif(
+                    not torch.cuda.is_available(), reason="GPU required"
+                ),
+                pytest.mark.gpu,
+            ],
+        ),
+    ],
+)
 def positive_wavefunction_data(request):
     with open(os.path.join(__location__, "test_data.pkl"), "rb") as fin:
         test_data = pickle.load(fin)
@@ -248,15 +254,21 @@ def test_posgrad_kl(positive_wavefunction_data):
     )
 
 
-@pytest.fixture(scope="module", params=[
-    False,
-    pytest.param(True,
-                 marks=[
-                     pytest.mark.skipif(not torch.cuda.is_available(),
-                                        reason="GPU required"),
-                     pytest.mark.gpu,
-                 ]),
-])
+@pytest.fixture(
+    scope="module",
+    params=[
+        False,
+        pytest.param(
+            True,
+            marks=[
+                pytest.mark.skipif(
+                    not torch.cuda.is_available(), reason="GPU required"
+                ),
+                pytest.mark.gpu,
+            ],
+        ),
+    ],
+)
 def complex_wavefunction_data(request):
     with open(os.path.join(__location__, "test_data.pkl"), "rb") as fin:
         test_data = pickle.load(fin)

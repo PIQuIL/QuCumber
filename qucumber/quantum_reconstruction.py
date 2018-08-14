@@ -149,8 +149,10 @@ class QuantumReconstruction(object):
         )
 
         if len(self.nn_state.networks) > 1:
-            all_params = [getattr(self.nn_state, net).parameters()
-                          for net in self.nn_state.networks]
+            all_params = [
+                getattr(self.nn_state, net).parameters()
+                for net in self.nn_state.networks
+            ]
             all_params = list(chain(*all_params))
             optimizer = optimizer(all_params, lr=lr, **kwargs)
         else:
