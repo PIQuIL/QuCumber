@@ -9,33 +9,23 @@ matrix:
   fast_finish: true
 
 cache:
-  - packages
   - pip
-
-addons:
-  apt:
-    packages:
-      - texlive-fonts-recommended
-      - pandoc
-      - dvipng
-      - texlive-latex-recommended
-      - texlive-latex-extra
-      - texlive-science
 
 python:
   - '3.6'
 
 install:
-  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 flake8-per-file-ignores flake8-bugbear radon pytest codecov pytest-cov invoke invocations black
+  - travis_retry pip install -r requirements.txt
+  - travis_retry pip install setuptools wheel
+  - travis_retry pip install -r requirements-dev.txt
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.1.post2-cp37-cp37m-linux_x86_64.whl; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl; fi
-  - travis_retry pip install torchvision
 
 script:
   - inv license-check
   - python setup.py install
   - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -k 'not slow'; fi # don't test gradients if not on master all_branch
   - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest --cov=qucumber --no-cov-on-fail --cov-report=term-missing:skip-covered -s; fi
-  - ls -a
   - inv flake8
   - inv blacken -l 88 --diff --check
   - python setup.py sdist bdist_wheel

@@ -4,8 +4,8 @@ source = qucumber
 
 [report]
 omit =
-    **/__init__.py 
+    qucumber/__version__.py
+    **/__init__.py
     setup.py
     tasks.py
     tests/*
-
