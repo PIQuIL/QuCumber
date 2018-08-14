@@ -57,7 +57,7 @@ class Wavefunction(abc.ABC):
         return
 
     def reinitialize_parameters(self):
-        r"""Randomize the parameters of the internal RBMs."""
+        """Randomize the parameters of the internal RBMs."""
         for net in self.networks:
             getattr(self, net).initialize_parameters()
 
@@ -146,7 +146,7 @@ class Wavefunction(abc.ABC):
 
         return self.rbm_am.gibbs_steps(k, initial_state, overwrite=overwrite)
 
-    def subspace_vector(self, size, num):
+    def subspace_vector(self, num, size=None):
         r"""Generates a single vector from the Hilbert space of dimension
         :math:`2^{\text{size}}`.
 
@@ -161,6 +161,7 @@ class Wavefunction(abc.ABC):
         :returns: A state from the Hilbert space.
         :rtype: torch.Tensor
         """
+        size = size if size else self.num_visible
         space = (((num & (1 << np.arange(size)))) > 0)[::-1]
         space = space.astype(int)
         return torch.tensor(space, dtype=torch.double, device=self.device)

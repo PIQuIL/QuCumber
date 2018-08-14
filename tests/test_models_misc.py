@@ -25,7 +25,7 @@ import pytest
 
 import qucumber
 from qucumber.nn_states import PositiveWavefunction, ComplexWavefunction
-from . import __location__
+from . import __tests_location__
 
 INIT_SEED = 1234  # seed to initialize model params with
 SAMPLING_SEED = 1337  # seed to draw samples from the model with
@@ -37,7 +37,7 @@ def test_model_saving_and_loading(wvfn_type):
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
     nn_state = wvfn_type(10, gpu=False)
 
-    model_path = os.path.join(__location__, "positive_wavefunction")
+    model_path = os.path.join(__tests_location__, "positive_wavefunction")
 
     nn_state.save(model_path)
 

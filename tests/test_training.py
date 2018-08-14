@@ -24,7 +24,6 @@ import pytest
 
 import numpy as np
 import torch
-from torch import nn
 from torch.nn.utils import parameters_to_vector
 
 import qucumber
@@ -34,7 +33,7 @@ import qucumber.utils.unitaries as unitaries
 from qucumber.callbacks import MetricEvaluator
 from qucumber.nn_states import ComplexWavefunction, PositiveWavefunction
 from qucumber.quantum_reconstruction import QuantumReconstruction
-from . import __location__
+from . import __tests_location__
 
 SEED = 1234
 
@@ -115,9 +114,11 @@ class TestExamples(unittest.TestCase):
         print("---------------------")
 
         train_samples_path = os.path.join(
-            __location__, "../examples/01_Ising/tfim1d_train_samples.txt"
+            __tests_location__, "../examples/01_Ising/tfim1d_train_samples.txt"
         )
-        psi_path = os.path.join(__location__, "../examples/01_Ising/tfim1d_psi.txt")
+        psi_path = os.path.join(
+            __tests_location__, "../examples/01_Ising/tfim1d_psi.txt"
+        )
 
         train_samples, target_psi = data.load_data(train_samples_path, psi_path)
 
@@ -190,15 +191,17 @@ class TestExamples(unittest.TestCase):
         print("--------------------")
 
         train_samples_path = os.path.join(
-            __location__, "../examples/02_qubits/qubits_train_samples.txt"
+            __tests_location__, "../examples/02_qubits/qubits_train_samples.txt"
         )
         train_bases_path = os.path.join(
-            __location__, "../examples/02_qubits/qubits_train_bases.txt"
+            __tests_location__, "../examples/02_qubits/qubits_train_bases.txt"
         )
         bases_path = os.path.join(
-            __location__, "../examples/02_qubits/qubits_bases.txt"
+            __tests_location__, "../examples/02_qubits/qubits_bases.txt"
         )
-        psi_path = os.path.join(__location__, "../examples/02_qubits/qubits_psi.txt")
+        psi_path = os.path.join(
+            __tests_location__, "../examples/02_qubits/qubits_psi.txt"
+        )
 
         train_samples, target_psi, train_bases, bases = data.load_data(
             train_samples_path, psi_path, train_bases_path, bases_path
@@ -274,7 +277,10 @@ class TestExamples(unittest.TestCase):
 
     def initialize_posreal_params(self, nn_state):
         with open(
-            os.path.join(__location__, "test_training_init_pos_params.npz"), "rb"
+            os.path.join(
+                __tests_location__, "data", "test_training_init_pos_params.npz"
+            ),
+            "rb",
         ) as f:
             x = np.load(f)
             for p in x.files:
@@ -284,7 +290,10 @@ class TestExamples(unittest.TestCase):
 
     def initialize_complex_params(self, nn_state):
         with open(
-            os.path.join(__location__, "test_training_init_complex_params.npz"), "rb"
+            os.path.join(
+                __tests_location__, "data", "test_training_init_complex_params.npz"
+            ),
+            "rb",
         ) as f:
             x = np.load(f)
             for p in x.files:

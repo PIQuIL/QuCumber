@@ -167,7 +167,7 @@ class ComplexWavefunction(Wavefunction):
             vp = sample.round().clone()
 
             # overwrite rotated elements
-            vp[sites] = self.subspace_vector(sites.size, x)
+            vp[sites] = self.subspace_vector(x, size=sites.size)
 
             # Gradient on the current configuration
             grad_vp = [

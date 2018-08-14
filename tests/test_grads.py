@@ -29,7 +29,7 @@ from qucumber.nn_states import PositiveWavefunction, ComplexWavefunction
 from qucumber.quantum_reconstruction import QuantumReconstruction
 from qucumber.utils import unitaries
 from .grads_utils import ComplexGradsUtils, PosGradsUtils
-from . import __location__
+from . import __tests_location__
 
 
 K = 10
@@ -79,7 +79,9 @@ def assertPercentDiff(a, b, pdiff, msg=None):
     ],
 )
 def positive_wavefunction_data(request):
-    with open(os.path.join(__location__, "test_data.pkl"), "rb") as fin:
+    with open(
+        os.path.join(__tests_location__, "data", "test_grad_data.pkl"), "rb"
+    ) as fin:
         test_data = pickle.load(fin)
 
     qucumber.set_random_seed(SEED, cpu=True, gpu=request.param, quiet=True)
@@ -270,7 +272,9 @@ def test_posgrad_kl(positive_wavefunction_data):
     ],
 )
 def complex_wavefunction_data(request):
-    with open(os.path.join(__location__, "test_data.pkl"), "rb") as fin:
+    with open(
+        os.path.join(__tests_location__, "data", "test_grad_data.pkl"), "rb"
+    ) as fin:
         test_data = pickle.load(fin)
 
     qucumber.set_random_seed(SEED, cpu=True, gpu=request.param, quiet=True)
