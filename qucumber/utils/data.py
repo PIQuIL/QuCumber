@@ -22,7 +22,7 @@ import torch
 
 
 def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=None):
-    r"""A function that will load in the data required for training.
+    r"""Load the data required for training.
 
     :param tr_samples_path: The path to the training data.
     :type tr_samples_path: str
@@ -66,7 +66,7 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
 
 
 def extract_refbasis_samples(train_samples, train_bases):
-    r"""A function that extracts the reference basis samples in the data.
+    r"""Extract the reference basis samples from the data.
 
     :param train_samples: The training samples.
     :type train_samples: numpy.array

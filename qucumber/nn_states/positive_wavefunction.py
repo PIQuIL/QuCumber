@@ -47,11 +47,11 @@ class PositiveWavefunction(Wavefunction):
         self.device = self.rbm_am.device
 
     @property
-    def networks(self):
+    def networks(self):  # noqa: D102
         return ["rbm_am"]
 
     @property
-    def rbm_am(self):
+    def rbm_am(self):  # noqa: D102
         return self._rbm_am
 
     @rbm_am.setter
@@ -59,7 +59,7 @@ class PositiveWavefunction(Wavefunction):
         self._rbm_am = new_val
 
     @property
-    def device(self):
+    def device(self):  # noqa: D102
         return self._device
 
     @device.setter
@@ -67,7 +67,7 @@ class PositiveWavefunction(Wavefunction):
         self._device = new_val
 
     def amplitude(self, v):
-        r"""Compute the (unnormalized) amplitude of a given vector/matrix of visible states:
+        r"""Compute the (unnormalized) amplitude of a given vector/matrix of visible states.
 
         .. math::
 
@@ -83,8 +83,9 @@ class PositiveWavefunction(Wavefunction):
         return super().amplitude(v)
 
     def phase(self, v):
-        r"""Compute the phase of a given vector/matrix of visible states, which,
-        in the case of a Positive Wavefunction, is just zero.
+        r"""Compute the phase of a given vector/matrix of visible states.
+
+        In the case of a Positive Wavefunction, the phase is just zero.
 
         :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.Tensor
@@ -95,7 +96,7 @@ class PositiveWavefunction(Wavefunction):
         return torch.zeros(v.shape[0]).to(v)
 
     def psi(self, v):
-        r"""Compute the wavefunction of a given vector/matrix of visible states:
+        r"""Compute the wavefunction of a given vector/matrix of visible states.
 
         .. math::
 
@@ -115,9 +116,9 @@ class PositiveWavefunction(Wavefunction):
         return psi
 
     def gradient(self, v):
-        r"""Compute the gradient
+        r"""Compute the gradient of the effective energy for a batch of states.
+
         :math:`\nabla_{\bm{\lambda}}\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})`
-        of the effective visible energy for a batch of visible states v.
 
         :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.Tensor
@@ -141,7 +142,7 @@ class PositiveWavefunction(Wavefunction):
         return super().compute_normalization(space)
 
     @staticmethod
-    def autoload(location, gpu=False):
+    def autoload(location, gpu=False):  # noqa: D102
         state_dict = torch.load(location)
         wvfn = PositiveWavefunction(
             num_visible=len(state_dict["rbm_am"]["visible_bias"]),

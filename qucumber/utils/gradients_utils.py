@@ -23,7 +23,7 @@ from torch.nn.utils.convert_parameters import _check_param_device
 
 # based on code found in PyTorch
 def vector_to_grads(vec, parameters):
-    r"""Convert one vector to the parameters
+    r"""Convert one vector to the parameters.
 
     :param vec: a single vector represents the parameters of a model.
     :type vec:  torch.Tensor

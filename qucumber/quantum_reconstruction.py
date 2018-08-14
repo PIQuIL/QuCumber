@@ -19,12 +19,12 @@
 
 from itertools import chain
 from math import ceil
-import time
 
 import torch
 from tqdm import tqdm, tqdm_notebook
 
-from qucumber.callbacks import CallbackList
+from qucumber.callbacks import CallbackList, Timer
+from qucumber.utils.data import extract_refbasis_samples
 from qucumber.utils.gradients_utils import vector_to_grads
 
 
@@ -36,9 +36,10 @@ class QuantumReconstruction(object):
         self.stop_training = False
 
     def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch=None):
-        """This function will compute the gradients of a batch of the training
-        data (samples_batch). If measurements are taken in bases other than the
-        reference basis, a list of bases (bases_batch) must also be provided.
+        """Compute the gradients of a batch of the training data (samples_batch).
+
+        If measurements are taken in bases other than the reference basis,
+        a list of bases (bases_batch) must also be provided.
 
         :param k: Number of contrastive divergence steps in training.
         :type k: int
@@ -104,17 +105,17 @@ class QuantumReconstruction(object):
         data,
         epochs=100,
         pos_batch_size=100,
-        neg_batch_size=100,
+        neg_batch_size=None,
         k=1,
         lr=1e-3,
         input_bases=None,
-        z_samples=None,
         progbar=False,
+        time=False,
         callbacks=None,
         optimizer=torch.optim.SGD,
         **kwargs
     ):
-        """Execute the training of the RBM.
+        """Train the RBM.
 
         :param data: The training samples
         :type data: np.array
@@ -124,7 +125,7 @@ class QuantumReconstruction(object):
                                taken from the data.
         :type pos_batch_size: int
         :param neg_batch_size: The size of batches for the negative phase
-                               taken from the data
+                               taken from the data. Defaults to `pos_batch_size`.
         :type neg_batch_size: int
         :param k: The number of contrastive divergence steps
         :type k: int
@@ -142,7 +143,12 @@ class QuantumReconstruction(object):
         """
         disable_progbar = progbar is False
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
+
         callbacks = CallbackList(callbacks if callbacks else [])
+        if time:
+            callbacks.append(Timer())
+
+        neg_batch_size = neg_batch_size if neg_batch_size else pos_batch_size
 
         train_samples = torch.tensor(
             data, device=self.nn_state.device, dtype=torch.double
@@ -161,7 +167,6 @@ class QuantumReconstruction(object):
 
         callbacks.on_train_start(self.nn_state)
 
-        t0 = time.time()
         batch_num = ceil(train_samples.shape[0] / pos_batch_size)
         for ep in progress_bar(range(epochs), desc="Epochs ", disable=disable_progbar):
             if self.stop_training:  # check for stop_training signal
@@ -193,6 +198,7 @@ class QuantumReconstruction(object):
                     neg_batch = train_samples[random_permutation]
                     neg_batch = neg_batch[0:neg_batch_size]
                 else:
+                    z_samples = extract_refbasis_samples(train_samples, input_bases)
                     z_samples = z_samples.to(self.nn_state.device)
                     random_permutation = torch.randperm(z_samples.shape[0])
                     neg_batch = z_samples[random_permutation][0:neg_batch_size]
@@ -204,9 +210,9 @@ class QuantumReconstruction(object):
 
                 optimizer.zero_grad()  # clear any cached gradients
 
-                for p, net in enumerate(self.nn_state.networks):
+                for i, net in enumerate(self.nn_state.networks):
                     rbm = getattr(self.nn_state, net)
-                    vector_to_grads(all_grads[p], rbm.parameters())
+                    vector_to_grads(all_grads[i], rbm.parameters())
 
                 optimizer.step()  # tell the optimizer to apply the gradients
 
@@ -215,5 +221,3 @@ class QuantumReconstruction(object):
             callbacks.on_epoch_end(self.nn_state, ep)
 
         callbacks.on_train_end(self.nn_state)
-        t1 = time.time()
-        print("\nElapsed time = %.2f" % (t1 - t0))

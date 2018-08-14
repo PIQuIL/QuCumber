@@ -32,7 +32,7 @@ class ComplexWavefunction(Wavefunction):
     :param num_visible: The number of visible units, ie. the size of the system being learned.
     :type num_visible: int
     :param num_hidden: The number of hidden units in both internal RBMs. Defaults to
-                       the number of visible units.
+                    the number of visible units.
     :type num_hidden: int
     :param unitary_dict: A dictionary mapping unitary names to their matrix representations.
     :type unitary_dict: dict[str, torch.Tensor]
@@ -60,11 +60,11 @@ class ComplexWavefunction(Wavefunction):
         }
 
     @property
-    def networks(self):
+    def networks(self):  # noqa: D102
         return ["rbm_am", "rbm_ph"]
 
     @property
-    def rbm_am(self):
+    def rbm_am(self):  # noqa: D102
         return self._rbm_am
 
     @rbm_am.setter
@@ -73,7 +73,7 @@ class ComplexWavefunction(Wavefunction):
 
     @property
     def rbm_ph(self):
-        """The RBM to be used to learn the wavefunction phase."""
+        """RBM used to learn the wavefunction phase."""
         return self._rbm_ph
 
     @rbm_ph.setter
@@ -81,7 +81,7 @@ class ComplexWavefunction(Wavefunction):
         self._rbm_ph = new_val
 
     @property
-    def device(self):
+    def device(self):  # noqa: D102
         return self._device
 
     @device.setter
@@ -89,7 +89,7 @@ class ComplexWavefunction(Wavefunction):
         self._device = new_val
 
     def amplitude(self, v):
-        r"""Compute the (unnormalized) amplitude of a given vector/matrix of visible states:
+        r"""Compute the (unnormalized) amplitude of a given vector/matrix of visible states.
 
         .. math::
 
@@ -105,7 +105,7 @@ class ComplexWavefunction(Wavefunction):
         return super().amplitude(v)
 
     def phase(self, v):
-        r"""Compute the phase of a given vector/matrix of visible states
+        r"""Compute the phase of a given vector/matrix of visible states.
 
         .. math::
 
@@ -120,7 +120,7 @@ class ComplexWavefunction(Wavefunction):
         return -0.5 * self.rbm_ph.effective_energy(v)
 
     def psi(self, v):
-        r"""Compute the wavefunction of a given vector/matrix of visible states:
+        r"""Compute the wavefunction of a given vector/matrix of visible states.
 
         .. math::
 
@@ -197,8 +197,7 @@ class ComplexWavefunction(Wavefunction):
         return grad
 
     def gradient(self, basis, sample):
-        r"""Compute the gradient of a sample, measured
-        in different bases
+        r"""Compute the gradient of a sample, measured in different bases.
 
         :param basis: A set of bases.
         :type basis: np.array
@@ -235,13 +234,13 @@ class ComplexWavefunction(Wavefunction):
         """
         return super().compute_normalization(space)
 
-    def save(self, location, metadata=None):
+    def save(self, location, metadata=None):  # noqa: D102
         metadata = metadata if metadata else {}
         metadata["unitary_dict"] = self.unitary_dict
         super().save(location, metadata=metadata)
 
     @staticmethod
-    def autoload(location, gpu=False):
+    def autoload(location, gpu=False):  # noqa: D102
         state_dict = torch.load(location)
         wvfn = ComplexWavefunction(
             unitary_dict=state_dict["unitary_dict"],
