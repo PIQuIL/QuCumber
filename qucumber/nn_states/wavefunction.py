@@ -23,7 +23,7 @@ import numpy as np
 import torch
 
 
-class AbstractWavefunction(abc.ABC):
+class Wavefunction(abc.ABC):
     """Abstract Base Class for Wavefunctions."""
 
     @property
@@ -44,6 +44,16 @@ class AbstractWavefunction(abc.ABC):
     @rbm_am.setter
     @abc.abstractmethod
     def rbm_am(self, new_val):
+        return
+
+    @property
+    @abc.abstractmethod
+    def device(self):
+        """The device that the model is on."""
+
+    @device.setter
+    @abc.abstractmethod
+    def device(self, new_val):
         return
 
     def initialize_parameters(self):
@@ -80,8 +90,8 @@ class AbstractWavefunction(abc.ABC):
 
     @abc.abstractmethod
     def psi(self, v):
-        r"""Compute the wavefunction of a given vector/matrix of visible states:
-        :math:`\psi(\bm{\sigma})`
+        r"""Compute the (unnormalized) wavefunction of a given vector/matrix of
+        visible states: :math:`\psi(\bm{\sigma})`
 
         :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.Tensor
@@ -90,6 +100,21 @@ class AbstractWavefunction(abc.ABC):
                   each visible state
         :rtype: torch.Tensor
         """
+
+    def probability(self, v, Z):
+        """Evaluates the probability of the given vector(s) of visible
+        states.
+
+        :param v: The visible states.
+        :type v: torch.Tensor
+        :param Z: The partition function.
+        :type Z: float
+
+        :returns: The probability of the given vector(s) of visible units.
+        :rtype: torch.Tensor
+        """
+        v = v.to(device=self.device, dtype=torch.double)
+        return (self.amplitude(v)[0]) ** 2 / Z
 
     @abc.abstractmethod
     def gradient(self):
@@ -140,15 +165,17 @@ class AbstractWavefunction(abc.ABC):
         space = space.astype(int)
         return torch.tensor(space, dtype=torch.double, device=self.device)
 
-    def generate_hilbert_space(self, size):
+    def generate_hilbert_space(self, size=None):
         r"""Generates Hilbert space of dimension :math:`2^{\text{size}}`.
 
-        :param size: The size of each element of the Hilbert space.
+        :param size: The size of each element of the Hilbert space. Defaults to
+                     the number of visible units.
         :type size: int
 
         :returns: A tensor with all the basis states of the Hilbert space.
         :rtype: torch.Tensor
         """
+        size = size if size else self.rbm_am.num_visible
         if size > self.max_size:
             raise ValueError("Size of the Hilbert space is too large!")
         else:
@@ -157,7 +184,7 @@ class AbstractWavefunction(abc.ABC):
             space = space.astype(int)
             return torch.tensor(space, dtype=torch.double, device=self.device)
 
-    def compute_normalization(self):
+    def compute_normalization(self, space):
         r"""Compute the normalization constant of the wavefunction.
 
         .. math::
@@ -170,10 +197,7 @@ class AbstractWavefunction(abc.ABC):
         :type space: torch.Tensor
 
         """
-        if self.space is None:
-            raise ValueError("Missing Hilbert space")
-        else:
-            self.Z = self.rbm_am.compute_partition_function(self.space)
+        return self.rbm_am.partition(space)
 
     def save(self, location, metadata=None):
         """Saves the Wavefunction parameters to the given location along with

@@ -35,13 +35,13 @@ class QuantumReconstruction(object):
         self.num_visible = nn_state.num_visible
         self.stop_training = False
 
-    def compute_batch_gradients(self, k_cd, samples_batch, neg_batch, bases_batch=None):
+    def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch=None):
         """This function will compute the gradients of a batch of the training
         data (samples_batch). If measurements are taken in bases other than the
         reference basis, a list of bases (bases_batch) must also be provided.
 
-        :param k_cd: Number of contrastive divergence steps in training.
-        :type k_cd: int
+        :param k: Number of contrastive divergence steps in training.
+        :type k: int
         :param samples_batch: Batch of the input samples.
         :type samples_batch: torch.Tensor
         :param neg_batch: Batch of the input samples for computing the
@@ -55,7 +55,7 @@ class QuantumReconstruction(object):
         """
         # Negative phase: learning signal driven by the amplitude RBM of
         # the NN state
-        vk = self.nn_state.rbm_am.gibbs_steps(k_cd, neg_batch)
+        vk = self.nn_state.rbm_am.gibbs_steps(k, neg_batch)
         grad_model = self.nn_state.rbm_am.effective_energy_gradient(vk)
 
         # If measurements are taken in the reference bases only
@@ -101,22 +101,24 @@ class QuantumReconstruction(object):
 
     def fit(
         self,
-        input_samples,
-        epochs,
-        pos_batch_size,
-        neg_batch_size,
-        k_cd,
-        lr,
+        data,
+        epochs=100,
+        pos_batch_size=100,
+        neg_batch_size=100,
+        k=1,
+        lr=1e-3,
         input_bases=None,
         z_samples=None,
         progbar=False,
         callbacks=None,
+        optimizer=torch.optim.SGD,
+        **kwargs
     ):
         """Execute the training of the RBM.
 
-        :param input_samples: The training samples
-        :type input_samples: np.array
-        :param epochs:
+        :param data: The training samples
+        :type data: np.array
+        :param epochs: The number of full training passes through
         :type epochs: int
         :param pos_batch_size: The size of batches for the positive phase
                                taken from the data.
@@ -133,30 +135,26 @@ class QuantumReconstruction(object):
                         progress bar.
         :type progbar: bool or str
         :param callbacks: Callbacks to run while training.
-        :type callbacks: list(qucumber.callbacks.Callback)
+        :type callbacks: list[qucumber.callbacks.Callback]
+        :param optimizer: The constructor of a torch optimizer
+        :type optimizer: torch.optim.Optimizer
+        :param kwargs: Keyword arguments to pass to the optimizer
         """
         disable_progbar = progbar is False
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
         callbacks = CallbackList(callbacks if callbacks else [])
 
         train_samples = torch.tensor(
-            input_samples, device=self.nn_state.device, dtype=torch.double
+            data, device=self.nn_state.device, dtype=torch.double
         )
 
         if len(self.nn_state.networks) > 1:
-            optimizer = torch.optim.SGD(
-                list(
-                    chain(
-                        *[
-                            getattr(self.nn_state, net).parameters()
-                            for net in self.nn_state.networks
-                        ]
-                    )
-                ),
-                lr=lr,
-            )
+            all_params = [getattr(self.nn_state, net).parameters()
+                          for net in self.nn_state.networks]
+            all_params = list(chain(*all_params))
+            optimizer = optimizer(all_params, lr=lr, **kwargs)
         else:
-            optimizer = torch.optim.SGD(self.nn_state.rbm_am.parameters(), lr=lr)
+            optimizer = optimizer(self.nn_state.rbm_am.parameters(), lr=lr, **kwargs)
             batch_bases = None
 
         callbacks.on_train_start(self.nn_state)
@@ -199,7 +197,7 @@ class QuantumReconstruction(object):
                     batch_bases = pos_batches_bases[b]
 
                 all_grads = self.compute_batch_gradients(
-                    k_cd, pos_batches[b], neg_batch, batch_bases
+                    k, pos_batches[b], neg_batch, batch_bases
                 )
 
                 optimizer.zero_grad()  # clear any cached gradients

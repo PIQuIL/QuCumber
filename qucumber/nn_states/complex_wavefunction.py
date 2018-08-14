@@ -23,10 +23,10 @@ import torch
 from qucumber.utils import cplx
 from qucumber.utils import unitaries
 from qucumber.rbm import BinaryRBM
-from .wavefunction import AbstractWavefunction
+from .wavefunction import Wavefunction
 
 
-class ComplexWavefunction(AbstractWavefunction):
+class ComplexWavefunction(Wavefunction):
     """Class capable of learning Wavefunctions with a non-zero phase.
 
     :param num_visible: The number of visible units, ie. the size of the system being learned.
@@ -36,22 +36,21 @@ class ComplexWavefunction(AbstractWavefunction):
     :type num_hidden: int
     :param unitary_dict: A dictionary mapping unitary names to their matrix representations.
     :type unitary_dict: dict[str, torch.Tensor]
-    :param gpu: Whether to
+    :param gpu: Whether to perform computations on the default gpu.
+    :type gpu: bool
     """
 
     _rbm_am = None
     _rbm_ph = None
+    _device = None
 
     def __init__(self, num_visible, num_hidden=None, unitary_dict=None, gpu=True):
         super(ComplexWavefunction, self).__init__()
 
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
-        self.rbm_am = BinaryRBM(num_visible, num_hidden, gpu=gpu)
-        self.rbm_ph = BinaryRBM(num_visible, num_hidden, gpu=gpu)
-
-        self.space = None
-        self.Z = 0.0
+        self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
+        self.rbm_ph = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
 
         self.device = self.rbm_am.device
 
@@ -80,6 +79,14 @@ class ComplexWavefunction(AbstractWavefunction):
     @rbm_ph.setter
     def rbm_ph(self, new_val):
         self._rbm_ph = new_val
+
+    @property
+    def device(self):
+        return self._device
+
+    @device.setter
+    def device(self, new_val):
+        self._device = new_val
 
     def amplitude(self, v):
         r"""Compute the (unnormalized) amplitude of a given vector/matrix of visible states:
@@ -158,18 +165,20 @@ class ComplexWavefunction(AbstractWavefunction):
 
         for x in range(2 ** sites.size):
             vp = sample.round().clone()
-            vp[sites] = self.subspace_vector(
-                sites.size, x
-            )  # overwrite rotated elements
+
+            # overwrite rotated elements
+            vp[sites] = self.subspace_vector(sites.size, x)
+
             # Gradient on the current configuration
             grad_vp = [
                 self.rbm_am.effective_energy_gradient(vp),
                 self.rbm_ph.effective_energy_gradient(vp),
             ]
+
             # Gradient from the rotation
             int_vp = np.array(vp[sites].round().int())
             all_Us = Us[np.arange(sites.size), :, int_sample, int_vp]
-            U = np.prod(all_Us[:, 0] + 1j * all_Us[:, 1])
+            U = np.prod(all_Us[:, 0] + (1j * all_Us[:, 1]))
             U = torch.tensor([U.real, U.imag], dtype=torch.double, device=self.device)
             Upsi_v = cplx.scalar_mult(U, self.psi(vp))
             Upsi += Upsi_v
@@ -211,7 +220,7 @@ class ComplexWavefunction(AbstractWavefunction):
             grad = self.rotated_gradient(basis, rot_sites, sample)
         return grad
 
-    def compute_normalization(self):
+    def compute_normalization(self, space):
         r"""Compute the normalization constant of the wavefunction.
 
         .. math::
@@ -224,7 +233,7 @@ class ComplexWavefunction(AbstractWavefunction):
         :type space: torch.Tensor
 
         """
-        return super().compute_normalization()
+        return super().compute_normalization(space)
 
     def save(self, location, metadata=None):
         metadata = metadata if metadata else {}

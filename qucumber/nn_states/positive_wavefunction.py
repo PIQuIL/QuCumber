@@ -20,23 +20,30 @@
 import torch
 
 from qucumber.rbm import BinaryRBM
-from .wavefunction import AbstractWavefunction
+from .wavefunction import Wavefunction
 
 
-class PositiveWavefunction(AbstractWavefunction):
+class PositiveWavefunction(Wavefunction):
+    """Class capable of learning Wavefunctions with no phase.
+
+    :param num_visible: The number of visible units, ie. the size of the system being learned.
+    :type num_visible: int
+    :param num_hidden: The number of hidden units in the internal RBM. Defaults to
+                       the number of visible units.
+    :type num_hidden: int
+    :param gpu: Whether to perform computations on the default gpu.
+    :type gpu: bool
+    """
+
     _rbm_am = None
+    _device = None
 
     def __init__(self, num_visible, num_hidden=None, gpu=True):
         super(PositiveWavefunction, self).__init__()
         self.num_visible = int(num_visible)
-        self.num_hidden = (
-            int(num_hidden) if num_hidden is not None else self.num_visible
-        )
+        self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
 
         self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
-
-        self.space = None
-        self.Z = 0.0
         self.device = self.rbm_am.device
 
     @property
@@ -50,6 +57,14 @@ class PositiveWavefunction(AbstractWavefunction):
     @rbm_am.setter
     def rbm_am(self, new_val):
         self._rbm_am = new_val
+
+    @property
+    def device(self):
+        return self._device
+
+    @device.setter
+    def device(self, new_val):
+        self._device = new_val
 
     def amplitude(self, v):
         r"""Compute the (unnormalized) amplitude of a given vector/matrix of visible states:
@@ -112,7 +127,7 @@ class PositiveWavefunction(AbstractWavefunction):
         """
         return self.rbm_am.effective_energy_gradient(v)
 
-    def compute_normalization(self):
+    def compute_normalization(self, space):
         r"""Compute the normalization constant of the wavefunction.
 
         .. math::
@@ -123,7 +138,7 @@ class PositiveWavefunction(AbstractWavefunction):
         :param space: A rank 2 tensor of the entire visible space.
         :type space: torch.Tensor
         """
-        return super().compute_normalization()
+        return super().compute_normalization(space)
 
     @staticmethod
     def autoload(location, gpu=False):

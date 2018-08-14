@@ -38,9 +38,6 @@ class BinaryRBM(nn.Module):
         _warn_on_missing_gpu(gpu)
         self.gpu = gpu and torch.cuda.is_available()
 
-        # Maximum number of visible units for exact enumeration
-        self.size_cut = 16
-
         self.device = torch.device("cuda") if self.gpu else torch.device("cpu")
 
         self.initialize_parameters(zero_weights=zero_weights)
@@ -246,7 +243,7 @@ class BinaryRBM(nn.Module):
 
         return v
 
-    def compute_partition_function(self, space):
+    def partition(self, space):
         """Compute the partition function of the RBM.
 
         :param space: A rank 2 tensor of the visible space.
