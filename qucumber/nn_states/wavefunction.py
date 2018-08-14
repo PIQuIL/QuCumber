@@ -56,7 +56,7 @@ class Wavefunction(abc.ABC):
     def device(self, new_val):
         return
 
-    def initialize_parameters(self):
+    def reinitialize_parameters(self):
         r"""Randomize the parameters of the internal RBMs."""
         for net in self.networks:
             getattr(self, net).initialize_parameters()
