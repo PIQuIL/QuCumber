@@ -217,7 +217,7 @@ class Wavefunction(abc.ABC):
             if net in metadata.keys():
                 raise ValueError(f"Invalid key in metadata; '{net}' cannot be a key!")
 
-        data = {getattr(self, net).state_dict() for net in self.networks}
+        data = {net: getattr(self, net).state_dict() for net in self.networks}
         data.update(**metadata)
         torch.save(data, location)
 
@@ -238,7 +238,7 @@ class Wavefunction(abc.ABC):
         except AssertionError as e:
             state_dict = torch.load(location, lambda storage, loc: "cpu")
 
-        for net in self.nerworks:
+        for net in self.networks:
             getattr(self, net).load_state_dict(state_dict[net])
 
     @staticmethod
