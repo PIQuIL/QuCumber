@@ -18,6 +18,7 @@
 # under the License.
 
 import torch
+from torch.nn.utils.convert_parameters import _check_param_device
 
 
 # based on code found in PyTorch
@@ -53,37 +54,3 @@ def vector_to_grads(vec, parameters):
 
         # Increment the pointer
         pointer += num_param
-
-
-def _check_param_device(param, old_param_device):
-    r"""This helper function is to check if the parameters are located
-    in the same device. Currently, the conversion between model parameters
-    and single vector form is not supported for multiple allocations,
-    e.g. parameters in different GPUs, or mixture of CPU/GPU.
-
-    :param param: a Tensor of a parameter of a model
-    :type param: torch.Tensor
-    :param old_param_device: the device where the first parameter of a model
-                             is allocated.
-    :type old_param_device: int
-
-    :returns: old_param_device or -1
-    :rtype: int
-    """
-
-    # Meet the first parameter
-    if old_param_device is None:
-        old_param_device = param.get_device() if param.is_cuda else -1
-    else:
-        different_devices = False
-        if param.is_cuda:  # Check if in same GPU
-            different_devices = param.get_device() != old_param_device
-        else:  # Check if in CPU
-            different_devices = old_param_device != -1
-
-        if different_devices:
-            raise TypeError(
-                "Found two parameters on different devices, "
-                "this is currently not supported."
-            )
-    return old_param_device
