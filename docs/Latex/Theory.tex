@@ -64,13 +64,9 @@
 
 \section*{Abstract}
 {\bf
-	In this post we present an open-source Python package called QuCumber.
-	QuCumber uses Restricted Boltzmann Machines for the reconstruction of quantum states
-	from measurement data. The use of modern machine learning techniques makes it possible
-	to efficiently learn quantum states and access traditionally challenging many-body quantities
-	which are not directly accessible to experiments. We give examples of how to use QuCumber
-	on positive-real and complex wavefunctions and how to extract meaningful observables such as
-	energy, magnetization and fidelity.
+	In this post we present QuCumber, an open-source Python package which uses Restricted Boltzmann Machines for the reconstruction of quantum states from measurement data. 
+    The use of modern machine learning techniques makes it possible to efficiently learn quantum states and access traditionally challenging many-body quantities which are not directly accessible to experiments. 
+    We give examples of how to use QuCumber on positive-real and complex wavefunctions and how to extract meaningful observables such as energy, magnetization and fidelity.
 }
 
 \vspace{10pt}
@@ -82,25 +78,27 @@
 \section{Introduction}
 
 Scientific progress in controlled quantum systems has allowed for increasingly large-scale devices which can accurately prepare pure quantum states.
-As the size of these devices grows to hundreds of qubits, we face the challange of analysizing highly complex many-body states with a finite set of experimental measurments.
-Since this computational power grows exponentially with the number of qubits, there is a growing interest in using machine learning techniques which can successfully distill meaningful statistis from incredible amounts of data.
-In this post, we present a software package for representing large many-body state with machine learning models which can be used to improve characterization and analysis of wavefunctions produced from near-term highly-controlled quantum devices.
+As the size of these devices grows to hundreds of qubits, we face the challenge of analyzing highly complex many-body states with a finite set of experimental measurements.
+Since this computational power grows exponentially with the number of qubits, there is a growing interest in using machine learning techniques which can successfully distill meaningful statistics from incredible amounts of data.
+In this post, we present a software package for representing large many-body state with machine learning models which can be used to improve characterization and analysis of wave functions produced from near-term highly-controlled quantum devices.
 
-One of the most successful generative models is the Restricted Boltzmann Machine (RBM)~\cite{Smolensky}.
-An RBM consists of an Ising model with tunable couplings which can be optimized during a training procedure.
-RBMs can represent many complex objects including handwritten digit, natural images, and many-body systems wavefunctions~\cite{Torlai2016thermo, torlai2018tomography, CarleoTroyer2017Science,ChenWang2018,GlasserCirac2018}.
+QuCumber is based on Restricted Boltzmann Machines (RBMs), one of the most successful generative models from machine learning~\cite{Smolensky}.
+RBMs can represent many complex objects including handwritten digit, natural images, and many-body wave functions~\cite{Torlai2016thermo, CarleoTroyer2017Science, ChenWang2018, GlasserCirac2018}.
+An RBM is physically described as a classical Ising model with tunable couplings which can be optimized during a training procedure.
+As such, it can be interpreted as a graphical representation of a probability distribution.
+With further modifications, one can represent complex wave functions with an amplitude and phase~\cite{torlai2018tomography}.
 
-Here we introduce a Python package called QuCumber: a Quantum Calculator Used for Many-Body Eigenstate Reconstruction using RBMs.
-QuCumber is a freely accessible open-source software package that implements an RBM and trains it on experimental data representing measurements of qubit eigenvalues, spin states, orbital occupation numbers, etc.
-QuCumber optimizes the parameters of an RBM to produce model the most likely quantum state given series of measurements.
-This is analagous to the maximum likelihood technique, baysian inferenace and quantum state tomography,
+The need for QuCumber arises from the growing availability of high quality data are large-scale quantum devices. 
+QuCumber provides a freely accessible open-source software package that implements wave function reconstruction with RBMs directly from experimental data representing measurements of qubit eigenvalues, spin states, orbital occupation numbers, etc.
+QuCumber can be used to optimize the parameters of an RBM to produce model the most likely quantum state given series of measurements.
+This is analogous to the maximum likelihood technique, Bayesian inference or quantum state tomography, 
 however, our method does not scale exponentially with system size.
-Once trained, the RBM parameters encodes a compressed version of the underlying wavefunction
-New quantum state measurements can then be generated by the RBM, and observables that are otherwise not easily accessible from the original data can be straightforwardly calculated.
+Once trained, the RBM parameters encodes a compressed version of the underlying wave function
+New quantum state measurements can then be generated by the RBM, and observables that are otherwise not easily accessible from the original data can be calculated. Examples of which include off-diagonal correlation functions and entanglement entropies~\cite{Torlai2016thermo, torlai2018tomography}
 
-This technique has been used in the past to reconstruct wavefunctions from simulation and experimental data, and to make non-trivial measurements such as off-diagonal correlation functions and entanglement entropies~\cite{Torlai2016thermo, torlai2018tomography}.
+%QuCumber builds on previous studies which reconstructed wave functions from simulation and experimental data which showed suitable trained RBMs can represent non-trivial measurements such as off-diagonal correlation functions and entanglement entropies~\cite{Torlai2016thermo, torlai2018tomography}.
 In this paper, we describe how QuCumber can be used for these and other tasks in characterizing quantum many-body phenomenon on hundreds or thousands of qubits.
-In the following, we provide code snippets written in Python 3, using PyTorch with CPU and GPU support~\cite{paszke2018automativ}.
+In the following, we provide code snippets written in Python 3, using PyTorch with CPU and GPU support~\cite{paszke2017automatic}.
 We refer the reader to the full code documentation (\url{https://piquil.github.io/QuCumber/}) for further information on the code structure and operation.
 
 
@@ -130,25 +128,20 @@ and QuCumber may also be used to reconstruct a wavefunction's full amplitude and
 We discuss this case with a simple example in Section \ref{Sec:Training_QuCumber_on_complex_wavefunctions}.
 
 Below we provide a starting point for writing code employing QuCumber.
-However, there is much more theory to learn on the physics of wavefunction reconstruction with RBMs than present in this document.
-For the necessary background, the reader is urged to consult the relevant scientific literature, in particular Refs.~\cite{Torlai2016thermo, torlai2018tomography}.
+%However, there is much more theory to learn on the physics of wavefunction reconstruction with RBMs than present in this document.
+For further background, the reader is urged to consult the relevant scientific literature, in particular Refs.~\cite{Torlai2016thermo, torlai2018tomography}.
 A glossary of useful terms and equations appears at the end of the post in Section \ref{Glossary}.
 In addition, extensive theoretical documentation and code tutorials are provided in the documentation for QuCumber at \url{https://piquil.github.io/QuCumber/}.
 
 
 \section{Positive Real Wavefunctions}
 
-In this section, we discuss the application of QuCumber to wavefunctions that are positive and real-valued in the computational basis.
-That is, the expansion of the wavefunction has all positive and real coefficients in the basis in which experiments are performed.
-In this case, QuCumber has a highly efficient parallizable method to reconstuct the most likely state consistant with the measurements.
+In this section, we discuss the application of QuCumber to wave functions that are positive and real-valued in the computational basis.
+That is, the expansion of the wave function has all positive and real coefficients in the basis in which experiments are performed.
+In this case, QuCumber has a highly efficient parallelizable method to determine the most likely state consistent with the given measurements.
 As an example, we demonstrate how to train and sample a QuCumber RBM model with measurements from the one-dimensional transverse-field Ising model (TFIM).
 
-
-% a prototypical quantum Hamiltonian with a positive real wavefunction in the basis given by the $z$ component of a quantum spin.
-
-%In Section~\ref{Sec:Training_QuCumber_on_complex_wavefunctions} we expand this approach to the case of a general wavefunction with complex expansion coefficients.
-
-\subsection{Example: 1D TFIM}
+\subsection{Transverse field Ising model}
 \label{Sec:Training_TFIM}
 
 The Hamiltonian for the transverse-field Ising model (TFIM) is given by
@@ -159,6 +152,9 @@ where $\sigma^{\alpha}_i$ is a spin-1/2 Pauli operator on site $i$, with $\alpha
 For training data, we use a synthetic data set consisting of $N=10,000$ measurements in the $\sigma^z$-basis for 10 spins, generated with standard numerical techniques~\cite{itensor}.
 The example dataset is provided in \url{https://github.com/PIQuIL/QuCumber/blob/master/examples/01_Ising/tfim1d_train_samples.txt}.
 
+
+\subsection{Example measurements}
+%\label{Sec:Training_TFIM}
 To begin with wavefunction reconstruction, the input data needs to be in a numpy array or a torch tensor.
 For a spin system with 10 physical spins and measurements of every spin, one input data point will be an array of the form
 \verb|np.array([1,0,1,1,0,1,0,0,0,1])|
@@ -176,7 +172,7 @@ Loading the tutorial data can be done as follows,
 	import qucumber.utils.data as data
 
 	train_path = "fim1d_train_samples.txt"
-	psi_path = "tfim1d_psi.txt"
+	psi_path   = "tfim1d_psi.txt"
 	train, psi = data.load_data(train_path, psi_path)
 \end{python}
 
@@ -201,6 +197,8 @@ The biases are initialized to zero, and the weights are initalized randomly acco
 	nn_state = PositiveWavefunction(num_visible=10, num_hidden=10)
 \end{python}
 
+\subsection{Training an RBM}
+
 The neural network wavefunction object can be trained with the constrastive divergence algorithm using various optimizers (see \url{https://pytorch.org/docs/stable/optim.html}).
 This is implimented with the function \verb|PositiveWavefunction.fit|, which takes a number of hyperparameters.
 The choice of hyperparameter depends on the complexity of the system and also the training set size.
@@ -209,7 +207,7 @@ The number of Gibbs sampling steps \verb|k|, which dictates the number of steps 
 influences the speed of the training. The smaller we choose $k$, the faster is the training. High values on the other hand give a better approximation for the model distribution. It has been shown that even for $k_{cd}=1$ the RBM trains well for many typical cases\cite{hinton2002training}.
 
 \begin{python}
-	nn_state.fit(train_set, epochs=1000, batch_size=100, lr=1e-2, k=10)
+	nn_state.fit(train, epochs=1000, batch_size=100, lr=1e-2, k=10)
 \end{python}
 
 The success of training can be tracked by different measures, like the convergence of the energy or other observables.
@@ -225,7 +223,7 @@ We set $n=50$ in this example.
 
 	nn_state.space = nn_state.generate_Hilbert_space(10)
 	callbacks = [MetricEvaluator(50, {"Fidelity": ts.fidelity, "KL": ts.KL},
-	target_psi=psi)]
+       	                       target_psi=psi)]
 \end{python}
 which outputs
 \begin{python}
@@ -255,6 +253,57 @@ After training is complete, the target distribution is encoded in the parameters
 The quality of the approximate wavefunction reconstruction depends on many factors, such as the number of hidden units, size of the training set, or errors in the training procedure.
 Evaluating and quantifying it is the task of the user for his or her given application; we outline some strategies in Section \ref{Callbacks}.
 
+\subsubsection{Callbacks and monitoring training}
+\label{Sec:Callbacks}
+
+So far there is no certainty that the RBM performs well and indeed learns the probability distribution it is supposed to learn.
+Therefore we introduce the concept of callbacks and the learning rate. The learning rate is crucial for the success of the training
+and has to be adjusted if the the RBM performs poorly.
+To tract a certain observable like the energy or the fidelity during the training, one can implement it as a class in the \textbf{This should be outdated!!} \verb|observable.py| file and monitor it via callbacks.
+\textcolor{red}{[I think it's weird to introduce the learning rate here]}
+
+\begin{python}
+	Show example here
+\end{python}
+
+The user can track the training progress via these callbacks, for example by checking whether the energy converges to a reasonable value.
+If the system size is not too big, one can even check whether the approximate RBM probability distribution has high fidelity with the theoretical state that should be learned.
+\textbf{We could add plots with different learning behaviour to give a idea of bad learning rates}
+The learning rate is a hyperparamter that can be adjusted if the training performance is poor. \textcolor{red}{that's also stated above}
+The lower the learning rate, the slower the training, but the more likely it is to find a good minimum of the objective function.
+Large learning rates speed up the training and make it more likely to jump out of a local minimum, but they tend not to converge nicely.
+Good practical values for the learning rates lie typically in the interval $[0.001, 0.1]$.
+
+
+\subsubsection{Monitoring fidelity for small systems}
+\textcolor{red}{[AN INTRO SENTENCE ABOUT FIDELITY?]}
+If one has access to the full quantum state $\ket{\phi} = \sum_{\bm{\sigma}} \phi(\bm{\sigma}) \ket{ \bm{\sigma}}$
+and knows the coefficients $\phi(\bm{\sigma})$ that are approximated by the RBM
+$\psi_{\bm{\lambda}}(\bm{\sigma}) = \sqrt{p_{\bm{\lambda}}(\bm{\sigma})}$,
+the fidelity can be computed via $\sum_{\bm{\sigma}} \phi(\bm{\sigma}) \psi_{\bm{\lambda}}(\bm{\sigma})$.
+This can be used to compare the reconstructed wavefunction with the state underlying the measurement data, for example.
+Because of the exponential growth of the wavefunction in the number of qubits, this is of course only feasible for small physical systems.
+\begin{python}
+    import utils.training_statistics as ts
+    train_stats = ts.TrainingStatistics(train_samples.shape[-1],log_every)
+\end{python}
+%
+To effectively calculate the fidelity with a theoretical (\textcolor{red}{what's a theoretical state?}) state $\ket{\phi}$, one needs to load the coefficients $\phi(\bm{\sigma})$. In this example we create a random state with $2^N$ coefficients, where $N=10$ is the system size.
+
+\textbf{fidelity seems not to work, because partition function is 0.}
+
+\begin{python}
+    N = 10 # Define system size
+    phi = np.textload(...) # load wavefunction of TFIM
+    train_stats.load_target_psi(phi)
+    train_stats.fidelity(PositiveWavefunction)
+    fidelity = train_stats.F
+\end{python}
+
+\textcolor{red}{[Let's load wavefunction of TFIM and calculate fidelity with the trained RBM from TFIM]}
+
+
+\subsection{Saving and loading a model}
 These parameters can be saved to file with
 
 \begin{python}
@@ -265,7 +314,7 @@ These parameters can be saved to file with
 
 %\section{What can I do with a trained RBM?}
 
-\section{Sampling a trained RBM}
+\subsection{Sampling from a RBM}
 \label{Sec:Sampling_a-Trained_RBM}
 
 RBMs are generative models, which means that they can produce new configurations of visible and hidden units
@@ -280,7 +329,7 @@ Drawing these samples is the main purpose of generative modelling.
 They can be used for a variety of tasks defined by the user.
 For example, they can be used used to calculate estimators for some physical observable.
 
-\subsection{Observables}
+\subsubsection{Observables}
 \label{Sec:Observables}
 
 Observables like energy, magnetization, or correlation functions can be calculated directly on the sampled data from the RBM.
@@ -312,7 +361,7 @@ Therefore, we now turn to a discussion of a specific model example. In Section~\
 Now we will show how to calculate several quantities of interest from the learned distribution.
 
 
-\subsection{Example: Magnetization and Energy of a TFIM chain}
+\subsubsection{Magnetization}
 
 The magnetization of an Ising chain can be calculated simply by averaging over all $\sigma^z$ measurements of the chain.
 Since the RBM can only sample in the $\sigma^z$ direction, we have to average over the sample $\bm{\sigma}$. The only additional step that has to be performed is the convergence from binary values $\{0,1 \}$ to actual spin measurements $\{-1 ,1 \}$. \textcolor{red}{[I don't understand this paragraph]}
@@ -321,6 +370,7 @@ Since the RBM can only sample in the $\sigma^z$ direction, we have to average ov
 	magnetization = samples.mean()
 \end{python}
 
+\subsubsection{Energy using Observables module}
 %\subsection{Example2: Energy of a TFIM chain}
 
 For the transverse field Ising model a standard observable is the energy, obtained as the expectation value of
@@ -362,55 +412,9 @@ The \verb|observable.py| package contains a few examples like this.
 	Energy = simulation['energy']
 \end{python}
 
-\subsection{Fidelity}
-\textcolor{red}{[AN INTRO SENTENCE ABOUT FIDELITY?]}
-If one has access to the full quantum state $\ket{\phi} = \sum_{\bm{\sigma}} \phi(\bm{\sigma}) \ket{ \bm{\sigma}}$
-and knows the coefficients $\phi(\bm{\sigma})$ that are approximated by the RBM
-$\psi_{\bm{\lambda}}(\bm{\sigma}) = \sqrt{p_{\bm{\lambda}}(\bm{\sigma})}$,
-the fidelity can be computed via $\sum_{\bm{\sigma}} \phi(\bm{\sigma}) \psi_{\bm{\lambda}}(\bm{\sigma})$.
-This can be used to compare the reconstructed wavefunction with the state underlying the measurement data, for example.
-Because of the exponential growth of the wavefunction in the number of qubits, this is of course only feasible for small physical systems.
-\begin{python}
-	import utils.training_statistics as ts
-	train_stats = ts.TrainingStatistics(train_samples.shape[-1],log_every)
-\end{python}
-%
-To effectively calculate the fidelity with a theoretical (\textcolor{red}{what's a theoretical state?}) state $\ket{\phi}$, one needs to load the coefficients $\phi(\bm{\sigma})$. In this example we create a random state with $2^N$ coefficients, where $N=10$ is the system size.
 
-\textbf{fidelity seems not to work, because partition function is 0.}
 
-\begin{python}
-	N = 10 # Define system size
-	phi = np.textload(...) # load wavefunction of TFIM
-	train_stats.load_target_psi(phi)
-	train_stats.fidelity(PositiveWavefunction)
-	fidelity = train_stats.F
-\end{python}
-
-\textcolor{red}{[Let's load wavefunction of TFIM and calculate fidelity with the trained RBM from TFIM]}
-
-\section{Callbacks and monitoring the training}
-\label{Sec:Callbacks}
-
-So far there is no certainty that the RBM performs well and indeed learns the probability distribution it is supposed to learn.
-Therefore we introduce the concept of callbacks and the learning rate. The learning rate is crucial for the success of the training
-and has to be adjusted if the the RBM performs poorly.
-To tract a certain observable like the energy or the fidelity during the training, one can implement it as a class in the \textbf{This should be outdated!!} \verb|observable.py| file and monitor it via callbacks.
-\textcolor{red}{[I think it's weird to introduce the learning rate here]}
-
-\begin{python}
-	Show example here
-\end{python}
-
-The user can track the training progress via these callbacks, for example by checking whether the energy converges to a reasonable value.
-If the system size is not too big, one can even check whether the approximate RBM probability distribution has high fidelity with the theoretical state that should be learned.
-\textbf{We could add plots with different learning behaviour to give a idea of bad learning rates}
-The learning rate is a hyperparamter that can be adjusted if the training performance is poor. \textcolor{red}{that's also stated above}
-The lower the learning rate, the slower the training, but the more likely it is to find a good minimum of the objective function.
-Large learning rates speed up the training and make it more likely to jump out of a local minimum, but they tend not to converge nicely.
-Good practical values for the learning rates lie typically in the interval $[0.001, 0.1]$.
-
-\section{Training QuCumber for complex wavefunctions}
+\section{Complex wavefunctions}
 \label{Sec:Training_QuCumber_on_complex_wavefunctions}
 
 For the positive-real wavefunctions there is no additional information contained in the wavefunction
@@ -437,6 +441,7 @@ with the unitary $U (\bm{\sigma}^b, \bm{\sigma})$ that rotates the state $\ket{\
 
 Our objective is to learn the full complex wavefunction $\psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma})$ in the reference basis (in this case, the computational basis) from the measurements of the rotated wavefunction $\psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma}^b)$.
 The RBM again is trained by minimizing the negative log-likelihood (NLL). Following~\cite{} \textbf{ADD REFERENCE TO GIACOMOS THESIS OR SOMETHING THAT SHOWS THE MATH OF THE COMPLEX WAVEFUNCTION}, the gradients of the NLL will contain the unitaries $U (\bm{\sigma}^b, \bm{\sigma})$, and therefore we have to apply a slightly different learning algorithm.
+
 
 \subsection{A two-qubit example}
 
@@ -551,7 +556,7 @@ and start the training:
 After the training we can calculate state fidelity, observables or sample from the complex wavefunction
 the same way we did from the real-positive wavefunction. However, one has to keep in mind that the sampling only works in the Z basis.
 
-\subsection{Generalize unitaries to the dictionary}
+\subsection{Defining general unitaries}
 
 QuCumber contains by default the unitaries $\mathds{1}$, $H$ and $K$, with:
 
@@ -623,6 +628,22 @@ We provide example code for any of these tasks to give the user a first impressi
 
 In the future QuCumber will be extended to the application of quantum state tomography on mixed states, multinomial quantum systems (like boson systems) and eventually on continuous variable systems.
 
+\section*{Acknowledgements}
+We thank G. Carleo, J. Carrasquilla and L. Hayward Sierens for stimulating discussions.
+PIQuIL is supported by the Perimeter Institute for Theoretical Physics.
+
+% TODO: include author contributions
+\paragraph{Author contributions}
+Authors are listed alphabetically. For an updated record of individual contributions, consult the repository at \url{https://github.com/PIQuIL/QuCumber/graphs/contributors}.
+
+% TODO: include funding information
+\paragraph{Funding information}
+P.H. acknowledges support from ICFOstepstone - PhD Programme for Early-Stage Researchers in Photonics, funded by the Marie Sklodowska-Curie Co-funding of regional, national and international programmes (GA665884) of the European Commission, as well as by the Severo Ochoa 2016-2019' program at ICFO (SEV-2015-0522), funded by the Spanish Ministry of Economy, Industry, and Competitiveness (MINECO).
+R.G.M. is supported in part by funding from the Natural Sciences and Engineering Research Council of Canada (NSERC) and a Canada Research Chair.
+Research at Perimeter Institute is supported by the Government of Canada through Industry Canada and by the Province of Ontario through the Ministry of Research \& Innovation.
+
+
+\appendix
 \section{Glossary}
 \label{Glossary}
 
@@ -679,28 +700,6 @@ We list an overview of terms discussed in the document and relevant for RBMs. Fo
 \end{itemize}
 
 
-\section*{Acknowledgements}
-We thank G. Carleo, J. Carrasquilla and L. Hayward Sierens for stimulating discussions.
-PIQuIL is supported by the Perimeter Institute for Theoretical Physics.
-
-% TODO: include author contributions
-\paragraph{Author contributions}
-Authors are listed alphabetically. For an updated record of individual contributions, consult the repository at \url{https://github.com/PIQuIL/QuCumber/graphs/contributors}.
-
-% TODO: include funding information
-\paragraph{Funding information}
-P.H. acknowledges support from ICFOstepstone - PhD Programme for Early-Stage Researchers in Photonics, funded by the Marie Sklodowska-Curie Co-funding of regional, national and international programmes (GA665884) of the European Commission, as well as by the Severo Ochoa 2016-2019' program at ICFO (SEV-2015-0522), funded by the Spanish Ministry of Economy, Industry, and Competitiveness (MINECO).
-R.G.M. is supported in part by funding from the Natural Sciences and Engineering Research Council of Canada (NSERC) and a Canada Research Chair.
-Research at Perimeter Institute is supported by the Government of Canada through Industry Canada and by the Province of Ontario through the Ministry of Research \& Innovation.
-
-
-\begin{appendix}
-
-	\section{How to install QuCumber}
-
-	\begin{python}
-		pip install qucumber
-	\end{python}
 
 	\section{Algorithm for a real positive wave function}
 	The training algorithm of the RBM has the following structure.
@@ -790,10 +789,6 @@ Research at Perimeter Institute is supported by the Government of Canada through
 		return $\bm{h}$ and $\bm{p}(\bm{h} = 1|\bm{v})$\;
 
 	\end{algorithm}
-
-
-\end{appendix}
-
 
 % TODO:
 % Provide your bibliography here. You have two options:
