@@ -22,7 +22,7 @@ import torch
 from torch.nn.utils import parameters_to_vector
 
 import qucumber
-from qucumber.nn_states import PositiveWavefunction
+from qucumber.nn_states import PositiveWavefunction, ComplexWavefunction
 from qucumber.quantum_reconstruction import QuantumReconstruction
 
 
@@ -38,11 +38,26 @@ def test_positive_wavefunction():
     old_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
     data = torch.ones(100, 10)
-
     qr.fit(data, epochs=1, pos_batch_size=10, neg_batch_size=10)
 
     new_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
     msg = "PositiveWavefunction's parameters did not change!"
+    assert not torch.equal(old_params, new_params), msg
 
+
+def test_complex_wavefunction():
+    qucumber.set_random_seed(SEED, cpu=True)
+
+    nn_state = ComplexWavefunction(10, gpu=False)
+    qr = QuantumReconstruction(nn_state)
+
+    old_params = parameters_to_vector(nn_state.rbm_am.parameters())
+
+    data = torch.ones(100, 10)
+    qr.fit(data, epochs=1, pos_batch_size=10, neg_batch_size=10)
+
+    new_params = parameters_to_vector(nn_state.rbm_am.parameters())
+
+    msg = "ComplexWavefunction's parameters did not change!"
     assert not torch.equal(old_params, new_params), msg
