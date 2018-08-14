@@ -20,9 +20,9 @@ Complex Wavefunction
     :inherited-members:
     :show-inheritance:
 
-AbstractWavefunction
+Wavefunction
 ------------------------------
 
-.. autoclass:: qucumber.nn_states.AbstractWavefunction
+.. autoclass:: qucumber.nn_states.Wavefunction
     :members:
     :show-inheritance:
