@@ -135,7 +135,7 @@ def license_check(c):
         num_fails += int(is_license_missing(str(path)))
 
     if num_fails > 0:
-        raise RuntimeError(f"License Header missing in {num_fails} files.")
+        raise RuntimeError("License Header missing in {} files.".format(num_fails))
     else:
         print("License checking completed successfully.")
 
