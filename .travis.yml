@@ -29,13 +29,13 @@ install:
 
 script:
   - inv license-check
-  - echo -en 'travis_fold:start:pkg_install\\r' && python setup.py install && echo -en 'travis_fold:end:pkg_install\\r'
+  - echo -en 'travis_fold:start:pkg_install' && python setup.py install && echo -en 'travis_fold:end:pkg_install'
   -
-  - if [[ $TRAVIS_BRANCH != "master" ]]; then echo -en 'travis_fold:start:pytest\\r' && pytest -s -k 'not slow' && echo -en 'travis_fold:end:pytest\\r'; fi # don't test gradients if not on master branch
-  - if [[ $TRAVIS_BRANCH == "master" ]]; then echo -en 'travis_fold:start:pytest\\r' && pytest -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing && echo -en 'travis_fold:end:pytest\\r'; fi
+  - if [[ $TRAVIS_BRANCH != "master" ]]; then echo -en 'travis_fold:start:pytest' && pytest -s -k 'not slow' && echo -en 'travis_fold:end:pytest'; fi # don't test gradients if not on master branch
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then echo -en 'travis_fold:start:pytest' && pytest -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing && echo -en 'travis_fold:end:pytest'; fi
   - inv flake8
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv blacken -l 88 --diff --check; fi
-  - echo -en 'travis_fold:start:pkg_build\\r' && python setup.py sdist bdist_wheel && echo -en 'travis_fold:end:pkg_build\\r'
+  - echo -en 'travis_fold:start:pkg_build' && python setup.py sdist bdist_wheel && echo -en 'travis_fold:end:pkg_build'
 
 after_success:
   - if [[ $TRAVIS_BRANCH == "master" ]]; then codecov; fi
