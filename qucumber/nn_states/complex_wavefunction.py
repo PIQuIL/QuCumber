@@ -120,7 +120,7 @@ class ComplexWavefunction(Wavefunction):
         return -0.5 * self.rbm_ph.effective_energy(v)
 
     def psi(self, v):
-        r"""Compute the wavefunction of a given vector/matrix of visible states.
+        r"""Compute the (unnormalized) wavefunction of a given vector/matrix of visible states.
 
         .. math::
 
