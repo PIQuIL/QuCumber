@@ -32,7 +32,6 @@ import qucumber.utils.training_statistics as ts
 import qucumber.utils.unitaries as unitaries
 from qucumber.callbacks import MetricEvaluator
 from qucumber.nn_states import ComplexWavefunction, PositiveWavefunction
-from qucumber.quantum_reconstruction import QuantumReconstruction
 from . import __tests_location__
 
 SEED = 1234
@@ -57,12 +56,11 @@ def test_positive_wavefunction(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
 
     nn_state = PositiveWavefunction(10, gpu=gpu)
-    qr = QuantumReconstruction(nn_state)
 
     old_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
     data = torch.ones(100, 10)
-    qr.fit(data, epochs=1, pos_batch_size=10, neg_batch_size=10)
+    nn_state.fit(data, epochs=1, pos_batch_size=10, neg_batch_size=10)
 
     new_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
@@ -90,7 +88,6 @@ def test_complex_wavefunction(gpu):
     np.random.seed(SEED)
 
     nn_state = ComplexWavefunction(10, gpu=gpu)
-    qr = QuantumReconstruction(nn_state)
 
     old_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
@@ -99,7 +96,7 @@ def test_complex_wavefunction(gpu):
     # generate sample bases randomly, with probability 0.9 of being 'Z', otherwise 'X'
     bases = np.where(np.random.binomial(1, 0.9, size=(100, 10)), "Z", "X")
 
-    qr.fit(data, epochs=1, pos_batch_size=10, input_bases=bases)
+    nn_state.fit(data, epochs=1, pos_batch_size=10, input_bases=bases)
 
     new_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
@@ -151,11 +148,9 @@ class TestExamples(unittest.TestCase):
                 )
             ]
 
-            qr = QuantumReconstruction(nn_state)
-
             self.initialize_posreal_params(nn_state)
 
-            qr.fit(
+            nn_state.fit(
                 train_samples,
                 epochs,
                 batch_size,
@@ -240,11 +235,9 @@ class TestExamples(unittest.TestCase):
                 )
             ]
 
-            qr = QuantumReconstruction(nn_state)
-
             self.initialize_complex_params(nn_state)
 
-            qr.fit(
+            nn_state.fit(
                 train_samples,
                 epochs,
                 batch_size,

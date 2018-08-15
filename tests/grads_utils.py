@@ -61,8 +61,8 @@ class PosGradsUtils:
             )
         return grad_KL
 
-    def algorithmic_gradNLL(self, qr, data, k):
-        return qr.compute_batch_gradients(k, data, data)
+    def algorithmic_gradNLL(self, data, k):
+        return self.nn_state.compute_batch_gradients(k, data, data)
 
     def numeric_gradKL(self, target_psi, param, vis, eps):
         num_gradKL = []
@@ -237,8 +237,10 @@ class ComplexGradsUtils:
 
         return KL
 
-    def algorithmic_gradNLL(self, qr, data_samples, data_bases, k):
-        return qr.compute_batch_gradients(k, data_samples, data_samples, data_bases)
+    def algorithmic_gradNLL(self, data_samples, data_bases, k):
+        return self.nn_state.compute_batch_gradients(
+            k, data_samples, data_samples, data_bases
+        )
 
     def numeric_gradNLL(self, data_samples, data_bases, unitary_dict, param, vis, eps):
         num_gradNLL = []
