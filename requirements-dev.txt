@@ -2,6 +2,8 @@ torch==0.4.1
 tqdm>=4.23
 numpy>=1.14
 matplotlib>=2.2
+setuptools>=40.0.0
+wheel>=0.31.1
 black==18.6b4; python_version == '3.6'
 flake8>=3.5.0
 flake8-per-file-ignores>=0.6

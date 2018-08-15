@@ -25,7 +25,6 @@ matrix:
 
 install:
   - travis_retry pip install -q -r requirements-dev.txt
-  - travis_retry pip install -q setuptools wheel
 
 script:
   - inv license-check
