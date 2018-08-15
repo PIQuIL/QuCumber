@@ -259,3 +259,7 @@ class Wavefunction(abc.ABC):
                   The returned Wavefunction will be of whichever type this function
                   was called on.
         """
+
+
+# make module path show up properly in sphinx docs
+Wavefunction.__module__ = "qucumber.nn_states"

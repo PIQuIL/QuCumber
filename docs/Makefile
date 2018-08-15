@@ -28,7 +28,7 @@ livehtml:
 		-z ../qucumber \
 		-z ../examples \
 		-i *.swp \
-		-r '(?!_examples)[^\.].*' \
+		-r '_examples/*' \
 		-i Makefile \
 		-b html \
 		$(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
@@ -38,7 +38,7 @@ livetest:
 		-z ../qucumber \
 		-z ../examples \
 		-i *.swp \
-		-r '(?!_examples)[^\.].*' \
+		-r '_examples/*' \
 		-i Makefile \
 		-b dummy \
 		$(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)
