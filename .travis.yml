@@ -14,7 +14,14 @@ cache:
 python:
   - '3.5'
   - '3.6'
-  # - '3.7'  # travis doesn't support 3.7 yet
+  # - '3.7'
+  # travis doesn't support 3.7 yet; once it does, uncomment this and delete the python 3.7 blurb below
+
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
 
 install:
   - travis_retry pip install -r requirements.txt
