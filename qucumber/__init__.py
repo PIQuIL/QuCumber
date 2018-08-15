@@ -19,7 +19,10 @@
 
 
 import warnings
+
 import torch
+
+from . import __version__
 
 
 def _warn_on_missing_gpu(gpu):
