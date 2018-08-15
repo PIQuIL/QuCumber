@@ -1,6 +1,6 @@
 Welcome to QuCumber's documentation!
 ====================================
-Version: |version| - |release|
+Version: |version|
 
 
 .. toctree::

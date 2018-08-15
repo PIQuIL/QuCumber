@@ -216,7 +216,9 @@ class Wavefunction(abc.ABC):
         # validate metadata
         for net in self.networks:
             if net in metadata.keys():
-                raise ValueError(f"Invalid key in metadata; '{net}' cannot be a key!")
+                raise ValueError(
+                    "Invalid key in metadata; '{}' cannot be a key!".format(net)
+                )
 
         data = {net: getattr(self, net).state_dict() for net in self.networks}
         data.update(**metadata)

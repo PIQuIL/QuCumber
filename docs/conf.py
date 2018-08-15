@@ -59,6 +59,7 @@ with open("../qucumber/__version__.py", "r") as f:
     # The full version, including alpha/beta/rc tags
     release = version
 
+
 print("Building version: " + version + "; release: " + release)
 
 # -- General configuration ---------------------------------------------------
@@ -314,12 +315,12 @@ nbsphinx_execute = "never"
 
 conf_location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-
-print("Copy example notebooks into docs/_examples")
-
-
-# adapted from:
+# the following code snippet was adapted from:
 # https://github.com/spatialaudio/nbsphinx/issues/170#issuecomment-373497587
+
+print("Copying example notebooks into docs/_examples")
+
+
 def all_but_ipynb(directory, contents):
     return [
         c
