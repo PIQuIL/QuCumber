@@ -30,7 +30,7 @@ script:
   - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -k 'not slow'; fi # don't test gradients if not on master branch
   - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing; fi
   - inv flake8
-  - inv blacken -l 88 --diff --check
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv blacken -l 88 --diff --check; fi
   - python setup.py sdist bdist_wheel
 
 after_success:
