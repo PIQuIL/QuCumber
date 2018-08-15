@@ -30,11 +30,11 @@ install:
 script:
   - inv license-check
 
-  - echo -n 'Installing package...' && echo -n 'travis_fold:start:pkg_install'
+  - echo 'Installing package...' && echo -n 'travis_fold:start:pkg_install'
   - python setup.py install
   - echo -n 'travis_fold:end:pkg_install'
 
-  - echo -n 'Running tests...' && echo -n 'travis_fold:start:pytest'
+  - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
   - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -k 'not slow'; fi # don't test gradients if not on master branch
   - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing; fi
   - echo -n 'travis_fold:end:pytest'
@@ -42,7 +42,7 @@ script:
   - inv flake8
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv blacken -l 88 --diff --check; fi
 
-  - echo -n 'Building package...' && echo -n 'travis_fold:start:pkg_build'
+  - echo 'Building package...' && echo -n 'travis_fold:start:pkg_build'
   - python setup.py sdist bdist_wheel
   - echo -n 'travis_fold:end:pkg_build'
 
