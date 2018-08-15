@@ -25,16 +25,22 @@ matrix:
 
 install:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install http://download.pytorch.org/whl/cpu/torch-0.4.1.post2-cp37-cp37m-linux_x86_64.whl; fi
-  - travis_retry pip install -q -r requirements-dev.txt
+  - travis_retry pip install -r requirements-dev.txt
 
 script:
   - inv license-check
+  - echo -en 'travis_fold:start:pkg_install\\r'
   - python setup.py install
+  - echo -en 'travis_fold:end:pkg_install\\r'
+  - echo -en 'travis_fold:start:pytest\\r'
   - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -k 'not slow'; fi # don't test gradients if not on master branch
   - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing; fi
+  - echo -en 'travis_fold:end:pytest\\r'
   - inv flake8
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv blacken -l 88 --diff --check; fi
+  - echo -en 'travis_fold:start:pkg_build\\r'
   - python setup.py sdist bdist_wheel
+  - echo -en 'travis_fold:end:pkg_build\\r'
 
 after_success:
   - if [[ $TRAVIS_BRANCH == "master" ]]; then codecov; fi
