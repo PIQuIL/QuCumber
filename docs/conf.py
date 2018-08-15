@@ -37,6 +37,7 @@
 
 import inspect
 import os
+import shutil
 import subprocess
 import sys
 from operator import attrgetter
@@ -311,3 +312,26 @@ def linkcode_resolve(domain, info):
 
 
 nbsphinx_execute = "never"
+
+conf_location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+
+print("Copy example notebooks into docs/_examples")
+
+
+# adapted from:
+# https://github.com/spatialaudio/nbsphinx/issues/170#issuecomment-373497587
+def all_but_ipynb(directory, contents):
+    return [
+        c
+        for c in contents
+        if os.path.isfile(os.path.join(directory, c)) and (not c.endswith(".ipynb"))
+    ]
+
+
+shutil.rmtree(os.path.join(conf_location, "..", "docs/_examples"), ignore_errors=True)
+shutil.copytree(
+    os.path.join(conf_location, "..", "examples"),
+    os.path.join(conf_location, "..", "docs/_examples"),
+    ignore=all_but_ipynb,
+)
