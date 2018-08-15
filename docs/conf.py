@@ -59,7 +59,6 @@ with open("../qucumber/__version__.py", "r") as f:
     # The full version, including alpha/beta/rc tags
     release = version
 
-
 print("Building version: " + version + "; release: " + release)
 
 # -- General configuration ---------------------------------------------------
