@@ -96,7 +96,7 @@ class PositiveWavefunction(Wavefunction):
         return torch.zeros(v.shape[0]).to(v)
 
     def psi(self, v):
-        r"""Compute the wavefunction of a given vector/matrix of visible states.
+        r"""Compute the (unnormalized) wavefunction of a given vector/matrix of visible states.
 
         .. math::
 

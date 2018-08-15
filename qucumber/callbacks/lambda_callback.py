@@ -67,8 +67,8 @@ class LambdaCallback(Callback):
             return lambda *args: None
         else:
             raise TypeError(
-                f"{name} must be either None "
-                f"or a function with {num_params} arguments."
+                "{} must be either None ".format(name)
+                + "or a function with {} arguments.".format(num_params)
             )
 
     def __init__(

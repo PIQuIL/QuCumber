@@ -1,6 +1,6 @@
 Welcome to QuCumber's documentation!
 ====================================
-Version: |release|
+Version: |version|
 
 
 .. toctree::
@@ -9,9 +9,9 @@ Version: |release|
 
    installation
    tutorial
-   _examples/tutorial_quantum_ising.ipynb
-   _examples/tutorial_qubits.ipynb
-   _examples/tutorial_observables.ipynb
+   _examples/01_Ising/tutorial_quantum_ising.ipynb
+   _examples/02_qubits/tutorial_qubits.ipynb
+   _examples/observables/tutorial_observables.ipynb
    theory
 
 

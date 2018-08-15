@@ -12,24 +12,39 @@ cache:
   - pip
 
 python:
+  - '3.5'
   - '3.6'
-  - '3.7'
+  # - '3.7'
+  # travis doesn't support 3.7 yet; once it does, uncomment this and delete the python 3.7 blurb below
+
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
 
 install:
-  - travis_retry pip install -r requirements.txt
-  - travis_retry pip install setuptools wheel
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install http://download.pytorch.org/whl/cpu/torch-0.4.1.post2-cp37-cp37m-linux_x86_64.whl; fi
   - travis_retry pip install -r requirements-dev.txt
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.1.post2-cp37-cp37m-linux_x86_64.whl; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl; fi
 
 script:
   - inv license-check
+
+  - echo 'Installing package...' && echo -n 'travis_fold:start:pkg_install'
   - python setup.py install
+  - echo -n 'travis_fold:end:pkg_install'
+
+  - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
   - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -k 'not slow'; fi # don't test gradients if not on master branch
   - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing; fi
+  - echo -n 'travis_fold:end:pytest'
+
   - inv flake8
-  - inv blacken -l 88 --diff --check
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv blacken -l 88 --diff --check; fi
+
+  - echo 'Building package...' && echo -n 'travis_fold:start:pkg_build'
   - python setup.py sdist bdist_wheel
+  - echo -n 'travis_fold:end:pkg_build'
 
 after_success:
   - if [[ $TRAVIS_BRANCH == "master" ]]; then codecov; fi
