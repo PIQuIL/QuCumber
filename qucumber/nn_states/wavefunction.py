@@ -62,7 +62,7 @@ class Wavefunction(abc.ABC):
             getattr(self, net).initialize_parameters()
 
     def amplitude(self, v):
-        r"""Compute the (unnormalized) amplitude of a given vector/matrix of visible states:
+        r"""Compute the (unnormalized) amplitude of a given vector/matrix of visible states.
 
         .. math::
 
@@ -78,8 +78,10 @@ class Wavefunction(abc.ABC):
 
     @abc.abstractmethod
     def phase(self, v):
-        r"""Compute the phase of a given vector/matrix of visible states:
-        :math:`\text{phase}(\bm{\sigma})`
+        r"""Compute the phase of a given vector/matrix of visible states.
+
+        .. math::
+            \text{phase}(\bm{\sigma})
 
         :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.Tensor
@@ -91,7 +93,10 @@ class Wavefunction(abc.ABC):
     @abc.abstractmethod
     def psi(self, v):
         r"""Compute the (unnormalized) wavefunction of a given vector/matrix of
-        visible states: :math:`\psi(\bm{\sigma})`
+        visible states.
+
+        .. math::
+            \psi(\bm{\sigma})
 
         :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.Tensor

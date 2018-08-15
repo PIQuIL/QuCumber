@@ -173,7 +173,7 @@ def conjugate(x):
 
 
 def kronecker_prod(x, y):
-    """A function that returns the tensor / kronecker product of 2 comlpex
+    """A function that returns the tensor / kronecker product of 2 complex
     tensors, x and y.
 
     :param x: A complex matrix.
