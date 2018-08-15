@@ -26,7 +26,9 @@ test:
 livehtml:
 	sphinx-autobuild \
 		-z ../qucumber \
+		-z ../examples \
 		-i *.swp \
+		-r '(?!_examples)[^\.].*' \
 		-i Makefile \
 		-b html \
 		$(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
@@ -34,7 +36,9 @@ livehtml:
 livetest:
 	sphinx-autobuild -nW \
 		-z ../qucumber \
+		-z ../examples \
 		-i *.swp \
+		-r '(?!_examples)[^\.].*' \
 		-i Makefile \
 		-b dummy \
 		$(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)
