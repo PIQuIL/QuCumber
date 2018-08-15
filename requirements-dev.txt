@@ -1,4 +1,4 @@
-torch==0.4.1
+torch>=0.4.1,<0.4.2
 tqdm>=4.23
 numpy>=1.14
 matplotlib>=2.2

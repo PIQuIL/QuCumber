@@ -24,6 +24,7 @@ matrix:
       sudo: true
 
 install:
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install http://download.pytorch.org/whl/cpu/torch-0.4.1.post2-cp37-cp37m-linux_x86_64.whl; fi
   - travis_retry pip install -q -r requirements-dev.txt
 
 script:
