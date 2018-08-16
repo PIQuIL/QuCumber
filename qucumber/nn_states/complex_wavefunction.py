@@ -45,8 +45,6 @@ class ComplexWavefunction(Wavefunction):
     _device = None
 
     def __init__(self, num_visible, num_hidden=None, unitary_dict=None, gpu=True):
-        super(ComplexWavefunction, self).__init__()
-
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
         self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
@@ -96,10 +94,10 @@ class ComplexWavefunction(Wavefunction):
             \text{amplitude}(\bm{\sigma})=|\psi_{\bm{\lambda\mu}}(\bm{\sigma})|=
             e^{-\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})/2}
 
-        :param v: visible states :math:`\bm{\sigma}`
+        :param v: visible states :math:`\bm{\sigma}`.
         :type v: torch.Tensor
 
-        :returns: Matrix/vector containing the amplitudes of v
+        :returns: Vector containing the amplitudes of the given states.
         :rtype: torch.Tensor
         """
         return super().amplitude(v)
@@ -111,10 +109,10 @@ class ComplexWavefunction(Wavefunction):
 
             \text{phase}(\bm{\sigma})=-\mathcal{E}_{\bm{\mu}}(\bm{\sigma})/2
 
-        :param v: visible states :math:`\bm{\sigma}`
+        :param v: visible states :math:`\bm{\sigma}`.
         :type v: torch.Tensor
 
-        :returns: Matrix/vector containing the phases of v
+        :returns: Vector containing the phases of the given states.
         :rtype: torch.Tensor
         """
         return -0.5 * self.rbm_ph.effective_energy(v)
@@ -135,16 +133,23 @@ class ComplexWavefunction(Wavefunction):
                   each visible state
         :rtype: torch.Tensor
         """
-        amplitude = self.amplitude(v)
-        phase = self.phase(v)
+        # vectors/tensors of shape (len(v),)
+        amplitude, phase = self.amplitude(v), self.phase(v)
 
-        cos_phase = phase.cos()
-        sin_phase = phase.sin()
+        # vector/tensor of shape (len(v),)
+        cos_phase, sin_phase = phase.cos(), phase.sin()
 
-        psi = torch.zeros(2, dtype=torch.double, device=self.device)
-        psi[0] = amplitude * cos_phase
-        psi[1] = amplitude * sin_phase
-        return psi
+        # complex vector; shape: (2, len(v))
+        psi = torch.zeros(
+            (2,) + amplitude.shape, dtype=torch.double, device=self.device
+        )
+
+        # elementwise products
+        psi[0] = amplitude * cos_phase  # real part
+        psi[1] = amplitude * sin_phase  # imaginary part
+
+        # squeeze down to complex scalar if there was only one visible state
+        return psi.squeeze()
 
     def init_gradient(self, basis, sites):
         Upsi = torch.zeros(2, dtype=torch.double, device=self.device)

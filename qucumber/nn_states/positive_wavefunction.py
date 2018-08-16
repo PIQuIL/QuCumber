@@ -39,7 +39,6 @@ class PositiveWavefunction(Wavefunction):
     _device = None
 
     def __init__(self, num_visible, num_hidden=None, gpu=True):
-        super(PositiveWavefunction, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
 
