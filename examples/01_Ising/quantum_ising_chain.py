@@ -28,7 +28,7 @@ __all__ = ["TFIMChainEnergy", "TFIMChainMagnetization"]
 class TFIMChainEnergy(Observable):
     """Observable defining the energy of a Transverse Field Ising Model (TFIM)
     spin chain with nearest neighbour interactions, and :math:`J=1`.
-
+=
     :param h: The strength of the tranverse field
     :type h: float
     :param density: Whether to compute the energy per spin site.
@@ -55,7 +55,7 @@ class TFIMChainEnergy(Observable):
         return torch.bernoulli(p)
 
     def Energy(self, nn_state, samples):
-        """Computes the eneself.Energy(nn_state, v)rgy of each sample given a batch of
+        """Computes the eneself.Energy(nn_state, v)rgy of each sam=ple given a batch of
         samples.
 
         :param samples: A batch of samples to calculate the observable on.
@@ -173,7 +173,7 @@ def Convergence(nn_state, tfim_energy, tfim_sZ, n_measurements, n_eq):
     err_sZ.append((torch.std(sZ) / np.sqrt(sZ.size()[0])).item())
 
     for _steps in range(n_eq):
-        v = nn_state.gibbs_steps(1, v, overwrite=True)
+        v = nn_state.sample(1, n_measurements, initial_state=v, overwrite=True)
 
         energy = tfim_energy.Energy(nn_state, v)
         energy_list.append(energy.mean().item())
