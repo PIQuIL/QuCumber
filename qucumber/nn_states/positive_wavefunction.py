@@ -128,6 +128,76 @@ class PositiveWavefunction(Wavefunction):
         """
         return self.rbm_am.effective_energy_gradient(v)
 
+    def compute_batch_gradients(self, k, samples_batch, neg_batch):
+        """Compute the gradients of a batch of the training data (`samples_batch`).
+
+        :param k: Number of contrastive divergence steps in training.
+        :type k: int
+        :param samples_batch: Batch of the input samples.
+        :type samples_batch: torch.Tensor
+        :param neg_batch: Batch of the input samples for computing the
+                          negative phase.
+        :type neg_batch: torch.Tensor
+
+        :returns: List containing the gradients of the parameters.
+        :rtype: list
+        """
+        return super().compute_batch_gradients(k, samples_batch, neg_batch)
+
+    def fit(
+        self,
+        data,
+        epochs=100,
+        pos_batch_size=100,
+        neg_batch_size=None,
+        k=1,
+        lr=1e-3,
+        progbar=False,
+        time=False,
+        callbacks=None,
+        optimizer=torch.optim.SGD,
+        **kwargs
+    ):
+        """Train the RBM.
+
+        :param data: The training samples
+        :type data: np.array
+        :param epochs: The number of full training passes through the dataset.
+        :type epochs: int
+        :param pos_batch_size: The size of batches for the positive phase
+                               taken from the data.
+        :type pos_batch_size: int
+        :param neg_batch_size: The size of batches for the negative phase
+                               taken from the data. Defaults to `pos_batch_size`.
+        :type neg_batch_size: int
+        :param k: The number of contrastive divergence steps.
+        :type k: int
+        :param lr: Learning rate
+        :type lr: float
+        :param progbar: Whether or not to display a progress bar. If "notebook"
+                        is passed, will use a Jupyter notebook compatible
+                        progress bar.
+        :type progbar: bool or str
+        :param callbacks: Callbacks to run while training.
+        :type callbacks: list[qucumber.callbacks.Callback]
+        :param optimizer: The constructor of a torch optimizer.
+        :type optimizer: torch.optim.Optimizer
+        :param kwargs: Keyword arguments to pass to the optimizer
+        """
+        return super().fit(
+            data=data,
+            epochs=epochs,
+            pos_batch_size=pos_batch_size,
+            neg_batch_size=neg_batch_size,
+            k=k,
+            lr=lr,
+            progbar=progbar,
+            time=time,
+            callbacks=callbacks,
+            optimizer=optimizer,
+            **kwargs
+        )
+
     def compute_normalization(self, space):
         r"""Compute the normalization constant of the wavefunction.
 
