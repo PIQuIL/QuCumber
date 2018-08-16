@@ -128,7 +128,9 @@ class Observable:
         for i in range(num_time_steps):
             num_gibbs_steps = burn_in if i == 0 else steps
 
-            chains = rbm.sample(num_chains, k=num_gibbs_steps, initial_state=chains)
+            chains = rbm.sample(num_gibbs_steps, num_samples,
+                                initial_state=chains, 
+                                overwrite=True)
 
             samples = self.apply(chains, rbm).data
 

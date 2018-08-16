@@ -479,7 +479,7 @@ class Wavefunction(abc.ABC):
         callbacks.on_train_start(self)
 
         num_batches = ceil(train_samples.shape[0] / pos_batch_size)
-        for ep in progress_bar(range(epochs), desc="Epochs ", disable=disable_progbar):
+        for ep in progress_bar(range(1, epochs+1), desc="Epochs ", disable=disable_progbar):
             data_iterator = self._shuffle_data(
                 pos_batch_size,
                 neg_batch_size,
