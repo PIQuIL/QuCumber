@@ -18,7 +18,7 @@
 # under the License.
 
 import abc
-from itertools import chain, repeat
+from itertools import chain
 from math import ceil
 
 import numpy as np
@@ -292,10 +292,10 @@ class Wavefunction(abc.ABC):
         """Compute the gradient of a set of samples."""
 
     def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch=None):
-        """Compute the gradients of a batch of the training data (samples_batch).
+        """Compute the gradients of a batch of the training data (`samples_batch`).
 
         If measurements are taken in bases other than the reference basis,
-        a list of bases (bases_batch) must also be provided.
+        a list of bases (`bases_batch`) must also be provided.
 
         :param k: Number of contrastive divergence steps in training.
         :type k: int
@@ -304,7 +304,8 @@ class Wavefunction(abc.ABC):
         :param neg_batch: Batch of the input samples for computing the
                           negative phase.
         :type neg_batch: torch.Tensor
-        :param bases_batch: Batch of the input bases
+        :param bases_batch: Batch of the input bases corresponding to the samples
+                            in `samples_batch`.
         :type bases_batch: np.array
 
         :returns: List containing the gradients of the parameters.
@@ -401,11 +402,9 @@ class Wavefunction(abc.ABC):
                 shuffled_pos_bases[batch_start : (batch_start + pos_batch_size)]
                 for batch_start in range(0, len(train_samples), pos_batch_size)
             ]
+            return zip(pos_batches, neg_batches, pos_batches_bases)
         else:
-            # infinite iterator, useful for zipping together with batches
-            pos_batches_bases = repeat(None)
-
-        return zip(pos_batches, neg_batches, pos_batches_bases)
+            return zip(pos_batches, neg_batches)
 
     def fit(
         self,
@@ -426,7 +425,7 @@ class Wavefunction(abc.ABC):
 
         :param data: The training samples
         :type data: np.array
-        :param epochs: The number of full training passes through
+        :param epochs: The number of full training passes through the dataset.
         :type epochs: int
         :param pos_batch_size: The size of batches for the positive phase
                                taken from the data.
@@ -434,17 +433,19 @@ class Wavefunction(abc.ABC):
         :param neg_batch_size: The size of batches for the negative phase
                                taken from the data. Defaults to `pos_batch_size`.
         :type neg_batch_size: int
-        :param k: The number of contrastive divergence steps
+        :param k: The number of contrastive divergence steps.
         :type k: int
         :param lr: Learning rate
         :type lr: float
+        :param input_bases: The measurement bases for each sample.
+        :type input_bases: np.array
         :param progbar: Whether or not to display a progress bar. If "notebook"
                         is passed, will use a Jupyter notebook compatible
                         progress bar.
         :type progbar: bool or str
         :param callbacks: Callbacks to run while training.
         :type callbacks: list[qucumber.callbacks.Callback]
-        :param optimizer: The constructor of a torch optimizer
+        :param optimizer: The constructor of a torch optimizer.
         :type optimizer: torch.optim.Optimizer
         :param kwargs: Keyword arguments to pass to the optimizer
         """
@@ -490,12 +491,10 @@ class Wavefunction(abc.ABC):
             )
             callbacks.on_epoch_start(self, ep)
 
-            for b, (pos_batch, neg_batch, batch_bases) in enumerate(data_iterator):
+            for b, batch in enumerate(data_iterator):
                 callbacks.on_batch_start(self, ep, b)
 
-                all_grads = self.compute_batch_gradients(
-                    k, pos_batch, neg_batch, batch_bases
-                )
+                all_grads = self.compute_batch_gradients(k, *batch)
 
                 optimizer.zero_grad()  # clear any cached gradients
 

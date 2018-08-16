@@ -21,7 +21,6 @@ Version: |version|
 
    rbm
    quantum_states
-   quantum_reconstruction
    callbacks
    observables
    cplx
