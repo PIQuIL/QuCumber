@@ -184,7 +184,8 @@ def test_posgrad_kl(positive_wavefunction_data):
     alg_grad_kl = PGU.algorithmic_gradKL(target_psi, vis)
     num_grad_kl = PGU.numeric_gradKL(
         target_psi, nn_state.rbm_am.weights.view(-1), vis, EPS
-    )
+    )  # NOTE: can probably use something like rbm_am.named_parameters()
+    #  to iterate through all model param tensors and compute num_grad_kl/nll
 
     counter = 0
     print("\nTesting weights...")

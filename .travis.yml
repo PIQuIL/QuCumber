@@ -1,6 +1,4 @@
-dist:
-  - trusty
-  - precise
+dist: trusty
 
 sudo: false
 language: python
@@ -22,8 +20,9 @@ python:
 
 matrix:
   include:
-    - python: 3.7
+    - os: linux
       dist: xenial
+      python: 3.7
       sudo: true
 
 install:
@@ -42,8 +41,8 @@ script:
   - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing; fi
   - echo -n 'travis_fold:end:pytest'
 
-  - inv flake8
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv blacken -l 88 --diff --check; fi
+  - flake8
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check; fi
 
   - echo 'Building package...' && echo -n 'travis_fold:start:pkg_build'
   - python setup.py sdist bdist_wheel

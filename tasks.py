@@ -21,74 +21,8 @@
 import pathlib
 from itertools import chain
 
-from invocations.checks import blacken
 from invocations.pytest import coverage, test
 from invoke import Collection, task
-from jinja2 import Environment, FileSystemLoader
-
-##############################################################################
-# --- Documentation Building -------------------------------------------------
-##############################################################################
-
-ALLOWED_BRANCHES = ["master", "develop"]
-IGNORED_TAGS = ["v0.1.2", "v0.2.0"]
-
-# Jinja stuff for making the versions.html page
-versions_template = Environment(
-    loader=FileSystemLoader("./docs/_templates")
-).get_template("versions.html")
-
-
-@task
-def build_docs(c):
-    old_ref = c.run("git rev-parse HEAD", hide="out").stdout.split("\n")[0].strip()
-
-    head_name = (
-        c.run("git describe --all", hide="out")
-        .stdout.split("\n")[0]
-        .strip()
-        .split("/")[-1]
-    )
-
-    all_refs = c.run("git tag --list", hide="out").stdout.split("\n")
-    all_refs = [tag for tag in all_refs if tag and tag not in IGNORED_TAGS]
-    all_refs = ALLOWED_BRANCHES + sorted(all_refs)
-
-    if head_name == "master":
-        refs = [r for r in all_refs]  # copy all_refs
-    else:
-        refs = [head_name]
-
-    with c.cd("./docs/"):
-        c.run("mkdir -p _static _templates", hide="out")
-        c.run("make clean", hide="out")
-
-        for ref in refs:
-            c.run("git checkout -q " + ref, echo=True)
-
-            c.run(
-                "sed -i 's/^__version__.*$/__version__ = \"{}\"/g' ".format(ref)
-                + "../qucumber/__version__.py",
-                echo=True,
-            )
-
-            b_dir = "_build/html/{}".format(ref)
-
-            c.run("pip install -e ../", echo=True)
-            c.run("python -m sphinx -b html ./ {} -aqT".format(b_dir), echo=True)
-            c.run("pip uninstall -y qucumber", echo=True)
-            c.run("git checkout -- ../qucumber/__init__.py", echo=True)
-
-        c.run("touch _build/html/.nojekyll", echo=True)
-
-        if head_name == "master":
-            c.run("git checkout -q master", echo=True)
-            c.run("cp _templates/index.html _build/html/index.html", echo=True)
-            with open("./docs/_build/html/versions.html", "w") as f:
-                f.write(versions_template.render(refs=[ref for ref in refs]))
-
-    # revert back to old_ref once done
-    c.run("git checkout -q " + old_ref, echo=True)
 
 
 ##############################################################################
@@ -140,39 +74,4 @@ def license_check(c):
         print("License checking completed successfully.")
 
 
-##############################################################################
-# --- PyTest -----------------------------------------------------------------
-##############################################################################
-
-
-@task
-def pytest(c, k=None, coverage=False, show_output=True):
-    flags = []
-    if show_output:
-        flags.append("-s")
-    if k is not None:
-        flags.append("-k '{}'".format(k))
-    if coverage:
-        flags.append("--cov=qucumber")
-        flags.append("--no-cov-on-fail")
-        flags.append("--cov-report=term-missing")
-
-    c.run("pytest " + " ".join(flags), pty=True)
-
-
-##############################################################################
-# --- Code Formatting --------------------------------------------------------
-##############################################################################
-
-
-@task
-def flake8(c):
-    c.run("flake8")
-
-
-@task
-def blacken_alt(c):
-    c.run("black ./")
-
-
-ns = Collection(build_docs, license_check, flake8, blacken, test, coverage)
+ns = Collection(license_check, test, coverage)

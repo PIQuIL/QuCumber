@@ -70,7 +70,7 @@ class Wavefunction(abc.ABC):
     @rbm_am.setter
     @abc.abstractmethod
     def rbm_am(self, new_val):
-        return
+        raise NotImplementedError
 
     @property
     @abc.abstractmethod
@@ -80,7 +80,7 @@ class Wavefunction(abc.ABC):
     @device.setter
     @abc.abstractmethod
     def device(self, new_val):
-        return
+        raise NotImplementedError
 
     def reinitialize_parameters(self):
         """Randomize the parameters of the internal RBMs."""
@@ -448,7 +448,7 @@ class Wavefunction(abc.ABC):
         :type optimizer: torch.optim.Optimizer
         :param kwargs: Keyword arguments to pass to the optimizer
         """
-        if self.stop_training:  # just
+        if self.stop_training:  # terminate immediately if stop_training is true
             return
 
         disable_progbar = progbar is False
