@@ -1,4 +1,7 @@
-dist: trusty
+dist:
+  - trusty
+  - precise
+
 sudo: false
 language: python
 
@@ -15,7 +18,7 @@ python:
   - '3.5'
   - '3.6'
   # - '3.7'
-  # travis doesn't support 3.7 yet; once it does, uncomment this and delete the python 3.7 blurb below
+  # travis doesn't fully support 3.7 yet; once it does, uncomment this and delete the python 3.7 blurb below
 
 matrix:
   include:
