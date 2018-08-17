@@ -190,7 +190,7 @@ def elementwise_division(x, y):
     y_star = y.clone()
     y_star[1] *= -1
 
-    return elementwise_mult(x, y_star).div(abs_y)
+    return elementwise_mult(x, y_star).div_(abs_y)
 
 
 def kronecker_prod(x, y):
