@@ -100,6 +100,24 @@ class Observable(abc.ABC):
             nn_state,
         )
 
+    @staticmethod
+    def _update_statistics(avg_a, var_a, len_a, avg_b, var_b, len_b):
+        if len_a == len_b == 0:
+            return 0.0, 0.0, 0
+
+        new_len = len_a + len_b
+        new_mean = ((avg_a * len_a) + (avg_b * len_b)) / new_len
+
+        delta = avg_b - avg_a
+        scaled_var_a = var_a * (len_a - 1)
+        scaled_var_b = var_b * (len_b - 1)
+
+        new_var = scaled_var_a + scaled_var_b
+        new_var += (delta ** 2) * len_a * len_b / float(new_len)
+        new_var /= float(new_len - 1)
+
+        return new_mean, new_var, new_len
+
     def statistics(self, nn_state, num_samples, num_chains=0, burn_in=1000, steps=1):
         """Estimates the expected value, variance, and the standard error of the
         observable over the distribution defined by the Wavefunction.
@@ -124,8 +142,9 @@ class Observable(abc.ABC):
                   (key: "std_error") of the observable.
         :rtype: dict(str, float)
         """
-        running_sum = 0.0
-        running_sum_of_squares = 0.0
+        running_mean = 0.0
+        running_variance = 0.0
+        running_length = 0
 
         chains = None
         num_chains = num_chains if num_chains != 0 else num_samples
@@ -134,23 +153,34 @@ class Observable(abc.ABC):
             num_gibbs_steps = burn_in if i == 0 else steps
 
             chains = nn_state.sample(
-                num_chains, k=num_gibbs_steps, initial_state=chains, overwrite=True
+                num_samples=num_chains,
+                k=num_gibbs_steps,
+                initial_state=chains,
+                overwrite=True,
             )
 
             samples = self.apply(nn_state, chains).data
+            current_mean = samples.mean().item()
+            current_variance = samples.var().item()
 
-            running_sum += samples.sum().item()
-            running_sum_of_squares += samples.pow(2).sum().item()
+            running_mean, running_variance, running_length = self._update_statistics(
+                running_mean,
+                running_variance,
+                running_length,
+                current_mean,
+                current_variance,
+                num_chains,
+            )
 
-        N = float(num_time_steps * num_chains)  # total number of samples
-        mean = running_sum / N
+        N = running_length  # total number of samples
 
-        variance = running_sum_of_squares - ((running_sum ** 2) / N)
-        variance /= N - 1
+        std_error = np.sqrt(running_variance / N)
 
-        std_error = np.sqrt(variance / N)
-
-        return {"mean": mean, "variance": variance, "std_error": std_error}
+        return {
+            "mean": running_mean,
+            "variance": running_variance,
+            "std_error": std_error,
+        }
 
     def statistics_from_samples(self, nn_state, samples):
         """Estimates the expected value, variance, and the standard error of the

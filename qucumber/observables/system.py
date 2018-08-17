@@ -19,6 +19,7 @@
 
 
 import numpy as np
+from .observable import Observable
 
 
 class System:
@@ -26,13 +27,13 @@ class System:
 
     It keeps track of multiple observables which it can evaluate simultaneously.
 
-    :param \*observables:
+    :param \*observables: The Observables to evaluate.
     """
 
     def __init__(self, *observables):
         self.observables = {obs.name: obs for obs in observables}
 
-    def measure(self, nn_state, num_samples, num_chains=0, burn_in=1000, steps=1):
+    def statistics(self, nn_state, num_samples, num_chains=0, burn_in=1000, steps=1):
         """Estimates the expected value, variance, and the standard error of the
         observables over the distribution defined by `nn_state`.
 
@@ -56,8 +57,9 @@ class System:
                   (key: "std_error") of the observable.
         :rtype: dict(str, float)
         """
-        running_sums = {name: 0.0 for name in self.observables.keys()}
-        running_sums_of_squares = {name: 0.0 for name in self.observables.keys()}
+        running_means = {name: 0.0 for name in self.observables.keys()}
+        running_variances = {name: 0.0 for name in self.observables.keys()}
+        running_length = 0.0
 
         chains = None
         num_chains = num_chains if num_chains != 0 else num_samples
@@ -66,37 +68,44 @@ class System:
             num_gibbs_steps = burn_in if i == 0 else steps
 
             chains = nn_state.sample(
-                num_chains, k=num_gibbs_steps, initial_state=chains, overwrite=True
+                num_samples=num_chains,
+                k=num_gibbs_steps,
+                initial_state=chains,
+                overwrite=True,
             )
 
             for obs_name, obs in self.observables.items():
                 obs_samples = obs.apply(nn_state, chains).data
+                current_mean = obs_samples.mean().item()
+                current_variance = obs_samples.var().item()
 
-                running_sums[obs_name] += obs_samples.sum().item()
-                running_sums_of_squares[obs_name] += obs_samples.pow(2).sum().item()
+                running_means[obs_name], running_variances[
+                    obs_name
+                ], _ = Observable._update_statistics(
+                    running_means[obs_name],
+                    running_variances[obs_name],
+                    running_length,
+                    current_mean,
+                    current_variance,
+                    num_chains,
+                )
 
-        N = float(num_time_steps * num_chains)  # total number of samples
+            running_length += num_chains
 
-        statistics = {}
+        N = running_length  # total number of samples
 
-        for obs_name in self.observables.keys():
-            mean = running_sums[obs_name] / N
-
-            variance = running_sums_of_squares[obs_name] - (
-                (running_sums[obs_name] ** 2) / N
-            )
-            variance /= N - 1
-
-            std_error = np.sqrt(variance / N)
-            statistics[obs_name] = {
-                "mean": mean,
-                "variance": variance,
-                "std_error": std_error,
+        statistics = {
+            {
+                "mean": running_means[obs_name],
+                "variance": running_variances[obs_name],
+                "std_error": running_variances[obs_name] / N,
             }
+            for obs_name in self.observables.keys()
+        }
 
         return statistics
 
-    def measure_samples(self, nn_state, samples):
+    def statistics_from_samples(self, nn_state, samples):
         """Estimates the expected value, variance, and the standard error of the
         observables using the given samples.
 
@@ -105,19 +114,8 @@ class System:
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
         """
-        statistics = {}
-
-        for obs_name, obs in self.observables.items():
-            obs_samples = obs.apply(nn_state, samples)
-
-            mean = obs_samples.mean().item()
-            variance = obs_samples.var().item()
-            std_error = np.sqrt(variance / len(obs_samples))
-
-            statistics[obs_name] = {
-                "mean": mean,
-                "variance": variance,
-                "std_error": std_error,
-            }
-
+        statistics = {
+            obs_name: obs.statistics_from_samples(nn_state, samples)
+            for obs_name, obs in self.observables.items()
+        }
         return statistics
