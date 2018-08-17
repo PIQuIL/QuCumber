@@ -11,6 +11,7 @@ flake8-bugbear>=18.2.0
 radon>=2.2.0
 pytest>=3.7.1
 nbval>=0.9.1
+nbconvert>=5.3.1
 codecov>=2.0.15
 pytest-cov>=2.5.1
 invoke>=1.1.1
