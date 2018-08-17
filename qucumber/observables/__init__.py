@@ -1,3 +1,3 @@
 from .observable import Observable
-from .sigma_z import SigmaZ
+from .pauli import SigmaZ, SigmaX
 from .system import System
