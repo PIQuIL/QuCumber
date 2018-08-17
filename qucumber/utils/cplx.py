@@ -172,6 +172,27 @@ def conjugate(x):
     return z
 
 
+def elementwise_mult(x, y):
+    if x.shape != y.shape:
+        raise ValueError("x and y must have the same shape!")
+
+    out = torch.zeros_like(x)
+    out[0] = (x[0] * y[0]) - (x[1] * x[1])
+    out[1] = (x[1] * y[0]) + (x[0] * y[1])
+    return out
+
+
+def elementwise_division(x, y):
+    if x.shape != y.shape:
+        raise ValueError("x and y must have the same shape!")
+
+    abs_y = y[0].pow(2) + y[1].pow(2)
+    y_star = y.clone()
+    y_star[1] *= -1
+
+    return elementwise_mult(x, y_star).div(abs_y)
+
+
 def kronecker_prod(x, y):
     """A function that returns the tensor / kronecker product of 2 complex
     tensors, x and y.
