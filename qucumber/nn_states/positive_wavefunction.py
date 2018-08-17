@@ -109,10 +109,17 @@ class PositiveWavefunction(Wavefunction):
                   each visible state
         :rtype: torch.Tensor
         """
-        psi = torch.zeros(2, dtype=torch.double, device=self.device)
-        psi[0] = self.amplitude(v)
-        psi[1] = 0.0
-        return psi
+        # vector/tensor of shape (len(v),)
+        amplitude = self.amplitude(v)
+
+        # complex vector; shape: (2, len(v))
+        psi = torch.zeros(
+            (2,) + amplitude.shape, dtype=torch.double, device=self.device
+        )
+        psi[0] = amplitude
+
+        # squeeze down to complex scalar if there was only one visible state
+        return psi.squeeze()
 
     def gradient(self, v):
         r"""Compute the gradient of the effective energy for a batch of states.

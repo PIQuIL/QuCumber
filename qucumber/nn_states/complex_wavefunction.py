@@ -136,17 +136,14 @@ class ComplexWavefunction(Wavefunction):
         # vectors/tensors of shape (len(v),)
         amplitude, phase = self.amplitude(v), self.phase(v)
 
-        # vector/tensor of shape (len(v),)
-        cos_phase, sin_phase = phase.cos(), phase.sin()
-
         # complex vector; shape: (2, len(v))
         psi = torch.zeros(
             (2,) + amplitude.shape, dtype=torch.double, device=self.device
         )
 
         # elementwise products
-        psi[0] = amplitude * cos_phase  # real part
-        psi[1] = amplitude * sin_phase  # imaginary part
+        psi[0] = amplitude * phase.cos()  # real part
+        psi[1] = amplitude * phase.sin()  # imaginary part
 
         # squeeze down to complex scalar if there was only one visible state
         return psi.squeeze()
