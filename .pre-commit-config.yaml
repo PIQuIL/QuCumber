@@ -8,3 +8,4 @@ repos:
     rev: v1.4.0
     hooks:
     - id: flake8
+      args: ['--config=setup.cfg']
