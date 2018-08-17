@@ -24,7 +24,7 @@ import qucumber.utils.unitaries as unitaries
 
 
 def fidelity(nn_state, target_psi, space):
-    """Calculates the square of the overlap (fidelity) between the reconstructed
+    r"""Calculates the square of the overlap (fidelity) between the reconstructed
     wavefunction and the true wavefunction (both in the computational basis).
 
     :param nn_state: The neural network state (i.e. complex wavefunction or 
@@ -49,7 +49,7 @@ def fidelity(nn_state, target_psi, space):
 
 
 def rotate_psi(nn_state, basis, space, unitaries, psi=None):
-    """A function that rotates the reconstructed wavefunction to a different
+    r"""A function that rotates the reconstructed wavefunction to a different
     basis.
 
     :param nn_state: The neural network state (i.e. complex wavefunction or 
@@ -108,7 +108,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
 
 
 def KL(nn_state, target_psi, space, bases=None):
-    """A function for calculating the total KL divergence.
+    r"""A function for calculating the total KL divergence.
 
     :param nn_state: The neural network state (i.e. complex wavefunction or 
                      positive wavefunction).
