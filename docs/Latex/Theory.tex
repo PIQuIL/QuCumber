@@ -154,7 +154,29 @@ The example dataset is provided in \url{https://github.com/PIQuIL/QuCumber/blob/
 
 \subsection{Example measurements}
 %\label{Sec:Training_TFIM}
-To begin with wavefunction reconstruction, the input data needs to be in a numpy array or a torch tensor.
+To begin with wavefunction reconstruction we load the following packages.
+\begin{python}
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+from qucumber.nn_states import PositiveWavefunction
+from qucumber.callbacks import MetricEvaluator
+import qucumber.utils.training_statistics as ts
+import qucumber.utils.data as data
+import quantum_ising_chain
+from quantum_ising_chain import TFIMChainEnergy, TFIMChainMagnetization
+\end{python}
+
+Loading the tutorial data can be done as follows,
+
+\begin{python}
+train_samples_path = 'tfim1d_train_samples.txt'
+psi_path           = 'tfim1d_psi.txt'
+
+train_samples,target_psi = data.load_data(train_samples_path,psi_path)
+\end{python}
+
+Generally the input data needs to be in a numpy array or a torch tensor.
 For a spin system with 10 physical spins and measurements of every spin, one input data point will be an array of the form
 \verb|np.array([1,0,1,1,0,1,0,0,0,1])|
 , with shape \verb|(10,)|.
@@ -162,18 +184,7 @@ Here, we take the usual representation with $0$ denoting spin-down and $1$, spin
 All the input data together has to be an array of these arrays, which will have the shape \verb|(N,10)|, where $N$ is the number of data elements in the training set.
 
 For the purpose of this tutorial, we will also compare the state reconstuction from QuCumber with the exact ground state.
-This is also provided in \url{https://github.com/PIQuIL/QuCumber/blob/master/examples/01_Ising/tfim1d_psi.txt}.
-
-Loading the tutorial data can be done as follows,
-\begin{python}
-	import numpy as np
-	import torch
-	import qucumber.utils.data as data
-
-	train_path = "fim1d_train_samples.txt"
-	psi_path   = "tfim1d_psi.txt"
-	train, psi = data.load_data(train_path, psi_path)
-\end{python}
+This is also provided in \url{https://github.com/PIQuIL/QuCumber/blob/master/examples/01_Ising/tfim1d_psi.txt} and has already been loaded in \verb|target_psi|.
 
 The central object of QuCumber is the representation of the wavefunction, in the case of a positive real wavefunction, this is simply an RBM.
 The Python object \verb|PositiveWavefunction| serves this purpose.
@@ -187,44 +198,50 @@ The quality of the reconstruction will depend on the specific wavefunction and t
 Typically, in our studies $\alpha = 1$ leads to good approximations of positive real wavefunctions \cite{Torlai2016thermo}.
 In the general case, however, the value of $\alpha$ required for a given wavefunction reconstruction should be explored and adjusted by the user.
 
-The following code snippet instanciates a \verb|PositiveWavefunction| object with 10 visible units and a neuron density $\alpha=1$.
+The following code snippet instanciates a \verb|PositiveWavefunction| object with 10 visible units (shape of the input data) and a neuron density $\alpha=1$ (\verb|nv=hv|).
 The biases are initialized to zero, and the weights are initalized randomly according to a normal distrubution with zero mean and a variance of $1/$\verb|num_visible|.
 
 \begin{python}
-	from qucumber.positive_wavefunction import PositiveWavefunction
-
-	nn_state = PositiveWavefunction(num_visible=10, num_hidden=10)
+nv = train_samples.shape[-1]
+nh = nv
+nn_state = PositiveWavefunction(num_visible=nv,num_hidden=nh,gpu=False)
 \end{python}
 
 \subsection{Training an RBM}
 
 The neural network wavefunction object can be trained with the constrastive divergence algorithm using various optimizers (see \url{https://pytorch.org/docs/stable/optim.html}).
-This is implimented with the function \verb|PositiveWavefunction.fit|, which takes a number of hyperparameters.
-The choice of hyperparameter depends on the complexity of the system and also the training set size.
-In this example, we take a learning rate of $10^{-2}$ using stochastic (batch) gradient descent with a batch size of 100, trained for 1,000 epochs.
-The number of Gibbs sampling steps \verb|k|, which dictates the number of steps in the contrastive divergence algorithm.
-influences the speed of the training. The smaller we choose $k$, the faster is the training. High values on the other hand give a better approximation for the model distribution. It has been shown that even for $k_{cd}=1$ the RBM trains well for many typical cases\cite{hinton2002training}.
+This is implimented with the function \verb|PositiveWavefunction.fit|, which takes a number of hyperparameters, which we define the following way,
 
 \begin{python}
-	nn_state.fit(train, epochs=1000, batch_size=100, lr=1e-2, k=10)
+epochs     = 1500
+batch_size = 100
+num_chains = 200
+CD         = 10
+lr         = 0.01
+log_every  = 100
 \end{python}
 
+The choice of hyperparameter depends on the complexity of the system and also the training set size.
+In this example, we take a learning rate (\verb|lr|) of $10^{-2}$ using stochastic (batch) gradient descent with a batch size of 100, trained for 1,500 epochs.
+The number of Gibbs sampling steps \verb|CD|, which dictates the number of steps in the contrastive divergence algorithm.
+influences the speed of the training. The smaller we choose \verb|CD|, the faster is the training. High values on the other hand give a better approximation for the model distribution. It has been shown that even for \verb|CD|$=1$ the RBM trains well for many typical cases\cite{hinton2002training}. \verb|num_chain| defines the batch size of the negative phase of the RBM. The training shows better performance if this value is bigger than the batch size by a factor of 2 or 3. \textcolor{red}{Is this necessary in a tutorial. It is very specific and confusing.} With \verb|log_every| we define how often we calculate callbacks (See section~\ref{Sec:Callbacks}) during the training. Here we define that we calculate the callbacks every 100 epochs.
 The success of training can be tracked by different measures, like the convergence of the energy or other observables.
 In the example of the one-dimensional TIFM, we can compare fidelity of the true ground state with the trained model.
-Note that this is only possible for very small system sizes, as the computation of the fidelity scale exponetially.
-
-To monitor the fidelity with a target state \verb|psi|, we use the \verb|Callbacks| class which computes desired quantities every $n$ epochs.
-We set $n=50$ in this example.
+Note that this is only possible for very small system sizes, as the computation of the fidelity scale exponetially. Additionally we calculate the KL-divergence of the distribution of the training data and the distribution of the model.
 
 \begin{python}
-	from qucumber.callbacks import MetricEvaluator
-	import qucumber.utils.training_statistics as ts
+nn_state.space = nn_state.generate_hilbert_space(nv)
 
-	nn_state.space = nn_state.generate_Hilbert_space(10)
-	callbacks = [MetricEvaluator(50, {"Fidelity": ts.fidelity, "KL": ts.KL},
-       	                       target_psi=psi)]
+callbacks = [MetricEvaluator(log_every,{'Fidelity':ts.fidelity,'KL':ts.KL},target_psi=target_psi,verbose=True, 
+                             space=nn_state.space)]
+# The "verbose=True" argument will print the parameters in { } as a function of the training process.
 \end{python}
-which outputs
+
+The actual training is initialized by
+\begin{python}
+nn_state.fit(train_samples, epochs, batch_size, num_chains, CD, lr, progbar=False, callbacks=callbacks)
+\end{python}
+and outputs
 \begin{python}
 	Epoch = 50	Fidelity = 0.785383	KL = 0.441264
 	Epoch = 100	Fidelity = 0.894514	KL = 0.208556
