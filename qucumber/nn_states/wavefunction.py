@@ -87,6 +87,9 @@ class Wavefunction(abc.ABC):
         for net in self.networks:
             getattr(self, net).initialize_parameters()
 
+    def __getattr__(self, attr):
+        return getattr(self.rbm_am, attr)
+
     def amplitude(self, v):
         r"""Compute the (unnormalized) amplitude of a given vector/matrix of visible states.
 

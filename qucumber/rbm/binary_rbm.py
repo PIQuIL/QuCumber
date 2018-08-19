@@ -90,6 +90,7 @@ class BinaryRBM(nn.Module):
         :returns: The effective energies of the given visible states.
         :rtype: torch.Tensor
         """
+        v = v.to(self.weights)
         if len(v.shape) < 2:
             v = v.unsqueeze(0)
 
@@ -108,6 +109,7 @@ class BinaryRBM(nn.Module):
                   (computed on the given visible states v).
         :rtype: torch.Tensor
         """
+        v = v.to(self.weights)
         prob = self.prob_h_given_v(v)
 
         if v.dim() < 2:
