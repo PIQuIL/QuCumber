@@ -18,10 +18,11 @@
 # under the License.
 
 from .callback import Callback
+from qucumber.observables import System
 
 
-class MetricEvaluator(Callback):
-    """Evaluate and hold on to the results of the given metric(s).
+class ObservableEvaluator(Callback):
+    """Evaluate and hold on to the results of the given observable(s).
 
     This Callback is called at the end of each epoch.
 
@@ -29,73 +30,61 @@ class MetricEvaluator(Callback):
         Since Callbacks are given to :func:`fit<qucumber.nn_states.Wavefunction.fit>`
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
-        :class:`MetricEvaluator<MetricEvaluator>` be the first callbacks in
-        the list passed to :func:`fit<qucumber.nn_states.Wavefunction.fit>`,
+        :class:`ObservableEvaluator<ObservableEvaluator>` be the first callbacks in
+        the list passed to :func:`fit<qucumber.rbm.nn_states.Wavefunction.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
-        :class:`MetricEvaluator<MetricEvaluator>` having been called.
+        :class:`ObservableEvaluator<ObservableEvaluator>` having been called.
 
     :param period: Frequency with which the callback evaluates the given
-                   metric(s).
+                   observables(s).
     :type period: int
-    :param metrics: A dictionary of callables where the keys are the names of
-                    the metrics and the callables take the Wavefunction being trained
-                    as their positional argument, along with some keyword
-                    arguments. The metrics are evaluated and put into a
-                    dictionary structure resembling the structure of `metrics`.
-                    If one of the callables returns a dictionary,
-                    the keys of that dictionary will be suitably modified
-                    and will be merged with the metric dictionary.
-    :type metrics: dict(str, callable)
+    :param \*observables: A list of Observables. Observable statistics are
+                          evaluated by sampling the Wavefunction.
+    :type \*observables: list(qucumber.observables.Observable)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
-    :param \**metric_kwargs: Keyword arguments to be passed to `metrics`.
+    :param \**sampling_kwargs: Keyword arguments to be passed to `Observable.statistics`.
+                               Ex. `num_samples`, `num_chains`, `burn_in`, `steps`.
     """
 
-    def __init__(self, period, metrics, verbose=False, **metric_kwargs):
+    def __init__(self, period, *observables, verbose=False, **sampling_kwargs):
         self.period = period
-        self.metrics = metrics
-        self.metric_values = []
+        self.observables = observables
+        self.observable_statistics = []
+        self.system = System(*self.observables)
         self.last = {}
         self.verbose = verbose
-        self.metric_kwargs = metric_kwargs
+        self.sampling_kwargs = sampling_kwargs
 
     def __len__(self):
-        """Return the number of timesteps that metrics have been evaluated for."""
+        """Return the number of timesteps that observables have been evaluated for."""
         return len(self.metric_values)
 
     def clear_history(self):
-        """Delete all metric values the instance is currently storing."""
-        self.metric_values = []
+        """Delete all statistics the instance is currently storing."""
+        self.observable_statistics = []
         self.last = {}
 
     def get_value(self, name, index=None):
-        """Retrieve the value of the desired metric from the given timestep.
+        """Retrieve the statistics of the desired observable from the given timestep.
 
-        :param name: The name of the metric to retrieve.
+        :param name: The name of the observable to retrieve.
         :type name: str
-        :param index: The index/timestep from which to retrieve the metric.
+        :param index: The index/timestep from which to retrieve the observable.
                       Negative indices are supported. If None, will just get
                       the most recent value.
         :type index: int or None
         """
         index = index if index is not None else -1
-        return self.metric_values[index][-1][name]
+        return self.observable_statistics[index][-1][name]
 
     def on_epoch_end(self, nn_state, epoch):
         if epoch % self.period == 0:
-            metric_vals_for_epoch = {}
-            for metric_name, metric_fn in self.metrics.items():
-                val = metric_fn(nn_state, **self.metric_kwargs)
-                if isinstance(val, dict):
-                    for k, v in val.items():
-                        key = metric_name + "_" + k
-                        metric_vals_for_epoch[key] = v
-                else:
-                    metric_vals_for_epoch[metric_name] = val
+            obs_vals = self.system.measure(nn_state, **self.sampling_kwargs)
 
-            self.last = metric_vals_for_epoch.copy()
-            self.metric_values.append((epoch, metric_vals_for_epoch))
+            self.last = obs_vals.copy()
+            self.observable_statistics.append((epoch, obs_vals))
 
             if self.verbose is True:
                 print("Epoch: {}\t".format(epoch), end="", flush=True)
