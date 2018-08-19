@@ -22,6 +22,16 @@ import numpy as np
 
 
 def create_dict(name=None, unitary=None):
+    r"""A function that creates a dictionary of unitary operators.
+
+    :param name: The name of the unitary the user would like to add.
+    :type name: str
+    :param unitary: The actual unitary operator.
+    :type unitary: torch.Tensor
+    
+    :returns: A dictionary of unitaries.
+    :rtype: dict
+    """
     dictionary = {
         "X": torch.tensor(
             [[[1., 1.], [1., -1.]], [[0., 0.], [0., 0.]]], dtype=torch.double

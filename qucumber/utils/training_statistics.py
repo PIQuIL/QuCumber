@@ -23,7 +23,21 @@ import qucumber.utils.cplx as cplx
 import qucumber.utils.unitaries as unitaries
 
 
-def fidelity(nn_state, target_psi, space, bases=None):
+def fidelity(nn_state, target_psi, space):
+    r"""Calculates the square of the overlap (fidelity) between the reconstructed
+    wavefunction and the true wavefunction (both in the computational basis).
+
+    :param nn_state: The neural network state (i.e. complex wavefunction or 
+                     positive wavefunction).
+    :type nn_state: Wavefunction
+    :param target_psi: The true wavefunction of the system.
+    :type target_psi: torch.Tensor
+    :param space: The hilbert space of the system.
+    :type space: torch.Tensor
+    
+    :returns: The fidelity.
+    :rtype: torch.Tensor 
+    """
     Z = nn_state.compute_normalization(space)
     F = torch.tensor([0., 0.], dtype=torch.double, device=nn_state.device)
     target_psi = target_psi.to(nn_state.device)
@@ -35,6 +49,25 @@ def fidelity(nn_state, target_psi, space, bases=None):
 
 
 def rotate_psi(nn_state, basis, space, unitaries, psi=None):
+    r"""A function that rotates the reconstructed wavefunction to a different
+    basis.
+
+    :param nn_state: The neural network state (i.e. complex wavefunction or 
+                     positive wavefunction).
+    :type nn_state: Wavefunction 
+    :param basis: The basis to rotate the wavefunction to.
+    :type basis: str
+    :param space: The hilbert space of the system.
+    :type space: torch.Tensor   
+    :param unitaries: A dictionary of (2x2) unitary operators.
+    :type unitaries: dict
+    :param psi: A wavefunction that the user can input to override the neural
+                network state's wavefunction.
+    :type psi: torch.Tensor
+
+    :returns: A wavefunction in a new basis.
+    :rtype: torch.Tensor
+    """
     N = nn_state.num_visible
     v = torch.zeros(N, dtype=torch.double, device=nn_state.device)
     psi_r = torch.zeros(2, 1 << N, dtype=torch.double, device=nn_state.device)
@@ -75,6 +108,18 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
 
 
 def KL(nn_state, target_psi, space, bases=None):
+    r"""A function for calculating the total KL divergence.
+
+    :param nn_state: The neural network state (i.e. complex wavefunction or 
+                     positive wavefunction).
+    :type nn_state: Wavefunction
+    :param target_psi: The true wavefunction of the system.
+    :type target_psi: torch.Tensor
+    :param space: The hilbert space of the system.
+    :type space: torch.Tensor
+    :param bases: An array of unique bases.
+    :type bases: np.array(dtype=str)
+    """
     psi_r = torch.zeros(
         2, 1 << nn_state.num_visible, dtype=torch.double, device=nn_state.device
     )
@@ -107,29 +152,3 @@ def KL(nn_state, target_psi, space, bases=None):
                 )
                 KL += cplx.norm(target_psi_r[:, ii]) * Z.log()
     return KL / float(num_bases)
-
-
-def load_target_data(psi_data, bases_data):
-    D = int(len(psi_data) / float(len(bases_data)))
-    target_psi_dict = {}
-    bases = []
-
-    for i in range(len(bases_data)):
-        tmp = ""
-        for j in range(len(bases_data[i])):
-            if bases_data[i][j] is not " ":
-                tmp += bases_data[i][j]
-        bases.append(tmp)
-
-    for b in range(len(bases)):
-        psi = torch.zeros(2, D, dtype=torch.double)
-        psi_real = torch.tensor(psi_data[b * D : D * (b + 1), 0], dtype=torch.double)
-        psi_imag = torch.tensor(psi_data[b * D : D * (b + 1), 1], dtype=torch.double)
-        psi[0] = psi_real
-        psi[1] = psi_imag
-
-        target_psi_dict[bases[b]] = psi
-
-    target_psi = target_psi_dict[bases[0]]
-
-    return bases, target_psi
