@@ -193,6 +193,12 @@ def elementwise_division(x, y):
     return elementwise_mult(x, y_star).div_(abs_y)
 
 
+def elementwise_norm(x):
+    x_star = x.clone()
+    x_star[1] *= -1
+    return elementwise_mult(x, x_star)[0].sqrt_()
+
+
 def kronecker_prod(x, y):
     """A function that returns the tensor / kronecker product of 2 complex
     tensors, x and y.
