@@ -27,16 +27,16 @@ def fidelity(nn_state, target_psi, space):
     r"""Calculates the square of the overlap (fidelity) between the reconstructed
     wavefunction and the true wavefunction (both in the computational basis).
 
-    :param nn_state: The neural network state (i.e. complex wavefunction or 
+    :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
     :type nn_state: Wavefunction
     :param target_psi: The true wavefunction of the system.
     :type target_psi: torch.Tensor
     :param space: The hilbert space of the system.
     :type space: torch.Tensor
-    
+
     :returns: The fidelity.
-    :rtype: torch.Tensor 
+    :rtype: torch.Tensor
     """
     Z = nn_state.compute_normalization(space)
     F = torch.tensor([0., 0.], dtype=torch.double, device=nn_state.device)
@@ -52,13 +52,13 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
     r"""A function that rotates the reconstructed wavefunction to a different
     basis.
 
-    :param nn_state: The neural network state (i.e. complex wavefunction or 
+    :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: Wavefunction 
+    :type nn_state: Wavefunction
     :param basis: The basis to rotate the wavefunction to.
     :type basis: str
     :param space: The hilbert space of the system.
-    :type space: torch.Tensor   
+    :type space: torch.Tensor
     :param unitaries: A dictionary of (2x2) unitary operators.
     :type unitaries: dict
     :param psi: A wavefunction that the user can input to override the neural
@@ -110,7 +110,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
 def KL(nn_state, target_psi, space, bases=None):
     r"""A function for calculating the total KL divergence.
 
-    :param nn_state: The neural network state (i.e. complex wavefunction or 
+    :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
     :type nn_state: Wavefunction
     :param target_psi: The true wavefunction of the system.

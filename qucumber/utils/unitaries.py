@@ -28,7 +28,7 @@ def create_dict(name=None, unitary=None):
     :type name: str
     :param unitary: The actual unitary operator.
     :type unitary: torch.Tensor
-    
+
     :returns: A dictionary of unitaries.
     :rtype: dict
     """
