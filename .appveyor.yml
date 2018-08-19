@@ -52,7 +52,6 @@ install:
   - "python -m pip install -r requirements-dev.txt"
   - "python setup.py install"
 
-build: off
 
 test_script:
   - "python -m pytest"
