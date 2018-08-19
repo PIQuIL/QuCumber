@@ -47,7 +47,7 @@ class PosGradsUtils:
 
         return NLL
 
-    def algorithmic_gradKL(self, target_psi, vis):
+    def algorithmic_gradKL(self, target_psi, vis, **kwargs):
         Z = self.nn_state.compute_normalization(vis)
         grad_KL = torch.zeros(
             self.nn_state.rbm_am.num_pars,
@@ -59,12 +59,12 @@ class PosGradsUtils:
             grad_KL -= self.nn_state.probability(vis[i], Z) * self.nn_state.gradient(
                 vis[i]
             )
-        return grad_KL
+        return [grad_KL]
 
-    def algorithmic_gradNLL(self, data, k):
+    def algorithmic_gradNLL(self, data, k, **kwargs):
         return self.nn_state.compute_batch_gradients(k, data, data)
 
-    def numeric_gradKL(self, target_psi, param, vis, eps):
+    def numeric_gradKL(self, target_psi, param, vis, eps, **kwargs):
         num_gradKL = []
         for i in range(len(param)):
             param[i] += eps
@@ -81,9 +81,9 @@ class PosGradsUtils:
 
             num_gradKL.append((KL_p - KL_m) / (2 * eps))
 
-        return torch.stack(num_gradKL)
+        return torch.stack(num_gradKL).to(param)
 
-    def numeric_gradNLL(self, param, data, vis, eps):
+    def numeric_gradNLL(self, param, data, vis, eps, **kwargs):
         num_gradNLL = []
         for i in range(len(param)):
             param[i] += eps
@@ -100,7 +100,7 @@ class PosGradsUtils:
 
             num_gradNLL.append((NLL_p - NLL_m) / (2 * eps))
 
-        return torch.tensor(np.array(num_gradNLL), dtype=torch.double)
+        return torch.tensor(np.array(num_gradNLL), dtype=torch.double).to(param)
 
 
 class ComplexGradsUtils:
@@ -237,12 +237,14 @@ class ComplexGradsUtils:
 
         return KL
 
-    def algorithmic_gradNLL(self, data_samples, data_bases, k):
+    def algorithmic_gradNLL(self, data_samples, data_bases, k, **kwargs):
         return self.nn_state.compute_batch_gradients(
             k, data_samples, data_samples, data_bases
         )
 
-    def numeric_gradNLL(self, data_samples, data_bases, unitary_dict, param, vis, eps):
+    def numeric_gradNLL(
+        self, data_samples, data_bases, unitary_dict, param, vis, eps, **kwargs
+    ):
         num_gradNLL = []
         for i in range(len(param)):
             param[i] += eps
@@ -262,9 +264,9 @@ class ComplexGradsUtils:
 
             num_gradNLL.append((NLL_p - NLL_m) / (2 * eps))
 
-        return torch.tensor(np.array(num_gradNLL), dtype=torch.double)
+        return torch.tensor(np.array(num_gradNLL), dtype=torch.double).to(param)
 
-    def numeric_gradKL(self, param, psi_dict, vis, unitary_dict, bases, eps):
+    def numeric_gradKL(self, param, psi_dict, vis, unitary_dict, bases, eps, **kwargs):
         num_gradKL = []
         for i in range(len(param)):
             param[i] += eps
@@ -280,9 +282,9 @@ class ComplexGradsUtils:
 
             num_gradKL.append((KL_p - KL_m) / (2 * eps))
 
-        return torch.stack(num_gradKL)
+        return torch.stack(num_gradKL).to(param)
 
-    def algorithmic_gradKL(self, psi_dict, vis, unitary_dict, bases):
+    def algorithmic_gradKL(self, psi_dict, vis, unitary_dict, bases, **kwargs):
         grad_KL = [
             torch.zeros(
                 self.nn_state.rbm_am.num_pars,
