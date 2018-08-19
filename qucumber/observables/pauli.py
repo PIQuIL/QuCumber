@@ -26,6 +26,10 @@ from .observable import Observable
 class SigmaZ(Observable):
     """The :math:`sigma_z` observable"""
 
+    def __init__(self):
+        self.name = "SigmaZ"
+        self.symbol = "Z"
+
     def apply(self, nn_state, samples):
         """Computes the magnetization of each sample given a batch of samples.
 
@@ -35,22 +39,24 @@ class SigmaZ(Observable):
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
         """
-        return (
-            samples.mean(1)
-            .mul(2.)  # convert to +/- 1 convention, after computing the
-            .sub(1.)  # mean, to reduce total computations; this works
-            .abs()  # because expectation is linear.
-        )
+        # convert to +/- 1 convention, after computing the
+        # mean, to reduce total computations; this works
+        # because expectation is linear.
+        return samples.mean(1).mul(2.).sub(1.).abs()
 
 
 class SigmaX(Observable):
     """The :math:`sigma_x` observable"""
 
+    def __init__(self):
+        self.name = "SigmaX"
+        self.symbol = "X"
+
     @staticmethod
     def _flip_spin(i, s):
         torch.fmod(s[:, i] + 1., 2, out=s[:, i])
 
-    def apply(self, nn_states, samples):
+    def apply(self, nn_state, samples):
         """Computes the magnetization along X of each sample in the given batch of samples.
 
         :param nn_state: The Wavefunction that drew the samples.
@@ -59,21 +65,20 @@ class SigmaX(Observable):
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
         """
-        psis = nn_states.psi(samples)  # vector (2, num_samples,)
+        samples = samples.to(device=nn_state.device)
 
-        abs_psi = psis[0].pow(2) + psis[1].pow(2)  # abs of each psi val
-
-        # vector (2, num_samples,)
-        psi_ratios = torch.zeros(
-            psis.shape, dtype=torch.double, device=nn_states.device
-        )
+        # vectors of shape: (2, num_samples,)
+        psis = nn_state.psi(samples)
+        psi_ratio_sum = torch.zeros_like(psis)
 
         for i in range(samples.shape[-1]):  # sum over spin sites
             self._flip_spin(i, samples)  # flip the spin at site i
-            psi_ratios[:, :] += nn_states.psi(samples)  # TODO: do division here
+
+            # compute ratio of psi_(-i) / psi and add it to the running sum
+            psi_ratio = nn_state.psi(samples)
+            psi_ratio = cplx.elementwise_division(psi_ratio, psis)
+            psi_ratio_sum.add_(psi_ratio)
+
             self._flip_spin(i, samples)  # flip it back
 
-        # TODO: divide psi_-i / psi_i using complex math
-        #       -> make sure to broadcast properly
-
-        return psi_ratios
+        return cplx.elementwise_norm(psi_ratio_sum).div_(samples.shape[-1])
