@@ -21,13 +21,15 @@ import torch
 import numpy as np
 
 
-def create_dict(name=None, unitary=None):
-    r"""A function that creates a dictionary of unitary operators.
+def create_dict(**kwargs):
+    """A function that creates a dictionary of unitary operators.
 
-    :param name: The name of the unitary the user would like to add.
-    :type name: str
-    :param unitary: The actual unitary operator.
-    :type unitary: torch.Tensor
+    By default, the dictionary contains the 3 Pauli matrices in the Z-basis,
+    under the keys 'X', 'Y', and 'Z'.
+
+    :param \**kwargs: Keyword arguments of any unitary operators to add to the
+                      resulting dictionary. The given operators will overwrite
+                      the Pauli matrices if they share the same key.
 
     :returns: A dictionary of unitaries.
     :rtype: dict
@@ -46,7 +48,11 @@ def create_dict(name=None, unitary=None):
         ),
     }
 
-    if (name is not None) and (unitary is not None):
-        dictionary[name] = unitary
+    dictionary.update(
+        {
+            name: torch.tensor(matrix, dtype=torch.double)
+            for name, matrix in kwargs.items()
+        }
+    )
 
     return dictionary
