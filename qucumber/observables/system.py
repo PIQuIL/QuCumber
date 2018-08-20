@@ -19,7 +19,8 @@
 
 
 import numpy as np
-from .observable import Observable
+
+from .utils import update_statistics
 
 
 class System:
@@ -75,23 +76,21 @@ class System:
             )
 
             for obs_name, obs in self.observables.items():
-                obs_samples = obs.apply(nn_state, chains).data
-                current_mean = obs_samples.mean().item()
-                current_variance = obs_samples.var().item()
+                obs_stats = obs.statistics_from_samples(nn_state, chains)
 
-                means[obs_name], variances[obs_name], _ = Observable._update_statistics(
+                means[obs_name], variances[obs_name], _ = update_statistics(
                     means[obs_name],
                     variances[obs_name],
                     total_samples,
-                    current_mean,
-                    current_variance,
+                    obs_stats["mean"],
+                    obs_stats["variance"],
                     num_chains,
                 )
 
             total_samples += num_chains
 
         statistics = {
-            {
+            obs_name: {
                 "mean": means[obs_name],
                 "variance": variances[obs_name],
                 "std_error": np.sqrt(variances[obs_name] / total_samples),

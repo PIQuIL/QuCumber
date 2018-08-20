@@ -20,6 +20,8 @@
 import abc
 import numpy as np
 
+from .utils import update_statistics
+
 
 class Observable(abc.ABC):
     """Base class for observables."""
@@ -30,6 +32,8 @@ class Observable(abc.ABC):
     @property
     def name(self):
         """The name of the Observable."""
+        if self._name is None:
+            self._name = self.__class__.__name__
         return self._name
 
     @name.setter
@@ -39,6 +43,8 @@ class Observable(abc.ABC):
     @property
     def symbol(self):
         """The algebraic symbol representing the Observable."""
+        if self._symbol is None:
+            self._symbol = self.__class__.__name__
         return self._symbol
 
     @symbol.setter
@@ -62,6 +68,11 @@ class Observable(abc.ABC):
 
     def __rmul__(self, other):
         return ProdObservable(self, other)
+
+    def __neg__(self):
+        return ProdObservable(
+            self, -1, name=("-" + self.name), symbol=("-" + self.symbol)
+        )
 
     @abc.abstractmethod
     def apply(self, nn_state, samples):
@@ -87,7 +98,8 @@ class Observable(abc.ABC):
         :param initial_state: The initial state of the Markov Chain. If given,
                               `num_samples` will be ignored.
         :type initial_state: torch.Tensor
-        :param overwrite: Whether to overwrite the initial_state tensor, if it is provided.
+        :param overwrite: Whether to overwrite the initial_state tensor, if it
+                          is provided, with the updated state of the Markov chain.
         :type overwrite: bool
         """
         return self.apply(
@@ -99,24 +111,6 @@ class Observable(abc.ABC):
             ),
             nn_state,
         )
-
-    @staticmethod
-    def _update_statistics(avg_a, var_a, len_a, avg_b, var_b, len_b):
-        if len_a == len_b == 0:
-            return 0.0, 0.0, 0
-
-        new_len = len_a + len_b
-        new_mean = ((avg_a * len_a) + (avg_b * len_b)) / new_len
-
-        delta = avg_b - avg_a
-        scaled_var_a = var_a * (len_a - 1)
-        scaled_var_b = var_b * (len_b - 1)
-
-        new_var = scaled_var_a + scaled_var_b
-        new_var += (delta ** 2) * len_a * len_b / float(new_len)
-        new_var /= float(new_len - 1)
-
-        return new_mean, new_var, new_len
 
     def statistics(self, nn_state, num_samples, num_chains=0, burn_in=1000, steps=1):
         """Estimates the expected value, variance, and the standard error of the
@@ -163,7 +157,7 @@ class Observable(abc.ABC):
             current_mean = samples.mean().item()
             current_variance = samples.var().item()
 
-            running_mean, running_variance, running_length = self._update_statistics(
+            running_mean, running_variance, running_length = update_statistics(
                 running_mean,
                 running_variance,
                 running_length,
@@ -247,7 +241,7 @@ class ProdObservable(Observable):
             self.left = o2
             self.right = o1
         else:
-            raise ValueError("Exactly one of o1, o2 must be an Observable!")
+            raise ValueError("Exactly one of o1 or o2 must be an Observable!")
 
         if symbol is None:
             self.symbol = "(" + str(self.left) + " * " + str(self.right) + ")"

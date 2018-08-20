@@ -36,3 +36,21 @@ def to_01(samples):
     :type samples: torch.Tensor
     """
     return samples.add(1.).div(2.)
+
+
+def update_statistics(avg_a, var_a, len_a, avg_b, var_b, len_b):
+    if len_a == len_b == 0:
+        return 0.0, 0.0, 0
+
+    new_len = len_a + len_b
+    new_mean = ((avg_a * len_a) + (avg_b * len_b)) / new_len
+
+    delta = avg_b - avg_a
+    scaled_var_a = var_a * (len_a - 1)
+    scaled_var_b = var_b * (len_b - 1)
+
+    new_var = scaled_var_a + scaled_var_b
+    new_var += (delta ** 2) * len_a * len_b / float(new_len)
+    new_var /= float(new_len - 1)
+
+    return new_mean, new_var, new_len

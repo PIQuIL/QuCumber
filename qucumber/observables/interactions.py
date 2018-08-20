@@ -18,10 +18,15 @@
 # under the License.
 
 from .observable import Observable
+from .utils import to_pm1
 
 
 class NeighbourInteraction(Observable):
-    """The :math:`sigma^z_i sigma^z_{i+c}` observable"""
+    """The :math:`\sigma^z_i \sigma^z_{i+c}` observable
+
+    Computes the `c`-th nearest neighbour interaction for a spin chain with
+    either open or periodic boundary conditions.
+    """
 
     def __init__(self, periodic_bcs=False, c=1):
         self.periodic_bcs = periodic_bcs
@@ -30,10 +35,11 @@ class NeighbourInteraction(Observable):
         self.name = "NeighbourInteraction(periodic_bcs={}, c={})".format(
             self.periodic_bcs, self.c
         )
-        self.symbol = "avg_i (Z_i * Z_(i+{}))".format(self.c)
+        self.symbol = "(Z_i * Z_(i+{}))".format(self.c)
 
     def apply(self, nn_state, samples):
-        """Computes the magnetization of each sample given a batch of samples.
+        """Computes the energy of this neighbour interaction for each sample
+        given a batch of samples.
 
         :param nn_state: The Wavefunction that drew the samples.
         :type nn_state: qucumber.nn_states.Wavefunction
@@ -42,14 +48,14 @@ class NeighbourInteraction(Observable):
         :type samples: torch.Tensor
         """
 
+        samples = to_pm1(samples)  # convert to +/- 1 format
         L = samples.shape[-1]  # length of the spin chain
         if self.periodic_bcs:
             perm_indices = [(i + self.c) % L for i in range(L)]
-            # perm_indices = perm_indices[self.c :] + perm_indices[: self.c]
             interaction_terms = samples * samples[:, perm_indices]
         else:
             interaction_terms = samples[:, : -self.c] * samples[:, self.c :]
 
-        # average over spin sites; not using mean bc
-        # interaction_terms.shape[-1] < num_spins = L
+        # average over spin sites.
+        # not using mean bc interaction_terms.shape[-1] < num_spins = L
         return interaction_terms.sum(1).div_(L)
