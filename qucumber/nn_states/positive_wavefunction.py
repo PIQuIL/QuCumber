@@ -175,7 +175,7 @@ class PositiveWavefunction(Wavefunction):
         optimizer=torch.optim.SGD,
         **kwargs
     ):
-        """Train the RBM.
+        """Train the Wavefunction.
 
         :param data: The training samples
         :type data: np.array

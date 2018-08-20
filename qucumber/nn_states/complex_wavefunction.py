@@ -20,8 +20,7 @@
 import numpy as np
 import torch
 
-from qucumber.utils import cplx
-from qucumber.utils import unitaries
+from qucumber.utils import cplx, unitaries
 from qucumber.rbm import BinaryRBM
 from .wavefunction import Wavefunction
 
@@ -235,6 +234,41 @@ class ComplexWavefunction(Wavefunction):
 
         """
         return super().compute_normalization(space)
+
+    def fit(
+        self,
+        data,
+        epochs=100,
+        pos_batch_size=100,
+        neg_batch_size=None,
+        k=1,
+        lr=1e-3,
+        input_bases=None,
+        progbar=False,
+        time=False,
+        callbacks=None,
+        optimizer=torch.optim.SGD,
+        **kwargs
+    ):
+        if input_bases is None:
+            raise ValueError(
+                "input_bases must be provided to train a ComplexWavefunction!"
+            )
+        else:
+            super().fit(
+                data=data,
+                epochs=epochs,
+                pos_batch_size=pos_batch_size,
+                neg_batch_size=neg_batch_size,
+                k=k,
+                lr=lr,
+                input_bases=input_bases,
+                progbar=progbar,
+                time=time,
+                callbacks=callbacks,
+                optimizer=optimizer,
+                **kwargs
+            )
 
     def save(self, location, metadata=None):
         metadata = metadata if metadata else {}

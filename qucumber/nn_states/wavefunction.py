@@ -421,7 +421,7 @@ class Wavefunction(abc.ABC):
         optimizer=torch.optim.SGD,
         **kwargs
     ):
-        """Train the RBM.
+        """Train the Wavefunction.
 
         :param data: The training samples
         :type data: np.array
@@ -437,7 +437,8 @@ class Wavefunction(abc.ABC):
         :type k: int
         :param lr: Learning rate
         :type lr: float
-        :param input_bases: The measurement bases for each sample.
+        :param input_bases: The measurement bases for each sample. Must be provided
+                            if training a ComplexWavefunction.
         :type input_bases: np.array
         :param progbar: Whether or not to display a progress bar. If "notebook"
                         is passed, will use a Jupyter notebook compatible
