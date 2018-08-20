@@ -30,28 +30,27 @@ import qucumber
 import qucumber.utils.data as data
 import qucumber.utils.training_statistics as ts
 import qucumber.utils.unitaries as unitaries
-from qucumber.callbacks import MetricEvaluator
+from qucumber.callbacks import MetricEvaluator, LambdaCallback
 from qucumber.nn_states import ComplexWavefunction, PositiveWavefunction
 from . import __tests_location__
 
 SEED = 1234
 
 
-@pytest.mark.parametrize(
-    "gpu",
-    [
-        False,
-        pytest.param(
-            True,
-            marks=[
-                pytest.mark.skipif(
-                    not torch.cuda.is_available(), reason="GPU required"
-                ),
-                pytest.mark.gpu,
-            ],
-        ),
-    ],
-)
+devices = [
+    pytest.param(False, id="cpu"),
+    pytest.param(
+        True,
+        id="gpu",
+        marks=[
+            pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU required"),
+            pytest.mark.gpu,
+        ],
+    ),
+]
+
+
+@pytest.mark.parametrize("gpu", devices)
 def test_positive_wavefunction(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
 
@@ -68,21 +67,7 @@ def test_positive_wavefunction(gpu):
     assert not torch.equal(old_params, new_params), msg
 
 
-@pytest.mark.parametrize(
-    "gpu",
-    [
-        False,
-        pytest.param(
-            True,
-            marks=[
-                pytest.mark.skipif(
-                    not torch.cuda.is_available(), reason="GPU required"
-                ),
-                pytest.mark.gpu,
-            ],
-        ),
-    ],
-)
+@pytest.mark.parametrize("gpu", devices)
 def test_complex_wavefunction(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
     np.random.seed(SEED)
@@ -104,6 +89,67 @@ def test_complex_wavefunction(gpu):
     assert not torch.equal(old_params, new_params), msg
 
 
+@pytest.mark.parametrize("gpu", devices)
+def test_stop_training(gpu):
+    qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
+    np.random.seed(SEED)
+
+    nn_state = PositiveWavefunction(10, gpu=gpu)
+
+    old_params = parameters_to_vector(nn_state.rbm_am.parameters())
+    data = torch.ones(100, 10)
+
+    nn_state.stop_training = True
+    nn_state.fit(data)
+
+    new_params = parameters_to_vector(nn_state.rbm_am.parameters())
+
+    msg = "stop_training didn't work!"
+    assert torch.equal(old_params, new_params), msg
+
+
+def set_stop_training(nn_state):
+    nn_state.stop_training = True
+
+
+@pytest.mark.parametrize("gpu", devices)
+def test_stop_training_in_batch(gpu):
+    qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
+    np.random.seed(SEED)
+
+    nn_state = PositiveWavefunction(10, gpu=gpu)
+
+    data = torch.ones(100, 10)
+
+    callbacks = [
+        LambdaCallback(on_batch_end=lambda nn_state, ep, b: set_stop_training(nn_state))
+    ]
+
+    nn_state.fit(data, callbacks=callbacks)
+
+    msg = "stop_training wasn't set!"
+    assert nn_state.stop_training, msg
+
+
+@pytest.mark.parametrize("gpu", devices)
+def test_stop_training_in_epoch(gpu):
+    qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
+    np.random.seed(SEED)
+
+    nn_state = PositiveWavefunction(10, gpu=gpu)
+
+    data = torch.ones(100, 10)
+
+    callbacks = [
+        LambdaCallback(on_epoch_end=lambda nn_state, ep: set_stop_training(nn_state))
+    ]
+
+    nn_state.fit(data, callbacks=callbacks)
+
+    msg = "stop_training wasn't set!"
+    assert nn_state.stop_training, msg
+
+
 class TestExamples(unittest.TestCase):
     @pytest.mark.slow
     def test_trainingpositive(self):
@@ -111,7 +157,7 @@ class TestExamples(unittest.TestCase):
         print("---------------------")
 
         train_samples_path = os.path.join(
-            __tests_location__, "../examples/01_Ising/tfim1d_train_samples.txt"
+            __tests_location__, "../examples/01_Ising/tfim1d_train.txt"
         )
         psi_path = os.path.join(
             __tests_location__, "../examples/01_Ising/tfim1d_psi.txt"
@@ -151,12 +197,13 @@ class TestExamples(unittest.TestCase):
             self.initialize_posreal_params(nn_state)
 
             nn_state.fit(
-                train_samples,
-                epochs,
-                batch_size,
-                num_chains,
-                CD,
-                lr,
+                data=train_samples,
+                epochs=epochs,
+                pos_batch_size=batch_size,
+                neg_batch_size=num_chains,
+                k=CD,
+                lr=lr,
+                time=True,
                 progbar=False,
                 callbacks=callbacks,
             )
@@ -186,7 +233,7 @@ class TestExamples(unittest.TestCase):
         print("--------------------")
 
         train_samples_path = os.path.join(
-            __tests_location__, "../examples/02_qubits/qubits_train_samples.txt"
+            __tests_location__, "../examples/02_qubits/qubits_train.txt"
         )
         train_bases_path = os.path.join(
             __tests_location__, "../examples/02_qubits/qubits_train_bases.txt"
@@ -238,12 +285,13 @@ class TestExamples(unittest.TestCase):
             self.initialize_complex_params(nn_state)
 
             nn_state.fit(
-                train_samples,
-                epochs,
-                batch_size,
-                num_chains,
-                CD,
-                lr,
+                data=train_samples,
+                epochs=epochs,
+                pos_batch_size=batch_size,
+                neg_batch_size=num_chains,
+                k=CD,
+                lr=lr,
+                time=True,
                 input_bases=train_bases,
                 progbar=False,
                 callbacks=callbacks,

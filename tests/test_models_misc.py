@@ -21,6 +21,7 @@
 import os.path
 
 import torch
+from torch.nn.utils import parameters_to_vector
 import pytest
 
 import qucumber
@@ -37,7 +38,7 @@ def test_model_saving_and_loading(wvfn_type):
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
     nn_state = wvfn_type(10, gpu=False)
 
-    model_path = os.path.join(__tests_location__, "positive_wavefunction")
+    model_path = os.path.join(__tests_location__, "wavefunction")
 
     nn_state.save(model_path)
 
@@ -65,10 +66,102 @@ def test_model_saving_and_loading(wvfn_type):
     os.remove(model_path)
 
 
+@pytest.mark.parametrize("wvfn_type", [PositiveWavefunction, ComplexWavefunction])
+def test_model_saving_bad_metadata_key(wvfn_type):
+    # some CUDA ops are non-deterministic; don't test on GPU.
+    qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
+    nn_state = wvfn_type(10, gpu=False)
+
+    model_path = os.path.join(__tests_location__, "wavefunction")
+
+    msg = "Metadata with invalid key should raise an error."
+    with pytest.raises(ValueError, message=msg):
+        nn_state.save(model_path, metadata={"rbm_am": 1337})
+
+
 def test_positive_wavefunction_phase():
     nn_state = PositiveWavefunction(10, gpu=False)
 
-    vis_state = torch.ones(10)
+    vis_state = torch.ones(10).to(dtype=torch.double)
+    actual_phase = nn_state.phase(vis_state).to(vis_state)
+    expected_phase = torch.zeros(1).to(vis_state)
 
-    msg = "PositiveWavefunction is giving a non-zero phase!"
-    assert torch.equal(nn_state.phase(vis_state), torch.zeros(10)), msg
+    msg = "PositiveWavefunction is giving a non-zero phase for single visible state!"
+    assert torch.equal(actual_phase, expected_phase), msg
+
+    vis_state = torch.ones(10, 10).to(dtype=torch.double)
+    actual_phase = nn_state.phase(vis_state).to(vis_state)
+    expected_phase = torch.zeros(10).to(vis_state)
+
+    msg = "PositiveWavefunction is giving a non-zero phase for batch of visible states!"
+    assert torch.equal(actual_phase, expected_phase), msg
+
+
+def test_positive_wavefunction_psi():
+    nn_state = PositiveWavefunction(10, gpu=False)
+
+    vis_state = torch.ones(10).to(dtype=torch.double)
+    actual_psi = nn_state.psi(vis_state)[1].to(vis_state)
+    expected_psi = torch.zeros(1).to(vis_state)
+
+    msg = "PositiveWavefunction is giving a non-zero imaginary part!"
+    assert torch.equal(actual_psi, expected_psi), msg
+
+
+def test_single_positive_sample():
+    nn_state = PositiveWavefunction(10, 7, gpu=False)
+
+    sample = nn_state.sample(k=10).squeeze()
+    h_sample = nn_state.sample_h_given_v(sample)
+    v_prob = nn_state.prob_v_given_h(h_sample)
+
+    msg = "Single hidden sample should give a "
+    assert v_prob.dim() == 1, msg
+
+
+def test_sampling_with_overwrite():
+    nn_state = PositiveWavefunction(10, gpu=False)
+
+    old_state = torch.empty(100, 10).bernoulli_().to(dtype=torch.double)
+    initial_state = old_state.clone()
+
+    sample = nn_state.sample(k=10, initial_state=initial_state, overwrite=True)
+
+    assert torch.equal(sample, initial_state), "initial_state did not get overwritten!"
+    assert not torch.equal(sample, old_state), "Markov Chain did not get updated!"
+
+
+def test_bad_stop_training_val():
+    nn_state = PositiveWavefunction(10, gpu=False)
+
+    msg = "Setting stop_training to a non-boolean value should have raised an error."
+    with pytest.raises(ValueError, message=msg):
+        nn_state.stop_training = "foobar"
+
+
+@pytest.mark.parametrize("wvfn_type", [PositiveWavefunction, ComplexWavefunction])
+def test_parameter_reinitialization(wvfn_type):
+    # some CUDA ops are non-deterministic; don't test on GPU.
+    qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
+    nn_state = wvfn_type(10, gpu=False)
+
+    old_params = parameters_to_vector(nn_state.rbm_am.parameters())
+    nn_state.reinitialize_parameters()
+    new_params = parameters_to_vector(nn_state.rbm_am.parameters())
+
+    msg = "Model parameters did not get reinitialized!"
+    assert not torch.equal(old_params, new_params), msg
+
+
+@pytest.mark.parametrize("wvfn_type", [PositiveWavefunction, ComplexWavefunction])
+def test_large_hilbert_space_fail(wvfn_type):
+    qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
+
+    nn_state = wvfn_type(10, gpu=False)
+    max_size = nn_state.max_size
+
+    msg = "Generating full Hilbert Space for more than {} qubits should fail.".format(
+        max_size
+    )
+    with pytest.raises(ValueError, message=msg):
+        nn_state.generate_hilbert_space(size=max_size + 1)
