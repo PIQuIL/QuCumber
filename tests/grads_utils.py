@@ -199,7 +199,9 @@ class ComplexGradsUtils:
                 ).log().item() / batch_size
             else:
                 psi_r = self.rotate_psi(data_bases[i], unitary_dict, vis)
-                NLL -= (cplx.norm(psi_r[:, ind]).log() - Z.log()).item() / batch_size
+                NLL -= (
+                    cplx.norm_sqr(psi_r[:, ind]).log() - Z.log()
+                ).item() / batch_size
         return NLL
 
     def compute_numerical_kl(self, psi_dict, vis, Z, unitary_dict, bases):
@@ -208,12 +210,12 @@ class ComplexGradsUtils:
         KL = 0.0
         for i in range(len(vis)):
             KL += (
-                cplx.norm(psi_dict[bases[0]][:, i])
-                * cplx.norm(psi_dict[bases[0]][:, i]).log()
+                cplx.norm_sqr(psi_dict[bases[0]][:, i])
+                * cplx.norm_sqr(psi_dict[bases[0]][:, i]).log()
                 / float(len(bases))
             )
             KL -= (
-                cplx.norm(psi_dict[bases[0]][:, i])
+                cplx.norm_sqr(psi_dict[bases[0]][:, i])
                 * self.nn_state.probability(vis[i], Z).log().item()
                 / float(len(bases))
             )
@@ -221,19 +223,23 @@ class ComplexGradsUtils:
         for b in range(1, len(bases)):
             psi_r = self.rotate_psi(bases[b], unitary_dict, vis)
             for ii in range(len(vis)):
-                if cplx.norm(psi_dict[bases[b]][:, ii]) > 0.0:
+                if cplx.norm_sqr(psi_dict[bases[b]][:, ii]) > 0.0:
                     KL += (
-                        cplx.norm(psi_dict[bases[b]][:, ii])
-                        * cplx.norm(psi_dict[bases[b]][:, ii]).log()
+                        cplx.norm_sqr(psi_dict[bases[b]][:, ii])
+                        * cplx.norm_sqr(psi_dict[bases[b]][:, ii]).log()
                         / float(len(bases))
                     )
 
                 KL -= (
-                    cplx.norm(psi_dict[bases[b]][:, ii])
-                    * cplx.norm(psi_r[:, ii]).log()
+                    cplx.norm_sqr(psi_dict[bases[b]][:, ii])
+                    * cplx.norm_sqr(psi_r[:, ii]).log()
                     / float(len(bases))
                 )
-                KL += cplx.norm(psi_dict[bases[b]][:, ii]) * Z.log() / float(len(bases))
+                KL += (
+                    cplx.norm_sqr(psi_dict[bases[b]][:, ii])
+                    * Z.log()
+                    / float(len(bases))
+                )
 
         return KL
 
@@ -301,7 +307,7 @@ class ComplexGradsUtils:
 
         for i in range(len(vis)):
             grad_KL[0] += (
-                cplx.norm(psi_dict[bases[0]][:, i])
+                cplx.norm_sqr(psi_dict[bases[0]][:, i])
                 * self.nn_state.rbm_am.effective_energy_gradient(vis[i])
                 / float(len(bases))
             )
@@ -315,12 +321,12 @@ class ComplexGradsUtils:
             for i in range(len(vis)):
                 rotated_grad = self.nn_state.gradient(bases[b], vis[i])
                 grad_KL[0] += (
-                    cplx.norm(psi_dict[bases[b]][:, i])
+                    cplx.norm_sqr(psi_dict[bases[b]][:, i])
                     * rotated_grad[0]
                     / float(len(bases))
                 )
                 grad_KL[1] += (
-                    cplx.norm(psi_dict[bases[b]][:, i])
+                    cplx.norm_sqr(psi_dict[bases[b]][:, i])
                     * rotated_grad[1]
                     / float(len(bases))
                 )

@@ -19,6 +19,7 @@
 
 import unittest
 
+import numpy as np
 import torch
 
 from qucumber.utils import cplx
@@ -40,6 +41,16 @@ class TestCplx(unittest.TestCase):
 
         self.assertTensorsEqual(expect, z, msg="Make Complex Vector failed!")
 
+    def test_make_complex_vector_with_zero_imaginary_part(self):
+        x = torch.tensor([1, 2, 3, 4])
+        z = cplx.make_complex(x)
+
+        expect = torch.tensor([[1, 2, 3, 4], [0, 0, 0, 0]])
+
+        self.assertTensorsEqual(
+            expect, z, msg="Making a complex vector with zero imaginary part failed!"
+        )
+
     def test_make_complex_matrix(self):
         x = torch.tensor([[1, 2], [3, 4]])
         y = torch.tensor([[5, 6], [7, 8]])
@@ -54,6 +65,38 @@ class TestCplx(unittest.TestCase):
             x = torch.tensor([[1, 2, 3]])
             y = torch.tensor([[4, 5, 6, 7]])
             return cplx.make_complex(x, y)
+
+    def test_elementwise_mult(self):
+        z1 = torch.tensor([[2, 3, 5], [6, 7, 2]], dtype=torch.double)
+        z2 = torch.tensor([[1, 2, 2], [3, 4, 8]], dtype=torch.double)
+
+        expect = torch.tensor([[-16, -22, -6], [12, 26, 44]], dtype=torch.double)
+
+        self.assertTensorsEqual(
+            cplx.elementwise_mult(z1, z2),
+            expect,
+            msg="Elementwise multiplication failed!",
+        )
+
+    def test_elementwise_div(self):
+        z1 = torch.tensor([[2, 3, 5], [6, 7, 2]], dtype=torch.double)
+        z2 = torch.tensor([[1, 2, 2], [3, 4, 8]], dtype=torch.double)
+
+        expect = torch.tensor(
+            [[2, (17 / 10), (13 / 34)], [0, (1 / 10), (-9 / 17)]], dtype=torch.double
+        )
+
+        self.assertTensorsAlmostEqual(
+            cplx.elementwise_division(z1, z2),
+            expect,
+            msg="Elementwise division failed!",
+        )
+
+    def test_elementwise_div_fail(self):
+        with self.assertRaises(ValueError):
+            z1 = torch.tensor([[2, 3], [6, 7]], dtype=torch.double)
+            z2 = torch.tensor([[1, 2, 2], [3, 4, 8]], dtype=torch.double)
+            return cplx.elementwise_division(z1, z2)
 
     def test_scalar_vector_mult(self):
         scalar = torch.tensor([2, 3], dtype=torch.double)
@@ -218,11 +261,31 @@ class TestCplx(unittest.TestCase):
             msg="Matrix / Scalar divide failed!",
         )
 
-    def test_norm(self):
+    def test_norm_sqr(self):
         scalar = torch.tensor([3, 4], dtype=torch.double)
         expect = torch.tensor(25, dtype=torch.double)
 
+        self.assertTensorsEqual(cplx.norm_sqr(scalar), expect, msg="Norm failed!")
+
+    def test_norm(self):
+        scalar = torch.tensor([3, 4], dtype=torch.double)
+        expect = torch.tensor(5, dtype=torch.double)
+
         self.assertTensorsEqual(cplx.norm(scalar), expect, msg="Norm failed!")
+
+    def test_absolute_value(self):
+        tensor = torch.tensor(
+            [[[5, 5, -5, -5], [3, 6, -9, 1]], [[2, -2, 2, -2], [-7, 8, 0, 4]]],
+            dtype=torch.double,
+        )
+
+        expect = torch.tensor(
+            [[[np.sqrt(29)] * 4, [np.sqrt(58), 10, 9, np.sqrt(17)]]], dtype=torch.double
+        )
+
+        self.assertTensorsAlmostEqual(
+            cplx.absolute_value(tensor), expect, msg="Absolute Value failed!"
+        )
 
 
 if __name__ == "__main__":

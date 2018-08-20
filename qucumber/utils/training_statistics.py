@@ -23,7 +23,7 @@ import qucumber.utils.cplx as cplx
 import qucumber.utils.unitaries as unitaries
 
 
-def fidelity(nn_state, target_psi, space):
+def fidelity(nn_state, target_psi, space, **kwargs):
     r"""Calculates the square of the overlap (fidelity) between the reconstructed
     wavefunction and the true wavefunction (both in the computational basis).
 
@@ -34,6 +34,7 @@ def fidelity(nn_state, target_psi, space):
     :type target_psi: torch.Tensor
     :param space: The hilbert space of the system.
     :type space: torch.Tensor
+    :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
     :returns: The fidelity.
     :rtype: torch.Tensor
@@ -45,7 +46,7 @@ def fidelity(nn_state, target_psi, space):
         psi = nn_state.psi(space[i]) / Z.sqrt()
         F[0] += target_psi[0, i] * psi[0] + target_psi[1, i] * psi[1]
         F[1] += target_psi[0, i] * psi[1] - target_psi[1, i] * psi[0]
-    return cplx.norm(F)
+    return cplx.norm_sqr(F)
 
 
 def rotate_psi(nn_state, basis, space, unitaries, psi=None):
@@ -107,7 +108,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
     return psi_r
 
 
-def KL(nn_state, target_psi, space, bases=None):
+def KL(nn_state, target_psi, space, bases=None, **kwargs):
     r"""A function for calculating the total KL divergence.
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
@@ -119,6 +120,10 @@ def KL(nn_state, target_psi, space, bases=None):
     :type space: torch.Tensor
     :param bases: An array of unique bases.
     :type bases: np.array(dtype=str)
+    :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
+
+    :returns: The KL divergence.
+    :rtype: torch.Tensor
     """
     psi_r = torch.zeros(
         2, 1 << nn_state.num_visible, dtype=torch.double, device=nn_state.device
@@ -130,9 +135,14 @@ def KL(nn_state, target_psi, space, bases=None):
     if bases is None:
         num_bases = 1
         for i in range(len(space)):
-            KL += cplx.norm(target_psi[:, i]) * cplx.norm(target_psi[:, i]).log()
-            KL -= cplx.norm(target_psi[:, i]) * cplx.norm(nn_state.psi(space[i])).log()
-            KL += cplx.norm(target_psi[:, i]) * Z.log()
+            KL += (
+                cplx.norm_sqr(target_psi[:, i]) * cplx.norm_sqr(target_psi[:, i]).log()
+            )
+            KL -= (
+                cplx.norm_sqr(target_psi[:, i])
+                * cplx.norm_sqr(nn_state.psi(space[i])).log()
+            )
+            KL += cplx.norm_sqr(target_psi[:, i]) * Z.log()
     else:
         num_bases = len(bases)
         for b in range(1, len(bases)):
@@ -141,14 +151,14 @@ def KL(nn_state, target_psi, space, bases=None):
                 nn_state, bases[b], space, unitary_dict, target_psi
             )
             for ii in range(len(space)):
-                if cplx.norm(target_psi_r[:, ii]) > 0.0:
+                if cplx.norm_sqr(target_psi_r[:, ii]) > 0.0:
                     KL += (
-                        cplx.norm(target_psi_r[:, ii])
-                        * cplx.norm(target_psi_r[:, ii]).log()
+                        cplx.norm_sqr(target_psi_r[:, ii])
+                        * cplx.norm_sqr(target_psi_r[:, ii]).log()
                     )
                 KL -= (
-                    cplx.norm(target_psi_r[:, ii])
-                    * cplx.norm(psi_r[:, ii]).log().item()
+                    cplx.norm_sqr(target_psi_r[:, ii])
+                    * cplx.norm_sqr(psi_r[:, ii]).log().item()
                 )
-                KL += cplx.norm(target_psi_r[:, ii]) * Z.log()
+                KL += cplx.norm_sqr(target_psi_r[:, ii]) * Z.log()
     return KL / float(num_bases)

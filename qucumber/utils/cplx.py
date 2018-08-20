@@ -20,7 +20,7 @@
 import torch
 
 
-def make_complex(x, y):
+def make_complex(x, y=None):
     """A function that combines the real (x) and imaginary (y) parts of a
     vector or a matrix.
 
@@ -30,12 +30,15 @@ def make_complex(x, y):
     :param x: The real part
     :type x: torch.Tensor
 
-    :param y: The imaginary part
+    :param y: The imaginary part. Can be None, in which case, the resulting
+              complex tensor will have imaginary part equal to zero.
     :type y: torch.Tensor
 
-    :returns: The tensor [x,y].
+    :returns: The tensor [x,y] = x + yi.
     :rtype: torch.Tensor
     """
+    if y is None:
+        y = torch.zeros_like(x)
     return torch.cat((x.unsqueeze(0), y.unsqueeze(0)), dim=0)
 
 
@@ -173,27 +176,40 @@ def conjugate(x):
 
 
 def elementwise_mult(x, y):
-    if x.shape != y.shape:
-        raise ValueError("x and y must have the same shape!")
-
-    out = torch.zeros_like(x)
-    out[0] = (x[0] * y[0]) - (x[1] * x[1])
-    out[1] = (x[1] * y[0]) + (x[0] * y[1])
-    return out
+    """Alias for :func:`scalar_mult`."""
+    return scalar_mult(x, y)
 
 
 def elementwise_division(x, y):
+    """Elementwise division of x by y.
+
+    :param x: A complex tensor.
+    :type x: torch.Tensor
+    :param y: A complex tensor.
+    :type y: torch.Tensor
+
+    :rtype: torch.Tensor
+    """
     if x.shape != y.shape:
         raise ValueError("x and y must have the same shape!")
 
-    abs_y = y[0].pow(2) + y[1].pow(2)
     y_star = y.clone()
     y_star[1] *= -1
 
-    return elementwise_mult(x, y_star).div_(abs_y)
+    sqrd_abs_y = absolute_value(y).pow_(2)
+
+    return elementwise_mult(x, y_star).div_(sqrd_abs_y)
 
 
-def elementwise_norm(x):
+def absolute_value(x):
+    """Computes the complex absolute value elementwise.
+
+    :param x: A complex tensor.
+    :type x: torch.Tensor
+
+    :returns: A real tensor.
+    :rtype: torch.Tensor
+    """
     x_star = x.clone()
     x_star[1] *= -1
     return elementwise_mult(x, x_star)[0].sqrt_()
@@ -276,8 +292,8 @@ def scalar_divide(x, y):
     return numerator / denominator
 
 
-def norm(x):
-    """A function that returns the norm of the argument.
+def norm_sqr(x):
+    """A function that returns the squared norm of the argument.
 
     :param x: A complex scalar.
     :type x: torch.Tensor
@@ -286,3 +302,15 @@ def norm(x):
     :rtype: torch.Tensor
     """
     return inner_prod(x, x)[0]
+
+
+def norm(x):
+    """A function that returns the norm of the argument.
+
+    :param x: A complex scalar.
+    :type x: torch.Tensor
+
+    :returns: :math:`|x|`.
+    :rtype: torch.Tensor
+    """
+    return inner_prod(x, x)[0].sqrt_()
