@@ -21,6 +21,7 @@ import torch
 
 from qucumber.utils import cplx
 from .observable import Observable
+from .utils import to_pm1
 
 
 class SigmaZ(Observable):
@@ -42,7 +43,7 @@ class SigmaZ(Observable):
         # convert to +/- 1 convention, after computing the
         # mean, to reduce total computations; this works
         # because expectation is linear.
-        return samples.mean(1).mul(2.).sub(1.).abs()
+        return to_pm1(samples.mean(1)).abs()
 
 
 class SigmaX(Observable):

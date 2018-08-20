@@ -42,13 +42,14 @@ class NeighbourInteraction(Observable):
         :type samples: torch.Tensor
         """
 
+        L = samples.shape[-1]  # length of the spin chain
         if self.periodic_bcs:
-            perm_indices = list(range(samples.shape[-1]))
-            perm_indices = perm_indices[self.c :] + perm_indices[: self.c]
+            perm_indices = [(i + self.c) % L for i in range(L)]
+            # perm_indices = perm_indices[self.c :] + perm_indices[: self.c]
             interaction_terms = samples * samples[:, perm_indices]
         else:
             interaction_terms = samples[:, : -self.c] * samples[:, self.c :]
 
         # average over spin sites; not using mean bc
-        # interaction_terms.shape[-1] < num_spins = samples.shape[-1]
-        return interaction_terms.sum(1).div_(samples.shape[-1])
+        # interaction_terms.shape[-1] < num_spins = L
+        return interaction_terms.sum(1).div_(L)

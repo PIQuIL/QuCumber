@@ -57,9 +57,9 @@ class System:
                   (key: "std_error") of the observable.
         :rtype: dict(str, float)
         """
-        running_means = {name: 0.0 for name in self.observables.keys()}
-        running_variances = {name: 0.0 for name in self.observables.keys()}
-        running_length = 0.0
+        means = {name: 0.0 for name in self.observables.keys()}
+        variances = {name: 0.0 for name in self.observables.keys()}
+        total_samples = 0.0
 
         chains = None
         num_chains = num_chains if num_chains != 0 else num_samples
@@ -79,26 +79,22 @@ class System:
                 current_mean = obs_samples.mean().item()
                 current_variance = obs_samples.var().item()
 
-                running_means[obs_name], running_variances[
-                    obs_name
-                ], _ = Observable._update_statistics(
-                    running_means[obs_name],
-                    running_variances[obs_name],
-                    running_length,
+                means[obs_name], variances[obs_name], _ = Observable._update_statistics(
+                    means[obs_name],
+                    variances[obs_name],
+                    total_samples,
                     current_mean,
                     current_variance,
                     num_chains,
                 )
 
-            running_length += num_chains
-
-        N = running_length  # total number of samples
+            total_samples += num_chains
 
         statistics = {
             {
-                "mean": running_means[obs_name],
-                "variance": running_variances[obs_name],
-                "std_error": running_variances[obs_name] / N,
+                "mean": means[obs_name],
+                "variance": variances[obs_name],
+                "std_error": np.sqrt(variances[obs_name] / total_samples),
             }
             for obs_name in self.observables.keys()
         }

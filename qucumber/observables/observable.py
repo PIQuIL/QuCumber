@@ -172,9 +172,7 @@ class Observable(abc.ABC):
                 num_chains,
             )
 
-        N = running_length  # total number of samples
-
-        std_error = np.sqrt(running_variance / N)
+        std_error = np.sqrt(running_variance / running_length)
 
         return {
             "mean": running_mean,
