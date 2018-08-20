@@ -161,7 +161,7 @@ html_static_path = ["_static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 
-autodoc_member_order = "bysource"
+autodoc_member_order = "alphabetical"
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "QuCumberdoc"
@@ -312,6 +312,22 @@ def linkcode_resolve(domain, info):
 
 
 nbsphinx_execute = "never"
+
+# will only link to binders for tagged releases
+nbsphinx_prolog = r"""
+{% set docname = env.doc2path(env.docname, base='doc') %}
+
+.. only:: html
+
+   .. role:: raw-html(raw)
+      :format: html
+
+   .. nbinfo::
+
+      Interactive online version:
+      :raw-html:`<a href="https://mybinder.org/v2/gh/PIQuIL/QuCumber/v{{ env.config.release }}?filepath={{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge.svg"></a>`
+
+"""
 
 conf_location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 

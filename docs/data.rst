@@ -1,6 +1,6 @@
 .. include:: macros.hrst
 
-Data Handler
+Data Handling
 ===============
 
 .. automodule:: qucumber.utils.data

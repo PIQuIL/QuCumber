@@ -20,12 +20,10 @@ Complex Wavefunction
     :inherited-members:
     :show-inheritance:
 
-Wavefunction
+Abstract Wavefunction
 ------------------------------
 
-.. note::
-    This is an Abstract Base Class, it is not meant to be used directly. The
-    following API reference is mostly for developers.
+.. note:: |AbstractClassNote|
 
 .. autoclass:: qucumber.nn_states.Wavefunction
     :members:

@@ -1,6 +1,5 @@
 Welcome to QuCumber's documentation!
 ====================================
-Version: |version|
 
 
 .. toctree::
