@@ -24,23 +24,29 @@ environment:
   matrix:
     - PYTHON: "C:\\Python35"
       PYTHON_VERSION: "3.5.x"
+      PY_SHORT_VER: "3.5"
       PYTHON_ARCH: "32"
     - PYTHON: "C:\\Python35-x64"
       PYTHON_VERSION: "3.5.x"
+      PY_SHORT_VER: "3.5"
       PYTHON_ARCH: "64"
 
     - PYTHON: "C:\\Python36"
       PYTHON_VERSION: "3.6.x"
+      PY_SHORT_VER: "3.6"
       PYTHON_ARCH: "32"
     - PYTHON: "C:\\Python36-x64"
       PYTHON_VERSION: "3.6.x"
+      PY_SHORT_VER: "3.6"
       PYTHON_ARCH: "64"
 
-    - PYTHON: "C:\\Python37-x64"
+    - PYTHON: "C:\\Python37"
       PYTHON_VERSION: "3.7.x"
+      PY_SHORT_VER: "3.7"
       PYTHON_ARCH: "32"
     - PYTHON: "C:\\Python37-x64"
       PYTHON_VERSION: "3.7.x"
+      PY_SHORT_VER: "3.7"
       PYTHON_ARCH: "64"
 
 
@@ -49,6 +55,10 @@ init:
 
 install:
   - "python --version"
+  # TODO: add manual installation of pytorch conditional on python version
+  - if [%PY_SHORT_VER%]==[3.5] python -m pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp35-cp35m-win_amd64.whl
+  - if [%PY_SHORT_VER%]==[3.6] python -m pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-win_amd64.whl
+  - if [%PY_SHORT_VER%]==[3.7] python -m pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp37-cp37m-win_amd64.whl
   - "python -m pip install -r requirements-dev.txt"
   - "python setup.py install"
 
