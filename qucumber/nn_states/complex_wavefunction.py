@@ -58,11 +58,11 @@ class ComplexWavefunction(Wavefunction):
         }
 
     @property
-    def networks(self):  # noqa: D102
+    def networks(self):
         return ["rbm_am", "rbm_ph"]
 
     @property
-    def rbm_am(self):  # noqa: D102
+    def rbm_am(self):
         return self._rbm_am
 
     @rbm_am.setter
@@ -79,7 +79,7 @@ class ComplexWavefunction(Wavefunction):
         self._rbm_ph = new_val
 
     @property
-    def device(self):  # noqa: D102
+    def device(self):
         return self._device
 
     @device.setter
@@ -236,13 +236,13 @@ class ComplexWavefunction(Wavefunction):
         """
         return super().compute_normalization(space)
 
-    def save(self, location, metadata=None):  # noqa: D102
+    def save(self, location, metadata=None):
         metadata = metadata if metadata else {}
         metadata["unitary_dict"] = self.unitary_dict
         super().save(location, metadata=metadata)
 
     @staticmethod
-    def autoload(location, gpu=False):  # noqa: D102
+    def autoload(location, gpu=False):
         state_dict = torch.load(location)
         wvfn = ComplexWavefunction(
             unitary_dict=state_dict["unitary_dict"],

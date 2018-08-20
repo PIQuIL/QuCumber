@@ -46,11 +46,11 @@ class PositiveWavefunction(Wavefunction):
         self.device = self.rbm_am.device
 
     @property
-    def networks(self):  # noqa: D102
+    def networks(self):
         return ["rbm_am"]
 
     @property
-    def rbm_am(self):  # noqa: D102
+    def rbm_am(self):
         return self._rbm_am
 
     @rbm_am.setter
@@ -58,7 +58,7 @@ class PositiveWavefunction(Wavefunction):
         self._rbm_am = new_val
 
     @property
-    def device(self):  # noqa: D102
+    def device(self):
         return self._device
 
     @device.setter
@@ -92,7 +92,18 @@ class PositiveWavefunction(Wavefunction):
         :returns: Matrix/vector containing the phases of v
         :rtype: torch.Tensor
         """
-        return torch.zeros(v.shape[0]).to(v)
+        if v.dim() == 1:
+            v = v.unsqueeze(0)
+            unsqueezed = True
+        else:
+            unsqueezed = False
+
+        phase = torch.zeros(v.shape[0])
+
+        if unsqueezed:
+            return phase.squeeze_(0)
+        else:
+            return phase
 
     def psi(self, v):
         r"""Compute the (unnormalized) wavefunction of a given vector/matrix of visible states.
@@ -113,8 +124,8 @@ class PositiveWavefunction(Wavefunction):
         amplitude = self.amplitude(v)
 
         # complex vector; shape: (2, len(v))
-        psi = torch.zeros(
-            (2,) + amplitude.shape, dtype=torch.double, device=self.device
+        psi = torch.zeros((2,) + amplitude.shape).to(
+            dtype=torch.double, device=self.device
         )
         psi[0] = amplitude
 
@@ -218,7 +229,7 @@ class PositiveWavefunction(Wavefunction):
         return super().compute_normalization(space)
 
     @staticmethod
-    def autoload(location, gpu=False):  # noqa: D102
+    def autoload(location, gpu=False):
         state_dict = torch.load(location)
         wvfn = PositiveWavefunction(
             num_visible=len(state_dict["rbm_am"]["visible_bias"]),

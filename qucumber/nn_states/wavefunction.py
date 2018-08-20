@@ -47,7 +47,7 @@ class Wavefunction(abc.ABC):
 
     @stop_training.setter
     def stop_training(self, new_val):
-        if isinstance(new_val):
+        if isinstance(new_val, bool):
             self._stop_training = new_val
         else:
             raise ValueError("stop_training must be a boolean value!")
@@ -266,10 +266,7 @@ class Wavefunction(abc.ABC):
         :param location: The location to load the Wavefunction parameters from.
         :type location: str or file
         """
-        try:
-            state_dict = torch.load(location)
-        except AssertionError as e:
-            state_dict = torch.load(location, lambda storage, loc: "cpu")
+        state_dict = torch.load(location, map_location=self.device)
 
         for net in self.networks:
             getattr(self, net).load_state_dict(state_dict[net])
