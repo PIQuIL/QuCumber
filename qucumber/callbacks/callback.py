@@ -21,47 +21,47 @@
 class Callback:
     """Base class for callbacks."""
 
-    def on_train_start(self, rbm):
+    def on_train_start(self, nn_state):
         """Called at the start of the training cycle.
 
-        :param rbm: The RBM being trained.
-        :type rbm: BinomialRBM
+        :param nn_state: The Wavefunction being trained.
+        :type nn_state: Wavefunction
         """
         pass
 
-    def on_train_end(self, rbm):
+    def on_train_end(self, nn_state):
         """Called at the end of the training cycle.
 
-        :param rbm: The RBM being trained.
-        :type rbm: BinomialRBM
+        :param nn_state: The Wavefunction being trained.
+        :type nn_state: Wavefunction
         """
         pass
 
-    def on_epoch_start(self, rbm, epoch):
+    def on_epoch_start(self, nn_state, epoch):
         """Called at the start of each epoch.
 
-        :param rbm: The RBM being trained.
-        :type rbm: BinomialRBM
+        :param nn_state: The Wavefunction being trained.
+        :type nn_state: Wavefunction
         :param epoch: The current epoch.
         :type epoch: int
         """
         pass
 
-    def on_epoch_end(self, rbm, epoch):
+    def on_epoch_end(self, nn_state, epoch):
         """Called at the end of each epoch.
 
-        :param rbm: The RBM being trained.
-        :type rbm: BinomialRBM
+        :param nn_state: The Wavefunction being trained.
+        :type nn_state: Wavefunction
         :param epoch: The current epoch.
         :type epoch: int
         """
         pass
 
-    def on_batch_start(self, rbm, epoch, batch):
+    def on_batch_start(self, nn_state, epoch, batch):
         """Called at the start of each batch.
 
-        :param rbm: The RBM being trained.
-        :type rbm: BinomialRBM
+        :param nn_state: The Wavefunction being trained.
+        :type nn_state: Wavefunction
         :param epoch: The current epoch.
         :type epoch: int
         :param batch: The current batch index.
@@ -69,11 +69,11 @@ class Callback:
         """
         pass
 
-    def on_batch_end(self, rbm, epoch, batch):
+    def on_batch_end(self, nn_state, epoch, batch):
         """Called at the end of each batch.
 
-        :param rbm: The RBM being trained.
-        :type rbm: BinomialRBM
+        :param nn_state: The Wavefunction being trained.
+        :type nn_state: Wavefunction
         :param epoch: The current epoch.
         :type epoch: int
         :param batch: The current batch index.

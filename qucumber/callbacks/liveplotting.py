@@ -27,40 +27,43 @@ from .callback import Callback
 
 
 class LivePlotting(Callback):
-    r"""Plots metrics.
+    """Plots metrics/observables.
+
     This Callback is called at the end of each epoch.
 
     :param period: Frequency with which the callback updates the plots
                    (in epochs).
     :type period: int
-    :param metric_callback: An instance of
-        :class:`MetricEvaluator<MetricEvaluator>` which computes the metric
-        that we want to check for convergence.
-    :type metric_callback: :class:`MetricEvaluator<MetricEvaluator>`
-    :param metric_name: The name of the metric stored in `metric_callback`.
-    :type metric_name: str
-    :param error_name: The name of the error stored in `metric_callback`.
+    :param evaluator_callback: An instance of
+        :class:`MetricEvaluator<MetricEvaluator>` or
+        :class:`ObservableEvaluator<ObservableEvaluator>`
+        which computes the metric/observable that we want to plot.
+    :type evaluator_callback: :class:`MetricEvaluator<MetricEvaluator>` or
+                           :class:`ObservableEvaluator<ObservableEvaluator>`
+    :param quantity_name: The name of the metric/observable stored in `evaluator_callback`.
+    :type quantity_name: str
+    :param error_name: The name of the error stored in `evaluator_callback`.
     :type error_name: str
     """
 
     def __init__(
         self,
         period,
-        metric_evaluator,
-        metric_name,
+        evaluator_callback,
+        quantity_name,
         error_name=None,
         total_epochs=None,
         smooth=True,
     ):
         self.period = period
-        self.metric_evaluator = metric_evaluator
-        self.metric_name = metric_name
+        self.evaluator_callback = evaluator_callback
+        self.quantity_name = quantity_name
         self.error_name = error_name
         self.last_epoch = 0
         self.total_epochs = total_epochs
         self.smooth = smooth
 
-    def on_train_start(self, rbm):
+    def on_train_start(self, nn_state):
         self.fig, self.ax = plt.subplots()
 
         if self.total_epochs:
@@ -71,53 +74,53 @@ class LivePlotting(Callback):
         self.fig.show()
         self.fig.canvas.draw()
 
-    def on_epoch_end(self, rbm, epoch):
+    def on_epoch_end(self, nn_state, epoch):
         if epoch % self.period == 0:
             self.last_epoch = epoch
 
             epochs = np.array(
-                list(map(itemgetter(0), self.metric_evaluator.metric_values))
+                list(map(itemgetter(0), self.evaluator_callback.past_values))
             )
 
-            metric_values = np.array(
+            past_values = np.array(
                 list(
                     map(
-                        itemgetter(self.metric_name),
-                        map(itemgetter(1), self.metric_evaluator.metric_values),
+                        itemgetter(self.quantity_name),
+                        map(itemgetter(1), self.evaluator_callback.past_values),
                     )
                 )
             )
 
             self.ax.clear()
-            p = self.ax.plot(epochs, metric_values)
+            p = self.ax.plot(epochs, past_values)
 
             if self.error_name is not None:
                 std_error = np.array(
                     list(
                         map(
                             itemgetter(self.error_name),
-                            map(itemgetter(1), self.metric_evaluator.metric_values),
+                            map(itemgetter(1), self.evaluator_callback.past_values),
                         )
                     )
                 )
 
-                lower = metric_values - std_error
-                upper = metric_values + std_error
+                lower = past_values - std_error
+                upper = past_values + std_error
 
                 self.ax.fill_between(
                     epochs, lower, upper, color=p[0].get_color(), alpha=0.4
                 )
 
-            y_avg = np.max(np.abs(metric_values))
+            y_avg = np.max(np.abs(past_values))
             y_log_avg = np.log10(y_avg) if y_avg != 0 else -1.
             y_tick_exp = int(np.sign(y_log_avg) * np.ceil(np.abs(y_log_avg)))
             y_tick_interval = (10 ** y_tick_exp) / 2.
             self.ax.yaxis.set_major_locator(ticker.MultipleLocator(y_tick_interval))
 
             self.ax.set_xlabel("Epochs")
-            self.ax.set_ylabel(self.metric_name)
+            self.ax.set_ylabel(self.quantity_name)
             self.ax.grid()
             self.fig.canvas.draw()
 
-    def on_train_end(self, rbm):
-        self.on_epoch_end(rbm, self.last_epoch)
+    def on_train_end(self, nn_state):
+        self.on_epoch_end(nn_state, self.last_epoch)

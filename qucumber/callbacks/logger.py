@@ -46,9 +46,9 @@ class Logger(Callback):
         self.msg_gen_kwargs = msg_gen_kwargs
 
     @staticmethod
-    def _default_msg_gen(rbm, epoch, **kwargs):
+    def _default_msg_gen(nn_state, epoch, **kwargs):
         return "Epoch " + str(epoch) + ": " + str(kwargs)
 
-    def on_epoch_end(self, rbm, epoch):
+    def on_epoch_end(self, nn_state, epoch):
         if epoch % self.period == 0:
-            self.logger_fn(self.msg_gen(rbm, epoch, **self.msg_gen_kwargs))
+            self.logger_fn(self.msg_gen(nn_state, epoch, **self.msg_gen_kwargs))

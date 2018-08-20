@@ -55,18 +55,18 @@ class MetricEvaluator(Callback):
     def __init__(self, period, metrics, verbose=False, **metric_kwargs):
         self.period = period
         self.metrics = metrics
-        self.metric_values = []
+        self.past_values = []
         self.last = {}
         self.verbose = verbose
         self.metric_kwargs = metric_kwargs
 
     def __len__(self):
         """Return the number of timesteps that metrics have been evaluated for."""
-        return len(self.metric_values)
+        return len(self.past_values)
 
     def clear_history(self):
         """Delete all metric values the instance is currently storing."""
-        self.metric_values = []
+        self.past_values = []
         self.last = {}
 
     def get_value(self, name, index=None):
@@ -80,7 +80,7 @@ class MetricEvaluator(Callback):
         :type index: int or None
         """
         index = index if index is not None else -1
-        return self.metric_values[index][-1][name]
+        return self.past_values[index][-1][name]
 
     def on_epoch_end(self, nn_state, epoch):
         if epoch % self.period == 0:
@@ -95,7 +95,7 @@ class MetricEvaluator(Callback):
                     metric_vals_for_epoch[metric_name] = val
 
             self.last = metric_vals_for_epoch.copy()
-            self.metric_values.append((epoch, metric_vals_for_epoch))
+            self.past_values.append((epoch, metric_vals_for_epoch))
 
             if self.verbose is True:
                 print("Epoch: {}\t".format(epoch), end="", flush=True)

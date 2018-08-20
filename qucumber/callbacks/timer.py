@@ -26,7 +26,9 @@ from .callback import Callback
 class Timer(Callback):
     """Callback which records the training time.
 
-    This Callback is called at the start and end of training.
+    This Callback is always called at the start and end of training. It will
+    run at the end of an epoch or batch if the given model's `stop_training`
+    property is set to True.
 
     :param verbose: Whether to print the elapsed time at the end of training.
     :type verbose: bool
@@ -35,10 +37,27 @@ class Timer(Callback):
     def __init__(self, verbose=True):
         self.verbose = verbose
 
-    def on_train_start(self, rbm):
+    def on_train_start(self, nn_state):
         self.start_time = time.time()
 
-    def on_train_end(self, rbm):
+    def on_batch_end(self, nn_state, epoch, batch):
+        if nn_state.stop_training:
+            if self.verbose:
+                print(
+                    "Training terminated at epoch: {}, batch: {}".format(epoch, batch)
+                )
+            self.calculate_elapsed_time()
+
+    def on_epoch_end(self, nn_state, epoch):
+        if nn_state.stop_training:
+            if self.verbose:
+                print("Training terminated at epoch: {}".format(epoch))
+            self.calculate_elapsed_time()
+
+    def on_train_end(self, nn_state):
+        self.calculate_elapsed_time()
+
+    def calculate_elapsed_time(self):
         self.end_time = time.time()
         self.training_time = self.end_time - self.start_time
         if self.verbose:

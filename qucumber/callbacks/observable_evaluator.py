@@ -51,7 +51,7 @@ class ObservableEvaluator(Callback):
     def __init__(self, period, *observables, verbose=False, **sampling_kwargs):
         self.period = period
         self.observables = observables
-        self.observable_statistics = []
+        self.past_values = []
         self.system = System(*self.observables)
         self.last = {}
         self.verbose = verbose
@@ -59,11 +59,11 @@ class ObservableEvaluator(Callback):
 
     def __len__(self):
         """Return the number of timesteps that observables have been evaluated for."""
-        return len(self.metric_values)
+        return len(self.past_values)
 
     def clear_history(self):
         """Delete all statistics the instance is currently storing."""
-        self.observable_statistics = []
+        self.past_values = []
         self.last = {}
 
     def get_value(self, name, index=None):
@@ -77,14 +77,14 @@ class ObservableEvaluator(Callback):
         :type index: int or None
         """
         index = index if index is not None else -1
-        return self.observable_statistics[index][-1][name]
+        return self.past_values[index][-1][name]
 
     def on_epoch_end(self, nn_state, epoch):
         if epoch % self.period == 0:
             obs_vals = self.system.measure(nn_state, **self.sampling_kwargs)
 
             self.last = obs_vals.copy()
-            self.observable_statistics.append((epoch, obs_vals))
+            self.past_values.append((epoch, obs_vals))
 
             if self.verbose is True:
                 print("Epoch: {}\t".format(epoch), end="", flush=True)

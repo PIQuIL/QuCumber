@@ -66,7 +66,7 @@ class LambdaCallback(Callback):
         elif fn is None:
             return lambda *args: None
         else:
-            raise TypeError(
+            raise ValueError(
                 "{} must be either None ".format(name)
                 + "or a function with {} arguments.".format(num_params)
             )
