@@ -329,6 +329,10 @@ nbsphinx_prolog = r"""
 
 """
 
+rst_epilog = ".. |binder_url| replace:: {}".format(
+    "https://mybinder.org/v2/gh/PIQuIL/QuCumber/v" + release
+)
+
 conf_location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 # the following code snippet was adapted from:

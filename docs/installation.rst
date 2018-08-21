@@ -13,7 +13,8 @@ have not already.
 Github
 -------
 
-Navigate to the qucumber page on github (https://github.com/PIQuIL/QuCumber) and clone the repository by typing::
+Navigate to the qucumber page on github (https://github.com/PIQuIL/QuCumber)
+and clone the repository by typing::
 
     git clone https://github.com/PIQuIL/QuCumber.git
 
