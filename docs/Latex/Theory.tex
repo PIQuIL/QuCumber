@@ -228,8 +228,6 @@ nn_state = PositiveWavefunction(num_visible=nv,num_hidden=nh,gpu=False)
 
 The neural network wavefunction object can be trained with the constrastive divergence algorithm using various optimizers (see \url{https://pytorch.org/docs/stable/optim.html}).
 This is implimented with the function \verb|PositiveWavefunction.fit|, which takes a number of hyperparameters, which we define the following way, 
-\textcolor{red}{[cite specific documentation for the definition of these?]}
-
 \begin{python}
 epochs     = 1500
 batch_size = 100
@@ -240,11 +238,32 @@ log_every  = 100
 \end{python}
 The choice of hyperparameter depends on the details of the system under study, as well as the size and quality of the training set.
 In this example, we take a learning rate (\verb|lr|) of $10^{-2}$ using stochastic (batch) gradient descent with a batch size of 100, trained for 1,500 epochs.
-The number of Gibbs sampling steps \verb|CD|, which dictates the number of steps in the contrastive divergence algorithm,
-influences the speed of the training. The smaller we choose \verb|CD|, the faster is the training. High values on the other hand give a better approximation for the model distribution. It has been shown that even for \verb|CD|$=1$ the RBM trains well for many typical cases\cite{hinton2002training}. \verb|num_chain| defines the batch size of the negative phase of the RBM. The training shows better performance if this value is bigger than the batch size by a factor of 2 or 3. \textcolor{red}{Is this necessary in a tutorial. It is very specific and confusing.} With \verb|log_every| we define how often we calculate callbacks (See section~\ref{Sec:Callbacks}) during the training. Here we define that we calculate the callbacks every 100 epochs.
+The number of Gibbs sampling steps \verb|CD|, which dictates the number of steps in the contrastive divergence algorithm \cite{hinton2002training},
+influences the speed of the training. 
+%The smaller we choose \verb|CD|, the faster is the training. High values on the other hand give a better approximation for the model distribution. It has been shown that even for \verb|CD|$=1$ the RBM trains well for many typical cases\cite{hinton2002training}. 
+\verb|num_chain| defines the batch size of the negative phase of the RBM. %The training shows better performance if this value is bigger than the batch size by a factor of 2 or 3. \textcolor{red}{Is this necessary in a tutorial. It is very specific and confusing.} 
+
+\subsection{Monitoring training}
+
+Training with contrastive divergence is performed by the function \verb|PositiveWavefunction.fit|.  After training is complete, the target distribution is encoded in the 
+parameters of the RBM.  However, the quality of the approximate wavefunction reconstruction depends on many factors, such as the number of hidden units, size of the training set, or errors in the training procedure.  
 The success of training can be tracked by different measures, like the convergence of the energy or other observables.
-In the example of the one-dimensional TIFM, we can compare fidelity of the true ground state with the trained model.
-Note that this is only possible for very small system sizes, as the computation of the fidelity scale exponetially. Additionally we calculate the KL-divergence of the distribution of the training data and the distribution of the model.
+%In the example of the one-dimensional TIFM, we can compare fidelity of the true ground state with the trained model.
+%Note that this is only possible for very small system sizes, as the computation of the fidelity scale exponetially. Additionally we calculate the KL-divergence of the distribution of the training data and the distribution of the model.
+For the purposes of tracking training, we introduce the concept of callbacks, which help calculate observables during training.
+
+
+With \verb|log_every| we define how often we calculate callbacks during the training. Here we define that we calculate the callbacks every 100 epochs.  
+A standard test of the quality of training, accessible to small system sizes only, 
+is the KL-divergence of the distribution of the training data and the distribution of the model (see the Glossary).
+Another useful measure of the distance between two quantum states is the {\it fidelity}.
+For pure states reduces to the overlap of two quantum states $\braket{\phi | \psi}$.
+If one has access to the full quantum state $\ket{\phi} = \sum_{\bm{\sigma}} \phi(\bm{\sigma}) \ket{ \bm{\sigma}}$
+and knows the coefficients $\phi(\bm{\sigma})$ that are approximated by the RBM with
+$\psi_{\bm{\lambda}}(\bm{\sigma}) = \sqrt{p_{\bm{\lambda}}(\bm{\sigma})}$,
+the fidelity can be computed via $\sum_{\bm{\sigma}} \phi(\bm{\sigma}) \psi_{\bm{\lambda}}(\bm{\sigma})$.
+This can be used to compare the reconstructed wavefunction with the state underlying the measurement data, for example.
+Because of the exponential growth of the wavefunction in the number of qubits, this is of course only feasible for small physical systems.
 
 \begin{python}
 nn_state.space = nn_state.generate_hilbert_space(nv)
@@ -282,51 +301,47 @@ and outputs
 	Epoch = 1000	Fidelity = 0.995174	KL = 0.009641
 \end{python}
 
-After training is complete, the target distribution is encoded in the parameters of the RBM.
-The quality of the approximate wavefunction reconstruction depends on many factors, such as the number of hidden units, size of the training set, or errors in the training procedure.
-Evaluating and quantifying it is the task of the user for his or her given application; we outline some strategies in Section \ref{Sec:Callbacks}.
-
-\subsubsection{Callbacks and monitoring training}
-\label{Sec:Callbacks}
-
-So far there is no certainty that the RBM performs well and indeed learns the probability distribution it is supposed to learn.
-Therefore we introduce the concept of callbacks. 
-To tract a certain observable like the energy or the fidelity during the training, one can implement it as a class in the \textbf{This should be outdated!!} \verb|observable.py| file and monitor it via callbacks.
-
-\begin{python}
-	Show example here
-\end{python}
-
-The user can track the training progress via these callbacks, for example by checking whether the energy converges to a reasonable value.
-If the system size is not too big, one can even check whether the approximate RBM probability distribution has high fidelity with the theoretical state that should be learned.
-\textbf{We could add plots with different learning behaviour to give a idea of bad learning rates}
-
-
-
-\subsubsection{Monitoring fidelity for small systems}
-The quantum state fidelity for pure states reduces to the overlap of two quantum states $\braket{\phi | \psi}$.
-If one has access to the full quantum state $\ket{\phi} = \sum_{\bm{\sigma}} \phi(\bm{\sigma}) \ket{ \bm{\sigma}}$
-and knows the coefficients $\phi(\bm{\sigma})$ that are approximated by the RBM with
-$\psi_{\bm{\lambda}}(\bm{\sigma}) = \sqrt{p_{\bm{\lambda}}(\bm{\sigma})}$,
-the fidelity can be computed via $\sum_{\bm{\sigma}} \phi(\bm{\sigma}) \psi_{\bm{\lambda}}(\bm{\sigma})$.
-This can be used to compare the reconstructed wavefunction with the state underlying the measurement data, for example.
-Because of the exponential growth of the wavefunction in the number of qubits, this is of course only feasible for small physical systems.
-\begin{python}
-    import utils.training_statistics as ts
-    train_stats = ts.TrainingStatistics(train_samples.shape[-1],log_every)
-\end{python}
+%\subsubsection{Callbacks and monitoring training}
+%\label{Sec:Callbacks}
 %
-To effectively calculate the fidelity with a target state $\ket{\phi}$, one needs to load the coefficients $\phi(\bm{\sigma})$. In this example we load the ground state of the TFIM Hamiltonian at the critical point $h = J = 1$ with the system size $N=10$.
+%So far there is no certainty that the RBM performs well and indeed learns the probability distribution it is supposed to learn.
+%Therefore we introduce the concept of callbacks. 
+%To tract a certain observable like the energy or the fidelity during the training, one can implement it as a class in the \textbf{This should be outdated!!} \verb|observable.py| file and monitor it via callbacks.
 
-\begin{python}
-    N = 10 # Define system size
-    phi = np.textload(...) # load wavefunction of TFIM
-    train_stats.load_target_psi(phi)
-    train_stats.fidelity(PositiveWavefunction)
-    fidelity = train_stats.F
-\end{python}
+%\begin{python}
+%	Show example here
+%\end{python}
 
-\textcolor{red}{[Let's load wavefunction of TFIM and calculate fidelity with the trained RBM from TFIM]}
+%The user can track the training progress via these callbacks, for example by checking whether the energy converges to a reasonable value.
+%If the system size is not too big, one can even check whether the approximate RBM probability distribution has high fidelity with the theoretical state that should be learned.
+%\textbf{We could add plots with different learning behaviour to give a idea of bad learning rates}
+
+
+
+%\subsubsection{Monitoring fidelity for small systems}
+%The quantum state fidelity for pure states reduces to the overlap of two quantum states $\braket{\phi | \psi}$.
+%If one has access to the full quantum state $\ket{\phi} = \sum_{\bm{\sigma}} \phi(\bm{\sigma}) \ket{ \bm{\sigma}}$
+%and knows the coefficients $\phi(\bm{\sigma})$ that are approximated by the RBM with
+%$\psi_{\bm{\lambda}}(\bm{\sigma}) = \sqrt{p_{\bm{\lambda}}(\bm{\sigma})}$,
+%the fidelity can be computed via $\sum_{\bm{\sigma}} \phi(\bm{\sigma}) \psi_{\bm{\lambda}}(\bm{\sigma})$.
+%This can be used to compare the reconstructed wavefunction with the state underlying the measurement data, for example.
+%Because of the exponential growth of the wavefunction in the number of qubits, this is of course only feasible for small physical systems.
+%\begin{python}
+ %   import utils.training_statistics as ts
+%    train_stats = ts.TrainingStatistics(train_samples.shape[-1],log_every)
+%\end{python}
+%
+%To effectively calculate the fidelity with a target state $\ket{\phi}$, one needs to load the coefficients $\phi(\bm{\sigma})$. In this example we load the ground state of the TFIM Hamiltonian at the critical point $h = J = 1$ with the system size $N=10$.
+
+%\begin{python}
+%    N = 10 # Define system size
+ %   phi = np.textload(...) # load wavefunction of TFIM
+  %  train_stats.load_target_psi(phi)
+ %   train_stats.fidelity(PositiveWavefunction)
+ %   fidelity = train_stats.F
+%\end{python}
+%
+%\textcolor{red}{[Let's load wavefunction of TFIM and calculate fidelity with the trained RBM from TFIM]}
 
 
 \subsection{Saving and loading a model}
@@ -723,6 +738,8 @@ We list an overview of terms discussed in the document and relevant for RBMs. Fo
 	      \begin{equation}
 		      p_{\bm{\lambda}}(v,h) = \frac{1}{Z_{\bm{\lambda}}} e^{-E_{\bm{\lambda}}(v,h)},
 	      \end{equation}
+	      
+	      \item{\it KL-divergence}: The Kullback-Leibler divergence, or relative entropy, is a measure the distance between two probability distributions.
 
 \item{\it Learning Rate}: The learning rate is a hyperparamter that can be adjusted if the training performance is poor.
 The lower the learning rate, the slower the training, but the more likely it is to find a good minimum of the objective function.
