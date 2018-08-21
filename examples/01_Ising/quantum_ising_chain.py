@@ -43,7 +43,7 @@ class TFIMChainEnergy(Observable):
         self.h = h
         self.nc = nc
 
-    def apply(self, samples, nn_state):
+    def apply(self, nn_state, samples):
         return self.Energy(nn_state, samples)
 
     @staticmethod
@@ -102,7 +102,7 @@ class TFIMChainMagnetization(Observable):
     def __repr__(self):
         return "TFIMChainMagnetization()"
 
-    def apply(self, samples, nn_state):
+    def apply(self, nn_state, samples):
         """Computes the magnetization of each sample given a batch of samples.
 
         :param samples: A batch of samples to calculate the observable on.
