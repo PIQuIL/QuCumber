@@ -41,11 +41,8 @@ class MetricEvaluator(Callback):
     :param metrics: A dictionary of callables where the keys are the names of
                     the metrics and the callables take the Wavefunction being trained
                     as their positional argument, along with some keyword
-                    arguments. The metrics are evaluated and put into a
+                    arguments. The metrics are evaluated and put into an internal
                     dictionary structure resembling the structure of `metrics`.
-                    If one of the callables returns a dictionary,
-                    the keys of that dictionary will be suitably modified
-                    and will be merged with the metric dictionary.
     :type metrics: dict(str, callable)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
@@ -61,8 +58,31 @@ class MetricEvaluator(Callback):
         self.metric_kwargs = metric_kwargs
 
     def __len__(self):
-        """Return the number of timesteps that metrics have been evaluated for."""
+        """Return the number of timesteps that metrics have been evaluated for.
+        
+        :rtype: int
+        """
         return len(self.past_values)
+
+    def __getattr__(self, metric):
+        """Return a list of all recorded values of the given metric.
+
+        The list will have the form: [(epoch#, metric_value)].
+
+        :param metric: The metric to retrieve.
+        :type metric: str
+
+        :returns: The past values of the metric.
+        :rtype: list[tuple(int, Any)]
+        """
+        return [(epoch, values[metric]) for epoch, values in self.past_values.items()]
+
+    def names(self):
+        """The names of the tracked metrics.
+
+        :rtype: list[str]
+        """
+        return list(self.metrics.keys())
 
     def clear_history(self):
         """Delete all metric values the instance is currently storing."""
@@ -87,12 +107,7 @@ class MetricEvaluator(Callback):
             metric_vals_for_epoch = {}
             for metric_name, metric_fn in self.metrics.items():
                 val = metric_fn(nn_state, **self.metric_kwargs)
-                if isinstance(val, dict):
-                    for k, v in val.items():
-                        key = metric_name + "_" + k
-                        metric_vals_for_epoch[key] = v
-                else:
-                    metric_vals_for_epoch[metric_name] = val
+                metric_vals_for_epoch[metric_name] = val
 
             self.last = metric_vals_for_epoch.copy()
             self.past_values.append((epoch, metric_vals_for_epoch))

@@ -41,10 +41,10 @@ class ObservableEvaluator(Callback):
                    observables(s).
     :type period: int
     :param observables: A list of Observables. Observable statistics are
-                          evaluated by sampling the Wavefunction. Note that
-                          observables that have the same name will conflict,
-                          and precedence will be given to the right-most
-                          observable argument.
+                        evaluated by sampling the Wavefunction. Note that
+                        observables that have the same name will conflict,
+                        and precedence will be given to the right-most
+                        observable argument.
     :type observables: list(qucumber.observables.Observable)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
@@ -54,16 +54,44 @@ class ObservableEvaluator(Callback):
 
     def __init__(self, period, observables, verbose=False, **sampling_kwargs):
         self.period = period
-        self.observables = observables
         self.past_values = []
-        self.system = System(*self.observables)
+        self.system = System(*observables)
         self.last = {}
         self.verbose = verbose
         self.sampling_kwargs = sampling_kwargs
 
     def __len__(self):
-        """Return the number of timesteps that observables have been evaluated for."""
+        """Return the number of timesteps that observables have been evaluated for.
+
+        :rtype: int
+        """
         return len(self.past_values)
+
+    def __getattr__(self, observable):
+        """Return a list of all recorded statistics of the given observable.
+
+        The list will have the form: [(epoch#, observable_value)].
+
+        :param observable: The observable to retrieve.
+        :type observable: str
+
+        :returns: The past values of the observable.
+        :rtype: list[tuple(int, dict)] or list[tuple(int, float)]
+        """
+        try:
+            return [
+                (epoch, values[observable])
+                for epoch, values in self.past_values.items()
+            ]
+        except KeyError:
+            raise AttributeError
+
+    def names(self):
+        """The names of the tracked observables.
+
+        :rtype: list[str]
+        """
+        return list(self.system.observables.keys())
 
     def clear_history(self):
         """Delete all statistics the instance is currently storing."""
