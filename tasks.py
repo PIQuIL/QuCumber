@@ -55,11 +55,21 @@ def is_license_missing(file_path, length_cutoff, exclude):
 
 @task(iterable=["extensions", "exclude"])
 def license_check(c, length_cutoff=15, extensions=None, exclude=None):
-    """Make sure all python files with more than 15 lines of code contain the license header."""
+    """Make sure all python files with more than 15 lines of code contain the license header.
+
+    :param length_cutoff: The maximum length of a file can be without a license header.
+    :type length_cutoff: int
+    :param extensions: File extensions to check for license headers.
+                       Can be provided multiple times. By default only checks
+                       files with a '.py' extension.
+    :type extensions: str
+    :param exclude: Files to exclude. Can be provided multiple times.
+    :type exclude: str
+    """
     num_fails = 0
 
     extensions = extensions if extensions else [".py"]
-    exclude = exclude if exclude else ["setup.py"]
+    exclude = exclude if exclude else []
 
     paths = chain(
         *[pathlib.Path(".").glob("**/*" + extension) for extension in extensions]
@@ -106,8 +116,6 @@ def lint_example_notebooks(c, linter="flake8"):
     failed_files = []
 
     for path in nb_paths:
-        failed = False
-
         run = c.run(
             to_script_command.format(str(path)) + " | " + linter_command,
             warn=True,  # don't exit task on first fail
@@ -115,8 +123,6 @@ def lint_example_notebooks(c, linter="flake8"):
         )
         if run.failed:
             num_fails += 1
-            failed = True
-        if failed:
             failed_files.append(str(path))
 
     if num_fails > 0:
