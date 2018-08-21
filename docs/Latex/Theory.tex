@@ -483,45 +483,10 @@ with the unitary $U (\bm{\sigma}^b, \bm{\sigma})$ that rotates the state $\ket{\
 Our objective is to learn the full complex wavefunction $\psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma})$ in the reference basis (in this case, the computational basis) from the measurements of the rotated wavefunction $\psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma}^b)$.
 The RBM again is trained by minimizing the negative log-likelihood (NLL). Following~\cite{} \textbf{ADD REFERENCE TO GIACOMOS THESIS OR SOMETHING THAT SHOWS THE MATH OF THE COMPLEX WAVEFUNCTION}, the gradients of the NLL will contain the unitaries $U (\bm{\sigma}^b, \bm{\sigma})$, and therefore we have to apply a slightly different learning algorithm.
 
-
-\subsection{A two-qubit example}
-
-In this section we work through a simple example for full quantum state tomography of a complex wavefunction with two qubits. 
-First we load the packages needed,
-
-\begin{python}
-import torch
-import numpy as np
-import pickle
-
-from qucumber.nn_states import ComplexWavefunction
-
-from qucumber.callbacks import MetricEvaluator
-
-import qucumber.utils.training_statistics as ts
-import qucumber.utils.data as data              
-import qucumber.utils.cplx as cplx              
-import qucumber.utils.unitaries as unitaries
-\end{python}
-
-
-The data set comprises the measurements \verb|'qubits_train_samples.txt'|, the unitaries that have been applied before the measurement \verb|'qubits_train_bases.txt'| and the actual wavefunction $\ket{\psi}$ the measurements have been sampled from \verb|'qubits_psi.txt'|.
-
-Load the files the following way:
-
-\begin{python}
-train_samples_path = 'qubits_train_samples.txt'
-train_bases_path   = 'qubits_train_bases.txt'
-bases_path         = 'qubits_bases.txt'
-psi_path           = 'qubits_psi.txt'
-
-train_samples,target_psi,train_bases,bases = data.load_data(train_samples_path, psi_path, train_bases_path, bases_path)
-\end{python}
-
+\subsection{An analytical example for QST}
 
 We will show in detail how to do tomography of the two-qubit state
 $\ket{\psi} = 1/2 \{ \ket{00} - \ket{01} + \ket{10} - i \ket{11} \}$.
-The state in \verb|target_psi| is with random coefficients and therefore not as suitable for a analytical demonstartion.
 If we measure the state $\ket{\psi}$ in the computational basis Z, we obtain all qubit states ($\ket{00}$, $\ket{01}$, $\ket{10}$ and $\ket{11}$) with the same probability $p = 1/4$, but we do not learn anything about the phase $i$ or $(-1)$.
 Therefore, we apply the local unitaries
 \begin{align}
@@ -583,6 +548,41 @@ Finding the full state $\ket{\psi}$ with this set of unitaries shows that it is 
 It might very well be that the complete set also contains the unitary $K \otimes \mathds{1}$,
 if the amplitudes of the coefficients were not all the same ($|c_i|^2 \neq 1/4$).
 
+\subsection{A two-qubit example}
+
+In this section we work through a simple example for full quantum state tomography of a complex wavefunction with two qubits. 
+First we load the packages needed,
+
+\begin{python}
+import torch
+import numpy as np
+import pickle
+
+from qucumber.nn_states import ComplexWavefunction
+
+from qucumber.callbacks import MetricEvaluator
+
+import qucumber.utils.training_statistics as ts
+import qucumber.utils.data as data              
+import qucumber.utils.cplx as cplx              
+import qucumber.utils.unitaries as unitaries
+\end{python}
+
+
+The data set comprises the measurements \verb|'qubits_train_samples.txt'|, the unitaries that have been applied before the measurement \verb|'qubits_train_bases.txt'| and the actual wavefunction $\ket{\psi}$ the measurements have been sampled from \verb|'qubits_psi.txt'|.
+
+Load the files the following way:
+
+\begin{python}
+train_samples_path = 'qubits_train_samples.txt'
+train_bases_path   = 'qubits_train_bases.txt'
+bases_path         = 'qubits_bases.txt'
+psi_path           = 'qubits_psi.txt'
+
+train_samples,target_psi,train_bases,bases = data.load_data(train_samples_path, psi_path, train_bases_path, bases_path)
+\end{python}
+
+The state \verb|target_psi| is a random complex state and is fully described on the tutorial of the 2-qubit example \url{https://github.com/PIQuIL/QuCumber/blob/develop/examples/02_qubits/tutorial_qubits.ipynb}.
 The training set \verb|train_samples| was measured in the complete basis $\{ZZ, ZX, XZ, ZY, YZ \}$, and therefore \verb|train_bases| contains the unitaries applied to the respective measurement and has the form \verb|np.array([['Z','Z'], ['X','Z'], ['Z','X'], ...])|.
 This means that the first measurement has been done in the Z basis for both qubits,
 and therefore no unitary has been applied. The second measurement has been done in the XZ basis,
