@@ -155,7 +155,7 @@ In this case, measurements in a single basis are sufficient for the reconstructi
 QuCumber has a highly efficient parallelizable method to determine the most likely state consistent with the given measurements.
 As an example, we demonstrate how to train and sample an RBM model with measurements from the one-dimensional transverse-field Ising model.
 
-\subsection{Transverse field Ising model}
+\subsection{Learning the transverse field Ising model}
 \label{Sec:Training_TFIM}
 
 The Hamiltonian for the transverse-field Ising model (TFIM) is given by
@@ -168,7 +168,7 @@ For training data, we use a synthetic data set consisting of $M=10,000$ measurem
 The example dataset is provided in \url{https://github.com/PIQuIL/QuCumber/blob/master/examples/01_Ising/tfim1d_train_samples.txt}.
 %\textcolor{red}{$N$ should be used for number of qubits, equal to number of visible units $V$.}
 
-\subsection{An example of measurement data}
+\subsubsection{An example of measurement data}
 %\label{Sec:Training_TFIM}
 To begin with wavefunction reconstruction we load the following packages.
 \begin{python}
@@ -224,7 +224,7 @@ nh = nv
 nn_state = PositiveWavefunction(num_visible=nv,num_hidden=nh,gpu=False)
 \end{python}
 
-\subsection{Training an RBM}
+\subsubsection{Training an RBM}
 
 The neural network wavefunction object can be trained with the constrastive divergence algorithm using various optimizers (see \url{https://pytorch.org/docs/stable/optim.html}).
 This is implimented with the function \verb|PositiveWavefunction.fit|, which takes a number of hyperparameters, which we define the following way, 
@@ -243,7 +243,7 @@ influences the speed of the training.
 %The smaller we choose \verb|CD|, the faster is the training. High values on the other hand give a better approximation for the model distribution. It has been shown that even for \verb|CD|$=1$ the RBM trains well for many typical cases\cite{hinton2002training}. 
 \verb|num_chain| defines the batch size of the negative phase of the RBM. %The training shows better performance if this value is bigger than the batch size by a factor of 2 or 3. \textcolor{red}{Is this necessary in a tutorial. It is very specific and confusing.} 
 
-\subsection{Monitoring training}
+\subsubsection{Monitoring training}
 
 Training with contrastive divergence is performed by the function \verb|PositiveWavefunction.fit|.  After training is complete, the target distribution is encoded in the 
 parameters of the RBM.  However, the quality of the approximate wavefunction reconstruction depends on many factors, such as the number of hidden units, size of the training set, or errors in the training procedure.  
@@ -344,7 +344,7 @@ and outputs
 %\textcolor{red}{[Let's load wavefunction of TFIM and calculate fidelity with the trained RBM from TFIM]}
 
 
-\subsection{Saving and loading a model}
+%\subsection{Saving and loading a model}
 The parameters of a trained RBM can be saved and loaded to and from a file with
 
 \begin{python}
@@ -355,7 +355,7 @@ The parameters of a trained RBM can be saved and loaded to and from a file with
 
 %\section{What can I do with a trained RBM?}
 
-\subsection{Sampling from a RBM}
+\subsection{Sampling from a trained RBM}
 \label{Sec:Sampling_a-Trained_RBM}
 
 RBMs are generative models, which means that they can produce new configurations of visible and hidden units
