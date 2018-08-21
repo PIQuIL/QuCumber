@@ -79,10 +79,7 @@ class ObservableEvaluator(Callback):
         :rtype: list[tuple(int, dict)] or list[tuple(int, float)]
         """
         try:
-            return [
-                (epoch, values[observable])
-                for epoch, values in self.past_values.items()
-            ]
+            return [(epoch, values[observable]) for epoch, values in self.past_values]
         except KeyError:
             raise AttributeError
 

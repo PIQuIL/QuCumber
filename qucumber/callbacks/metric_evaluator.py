@@ -59,7 +59,7 @@ class MetricEvaluator(Callback):
 
     def __len__(self):
         """Return the number of timesteps that metrics have been evaluated for.
-        
+
         :rtype: int
         """
         return len(self.past_values)
@@ -75,7 +75,7 @@ class MetricEvaluator(Callback):
         :returns: The past values of the metric.
         :rtype: list[tuple(int, Any)]
         """
-        return [(epoch, values[metric]) for epoch, values in self.past_values.items()]
+        return [(epoch, values[metric]) for epoch, values in self.past_values]
 
     def names(self):
         """The names of the tracked metrics.
