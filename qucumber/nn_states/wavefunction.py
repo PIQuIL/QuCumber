@@ -148,7 +148,7 @@ class Wavefunction(abc.ABC):
         :rtype: torch.Tensor
         """
         v = v.to(device=self.device, dtype=torch.double)
-        return (self.amplitude(v)[0]) ** 2 / Z
+        return (self.amplitude(v)) ** 2 / Z
 
     def sample(self, k, num_samples=1, initial_state=None, overwrite=False):
         r"""Performs k steps of Block Gibbs sampling. One step consists of sampling
