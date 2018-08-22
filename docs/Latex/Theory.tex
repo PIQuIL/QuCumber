@@ -282,20 +282,9 @@ and outputs
 	Epoch = 50	Fidelity = 0.785383	KL = 0.441264
 	Epoch = 100	Fidelity = 0.894514	KL = 0.208556
 	Epoch = 150	Fidelity = 0.935645	KL = 0.125355
-	Epoch = 200	Fidelity = 0.958977	KL = 0.080373
-	Epoch = 250	Fidelity = 0.970116	KL = 0.058963
-	Epoch = 300	Fidelity = 0.977806	KL = 0.043968
-	Epoch = 350	Fidelity = 0.979086	KL = 0.041768
-	Epoch = 400	Fidelity = 0.981559	KL = 0.037034
-	Epoch = 450	Fidelity = 0.985201	KL = 0.029750
-	Epoch = 500	Fidelity = 0.987439	KL = 0.025278
-	Epoch = 550	Fidelity = 0.988868	KL = 0.022384
-	Epoch = 600	Fidelity = 0.991312	KL = 0.017393
-	Epoch = 650	Fidelity = 0.991913	KL = 0.016160
-	Epoch = 700	Fidelity = 0.992833	KL = 0.014334
-	Epoch = 750	Fidelity = 0.992946	KL = 0.014146
-	Epoch = 800	Fidelity = 0.993429	KL = 0.013104
-	Epoch = 850	Fidelity = 0.993416	KL = 0.013208
+	.
+	.
+	.
 	Epoch = 900	Fidelity = 0.994565	KL = 0.010874
 	Epoch = 950	Fidelity = 0.994806	KL = 0.010380
 	Epoch = 1000	Fidelity = 0.995174	KL = 0.009641
@@ -360,7 +349,7 @@ The parameters of a trained RBM can be saved and loaded to and from a file with
 
 RBMs are generative models, which means that they can produce new configurations of visible and hidden units
 drawn according to the learned joint distribution.
-These configurations are generated using Block Gibbs Sampling and represent a Markov chain.
+These configurations are generated using block Gibbs Sampling and represent a Markov chain.
 The number of samples to generate (Gibbs steps) is specified by the variable $k$:
 \begin{python}
 	samples = nn_state.sample(samples=1000, k=10)
@@ -370,55 +359,52 @@ Drawing these samples is the main purpose of generative modelling.
 They can be used for a variety of tasks defined by the user.
 For example, they can be used to calculate estimators for some physical observable.
 
-\subsubsection{Observables}
+\subsubsection{General Observables}
 \label{Sec:Observables}
 
 Observables like energy, magnetization, or correlation functions can be calculated directly on the sampled data from the RBM.
-For a general wavefunction $\Psi$ and a general observable (or operator) $\mathcal{O}$ the expectation value of this operator is given by
+For a general wavefunction $\Psi$ and a general observable (Hermetian operator) $\mathcal{O}$ the expectation value is,
 \begin{align}
-	\braket{\mathcal{O}} & = \frac{\braket{\Psi | \mathcal{O} | \Psi}}{\braket{\Psi | \Psi}} = \frac{\sum_{\bm{\sigma}} \braket{\Psi | {\bm{\sigma}}} \braket{{\bm{\sigma}} | \mathcal{O} | \Psi}}{\sum_{\bm{\sigma}} \braket{\Psi | {\bm{\sigma}}} \braket{{\bm{\sigma}} | \Psi}} = \frac{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2 \frac{\braket{{\bm{\sigma}} | \mathcal{O} | \Psi}}{\braket{\Psi | {\bm{\sigma}}}} }{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2} \\
-	                     & = \frac{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2 \mathcal{O}_L({\bm{\sigma}}) }{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2}
+	\braket{\mathcal{O}} & = \frac{\braket{\Psi | \mathcal{O} | \Psi}}{\braket{\Psi | \Psi}} = \frac{\sum_{\bm{\sigma}} \braket{\Psi | {\bm{\sigma}}} \braket{{\bm{\sigma}} | \mathcal{O} | \Psi}}{\sum_{\bm{\sigma}} \braket{\Psi | {\bm{\sigma}}} \braket{{\bm{\sigma}} | \Psi}} 
+	%= \frac{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2 \frac{\braket{{\bm{\sigma}} | \mathcal{O} | \Psi}}{\braket{\Psi | {\bm{\sigma}}}} }{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2} \\
+	    = \frac{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2 \mathcal{O}_L({\bm{\sigma}}) }{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2}
 \end{align}
-Here we have defined the local estimator,
+where we have defined the local estimator,
 \begin{equation}
 	\mathcal{O}_L({\bm{\sigma}}) = \frac{\braket{{\bm{\sigma}} | \mathcal{O} | \Psi}}{\braket{\Psi | {\bm{\sigma}}}} .
 \end{equation}
-Considering that
-\begin{equation}
-	\mathcal{P}({\bm{\sigma}}) = \frac{ | \braket{\Psi | {\bm{\sigma}}} |^2 }{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2}
-\end{equation}
-is a probability distribution, the calculation of an expectation value of an operator $\mathcal{O}$ can be simplified
-into the calculation of the average of the local random variable $\mathcal{O}_L({\bm{\sigma}})$ over the distribution $\mathcal{P}({\bm{\sigma}})$.
-Thus, if we sample from the RBM using Gibbs sampling, where the probability distribution $\mathcal{P}({\bm{\sigma}})$ is the learned joint distribution,
-we can evaluate $\braket{\mathcal{O}}$ by computing the mean of the random variable $\mathcal{O}_L({\bm{\sigma}})$ over the
-sampled configurations ${\bm{\sigma}^{(k)}}$:
+This can be used to compute a Monte Carlo estimator in the usual way.  Namely, since 
+$ \mathcal{P}({\bm{\sigma}}) = { | \braket{\Psi | {\bm{\sigma}}} |^2 }/{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2}$
+is interpreted as a probability distribution,
+the calculation of the expectation value can be simplified into the calculation of the average 
+of the local estimator $\mathcal{O}_L({\bm{\sigma}})$ with states ${\bm \sigma}$ drawn from this distribution.
+Thus, if we sample from the RBM using Gibbs sampling, where the probability distribution $\mathcal{P}({\bm{\sigma}})$ is the  
+marginalized distribution of the machine,
+we can evaluate $\braket{\mathcal{O}}$ by computing the mean of $\mathcal{O}_L({\bm{\sigma}})$ over 
+some number $N_{\rm MC}$ of sampled configurations ${\bm{\sigma}^{(k)}}$:
 \begin{align}
 	\label{Eq:}
-	\mathcal{\langle O \rangle} \approx \frac{1}{N} \sum_{k=1}^N \mathcal{O}_L({\bm{\sigma}}^{(k)}).
+	\mathcal{\langle O \rangle} \approx \frac{1}{N_{\rm MC}} \sum_{k=1}^{N_{\rm MC}} \mathcal{O}_L({\bm{\sigma}}^{(k)}).
 \end{align}
-\textcolor{red}{[CHECK definitions of $k$, $N$, and $M$ below... Also need to crosscheck with code. What it really returns.]}
-Most observables depend on the physical system under study, e.g.~the Hamiltonian that underlies the original model, the lattice connectivity, etc.
-Therefore, we now turn to a discussion of a specific model example. In Section~\ref{Sec:Training_TFIM} we trained an RBM on the TFIM data.
-Now we will show how to calculate several quantities of interest from the learned distribution.
-
-
-\subsubsection{Magnetization}
-
-The magnetization of an Ising chain can be calculated simply by averaging over all Z measurements of the chain.
-The RBM can only sample in the Z direction, therefore we have to average over the samples $\bm{\sigma}^{(k)}$.
-
+%\textcolor{red}{[CHECK definitions of $k$, $N$, and $M$ below... Also need to crosscheck with code. What it really returns.]}
+Some observables only depend on the state under study -- a simple example being the magnetization of any Ising 
+system, which can be calculated simply by averaging over all samples $\bm{\sigma}^{(k)}$ in the computational basis:
 \begin{python}
 	magnetization = samples.mean()
 \end{python}
 
-\subsubsection{Energy using Observables module}
+Most observables however depend on the Hamiltonian that underlies the original model.
+Therefore, we now turn back to a discussion of our specific model discussed in 
+Section~\ref{Sec:Training_TFIM}.
+
+\subsection{Energy calculation using the Observables module}
 %\subsection{Example2: Energy of a TFIM chain}
 
 For the transverse field Ising model a standard observable is the energy, obtained as the expectation value of
 the Hamiltonian operator in equation~\ref{TFIM}.
 Calculating the energy for a sample $\ket{\bm{\sigma} }= \ket{\sigma_1 \dots \sigma_n}$ is not as straightforward as for the magnetization,
 because the Hamiltonian operator ${\sigma}^x_i$ is off-diagonal in the computational basis.
-Just calculating $\bra{\bm{\sigma} } \mathcal{H} \ket{\bm{\sigma} }$ ignores the second part of the Hamiltonian completely.
+Simply calculating $\bra{\bm{\sigma} } \mathcal{H} \ket{\bm{\sigma} }$ ignores the second part of the Hamiltonian completely.
 %This is because the Hamiltonian is not a diagonal observable. 
 If we write the wavefunction in its expanded form, $\ket{\psi} = \sum_{\bm{\sigma}} \psi(\bm{\sigma}) \ket{\bm{\sigma}} $,
 we calculate the expectation value of the Hamiltonian using the local observable,
@@ -438,7 +424,7 @@ $\psi_{\bm{\lambda}}(\bm{\sigma}) = \sqrt{p_{\bm{\lambda}}(\bm{\sigma})}$
 %\begin{equation}
 %\psi(\bm{\sigma}) = \sqrt{p_{\lambda}(\bm{\sigma})}
 %\end{equation}
-with $p_{\lambda}(\bm{\sigma})$ from Eq.~\ref{Eq:marginal_distribution}. The partition functions $Z_{\lambda}$ cancel out if we divide the probabilities and the calculation is tractable also for large system sizes.
+with $p_{\lambda}(\bm{\sigma})$ (see Eq.~\ref{Eq:marginal_distribution}). The partition functions $Z_{\lambda}$ cancel out if we divide the probabilities and the calculation is tractable also for large system sizes.
 The \verb|observable.py| package contains a few examples like this.
 
 \begin{python}
