@@ -26,6 +26,12 @@ class NeighbourInteraction(Observable):
 
     Computes the `c`-th nearest neighbour interaction for a spin chain with
     either open or periodic boundary conditions.
+
+    :param periodic_bcs: Specifies whether the system has periodic boundary
+                         conditions.
+    :type periodic_bcs: bool
+    :param c: Interaction distance.
+    :type c: int
     """
 
     def __init__(self, periodic_bcs=False, c=1):

@@ -192,6 +192,10 @@ class Observable(abc.ABC):
         return {"mean": mean, "variance": variance, "std_error": std_error}
 
 
+# make module path show up properly in sphinx docs
+Observable.__module__ = "qucumber.observables"
+
+
 class SumObservable(Observable):
     def __init__(self, o1, o2, right=False, name=None, symbol=None):
         if not isinstance(o1, (float, int, Observable)):
