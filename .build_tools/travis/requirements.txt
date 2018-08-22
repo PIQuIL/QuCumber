@@ -1,7 +1,7 @@
 -r ../../requirements.txt
 setuptools>=40.0.0
 wheel>=0.31.1
-black==18.6b4; python_version == '3.6'
+black==18.6b4; python_version >= '3.6'
 flake8>=3.5.0
 flake8-per-file-ignores>=0.6
 flake8-bugbear>=18.2.0

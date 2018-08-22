@@ -52,7 +52,7 @@ script:
   - echo -n 'travis_fold:end:pkg_build'
 
 after_success:
-  - if [[ $TRAVIS_BRANCH == "master" ]]; then codecov; fi
+  - codecov
 
 before_deploy:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then tar -czvf examples.tar.gz examples; fi
