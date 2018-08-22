@@ -37,8 +37,8 @@ script:
   - inv license-check
 
   - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
-  - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -k 'not slow' -m 'not extra'; fi # don't run slow tests or jupyter notebooks if not on master branch
-  - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing; fi
+  - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -v -s -k 'not slow' -m 'not extra'; fi # don't run slow tests or jupyter notebooks if not on master branch
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -v -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing; fi
   - echo -n 'travis_fold:end:pytest'
 
   - flake8
