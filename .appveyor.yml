@@ -64,9 +64,7 @@ test_script:
   - "python -m pytest"
 
 build_script:
-  - set CIBW_SKIP="cp27-* cp34-*"
-  - pip install cibuildwheel==0.2.0
-  - cibuildwheel --output-dir wheelhouse
+  - "python setup.py bdist_wheel"
   - >
     IF "%APPVEYOR_REPO_TAG%" == "true"
     (
