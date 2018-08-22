@@ -17,10 +17,10 @@ Callbacks
 .. autoclass:: qucumber.callbacks.VarianceBasedEarlyStopping
 
 .. autoclass:: qucumber.callbacks.MetricEvaluator
-    :members: get_value, __len__
+    :members: get_value, __len__, __getattr__, epochs, names, clear_history
 
 .. autoclass:: qucumber.callbacks.ObservableEvaluator
-    :members: get_value, __len__
+    :members: get_value, __len__, __getattr__, epochs, names, clear_history
 
 .. autoclass:: qucumber.callbacks.LivePlotting
 

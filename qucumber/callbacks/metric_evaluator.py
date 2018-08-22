@@ -67,15 +67,23 @@ class MetricEvaluator(Callback):
     def __getattr__(self, metric):
         """Return a list of all recorded values of the given metric.
 
-        The list will have the form: [(epoch#, metric_value)].
-
         :param metric: The metric to retrieve.
         :type metric: str
 
         :returns: The past values of the metric.
-        :rtype: list[tuple(int, Any)]
+        :rtype: list
         """
-        return [(epoch, values[metric]) for epoch, values in self.past_values]
+        try:
+            return [values[metric] for _, values in self.past_values]
+        except KeyError:
+            raise AttributeError
+
+    def epochs(self):
+        """Return a list of all epochs that have been recorded.
+
+        :rtype: list[int]
+        """
+        return [epoch for epoch, _ in self.past_values]
 
     def names(self):
         """The names of the tracked metrics.

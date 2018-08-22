@@ -70,18 +70,23 @@ class ObservableEvaluator(Callback):
     def __getattr__(self, observable):
         """Return a list of all recorded statistics of the given observable.
 
-        The list will have the form: [(epoch#, observable_value)].
-
         :param observable: The observable to retrieve.
         :type observable: str
 
         :returns: The past values of the observable.
-        :rtype: list[tuple(int, dict)] or list[tuple(int, float)]
+        :rtype: list[dict(str, float)]
         """
         try:
-            return [(epoch, values[observable]) for epoch, values in self.past_values]
+            return [values[observable] for _, values in self.past_values]
         except KeyError:
             raise AttributeError
+
+    def epochs(self):
+        """Return a list of all epochs that have been recorded.
+
+        :rtype: list[int]
+        """
+        return [epoch for epoch, _ in self.past_values]
 
     def names(self):
         """The names of the tracked observables.
