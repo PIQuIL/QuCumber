@@ -26,8 +26,8 @@ matrix:
       sudo: true
 
 install:
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install http://download.pytorch.org/whl/cpu/torch-0.4.1.post2-cp37-cp37m-linux_x86_64.whl; fi
-  - travis_retry pip install -r requirements-dev.txt
+  # - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install http://download.pytorch.org/whl/cpu/torch-0.4.1.post2-cp37-cp37m-linux_x86_64.whl; fi
+  - travis_retry pip install -r .build_tools/travis/requirements.txt
 
   - echo 'Installing package...' && echo -n 'travis_fold:start:pkg_install'
   - python setup.py install
@@ -63,7 +63,6 @@ deploy:
     file:
       - dist/*.whl
       - dist/*.tar.gz
-      - examples.tar.gz
     file_glob: true
     on:
       repo: PIQuIL/QuCumber

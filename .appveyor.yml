@@ -56,10 +56,7 @@ init:
 install:
   - "python --version"
   # TODO: add manual installation of pytorch conditional on python version
-  - if [%PY_SHORT_VER%]==[3.5] python -m pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp35-cp35m-win_amd64.whl
-  - if [%PY_SHORT_VER%]==[3.6] python -m pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-win_amd64.whl
-  - if [%PY_SHORT_VER%]==[3.7] python -m pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp37-cp37m-win_amd64.whl
-  - "python -m pip install -r requirements-dev.txt"
+  - "python -m pip install -r .build_tools/appveyor/requirements.txt"
   - "python setup.py install"
 
 
