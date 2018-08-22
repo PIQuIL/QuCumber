@@ -49,7 +49,7 @@ install:
 
 
 test_script:
-  - "pytest -v -s -m 'not slow and not extra'"
+  - "pytest -v -s -m \"not slow and not extra\""
 
 build_script:
   - "python setup.py bdist_wheel"
