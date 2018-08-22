@@ -22,8 +22,7 @@ import pathlib
 from pprint import pformat
 from itertools import chain
 
-from invocations.pytest import coverage, test
-from invoke import Collection, task
+from invoke import task
 
 
 ##############################################################################
@@ -131,6 +130,3 @@ def lint_example_notebooks(c, linter="flake8"):
             + "Number of unformatted files reported: {}\n".format(num_fails)
             + "Files with errors: {}".format(pformat(failed_files))
         )
-
-
-ns = Collection(license_check, test, coverage, lint_example_notebooks)
