@@ -89,6 +89,19 @@ def test_complex_wavefunction(gpu):
     assert not torch.equal(old_params, new_params), msg
 
 
+def test_complex_training_without_bases_fail():
+    qucumber.set_random_seed(SEED, cpu=True, gpu=False, quiet=True)
+    np.random.seed(SEED)
+
+    nn_state = ComplexWavefunction(10, gpu=False)
+
+    data = torch.ones(100, 10)
+
+    msg = "Training ComplexWavefunction without providing bases should fail!"
+    with pytest.raises(ValueError, message=msg):
+        nn_state.fit(data, epochs=1, pos_batch_size=10, input_bases=None)
+
+
 @pytest.mark.parametrize("gpu", devices)
 def test_stop_training(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
