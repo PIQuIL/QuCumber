@@ -19,28 +19,70 @@ producing new instances of measurements, and to calculate estimators not
 contained in the original data set.
 
 QuCumber is developed by the Perimeter Institute Quantum Intelligence Lab (PIQuIL).
-The project is currently in an early-beta. So, expect some rough edges, bugs, and backward incompatible updates.
-
-## Requirements
-
-Python 3.5/3.6/3.7. QuCumber is written using [PyTorch](https://pytorch.org), with CPU and GPU support.
+The project is currently in beta. So, expect some rough edges, bugs,
+and backward incompatible updates.
 
 ## Features
 
 QuCumber implements unsupervised generative modelling with a two-layer RBM.
-Each layer is a number of binary stochastic variables (with values 0 or 1). The size of the visible
-layer corresponds to the input data, i.e. the number of qubits. The size of the hidden
-layer is varied to systematically control representation error.
+Each layer is a number of binary stochastic variables (with values 0 or 1). The
+size of the visible layer corresponds to the input data, i.e. the number of
+qubits. The size of the hidden layer is varied to systematically control
+representation error.
 
-Currently the reconstruction can be performed on pure states with a positive-definite
-wavefunction.  Data is thus only required in one basis. Upcoming versions will
-allow reconstruction of more general wavefunctions and density matrices; in this case
-tomographically-complete basis sets may be required in the training data.
+Currently the reconstruction can be performed on pure states with either
+positive-definite or complex wavefunctions. In the case of a positive-definite
+wavefunction, data is only required in one basis. For complex wavefunctions,
+tomographically complete basis sets will be required to train the wavefunction.
 
 ## Documentation
 
 Documentation can be found [here](https://piquil.github.io/QuCumber/).
 
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your
+local machine for development and testing purposes.
+
+### Installing
+
+You can install the latest stable version of QuCumber using
+[`pip`](https://pip.pypa.io/en/stable/quickstart/):
+
+```bash
+pip install qucumber
+```
+
+This will also install any required dependencies such as [PyTorch](https://pytorch.org).
+If, for some reason, `pip` fails to install PyTorch, you can find installation
+instructions on their website. Once that's done you should be able to install
+QuCumber through `pip` as above.
+
+QuCumber supports Python 3.5 and newer stable versions.
+
+### Installing the bleeding-edge version
+
+If you'd like to install the most upto date, but potentially unstable version,
+you can clone the repository's develop branch and then build from source like so:
+
+```bash
+git clone git@github.com:PIQuIL/QuCumber.git
+cd ./QuCumber
+git checkout develop
+python setup.py install
+```
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute
+to the project, and the process for submitting pull requests to us.
+
 ## License
 
 QuCumber is licensed under the Apache License Version 2.0.
+
+## Acknowledgments
+
+- Lauren Hayward Sierens for many helpful discussions.
+
+- [Isaac's friend]() for the awesome logo.
