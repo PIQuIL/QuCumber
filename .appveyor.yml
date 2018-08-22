@@ -61,9 +61,9 @@ build_script:
     (
     python -m pip install twine
     &&
-    python -m twine upload wheelhouse/*.whl
+    python -m twine upload dist/*.whl
     )
 
 artifacts:
-  - path: "wheelhouse\\*.whl"
+  - path: "dist\\*.whl"
     name: Wheels
