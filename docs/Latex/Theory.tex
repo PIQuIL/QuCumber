@@ -446,10 +446,11 @@ The \verb|observable.py| package contains a few examples like this.
 
 For the positive-real wavefunctions there is no additional information contained in the wavefunction
 $\psi( \boldsymbol{\sigma})$ that could be lost by Borns rule $q(\boldsymbol{\sigma}) = | \psi( \boldsymbol{\sigma} ) |^2$.
-For negative-real and complex functions the phase information contained in these coefficients will be lost if the measurement
-is made in only one basis. Therefore, in experiments one has to apply local unitary transformations before the measurements
+However for real wavefunctions for mixed sign, or more generally complex wavefunctions, the phase information contained in these coefficients will be lost if the measurement
+is made in only one basis. 
+Therefore, in experiments one has to apply local unitary transformations before the measurements
 to capture the phase information. Given this additional information one can successfully perform quantum state reconstruction.
-QuCumber also provides the possibility to do quantum state reconstruction for complex wavefunctions.
+QuCumber also provides the possibility to do state reconstruction for complex wavefunctions.
 
 For complex wavefunctions, additionally to the marginal distribution (Eq.~\ref{Eq:marginal_distribution}) we require a phase factor
 that has to be learned by an additional set of hidden units and corresponding network parameters $\bm{\mu}$ of the RBM:
@@ -469,9 +470,16 @@ with the unitary $U (\bm{\sigma}^b, \bm{\sigma})$ that rotates the state $\ket{\
 Our objective is to learn the full complex wavefunction $\psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma})$ in the reference basis (in this case, the computational basis) from the measurements of the rotated wavefunction $\psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma}^b)$.
 The RBM again is trained by minimizing the negative log-likelihood (NLL). Following~\cite{} \textbf{ADD REFERENCE TO GIACOMOS THESIS OR SOMETHING THAT SHOWS THE MATH OF THE COMPLEX WAVEFUNCTION}, the gradients of the NLL will contain the unitaries $U (\bm{\sigma}^b, \bm{\sigma})$, and therefore we have to apply a slightly different learning algorithm.
 
-\subsection{An analytical example for QST}
+In the next two sections, let us consider the example of two qubits, with a general expansion in the computational basis
+\begin{equation}
+\ket{\psi} = \alpha  \ket{00} + \beta  \ket{01} + \gamma  \ket{10} + \delta \ket{11},
+\end{equation}
+with arbitrary coefficients $\alpha, \beta, \gamma$ and $\delta$.  We will demonstrate state reconstruction in two ways; first analytically, with a specific chosen set of coefficient; and next numerically using the QuCumber software.
 
-We will show in detail how to do tomography of the two-qubit state
+\subsection{An analytical example for two qubits}
+
+It is illustrative to understand the reconstruction technique for complex wavefunctions using an analytical example.  Let us define
+the two-qubit state
 $\ket{\psi} = 1/2 \{ \ket{00} - \ket{01} + \ket{10} - i \ket{11} \}$.
 If we measure the state $\ket{\psi}$ in the computational basis Z, we obtain all qubit states ($\ket{00}$, $\ket{01}$, $\ket{10}$ and $\ket{11}$) with the same probability $p = 1/4$, but we do not learn anything about the phase $i$ or $(-1)$.
 Therefore, we apply the local unitaries
@@ -485,7 +493,7 @@ Therefore, we apply the local unitaries
 	\begin{bmatrix}
 		1 & -i \\
 		1 & ~i \\
-	\end{bmatrix}
+	\end{bmatrix}  \label{Unitaries}
 \end{align}
 on the state before we measure in the computational basis. Measuring the state in the computational basis is equivalent to applying the identity $\mathds{1}$ on the qubits, measuring in the $X$ basis is equivalent to applying a unitary $H$ on the qubit and then measure in $Z$ basis, measuring in $Y$ basis is equivalent to applying a $K$ and then measure in $Z$ basis. Because of the application of local unitaries the probability amplitudes of certain measurement outcomes start mixing and therefore we can extract more information about them. If one applies for example a Hadamard gate $H$ on the second qubit of the state $\ket{\psi}$, we obtain the state:
 
@@ -534,9 +542,11 @@ Finding the full state $\ket{\psi}$ with this set of unitaries shows that it is 
 It might very well be that the complete set also contains the unitary $K \otimes \mathds{1}$,
 if the amplitudes of the coefficients were not all the same ($|c_i|^2 \neq 1/4$).
 
-\subsection{A two-qubit example}
+\subsection{A numerical example for two qubits}
 
-In this section we work through a simple example for full quantum state tomography of a complex wavefunction with two qubits. 
+In this section we work through a simple numerical example for quantum state reconstruction of a complex two-bit wavefunction with arbitrary coefficients $\alpha, \beta, \delta$ and $\gamma$.  This state is called \verb|target_psi|, described on the online tutorial of the two-qubit example \url{https://github.com/PIQuIL/QuCumber/blob/develop/examples/02_qubits/tutorial_qubits.ipynb}.
+
+
 First we load the packages needed,
 
 \begin{python}
@@ -568,7 +578,7 @@ psi_path           = 'qubits_psi.txt'
 train_samples,target_psi,train_bases,bases = data.load_data(train_samples_path, psi_path, train_bases_path, bases_path)
 \end{python}
 
-The state \verb|target_psi| is a random complex state and is fully described on the tutorial of the 2-qubit example \url{https://github.com/PIQuIL/QuCumber/blob/develop/examples/02_qubits/tutorial_qubits.ipynb}.
+
 The training set \verb|train_samples| was measured in the complete basis $\{ZZ, ZX, XZ, ZY, YZ \}$, and therefore \verb|train_bases| contains the unitaries applied to the respective measurement and has the form \verb|np.array([['Z','Z'], ['X','Z'], ['Z','X'], ...])|.
 This means that the first measurement has been done in the Z basis for both qubits,
 and therefore no unitary has been applied. The second measurement has been done in the XZ basis,
@@ -605,35 +615,31 @@ the same way we did from the real-positive wavefunction. However, one has to kee
 
 \subsection{Defining general unitaries}
 
-QuCumber contains by default the unitaries $\mathds{1}$, $H$ and $K$, with:
-
-\begin{align}
-	\mathds{1} =
-	\begin{bmatrix}
-		1 & 0 \\
-		0 & 1 \\
-	\end{bmatrix},~
-	H = \frac{1}{\sqrt{2}}
-	\begin{bmatrix}
-		1 & ~1 \\
-		1 & -1 \\
-	\end{bmatrix},~
-	K = \frac{1}{\sqrt{2}}
-	\begin{bmatrix}
-		1 & -i \\
-		1 & ~i \\
-	\end{bmatrix}
-\end{align}
-
-New basis transformations can be added in the following way:
-
+QuCumber contains by default the unitaries $\mathds{1}$, $H$ and $K$ (see equation \ref{Unitaries}).
+%\begin{align}
+%	\mathds{1} =
+%	\begin{bmatrix}
+%		1 & 0 \\
+%		0 & 1 \\
+%	\end{bmatrix},~
+%	H = \frac{1}{\sqrt{2}}
+%	\begin{bmatrix}
+%		1 & ~1 \\
+%		1 & -1 \\
+%	\end{bmatrix},~
+%	K = \frac{1}{\sqrt{2}}
+%	\begin{bmatrix}
+%		1 & -i \\
+%		1 & ~i \\
+%	\end{bmatrix}
+%\end{align}
+Additional new basis transformations can be added in the following way:
 \begin{python}
 	from qucumber import unitary
 	import numpy as np
 	new_unitary
 	unitary_dict = unitaries.create_dict(name = 'new_unitary', unitary = new_unitary)
 \end{python}
-
 This creates a new unitary instance which is called \verb|'new_unitary'| and connects this name with the \verb|numpy| array
 \verb|new_unitary| that has the form \verb|A = np.array([a,b],[c,d]])| for a matrix
 
@@ -676,7 +682,7 @@ We provide example code for any of these tasks to give the user a first impressi
 In the future QuCumber will be extended to the application of quantum state tomography on mixed states, multinomial quantum systems (like boson systems) and eventually on continuous variable systems.
 
 \section*{Acknowledgements}
-We thank G. Carleo, J. Carrasquilla and L. Hayward Sierens for stimulating discussions.
+We thank G. Carleo, J. Carrasquilla,  L. Hayward Sierens, and J. Matlock for stimulating discussions.
 PIQuIL is supported by the Perimeter Institute for Theoretical Physics.
 
 % TODO: include author contributions
