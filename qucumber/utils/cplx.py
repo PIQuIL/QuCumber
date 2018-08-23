@@ -56,11 +56,16 @@ def scalar_mult(x, y, z=None):
     :param y: A complex scalar, vector or matrix.
     :type y: torch.Tensor
 
-    :returns: The product between x and y.
+    :param z: A complex scalar, vector or matrix. Can be None, in which case, a new tensor is created and returned. Otherwise, the method overwrites z.
+
+    :returns: The product between x and y. Either overwrites z, or returns a new tensor.
     :rtype: torch.Tensor
     """
+    assert x.shape[0] == 2 and y.shape[0] ==2
     if z is None:
         z = torch.zeros_like(y)
+    else:
+        assert z.shape[0] == 2
     z[0] = (x[0] * y[0]) - (x[1] * y[1])
     z[1] = (x[0] * y[1]) + (x[1] * y[0])
 
