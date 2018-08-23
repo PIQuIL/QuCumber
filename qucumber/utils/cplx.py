@@ -42,7 +42,7 @@ def make_complex(x, y=None):
     return torch.cat((x.unsqueeze(0), y.unsqueeze(0)), dim=0)
 
 
-def scalar_mult(x, y):
+def scalar_mult(x, y, z=None):
     """A function that computes the product between complex matrices and scalars,
     complex vectors and scalars or two complex scalars.
 
@@ -59,7 +59,8 @@ def scalar_mult(x, y):
     :returns: The product between x and y.
     :rtype: torch.Tensor
     """
-    z = torch.zeros_like(y)
+    if z is None:
+        z = torch.zeros_like(y)
     z[0] = (x[0] * y[0]) - (x[1] * y[1])
     z[1] = (x[0] * y[1]) + (x[1] * y[0])
 
