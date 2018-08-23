@@ -65,6 +65,7 @@ try:
         .decode()
         .strip()
     )
+
     today = (
         subprocess.check_output(["git", "show", "-s", "--format=%ad", "--date=short"])
         .decode()
@@ -155,7 +156,7 @@ html_theme = "sphinx_rtd_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {"canonical_url": "http://piquil.github.io/QuCumber/en/stable/"}
+html_theme_options = {"canonical_url": "https://qucumber.readthedocs.io/en/stable/"}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -335,6 +336,8 @@ nbsphinx_execute = "never"
 # will only link to binders for tagged releases
 nbsphinx_prolog = r"""
 {% set docname = env.doc2path(env.docname, base='docs') %}
+{% set corrected_docname = "/".join(["examples"] + docname.split('/')[2:]) %}
+{% set last_tag = "-".join(env.config.release.split('-')[:-2]) %}
 
 .. only:: html
 
@@ -343,14 +346,19 @@ nbsphinx_prolog = r"""
 
    .. nbinfo::
 
-      Interactive online version:
-      :raw-html:`<a href="https://mybinder.org/v2/gh/PIQuIL/QuCumber/{{ env.config.release }}?filepath={{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge.svg"></a>`
+      This is a static, non-editable tutorial.
+
+      We recommend you install QuCumber if you want to run the examples locally.
+      You can then get an archive file containing the examples from the latest release
+      `here <https://github.com/PIQuIL/QuCumber/releases/tag/{{ last_tag }}>`_.
+      Alternatively, you can launch an interactive online version, though it may be a bit slow:
+      :raw-html:`<a href="https://mybinder.org/v2/gh/PIQuIL/QuCumber/{{ env.config.release }}?filepath={{ corrected_docname }}"><img alt="Binder badge" src="https://mybinder.org/badge.svg"></a>`
 
 """
 
 rst_epilog = (
-    ".. |binder_url| replace:: "
-    + "https://mybinder.org/v2/gh/PIQuIL/QuCumber/"
+    ".. |BinderBadge| image:: _static/binder_badge.png \n"
+    + ".. _BinderBadge: https://mybinder.org/v2/gh/PIQuIL/QuCumber/"
     + release
 )
 

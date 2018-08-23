@@ -34,7 +34,7 @@ class ObservableEvaluator(Callback):
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`ObservableEvaluator<ObservableEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.rbm.nn_states.Wavefunction.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.Wavefunction.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`ObservableEvaluator<ObservableEvaluator>` having been called.

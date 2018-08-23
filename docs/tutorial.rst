@@ -17,8 +17,8 @@ the data required) here:
 
 https://github.com/PIQuIL/QuCumber/releases
 
-
-You can also view interactive notebooks online at: :image: _static/binder_badge.png :target: |binder_url|
-
 If you wish to simply view the static, non-interactive notebooks, continue to
 the next page of the documentation.
+
+Alternatively, you can view interactive notebooks online at: |BinderBadge|_,
+though they may be slow.
