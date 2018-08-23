@@ -153,9 +153,7 @@ class ComplexWavefunction(Wavefunction):
         vp = torch.zeros(self.num_visible, dtype=torch.double, device=dev)
         Us = np.array(torch.stack([self.unitary_dict[b] for b in basis[sites]]))
         rotated_grad = [
-            torch.zeros(
-                2, getattr(self, net).num_pars, dtype=torch.double, device=dev
-            )
+            torch.zeros(2, getattr(self, net).num_pars, dtype=torch.double, device=dev)
             for net in self.networks
         ]
         return Upsi, vp, Us, rotated_grad
@@ -166,16 +164,17 @@ class ComplexWavefunction(Wavefunction):
         int_sample = np.array(sample[sites].round().int())
         vp = sample.round().clone()
         # print(Upsi.size())
-        grad_size = self.num_visible * self.num_hidden + self.num_hidden + self.num_visible
-        z = torch.zeros_like(Upsi, device = dev)#device=self.device)
-        Z = torch.zeros(grad_size,
-            dtype=torch.double,
-            device=dev
+        grad_size = (
+            self.num_visible * self.num_hidden + self.num_hidden + self.num_visible
         )
-        Z2 = torch.zeros((2, grad_size), dtype=torch.double, device="cpu")#elf.device)
-        U = torch.tensor([1., 1.], dtype=torch.double, device="cpu")#self.device)
+        z = torch.zeros_like(Upsi, device=dev)  # device=self.device)
+        Z = torch.zeros(grad_size, dtype=torch.double, device=dev)
+        Z2 = torch.zeros(
+            (2, grad_size), dtype=torch.double, device="cpu"
+        )  # elf.device)
+        U = torch.tensor([1., 1.], dtype=torch.double, device="cpu")  # self.device)
         Ut = np.zeros_like(Us[:, 0], dtype=complex)
-        ints_size= np.arange(sites.size) 
+        ints_size = np.arange(sites.size)
 
         for x in range(2 ** sites.size):
             # overwrite rotated elements
@@ -195,8 +194,12 @@ class ComplexWavefunction(Wavefunction):
             # Gradient on the current configuration
             grad_vp0 = self.rbm_am.effective_energy_gradient(vp)
             grad_vp1 = self.rbm_ph.effective_energy_gradient(vp)
-            rotated_grad[0] += cplx.scalar_mult(Upsi_v, cplx.make_complex(grad_vp0, Z), Z2)
-            rotated_grad[1] += cplx.scalar_mult(Upsi_v, cplx.make_complex(grad_vp1, Z), Z2)
+            rotated_grad[0] += cplx.scalar_mult(
+                Upsi_v, cplx.make_complex(grad_vp0, Z), Z2
+            )
+            rotated_grad[1] += cplx.scalar_mult(
+                Upsi_v, cplx.make_complex(grad_vp1, Z), Z2
+            )
 
         grad = [
             cplx.scalar_divide(rotated_grad[0], Upsi)[0, :],  # Real
