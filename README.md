@@ -88,4 +88,4 @@ QuCumber is licensed under the Apache License Version 2.0.
 
 - Lauren Hayward Sierens for many helpful discussions.
 
-- [Isaac's friend]() for the awesome logo.
+- [Nick Mercer](https://www.behance.net/nickdmercec607) for the awesome logo.
