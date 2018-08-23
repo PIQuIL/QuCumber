@@ -17,6 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import csv
+
 from .callback import Callback
 
 
@@ -46,16 +48,25 @@ class MetricEvaluator(Callback):
     :type metrics: dict(str, callable)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
+    :param log: A filepath to log metric values to in CSV format.
+    :type log: str
     :param \**metric_kwargs: Keyword arguments to be passed to `metrics`.
     """
 
-    def __init__(self, period, metrics, verbose=False, **metric_kwargs):
+    def __init__(self, period, metrics, verbose=False, log=None, **metric_kwargs):
         self.period = period
         self.metrics = metrics
+        self.metric_kwargs = metric_kwargs
         self.past_values = []
         self.last = {}
         self.verbose = verbose
-        self.metric_kwargs = metric_kwargs
+        self.log = log
+
+        self.csv_fields = ["epoch"] + list(self.metrics.keys())
+        if self.log is not None:
+            with open(self.log, "a") as log_file:
+                writer = csv.DictWriter(log_file, fieldnames=self.csv_fields)
+                writer.writeheader()
 
     def __len__(self):
         """Return the number of timesteps that metrics have been evaluated for.
@@ -125,3 +136,8 @@ class MetricEvaluator(Callback):
                 print(
                     "\t".join("{} = {:.6f}".format(k, v) for k, v in self.last.items())
                 )
+
+            if self.log is not None:
+                with open(self.log, "a") as log_file:
+                    writer = csv.DictWriter(log_file, fieldnames=self.csv_fields)
+                    writer.writerow(dict(epoch=epoch, **self.last))

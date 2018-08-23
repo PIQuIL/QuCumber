@@ -18,6 +18,8 @@
 # under the License.
 
 
+import csv
+
 from .callback import Callback
 from qucumber.observables import System
 
@@ -48,17 +50,31 @@ class ObservableEvaluator(Callback):
     :type observables: list(qucumber.observables.Observable)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
+    :param log: A filepath to log metric values to in CSV format.
+    :type log: str
     :param \**sampling_kwargs: Keyword arguments to be passed to `Observable.statistics`.
                                Ex. `num_samples`, `num_chains`, `burn_in`, `steps`.
     """
 
-    def __init__(self, period, observables, verbose=False, **sampling_kwargs):
+    def __init__(self, period, observables, verbose=False, log=None, **sampling_kwargs):
         self.period = period
         self.past_values = []
         self.system = System(*observables)
+        self.sampling_kwargs = sampling_kwargs
         self.last = {}
         self.verbose = verbose
-        self.sampling_kwargs = sampling_kwargs
+        self.log = log
+
+        self.csv_fields = ["epoch"]
+        for obs_name in self.system.observables.keys():
+            self.csv_fields.append(obs_name + "_mean")
+            self.csv_fields.append(obs_name + "_variance")
+            self.csv_fields.append(obs_name + "_std_error")
+
+        if self.log is not None:
+            with open(self.log, "a") as log_file:
+                writer = csv.DictWriter(log_file, fieldnames=self.csv_fields)
+                writer.writeheader()
 
     def __len__(self):
         """Return the number of timesteps that observables have been evaluated for.
@@ -132,3 +148,15 @@ class ObservableEvaluator(Callback):
                         for k, stats in partially_formatted.items()
                     )
                 )
+
+            if self.log is not None:
+                row = {"epoch": epoch}
+                for obs_name, obs_stats in self.last.items():
+                    for stat_name, stat in obs_stats.items():
+                        row[obs_name + "_" + stat_name] = stat
+
+                with open(self.log, "a") as log_file:
+                    writer = csv.DictWriter(
+                        log_file, fieldnames=self.csv_fields, extrasaction="ignore"
+                    )
+                    writer.writerow(row)
