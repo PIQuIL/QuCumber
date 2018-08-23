@@ -334,7 +334,7 @@ nbsphinx_execute = "never"
 
 # will only link to binders for tagged releases
 nbsphinx_prolog = r"""
-{% set docname = env.doc2path(env.docname, base='doc') %}
+{% set docname = env.doc2path(env.docname, base='docs') %}
 
 .. only:: html
 
