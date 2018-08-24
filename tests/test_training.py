@@ -170,10 +170,18 @@ class TestExamples(unittest.TestCase):
         print("---------------------")
 
         train_samples_path = os.path.join(
-            __tests_location__, "../examples/01_Ising/tfim1d_train.txt"
+            __tests_location__,
+            "..",
+            "examples",
+            "Tutorial1_TrainPosRealWavefunction",
+            "tfim1d_data.txt",
         )
         psi_path = os.path.join(
-            __tests_location__, "../examples/01_Ising/tfim1d_psi.txt"
+            __tests_location__,
+            "..",
+            "examples",
+            "Tutorial1_TrainPosRealWavefunction",
+            "tfim1d_psi.txt",
         )
 
         train_samples, target_psi = data.load_data(train_samples_path, psi_path)
@@ -246,16 +254,32 @@ class TestExamples(unittest.TestCase):
         print("--------------------")
 
         train_samples_path = os.path.join(
-            __tests_location__, "../examples/02_qubits/qubits_train.txt"
+            __tests_location__,
+            "..",
+            "examples",
+            "Tutorial2_TrainComplexWavefunction",
+            "qubits_train.txt",
         )
         train_bases_path = os.path.join(
-            __tests_location__, "../examples/02_qubits/qubits_train_bases.txt"
+            __tests_location__,
+            "..",
+            "examples",
+            "Tutorial2_TrainComplexWavefunction",
+            "qubits_train_bases.txt",
         )
         bases_path = os.path.join(
-            __tests_location__, "../examples/02_qubits/qubits_bases.txt"
+            __tests_location__,
+            "..",
+            "examples",
+            "Tutorial2_TrainComplexWavefunction",
+            "qubits_bases.txt",
         )
         psi_path = os.path.join(
-            __tests_location__, "../examples/02_qubits/qubits_psi.txt"
+            __tests_location__,
+            "..",
+            "examples",
+            "Tutorial2_TrainComplexWavefunction",
+            "qubits_psi.txt",
         )
 
         train_samples, target_psi, train_bases, bases = data.load_data(
