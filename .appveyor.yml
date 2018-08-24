@@ -7,8 +7,7 @@ branches:
   except:
   - gh-pages
 
-build:
-  verbosity: minimal
+build: off  # run in 'script' mode, since we don't need any VisualStudio stuff
 
 # The following is based on the python-appveyor-demo by Olivier Grisel (ogrisel)
 # Source: https://github.com/ogrisel/python-appveyor-demo
@@ -55,9 +54,9 @@ install:
 test_script:
   - >
     IF "%APPVEYOR_REPO_BRANCH%" == "master" (
-      pytest -v
+      pytest
     ) ELSE (
-      pytest -v -m "not slow and not extra"
+      pytest -m "not slow and not extra"
     )
 
 after_test:

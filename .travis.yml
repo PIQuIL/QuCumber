@@ -26,7 +26,6 @@ matrix:
       sudo: true
 
 install:
-  # - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install http://download.pytorch.org/whl/cpu/torch-0.4.1.post2-cp37-cp37m-linux_x86_64.whl; fi
   - travis_retry pip install -r .build_tools/travis/requirements.txt
 
   - echo 'Installing package...' && echo -n 'travis_fold:start:pkg_install'
@@ -37,8 +36,8 @@ script:
   - inv license-check
 
   - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
-  - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -v -s -m 'not slow and not extra'; fi # don't run slow tests or jupyter notebooks if not on master branch
-  - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -v -s --cov=qucumber --no-cov-on-fail --cov-report=term-missing; fi
+  - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -m 'not slow and not extra'; fi # don't run slow/extra tests if not on master branch
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail; fi
   - echo -n 'travis_fold:end:pytest'
 
   - flake8
