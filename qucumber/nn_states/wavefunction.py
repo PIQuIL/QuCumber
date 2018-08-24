@@ -176,7 +176,7 @@ class Wavefunction(abc.ABC):
 
         return self.rbm_am.gibbs_steps(k, initial_state, overwrite=overwrite)
 
-    def subspace_vector(self, num, size=None):
+    def subspace_vector(self, num, size=None, device=None):
         r"""Generates a single vector from the Hilbert space of dimension
         :math:`2^{\text{size}}`.
 
@@ -187,25 +187,31 @@ class Wavefunction(abc.ABC):
                     of length `size`, `num` is equivalent to the decimal representation
                     of the returned vector.
         :type num: int
+        :param device: The device to create the vector on. Defaults to the
+                       device this model is on.
 
         :returns: A state from the Hilbert space.
         :rtype: torch.Tensor
         """
+        device = device if device is not None else self.device
         size = size if size else self.num_visible
         space = (((num & (1 << np.arange(size)))) > 0)[::-1]
         space = space.astype(int)
-        return torch.tensor(space, dtype=torch.double, device=self.device)
+        return torch.tensor(space, dtype=torch.double, device=device)
 
-    def generate_hilbert_space(self, size=None):
+    def generate_hilbert_space(self, size=None, device=None):
         r"""Generates Hilbert space of dimension :math:`2^{\text{size}}`.
 
         :param size: The size of each element of the Hilbert space. Defaults to
                      the number of visible units.
         :type size: int
+        :param device: The device to create the Hilbert space matrix on.
+                       Defaults to the device this model is on.
 
         :returns: A tensor with all the basis states of the Hilbert space.
         :rtype: torch.Tensor
         """
+        device = device if device is not None else self.device
         size = size if size else self.rbm_am.num_visible
         if size > self.max_size:
             raise ValueError("Size of the Hilbert space is too large!")
@@ -213,7 +219,7 @@ class Wavefunction(abc.ABC):
             dim = np.arange(2 ** size)
             space = (((dim[:, None] & (1 << np.arange(size)))) > 0)[:, ::-1]
             space = space.astype(int)
-            return torch.tensor(space, dtype=torch.double, device=self.device)
+            return torch.tensor(space, dtype=torch.double, device=device)
 
     def compute_normalization(self, space):
         r"""Compute the normalization constant of the wavefunction.
