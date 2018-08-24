@@ -43,8 +43,9 @@ script:
   - flake8
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check ./; fi
 
-  # - inv lint-examples -l flake8  # don't run flake on notebooks, it's too picky
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv lint-examples -l black; fi
+  # don't run linters on notebooks, they're too picky
+  # - inv lint-examples -l flake8
+  # - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv lint-examples -l black; fi
 
   - echo 'Building package...' && echo -n 'travis_fold:start:pkg_build'
   - python setup.py sdist bdist_wheel
