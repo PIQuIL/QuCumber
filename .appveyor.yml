@@ -66,7 +66,7 @@ deploy_script:
 
   - set PATH=%BK_PATH%
   - set HOME=%USERPROFILE%
-  - IF "%APPVEYOR_REPO_TAG%" == "true" ( IF "%APPVEYOR_REPO_BRANCH%" == "master" ( python -m pip install twine && twine upload --skip-existing dist/*.whl ) ELSE ( echo "Not a tagged commit on master branch, skipping PyPI deploy" ) )
+  - IF "%APPVEYOR_REPO_TAG%" == "true" ( IF "%APPVEYOR_REPO_BRANCH%" == "master" ( python -m pip install twine && twine upload --skip-existing dist/*.whl ) ) ELSE ( echo "Not a tagged commit on master branch, skipping PyPI deploy" )
   - echo "Finished Deployment step"
 
 artifacts:
