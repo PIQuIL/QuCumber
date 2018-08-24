@@ -1,3 +1,0 @@
-# SOURCE CODE
-
-Tutorials here
