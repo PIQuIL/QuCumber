@@ -75,8 +75,6 @@ To run all of the unit tests, run `pytest` from the root of the repository.
 In addition, the following sets of arguments may be useful:
 
 ```bash
-pytest -v  # for more informative output
-
 # To explicitly skip tests on the gpu (by default, gpu tests will
 # only run if there is a gpu available)
 pytest -m 'not gpu'
@@ -87,18 +85,21 @@ pytest -m 'not gpu'
 pytest --nll
 
 # To skip tests marked as 'slow', these include tests which train models
-# for a few epochs, as well as the NLL tests
+# for a few epochs, as well as the NLL tests (may give confusing results if
+# run together with --nll)
 pytest -m 'not slow'
 
-pytest -m 'not slow and not gpu'  # exclude slow and gpu tests
+pytest -m 'not slow and not gpu'  # exclude slow AND gpu tests
 
-# Run tests and any notebooks in the current directory (also searches subdirectories)
-# and check if they produce any errors
+# Run tests along with any notebooks in the current directory (also searches
+# subdirectories) and check if they produce any errors
 pytest --nbval-lax
 
 pytest --nbval-lax ./examples # check only the example notebooks
 
-pytest --cov=qucumber --cov-report=term-missing  # to generate a test coverage report
+pytest --cov=qucumber  # to show test coverage
+
+pytest --durations=N  # show test durations for the N slowest tests (use N=0 to show all)
 ```
 
 ### Building Documentation

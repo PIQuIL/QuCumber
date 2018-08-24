@@ -17,6 +17,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import csv
+
+import numpy as np
+
 from .callback import Callback
 
 
@@ -46,16 +50,25 @@ class MetricEvaluator(Callback):
     :type metrics: dict(str, callable)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
+    :param log: A filepath to log metric values to in CSV format.
+    :type log: str
     :param \**metric_kwargs: Keyword arguments to be passed to `metrics`.
     """
 
-    def __init__(self, period, metrics, verbose=False, **metric_kwargs):
+    def __init__(self, period, metrics, verbose=False, log=None, **metric_kwargs):
         self.period = period
         self.metrics = metrics
+        self.metric_kwargs = metric_kwargs
         self.past_values = []
         self.last = {}
         self.verbose = verbose
-        self.metric_kwargs = metric_kwargs
+        self.log = log
+
+        self.csv_fields = ["epoch"] + list(self.metrics.keys())
+        if self.log is not None:
+            with open(self.log, "a") as log_file:
+                writer = csv.DictWriter(log_file, fieldnames=self.csv_fields)
+                writer.writeheader()
 
     def __len__(self):
         """Return the number of timesteps that metrics have been evaluated for.
@@ -65,26 +78,28 @@ class MetricEvaluator(Callback):
         return len(self.past_values)
 
     def __getattr__(self, metric):
-        """Return a list of all recorded values of the given metric.
+        """Return an array of all recorded values of the given metric.
 
         :param metric: The metric to retrieve.
         :type metric: str
 
         :returns: The past values of the metric.
-        :rtype: list
+        :rtype: np.array
         """
         try:
-            return [values[metric] for _, values in self.past_values]
+            return np.array([values[metric] for _, values in self.past_values])
         except KeyError:
             raise AttributeError
 
+    @property
     def epochs(self):
         """Return a list of all epochs that have been recorded.
 
-        :rtype: list[int]
+        :rtype: np.array
         """
-        return [epoch for epoch, _ in self.past_values]
+        return np.array([epoch for epoch, _ in self.past_values])
 
+    @property
     def names(self):
         """The names of the tracked metrics.
 
@@ -125,3 +140,8 @@ class MetricEvaluator(Callback):
                 print(
                     "\t".join("{} = {:.6f}".format(k, v) for k, v in self.last.items())
                 )
+
+            if self.log is not None:
+                with open(self.log, "a") as log_file:
+                    writer = csv.DictWriter(log_file, fieldnames=self.csv_fields)
+                    writer.writerow(dict(epoch=epoch, **self.last))

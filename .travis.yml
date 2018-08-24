@@ -42,7 +42,7 @@ script:
   - echo -n 'travis_fold:end:pytest'
 
   - flake8
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check ./; fi
 
   - inv lint-examples -l flake8
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv lint-examples -l black; fi
@@ -56,6 +56,7 @@ after_success:
 
 before_deploy:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then tar -czvf examples.tar.gz examples; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then zip -r examples.zip examples; fi
 deploy:
   - provider: releases
     skip-cleanup: true
@@ -72,6 +73,7 @@ deploy:
     api-key: "$GITHUB_TOKEN"
     file:
       - examples.tar.gz
+      - examples.zip
     file_glob: true
     on:
       repo: PIQuIL/QuCumber

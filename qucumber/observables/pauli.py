@@ -25,7 +25,7 @@ from .utils import to_pm1
 
 
 def flip_spin(i, s):
-    torch.fmod(s[:, i] + 1., 2, out=s[:, i])
+    s[:, i].sub_(1).abs_()
 
 
 class SigmaX(Observable):

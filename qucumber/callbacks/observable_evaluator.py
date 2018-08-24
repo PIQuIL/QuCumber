@@ -18,8 +18,46 @@
 # under the License.
 
 
+import csv
+
+import numpy as np
+
 from .callback import Callback
 from qucumber.observables import System
+
+
+class ObservableStatistics:
+    """A data structure which allows easy access to past values of Observable statistics.
+
+    :param data: The historical statistics of an Observable.
+    :type data: list[dict(str, float)]
+    """
+
+    def __init__(self, data):
+        self.data = data
+
+    def __getattr__(self, statistic):
+        """Return an array containing values of the given statistic.
+
+        :param statistic: The statistic to retrieve.
+        :type statistic: str
+
+        :returns: The past values of the statistic.
+        :rtype: np.array
+        """
+        try:
+            stat = statistic[:-1] if statistic.endswith("s") else statistic
+
+            if len(self.data) > 0 and stat in self.data[0].keys():
+                return np.array([stat_dict[stat] for stat_dict in self.data])
+
+            return np.array([stat_dict[statistic] for stat_dict in self.data])
+        except KeyError:
+            raise AttributeError(
+                "'{}' is not a statistic being tracked by this object.".format(
+                    statistic
+                )
+            )
 
 
 class ObservableEvaluator(Callback):
@@ -32,7 +70,7 @@ class ObservableEvaluator(Callback):
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`ObservableEvaluator<ObservableEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.rbm.nn_states.Wavefunction.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.Wavefunction.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`ObservableEvaluator<ObservableEvaluator>` having been called.
@@ -48,17 +86,31 @@ class ObservableEvaluator(Callback):
     :type observables: list(qucumber.observables.Observable)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
+    :param log: A filepath to log metric values to in CSV format.
+    :type log: str
     :param \**sampling_kwargs: Keyword arguments to be passed to `Observable.statistics`.
                                Ex. `num_samples`, `num_chains`, `burn_in`, `steps`.
     """
 
-    def __init__(self, period, observables, verbose=False, **sampling_kwargs):
+    def __init__(self, period, observables, verbose=False, log=None, **sampling_kwargs):
         self.period = period
         self.past_values = []
         self.system = System(*observables)
+        self.sampling_kwargs = sampling_kwargs
         self.last = {}
         self.verbose = verbose
-        self.sampling_kwargs = sampling_kwargs
+        self.log = log
+
+        self.csv_fields = ["epoch"]
+        for obs_name in self.system.observables.keys():
+            self.csv_fields.append(obs_name + "_mean")
+            self.csv_fields.append(obs_name + "_variance")
+            self.csv_fields.append(obs_name + "_std_error")
+
+        if self.log is not None:
+            with open(self.log, "a") as log_file:
+                writer = csv.DictWriter(log_file, fieldnames=self.csv_fields)
+                writer.writeheader()
 
     def __len__(self):
         """Return the number of timesteps that observables have been evaluated for.
@@ -68,26 +120,34 @@ class ObservableEvaluator(Callback):
         return len(self.past_values)
 
     def __getattr__(self, observable):
-        """Return a list of all recorded statistics of the given observable.
+        """Return an ObservableStatistics containing recorded statistics of the given observable.
 
         :param observable: The observable to retrieve.
         :type observable: str
 
         :returns: The past values of the observable.
-        :rtype: list[dict(str, float)]
+        :rtype: ObservableStatistics
         """
         try:
-            return [values[observable] for _, values in self.past_values]
+            return ObservableStatistics(
+                [values[observable] for _, values in self.past_values]
+            )
         except KeyError:
-            raise AttributeError
+            raise AttributeError(
+                "'{}' is not an Observable being tracked by this object.".format(
+                    observable
+                )
+            )
 
+    @property
     def epochs(self):
         """Return a list of all epochs that have been recorded.
 
-        :rtype: list[int]
+        :rtype: np.array
         """
-        return [epoch for epoch, _ in self.past_values]
+        return np.array([epoch for epoch, _ in self.past_values])
 
+    @property
     def names(self):
         """The names of the tracked observables.
 
@@ -132,3 +192,15 @@ class ObservableEvaluator(Callback):
                         for k, stats in partially_formatted.items()
                     )
                 )
+
+            if self.log is not None:
+                row = {"epoch": epoch}
+                for obs_name, obs_stats in self.last.items():
+                    for stat_name, stat in obs_stats.items():
+                        row[obs_name + "_" + stat_name] = stat
+
+                with open(self.log, "a") as log_file:
+                    writer = csv.DictWriter(
+                        log_file, fieldnames=self.csv_fields, extrasaction="ignore"
+                    )
+                    writer.writerow(row)
