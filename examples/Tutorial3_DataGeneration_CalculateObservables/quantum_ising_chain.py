@@ -20,7 +20,7 @@
 import torch
 import numpy as np
 
-from qucumber.observables import Observable, SigmaZ
+from qucumber.observables import Observable
 
 __all__ = ["TFIMChainEnergy"]
 
@@ -127,7 +127,7 @@ def Convergence(nn_state, tfim_energy, n_measurements, steps):
 
     for _steps in range(steps):
         v = nn_state.sample(1, n_measurements, initial_state=v, overwrite=True)
-        
+
         energy_stats = tfim_energy.statistics_from_samples(nn_state, v)
         energy_list.append(energy_stats["mean"])
         err_energy.append(energy_stats["std_error"])
