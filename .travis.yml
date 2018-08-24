@@ -42,7 +42,7 @@ script:
   - echo -n 'travis_fold:end:pytest'
 
   - flake8
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check ./; fi
 
   - inv lint-examples -l flake8
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv lint-examples -l black; fi
