@@ -29,7 +29,6 @@ def make_complex(x, y=None):
 
     :param x: The real part
     :type x: torch.Tensor
-
     :param y: The imaginary part. Can be None, in which case, the resulting
               complex tensor will have imaginary part equal to zero.
     :type y: torch.Tensor
@@ -42,29 +41,30 @@ def make_complex(x, y=None):
     return torch.cat((x.unsqueeze(0), y.unsqueeze(0)), dim=0)
 
 
-def scalar_mult(x, y, z=None):
+def scalar_mult(x, y, out=None):
     """A function that computes the product between complex matrices and scalars,
     complex vectors and scalars or two complex scalars.
 
-    .. note:: If one wishes to do vector-scalar multiplication or matrix-scalar
-              multiplication, you must put the vector / matrix as the first
-              argument (x).
-
     :param x: A complex scalar, vector or matrix.
     :type x: torch.Tensor
-
     :param y: A complex scalar, vector or matrix.
     :type y: torch.Tensor
+    :param z: The complex tensor to write the output to.
+    :type z: torch.Tensor
 
     :returns: The product between x and y.
     :rtype: torch.Tensor
     """
-    if z is None:
-        z = torch.zeros_like(y)
-    z[0] = (x[0] * y[0]) - (x[1] * y[1])
-    z[1] = (x[0] * y[1]) + (x[1] * y[0])
+    if out is None:
+        out = torch.zeros_like(y)
+    else:
+        if out is x or out is y:
+            raise RuntimeError("Can't overwrite an argument!")
 
-    return z
+    out[0] = (x[0] * y[0]) - (x[1] * y[1])
+    out[1] = (x[0] * y[1]) + (x[1] * y[0])
+
+    return out
 
 
 def matmul(x, y):
@@ -75,7 +75,6 @@ def matmul(x, y):
 
     :param x: A complex matrix.
     :type x: torch.Tensor
-
     :param y: A complex vector or matrix.
     :type y: torch.Tensor
 

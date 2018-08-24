@@ -122,6 +122,30 @@ class TestCplx(unittest.TestCase):
             msg="Scalar * Matrix multiplication failed!",
         )
 
+    def test_scalar_mult_overwrite(self):
+        scalar = torch.tensor([2, 3], dtype=torch.double)
+        vector = torch.tensor([[1, 2], [3, 4]], dtype=torch.double)
+        out = torch.zeros_like(vector)
+        expect = torch.tensor([[-7, -8], [9, 14]], dtype=torch.double)
+
+        cplx.scalar_mult(scalar, vector, out=out)
+
+        self.assertTensorsEqual(
+            out,
+            expect,
+            msg="Scalar * Vector multiplication with 'out' parameter failed!",
+        )
+
+    def test_scalar_mult_overwrite_fail(self):
+        scalar = torch.tensor([2, 3], dtype=torch.double)
+        vector = torch.tensor([[1, 2], [3, 4]], dtype=torch.double)
+
+        with self.assertRaises(RuntimeError):
+            cplx.scalar_mult(scalar, vector, out=vector)
+
+        with self.assertRaises(RuntimeError):
+            cplx.scalar_mult(scalar, vector, out=scalar)
+
     def test_matrix_vector_matmul(self):
         matrix = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
         vector = torch.tensor([[1, 2], [3, 4]], dtype=torch.double)
