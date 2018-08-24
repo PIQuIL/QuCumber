@@ -20,9 +20,9 @@
 import torch
 import numpy as np
 
-from qucumber.observables import Observable
+from qucumber.observables import Observable, SigmaZ
 
-__all__ = ["TFIMChainEnergy", "TFIMChainMagnetization"]
+__all__ = ["TFIMChainEnergy"]
 
 
 class TFIMChainEnergy(Observable):
@@ -38,10 +38,9 @@ class TFIMChainEnergy(Observable):
     :type periodic_bcs: bool
     """
 
-    def __init__(self, h, nc):
+    def __init__(self, h):
         super(TFIMChainEnergy, self).__init__()
         self.h = h
-        self.nc = nc
 
     def apply(self, nn_state, samples):
         return self.Energy(nn_state, samples)
@@ -49,10 +48,6 @@ class TFIMChainEnergy(Observable):
     @staticmethod
     def _flip_spin(i, s):
         s[:, i] *= -1.0
-
-    def Randomize(self, N):
-        p = torch.ones(self.nc, N) * 0.5
-        return torch.bernoulli(p)
 
     def Energy(self, nn_state, samples):
         """Computes the eneself.Energy(nn_state, v)rgy of each sam=ple given a batch of
@@ -90,41 +85,6 @@ class TFIMChainEnergy(Observable):
         return energy.div(samples.shape[-1])
 
 
-class TFIMChainMagnetization(Observable):
-    """Observable defining the magnetization of a Transverse Field Ising Model
-    (TFIM) spin chain.
-    """
-
-    def __init__(self, nc):
-        super(TFIMChainMagnetization, self).__init__()
-        self.nc = nc
-
-    def __repr__(self):
-        return "TFIMChainMagnetization()"
-
-    def apply(self, nn_state, samples):
-        """Computes the magnetization of each sample given a batch of samples.
-
-        :param samples: A batch of samples to calculate the observable on.
-                        Must be using the :math:`\sigma_i = 0, 1` convention.
-        :type samples: torch.Tensor
-        """
-        return self.SigmaZ(samples)
-
-    def Randomize(self, N):
-        p = torch.ones(self.nc, N) * 0.5
-        return torch.bernoulli(p)
-
-    def SigmaZ(self, samples):
-        """Computes the magnetization of each sample given a batch of samples.
-
-        :param samples: A batch of samples to calculate the observable on.
-                        Must be using the :math:`\sigma_i = 0, 1` convention.
-        :type samples: torch.Tensor
-        """
-        return to_pm1(samples).mean(1).abs()
-
-
 def to_pm1(samples):
     """Converts a tensor of spins from the :math:`\sigma_i = 0, 1` convention
     to the :math:`\sigma_i = -1, +1` convention.
@@ -147,12 +107,9 @@ def to_01(samples):
     return samples.add(1.).div(2.)
 
 
-def Convergence(nn_state, tfim_energy, tfim_sZ, n_measurements, n_eq):
+def Convergence(nn_state, tfim_energy, n_measurements, steps):
     energy_list = []
     err_energy = []
-
-    sZ_list = []
-    err_sZ = []
 
     v = torch.bernoulli(
         torch.ones(
@@ -164,28 +121,17 @@ def Convergence(nn_state, tfim_energy, tfim_sZ, n_measurements, n_eq):
         * 0.5
     )
 
-    energy = tfim_energy.Energy(nn_state, v)
-    energy_list.append(energy.mean().item())
-    err_energy.append(torch.std(energy).div(np.sqrt(energy.size()[0])).item())
+    energy_stats = tfim_energy.statistics_from_samples(nn_state, v)
+    energy_list.append(energy_stats["mean"])
+    err_energy.append(energy_stats["std_error"])
 
-    sZ = tfim_sZ.SigmaZ(v)
-    sZ_list.append(sZ.mean().item())
-    err_sZ.append((torch.std(sZ) / np.sqrt(sZ.size()[0])).item())
-
-    for _steps in range(n_eq):
+    for _steps in range(steps):
         v = nn_state.sample(1, n_measurements, initial_state=v, overwrite=True)
+        
+        energy_stats = tfim_energy.statistics_from_samples(nn_state, v)
+        energy_list.append(energy_stats["mean"])
+        err_energy.append(energy_stats["std_error"])
 
-        energy = tfim_energy.Energy(nn_state, v)
-        energy_list.append(energy.mean().item())
-        err_energy.append(torch.std(energy).div(np.sqrt(energy.size()[0])).item())
-
-        sZ = tfim_sZ.SigmaZ(v)
-        sZ_list.append(sZ.mean().item())
-        err_sZ.append((torch.std(sZ) / np.sqrt(sZ.size()[0])).item())
-
-    out = {
-        "energy": {"energies": np.array(energy_list), "error": np.array(err_energy)},
-        "sigmaZ": {"sZ": np.array(sZ_list), "error": np.array(err_sZ)},
-    }
+    out = {"energies": np.array(energy_list), "error": np.array(err_energy)}
 
     return out

@@ -52,7 +52,9 @@ def scalar_mult(x, y, out=None):
     :param z: The complex tensor to write the output to.
     :type z: torch.Tensor
 
-    :returns: The product between x and y.
+    :param z: A complex scalar, vector or matrix. Can be None, in which case, a new tensor is created and returned. Otherwise, the method overwrites z.
+
+    :returns: The product between x and y. Either overwrites z, or returns a new tensor.
     :rtype: torch.Tensor
     """
     if out is None:
