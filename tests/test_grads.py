@@ -170,7 +170,10 @@ devices = [
     pytest.param(True, id="gpu", marks=[gpu_availability, pytest.mark.gpu]),
 ]
 hidden_layer_sizes = [pytest.param(9, id="9", marks=[pytest.mark.extra]), 10]
-grad_types = ["KL", pytest.param("NLL", id="NLL", marks=[run_nll_tests])]
+grad_types = [
+    "KL",
+    pytest.param("NLL", id="NLL", marks=[run_nll_tests, pytest.mark.slow]),
+]
 
 
 @pytest.fixture(scope="module", params=wavefunction_types)
