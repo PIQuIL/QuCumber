@@ -3,6 +3,6 @@
 RBM
 ==============================
 
-.. autoclass:: qucumber.binary_rbm.BinaryRBM
+.. autoclass:: qucumber.rbm.BinaryRBM
     :members:
     :show-inheritance:

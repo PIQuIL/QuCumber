@@ -1,0 +1,80 @@
+version: 0.2.{build}-{branch}
+
+pull_requests:
+  do_not_increment_build_number: true
+
+branches:
+  except:
+  - gh-pages
+
+build: off  # run in 'script' mode, since we don't need any VisualStudio stuff
+
+# The following is based on the python-appveyor-demo by Olivier Grisel (ogrisel)
+# Source: https://github.com/ogrisel/python-appveyor-demo
+
+environment:
+  global:
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
+  PYPI_PASSWORD:
+    secure: RiEtWWbwT/PhNWGFmBJZQvuOalat5UgYWSQAhBvgEJY=
+
+  matrix:
+    - PYTHON: "C:\\Python35-x64"
+      PYTHON_VERSION: "3.5.x"
+      PY_SHORT_VER: "3.5"
+      PY_TAG: "cp35"
+      PYTHON_ARCH: "64"
+      PLAT_NAME: "win-amd64"
+
+    - PYTHON: "C:\\Python36-x64"
+      PYTHON_VERSION: "3.6.x"
+      PY_SHORT_VER: "3.6"
+      PY_TAG: "cp36"
+      PYTHON_ARCH: "64"
+      PLAT_NAME: "win-amd64"
+
+    - PYTHON: "C:\\Python37-x64"
+      PYTHON_VERSION: "3.7.x"
+      PY_SHORT_VER: "3.7"
+      PY_TAG: "cp37"
+      PYTHON_ARCH: "64"
+      PLAT_NAME: "win-amd64"
+
+init:
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+install:
+  - "python --version"
+  - "python -m pip install -r .build_tools/appveyor/requirements.txt"
+  - "python setup.py install"
+
+test_script:
+  - IF "%APPVEYOR_REPO_BRANCH%" == "master" ( pytest -m "not slow" ) ELSE ( pytest -m "not slow and not extra" )
+
+after_test:
+  - "python setup.py bdist_wheel --plat-name=%PLAT_NAME% --python-tag=%PY_TAG%"
+
+deploy_script:
+  - echo "Starting Artifact Deployment"
+
+  - echo [pypi]                           > %USERPROFILE%\\.pypirc
+  - echo username=PIQuIL                 >> %USERPROFILE%\\.pypirc
+  - echo password=%PYPI_PASSWORD%        >> %USERPROFILE%\\.pypirc
+
+  - set PATH=%BK_PATH%
+  - set HOME=%USERPROFILE%
+  - IF "%APPVEYOR_REPO_TAG%" == "true" ( IF "%APPVEYOR_REPO_BRANCH%" == "master" ( python -m pip install twine && twine upload --skip-existing dist/*.whl ) ) ELSE ( echo "Not a tagged commit on master branch, skipping PyPI deploy" )
+  - echo "Finished Deployment step"
+
+artifacts:
+  - path: "dist\\*.whl"
+    name: Wheels
+
+notifications:
+  - provider: Slack
+    incoming_webhook:
+      secure: dRx8zMz2tXX6Ba5mKakDpe1PijnGa31UAD6Weezn76Q0vutaDM9lAl2LN6YqH7U+r7e0Ah6rc/d//O/+X0G31ReU6kL3TuOn+EZPlJ9LsCE=
+    channel: '#builds'

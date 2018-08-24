@@ -66,25 +66,32 @@ class LambdaCallback(Callback):
         elif fn is None:
             return lambda *args: None
         else:
-            raise TypeError(f"{name} must be either None "
-                            f"or a function with {num_params} arguments.")
+            raise ValueError(
+                "{} must be either None ".format(name)
+                + "or a function with {} arguments.".format(num_params)
+            )
 
-    def __init__(self,
-                 on_train_start=None, on_train_end=None,
-                 on_epoch_start=None, on_epoch_end=None,
-                 on_batch_start=None, on_batch_end=None):
+    def __init__(
+        self,
+        on_train_start=None,
+        on_train_end=None,
+        on_epoch_start=None,
+        on_epoch_end=None,
+        on_batch_start=None,
+        on_batch_end=None,
+    ):
         super(LambdaCallback, self).__init__()
-        self.on_train_start = self._validate_function(on_train_start, 1,
-                                                      "on_train_start")
-        self.on_train_end = self._validate_function(on_train_end, 1,
-                                                    "on_train_end")
+        self.on_train_start = self._validate_function(
+            on_train_start, 1, "on_train_start"
+        )
+        self.on_train_end = self._validate_function(on_train_end, 1, "on_train_end")
 
-        self.on_epoch_start = self._validate_function(on_epoch_start, 2,
-                                                      "on_epoch_start")
-        self.on_epoch_end = self._validate_function(on_epoch_end, 2,
-                                                    "on_epoch_end")
+        self.on_epoch_start = self._validate_function(
+            on_epoch_start, 2, "on_epoch_start"
+        )
+        self.on_epoch_end = self._validate_function(on_epoch_end, 2, "on_epoch_end")
 
-        self.on_batch_start = self._validate_function(on_batch_start, 3,
-                                                      "on_batch_start")
-        self.on_batch_end = self._validate_function(on_batch_end, 3,
-                                                    "on_batch_end")
+        self.on_batch_start = self._validate_function(
+            on_batch_start, 3, "on_batch_start"
+        )
+        self.on_batch_end = self._validate_function(on_batch_end, 3, "on_batch_end")

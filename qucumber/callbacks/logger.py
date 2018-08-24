@@ -22,7 +22,7 @@ from .callback import Callback
 
 
 class Logger(Callback):
-    """Callback which logs output at regular intervals.
+    r"""Callback which logs output at regular intervals.
 
     This Callback is called at the end of each epoch.
 
@@ -38,17 +38,17 @@ class Logger(Callback):
     :type msg_gen: callable
     :param \**kwargs: Keyword arguments which will be passed to `msg_gen`.
     """
-    def __init__(self, period, logger_fn=print,
-                 msg_gen=None, **msg_gen_kwargs):
+
+    def __init__(self, period, logger_fn=print, msg_gen=None, **msg_gen_kwargs):
         self.period = period
         self.logger_fn = logger_fn
         self.msg_gen = msg_gen if callable(msg_gen) else self._default_msg_gen
         self.msg_gen_kwargs = msg_gen_kwargs
 
     @staticmethod
-    def _default_msg_gen(rbm, epoch, **kwargs):
+    def _default_msg_gen(nn_state, epoch, **kwargs):
         return "Epoch " + str(epoch) + ": " + str(kwargs)
 
-    def on_epoch_end(self, rbm, epoch):
+    def on_epoch_end(self, nn_state, epoch):
         if epoch % self.period == 0:
-            self.logger_fn(self.msg_gen(rbm, epoch, **self.msg_gen_kwargs))
+            self.logger_fn(self.msg_gen(nn_state, epoch, **self.msg_gen_kwargs))

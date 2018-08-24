@@ -1,16 +1,24 @@
 Welcome to QuCumber's documentation!
 ====================================
-Version: |release|
+
 
 .. toctree::
    :maxdepth: 3
    :caption: Introduction
 
    installation
-   tutorial
-   _examples/tutorial_quantum_ising.ipynb
-   _examples/tutorial_qubits.ipynb
    theory
+
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Tutorials
+
+   tutorial
+   _examples/Tutorial1_TrainPosRealWavefunction/tutorial_quantum_ising.ipynb
+   _examples//Tutorial2_TrainComplexWavefunction/tutorial_qubits.ipynb
+   _examples/Tutorial3_DataGeneration_CalculateObservables/tutorial_sampling_observables.ipynb
+   _examples/Tutorial4_MonitoringObservables/tutorial_monitor_observables.ipynb
 
 
 .. toctree::
@@ -19,8 +27,8 @@ Version: |release|
 
    rbm
    quantum_states
-   quantum_reconstruction
    callbacks
+   observables
    cplx
    data
 

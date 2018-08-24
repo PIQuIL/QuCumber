@@ -52,9 +52,15 @@ class ModelSaver(Callback):
     :type metadata_only: bool
     """
 
-    def __init__(self, period, folder_path, file_name,
-                 save_initial=True,
-                 metadata=None, metadata_only=False):
+    def __init__(
+        self,
+        period,
+        folder_path,
+        file_name,
+        save_initial=True,
+        metadata=None,
+        metadata_only=False,
+    ):
         self.folder_path = folder_path
         self.period = period
         self.file_name = file_name
@@ -66,9 +72,9 @@ class ModelSaver(Callback):
         self.path.mkdir(parents=True, exist_ok=True)
         self.path = self.path.resolve()
 
-    def _save(self, rbm, epoch, save_path):
+    def _save(self, nn_state, epoch, save_path):
         if callable(self.metadata):
-            metadata = self.metadata(rbm, epoch)
+            metadata = self.metadata(nn_state, epoch)
         elif isinstance(self.metadata, dict):
             metadata = self.metadata
         elif self.metadata is None:
@@ -77,15 +83,14 @@ class ModelSaver(Callback):
         if self.metadata_only:
             torch.save(metadata, save_path)
         else:
-            rbm.save(save_path, metadata)
+            nn_state.save(save_path, metadata)
 
-    def on_train_start(self, rbm):
+    def on_train_start(self, nn_state):
         if self.save_initial:
-            save_path = os.path.join(self.path,
-                                     self.file_name.format("initial"))
-            self._save(rbm, 0, save_path)
+            save_path = os.path.join(self.path, self.file_name.format("initial"))
+            self._save(nn_state, 0, save_path)
 
-    def on_epoch_end(self, rbm, epoch):
+    def on_epoch_end(self, nn_state, epoch):
         if epoch % self.period == 0:
             save_path = os.path.join(self.path, self.file_name.format(epoch))
-            self._save(rbm, epoch, save_path)
+            self._save(nn_state, epoch, save_path)

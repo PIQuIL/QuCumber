@@ -1,4 +1,5 @@
 dist: trusty
+
 sudo: false
 language: python
 
@@ -8,55 +9,79 @@ git:
 matrix:
   fast_finish: true
 
-addons:
-  apt:
-    packages:
-      - texlive-fonts-recommended
-      - pandoc
-      - dvipng
-      - texlive-latex-recommended
-      - texlive-latex-extra
-      - texlive-science
+cache:
+  - pip
 
 python:
+  - '3.5'
   - '3.6'
+  # - '3.7'
+  # travis doesn't fully support 3.7 yet; once it does, uncomment this and delete the python 3.7 blurb below
+
+matrix:
+  include:
+    - os: linux
+      dist: xenial
+      python: 3.7
+      sudo: true
 
 install:
-  - travis_retry pip install sphinx sphinx_rtd_theme nbsphinx ipython numpy scipy matplotlib click tqdm setuptools wheel flake8 radon
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then travis_retry pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp35-cp35m-linux_x86_64.whl; fi
-  - travis_retry pip install torchvision
+  - travis_retry pip install -r .build_tools/travis/requirements.txt
+
+  - echo 'Installing package...' && echo -n 'travis_fold:start:pkg_install'
+  - python setup.py install
+  - echo -n 'travis_fold:end:pkg_install'
 
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then cd docs && mkdir -p _static _templates && PYTHONPATH=../ make html && cd ../; fi
+  - inv license-check
+
+  - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
+  - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -m 'not slow and not extra'; fi # don't run slow/extra tests if not on master branch
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail; fi
+  - echo -n 'travis_fold:end:pytest'
+
+  - flake8
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check ./; fi
+
+  # don't run linters on notebooks, they're too picky
+  # - inv lint-examples -l flake8
+  # - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv lint-examples -l black; fi
+
+  - echo 'Building package...' && echo -n 'travis_fold:start:pkg_build'
   - python setup.py sdist bdist_wheel
+  - echo -n 'travis_fold:end:pkg_build'
+
+after_success:
+  - codecov
 
 before_deploy:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then tar -czvf examples.tar.gz examples; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then zip -r examples.zip examples; fi
 deploy:
-  - provider: pages
-    skip-cleanup: true
-    github-token: "$GITHUB_TOKEN"
-    keep-history: true
-    local-dir: docs/_build/html
-    verbose: true
-    on:
-      repo: PIQuIL/QuCumber
-      branch: master
-      condition: $TRAVIS_PYTHON_VERSION == '3.6'
   - provider: releases
     skip-cleanup: true
     api-key: "$GITHUB_TOKEN"
     file:
       - dist/*.whl
       - dist/*.tar.gz
+    file_glob: true
+    on:
+      repo: PIQuIL/QuCumber
+      tags: true
+  - provider: releases  # only upload examples folder once per deploy
+    skip-cleanup: true
+    api-key: "$GITHUB_TOKEN"
+    file:
       - examples.tar.gz
+      - examples.zip
     file_glob: true
     on:
       repo: PIQuIL/QuCumber
       tags: true
       condition: $TRAVIS_PYTHON_VERSION == '3.6'
   - provider: pypi
+    skip_existing: true
+    distributions: "sdist bdist_wheel"
     user: PIQuIL
     password:
       secure: ANzomjrVPkzLO7MG9Zekl1Tz/GiO6rJyqZSWlWxF5a8M0+ZBJsFb7Do6kxPNulkEFwEnvjnJpzpY2ryWlhrXnzGZitzWIa5IDLRRHmSQ3GRNPHMIRqf1xle+8/0IwDBuC/eTsOkit7WU1j9lgurCj8snXuTLUVEqf/SecAcLpmLrelRFvz//ZcOopIbwD66RJWT8pYGBH/L3MMIDFj1bIf0UIpXdBXgeTJhxW054+BhdFPGI66IvWU/kOlOcE606wqRqI9bdvop34OewJFnOQ9Elii7LKUPNXoWmq1PrvXCIc1c50BGcLoWFM2CDiOiirzhvvUymtT/Na2BUqPpmnkbi+iRMyaIa6FOa8UIP4TCGuFd4JJlYxaq84bAmikI+1LOOGhfJ0+LACaJaqEM3WRL8VfP/xjWF9GzOuE5W8/fQQUntZaHkqQi4VV2wzULSkc5CpbrR2iX71dROWO4ETzz1wGXmO0dTVfCWMbqk7dT8OPft+tHsWWJqqeCEL3wj1uYEIYpCwLo9oSyVXwrhzRW0dysZfTCx/XfDaws3eFA6iMg6dUoBt12kwGZ5vCbgjBwPOmQrRMUEmYoyZz8n20HKojoxzUpwueFN/nbLv76arJbN8bLeb/GyE6r1Rw0DEzs8f0fBtv5agUnIpMh6EPOFYN4rwHMxt52HU7BB/Kg=
