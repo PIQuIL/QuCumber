@@ -19,6 +19,8 @@
 
 import csv
 
+import numpy as np
+
 from .callback import Callback
 
 
@@ -76,26 +78,28 @@ class MetricEvaluator(Callback):
         return len(self.past_values)
 
     def __getattr__(self, metric):
-        """Return a list of all recorded values of the given metric.
+        """Return an array of all recorded values of the given metric.
 
         :param metric: The metric to retrieve.
         :type metric: str
 
         :returns: The past values of the metric.
-        :rtype: list
+        :rtype: np.array
         """
         try:
-            return [values[metric] for _, values in self.past_values]
+            return np.array([values[metric] for _, values in self.past_values])
         except KeyError:
             raise AttributeError
 
+    @property
     def epochs(self):
         """Return a list of all epochs that have been recorded.
 
-        :rtype: list[int]
+        :rtype: np.array
         """
-        return [epoch for epoch, _ in self.past_values]
+        return np.array([epoch for epoch, _ in self.past_values])
 
+    @property
     def names(self):
         """The names of the tracked metrics.
 

@@ -20,8 +20,44 @@
 
 import csv
 
+import numpy as np
+
 from .callback import Callback
 from qucumber.observables import System
+
+
+class ObservableStatistics:
+    """A data structure which allows easy access to past values of Observable statistics.
+
+    :param data: The historical statistics of an Observable.
+    :type data: list[dict(str, float)]
+    """
+
+    def __init__(self, data):
+        self.data = data
+
+    def __getattr__(self, statistic):
+        """Return an array containing values of the given statistic.
+
+        :param statistic: The statistic to retrieve.
+        :type statistic: str
+
+        :returns: The past values of the statistic.
+        :rtype: np.array
+        """
+        try:
+            stat = statistic[:-1] if statistic.endswith("s") else statistic
+
+            if len(self.data) > 0 and stat in self.data[0].keys():
+                return np.array([stat_dict[stat] for stat_dict in self.data])
+
+            return np.array([stat_dict[statistic] for stat_dict in self.data])
+        except KeyError:
+            raise AttributeError(
+                "'{}' is not a statistic being tracked by this object.".format(
+                    statistic
+                )
+            )
 
 
 class ObservableEvaluator(Callback):
@@ -84,26 +120,34 @@ class ObservableEvaluator(Callback):
         return len(self.past_values)
 
     def __getattr__(self, observable):
-        """Return a list of all recorded statistics of the given observable.
+        """Return an ObservableStatistics containing recorded statistics of the given observable.
 
         :param observable: The observable to retrieve.
         :type observable: str
 
         :returns: The past values of the observable.
-        :rtype: list[dict(str, float)]
+        :rtype: ObservableStatistics
         """
         try:
-            return [values[observable] for _, values in self.past_values]
+            return ObservableStatistics(
+                [values[observable] for _, values in self.past_values]
+            )
         except KeyError:
-            raise AttributeError
+            raise AttributeError(
+                "'{}' is not an Observable being tracked by this object.".format(
+                    observable
+                )
+            )
 
+    @property
     def epochs(self):
         """Return a list of all epochs that have been recorded.
 
-        :rtype: list[int]
+        :rtype: np.array
         """
-        return [epoch for epoch, _ in self.past_values]
+        return np.array([epoch for epoch, _ in self.past_values])
 
+    @property
     def names(self):
         """The names of the tracked observables.
 
