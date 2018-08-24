@@ -57,8 +57,16 @@ class Observable(abc.ABC):
     def __repr__(self):
         return self.name
 
+    def __neg__(self):
+        return ProdObservable(
+            self, -1, name=("-" + self.name), symbol=("-" + self.symbol)
+        )
+
     def __add__(self, other):
         return SumObservable(self, other)
+
+    def __sub__(self, other):
+        return SumObservable(self, -other)
 
     def __mul__(self, other):
         return ProdObservable(self, other)
@@ -66,13 +74,11 @@ class Observable(abc.ABC):
     def __radd__(self, other):
         return SumObservable(self, other, right=True)
 
+    def __rsub__(self, other):
+        return SumObservable(-self, other, right=True)
+
     def __rmul__(self, other):
         return ProdObservable(self, other)
-
-    def __neg__(self):
-        return ProdObservable(
-            self, -1, name=("-" + self.name), symbol=("-" + self.symbol)
-        )
 
     @abc.abstractmethod
     def apply(self, nn_state, samples):
