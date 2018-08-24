@@ -22,7 +22,7 @@ from .callback import Callback
 
 
 class Logger(Callback):
-    """Callback which logs output at regular intervals.
+    r"""Callback which logs output at regular intervals.
 
     This Callback is called at the end of each epoch.
 

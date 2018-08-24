@@ -61,7 +61,7 @@ class ObservableStatistics:
 
 
 class ObservableEvaluator(Callback):
-    """Evaluate and hold on to the results of the given observable(s).
+    r"""Evaluate and hold on to the results of the given observable(s).
 
     This Callback is called at the end of each epoch.
 

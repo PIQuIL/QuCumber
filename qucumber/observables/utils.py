@@ -19,7 +19,7 @@
 
 
 def to_pm1(samples):
-    """Converts a tensor of spins from the :math:`\sigma_i = 0, 1` convention
+    r"""Converts a tensor of spins from the :math:`\sigma_i = 0, 1` convention
     to the :math:`\sigma_i = -1, +1` convention.
     :param samples: A tensor of spins to convert.
                     Must be using the :math:`\sigma_i = 0, 1` convention.
@@ -29,7 +29,7 @@ def to_pm1(samples):
 
 
 def to_01(samples):
-    """Converts a tensor of spins from the :math:`\sigma_i = -1, +1` convention
+    r"""Converts a tensor of spins from the :math:`\sigma_i = -1, +1` convention
     to the :math:`\sigma_i = 0, 1` convention.
     :param samples: A tensor of spins to convert.
                     Must be using the :math:`\sigma_i = -1, +1` convention.

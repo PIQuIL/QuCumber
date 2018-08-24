@@ -22,7 +22,7 @@ from .utils import to_pm1
 
 
 class NeighbourInteraction(Observable):
-    """The :math:`\sigma^z_i \sigma^z_{i+c}` observable
+    r"""The :math:`\sigma^z_i \sigma^z_{i+c}` observable
 
     Computes the `c`-th nearest neighbour interaction for a spin chain with
     either open or periodic boundary conditions.
@@ -44,7 +44,7 @@ class NeighbourInteraction(Observable):
         self.symbol = "(Z_i * Z_(i+{}))".format(self.c)
 
     def apply(self, nn_state, samples):
-        """Computes the energy of this neighbour interaction for each sample
+        r"""Computes the energy of this neighbour interaction for each sample
         given a batch of samples.
 
         :param nn_state: The Wavefunction that drew the samples.

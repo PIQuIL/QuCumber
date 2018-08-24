@@ -101,7 +101,7 @@ def lint_example_notebooks(c, linter="flake8"):
     to_script_command = "jupyter nbconvert {} --stdout --to script"
     linter_commands = {
         "black": "black --check --diff -",
-        "flake8": "flake8 - --ignore=W391",  # ignore trailing newline
+        "flake8": "flake8 - --extend-ignore=W391,W291",  # ignore trailing whitespace
     }
 
     try:
@@ -109,7 +109,7 @@ def lint_example_notebooks(c, linter="flake8"):
     except KeyError:
         raise ValueError("Linter, {}, not supported!".format(linter))
 
-    nb_paths = pathlib.Path("./examples").glob("**/*.ipynb")
+    nb_paths = pathlib.Path("./examples").glob("**/*[!checkpoint].ipynb")
 
     num_fails = 0
     failed_files = []

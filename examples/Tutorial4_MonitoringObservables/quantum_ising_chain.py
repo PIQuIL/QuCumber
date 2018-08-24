@@ -20,15 +20,15 @@
 import torch
 import numpy as np
 
-from qucumber.observables import Observable
+from qucumber.observables import Observable, to_01, to_pm1
 
 __all__ = ["TFIMChainEnergy"]
 
 
 class TFIMChainEnergy(Observable):
-    """Observable defining the energy of a Transverse Field Ising Model (TFIM)
+    r"""Observable defining the energy of a Transverse Field Ising Model (TFIM)
     spin chain with nearest neighbour interactions, and :math:`J=1`.
-=
+
     :param h: The strength of the tranverse field
     :type h: float
     :param density: Whether to compute the energy per spin site.
@@ -42,15 +42,12 @@ class TFIMChainEnergy(Observable):
         super(TFIMChainEnergy, self).__init__()
         self.h = h
 
-    def apply(self, nn_state, samples):
-        return self.Energy(nn_state, samples)
-
     @staticmethod
     def _flip_spin(i, s):
         s[:, i] *= -1.0
 
-    def Energy(self, nn_state, samples):
-        """Computes the eneself.Energy(nn_state, v)rgy of each sam=ple given a batch of
+    def apply(self, nn_state, samples):
+        r"""Computes the energy of each sample given a batch of
         samples.
 
         :param samples: A batch of samples to calculate the observable on.
@@ -83,28 +80,6 @@ class TFIMChainEnergy(Observable):
         energy = transverse_field_terms.mul(self.h).add(interaction_terms).mul(-1.)
 
         return energy.div(samples.shape[-1])
-
-
-def to_pm1(samples):
-    """Converts a tensor of spins from the :math:`\sigma_i = 0, 1` convention
-    to the :math:`\sigma_i = -1, +1` convention.
-
-    :param samples: A tensor of spins to convert.
-                    Must be using the :math:`\sigma_i = 0, 1` convention.
-    :type samples: torch.Tensor
-    """
-    return samples.mul(2.).sub(1.)
-
-
-def to_01(samples):
-    """Converts a tensor of spins from the :math:`\sigma_i = -1, +1` convention
-    to the :math:`\sigma_i = 0, 1` convention.
-
-    :param samples: A tensor of spins to convert.
-                    Must be using the :math:`\sigma_i = -1, +1` convention.
-    :type samples: torch.Tensor
-    """
-    return samples.add(1.).div(2.)
 
 
 def Convergence(nn_state, tfim_energy, n_measurements, steps):

@@ -24,7 +24,7 @@ from .utils import update_statistics
 
 
 class System:
-    """A class representing a physical system.
+    r"""A class representing a physical system.
 
     It keeps track of multiple observables which it can evaluate simultaneously.
 

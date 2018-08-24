@@ -22,7 +22,7 @@ import numpy as np
 
 
 def create_dict(**kwargs):
-    """A function that creates a dictionary of unitary operators.
+    r"""A function that creates a dictionary of unitary operators.
 
     By default, the dictionary contains the 3 Pauli matrices in the Z-basis,
     under the keys 'X', 'Y', and 'Z'.

@@ -29,7 +29,7 @@ def flip_spin(i, s):
 
 
 class SigmaX(Observable):
-    """The :math:`\sigma_x` observable
+    r"""The :math:`\sigma_x` observable
 
     Computes the magnetization in the X direction of a spin chain.
     """
@@ -39,7 +39,7 @@ class SigmaX(Observable):
         self.symbol = "X"
 
     def apply(self, nn_state, samples):
-        """Computes the magnetization along X of each sample in the given batch of samples.
+        r"""Computes the magnetization along X of each sample in the given batch of samples.
 
         :param nn_state: The Wavefunction that drew the samples.
         :type nn_state: qucumber.nn_states.Wavefunction
@@ -69,7 +69,7 @@ class SigmaX(Observable):
 
 
 class SigmaY(Observable):
-    """The :math:`\sigma_y` observable
+    r"""The :math:`\sigma_y` observable
 
     Computes the magnetization in the Y direction of a spin chain.
     """
@@ -79,7 +79,7 @@ class SigmaY(Observable):
         self.symbol = "Y"
 
     def apply(self, nn_state, samples):
-        """Computes the magnetization along Y of each sample in the given batch of samples.
+        r"""Computes the magnetization along Y of each sample in the given batch of samples.
 
         :param nn_state: The Wavefunction that drew the samples.
         :type nn_state: qucumber.nn_states.Wavefunction
@@ -115,7 +115,7 @@ class SigmaY(Observable):
 
 
 class SigmaZ(Observable):
-    """The :math:`\sigma_z` observable.
+    r"""The :math:`\sigma_z` observable.
 
     Computes the magnetization in the Z direction of a spin chain.
     """
@@ -125,7 +125,7 @@ class SigmaZ(Observable):
         self.symbol = "Z"
 
     def apply(self, nn_state, samples):
-        """Computes the magnetization of each sample given a batch of samples.
+        r"""Computes the magnetization of each sample given a batch of samples.
 
         :param nn_state: The Wavefunction that drew the samples.
         :type nn_state: qucumber.nn_states.Wavefunction

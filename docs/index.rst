@@ -7,11 +7,18 @@ Welcome to QuCumber's documentation!
    :caption: Introduction
 
    installation
-   tutorial
-   _examples/01_Ising/tutorial_quantum_ising.ipynb
-   _examples/02_qubits/tutorial_qubits.ipynb
-   _examples/observables/tutorial_observables.ipynb
    theory
+
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Tutorials
+
+   tutorial
+   _examples/Tutorial1_TrainPosRealWavefunction/tutorial_quantum_ising.ipynb
+   _examples//Tutorial2_TrainComplexWavefunction/tutorial_qubits.ipynb
+   _examples/Tutorial3_DataGeneration_CalculateObservables/tutorial_sampling_observables.ipynb
+   _examples/Tutorial4_MonitoringObservables/tutorial_monitor_observables.ipynb
 
 
 .. toctree::

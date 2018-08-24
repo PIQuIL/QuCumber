@@ -25,7 +25,7 @@ from .callback import Callback
 
 
 class MetricEvaluator(Callback):
-    """Evaluate and hold on to the results of the given metric(s).
+    r"""Evaluate and hold on to the results of the given metric(s).
 
     This Callback is called at the end of each epoch.
 
