@@ -53,11 +53,26 @@ author = "PIQuIL"
 
 init_file = {}
 with open("../qucumber/__version__.py", "r") as f:
-    # The short X.Y version
+    # The short X.Y.Z version
     exec(f.read(), init_file)
     version = init_file["__version__"]
-    # The full version, including alpha/beta/rc tags
-    release = version
+
+# adapted from nbsphinx's conf.py
+# https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
+try:
+    release = (
+        subprocess.check_output(["git", "describe", "--tags", "--always"])
+        .decode()
+        .strip()
+    )
+    today = (
+        subprocess.check_output(["git", "show", "-s", "--format=%ad", "--date=short"])
+        .decode()
+        .strip()
+    )
+except Exception:
+    release = "<unknown_release>"
+    today = "<unknown_date>"
 
 
 print("Building version: " + version + "; release: " + release)
@@ -313,9 +328,13 @@ def linkcode_resolve(domain, info):
 
 nbsphinx_execute = "never"
 
+
+# adapted from nbsphinx's conf.py
+# https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
+
 # will only link to binders for tagged releases
 nbsphinx_prolog = r"""
-{% set docname = env.doc2path(env.docname, base='doc') %}
+{% set docname = env.doc2path(env.docname, base='docs') %}
 
 .. only:: html
 
@@ -325,12 +344,14 @@ nbsphinx_prolog = r"""
    .. nbinfo::
 
       Interactive online version:
-      :raw-html:`<a href="https://mybinder.org/v2/gh/PIQuIL/QuCumber/v{{ env.config.release }}?filepath={{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge.svg"></a>`
+      :raw-html:`<a href="https://mybinder.org/v2/gh/PIQuIL/QuCumber/{{ env.config.release }}?filepath={{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge.svg"></a>`
 
 """
 
-rst_epilog = ".. |binder_url| replace:: {}".format(
-    "https://mybinder.org/v2/gh/PIQuIL/QuCumber/v" + release
+rst_epilog = (
+    ".. |binder_url| replace:: "
+    + "https://mybinder.org/v2/gh/PIQuIL/QuCumber/"
+    + release
 )
 
 conf_location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))

@@ -1,0 +1,4 @@
+-r ../requirements.txt
+setuptools>=40.0.0
+wheel>=0.31.1
+pytest>=3.7.1
