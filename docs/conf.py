@@ -93,10 +93,8 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.coverage",
     "sphinx.ext.imgmath",
-    "sphinx.ext.ifconfig",
     "sphinx.ext.linkcode",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.githubpages",
     "sphinx.ext.napoleon",
     "nbsphinx",
 ]
