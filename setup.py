@@ -17,16 +17,17 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import os.path
 import setuptools
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 init_file = {}
-with open("./qucumber/__version__.py", "r") as f:
+with open(os.path.join("qucumber", "__version__.py"), "r") as f:
     exec(f.read(), init_file)
 
-with open("./requirements.txt", "r") as f:
+with open(os.path.join("requirements.txt"), "r") as f:
     install_requires = [req.strip() for req in f.readlines()]
 
 setuptools.setup(

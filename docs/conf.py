@@ -155,6 +155,8 @@ on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+html_theme = "default"
+
 if not on_rtd:  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
 
@@ -247,7 +249,7 @@ texinfo_documents = [
 # -- Options for todo extension ----------------------------------------------
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True
+todo_include_todos = False
 
 
 # -- Options for imgmath -----------------------------------------------------
