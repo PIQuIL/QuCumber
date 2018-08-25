@@ -1,7 +1,7 @@
 # ![QuCumber](https://raw.githubusercontent.com/PIQuIL/QuCumber/master/docs/_static/img/QuCumber_readme.png)
 
 [![PyPI version](https://badge.fury.io/py/qucumber.svg)](https://badge.fury.io/py/qucumber)
-[![Documentation Status](https://readthedocs.org/projects/qucumber/badge/?version=latest)](https://qucumber.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/qucumber/badge/?version=stable)](https://qucumber.readthedocs.io/en/stable/?badge=stable)
 [![Build Status (Travis)](https://travis-ci.com/PIQuIL/QuCumber.svg?branch=master)](https://travis-ci.com/PIQuIL/QuCumber)
 [![Build Status (AppVeyor)](https://ci.appveyor.com/api/projects/status/lqdrc8qp94w4b9kf/branch/master?svg=true)](https://ci.appveyor.com/project/emerali/qucumber/branch/master)
 [![codecov](https://codecov.io/gh/PIQuIL/QuCumber/branch/master/graph/badge.svg)](https://codecov.io/gh/PIQuIL/QuCumber)
