@@ -7,8 +7,7 @@ branches:
   except:
   - gh-pages
 
-build:
-  verbosity: minimal  # run in 'script' mode, since we don't need any VisualStudio stuff
+build: off  # run in 'script' mode, since we don't need any VisualStudio stuff
 
 # The following is based on the python-appveyor-demo by Olivier Grisel (ogrisel)
 # Source: https://github.com/ogrisel/python-appveyor-demo
@@ -49,7 +48,7 @@ init:
 
 install:
   - "python --version"
-  - "python -m pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-$(PY_TAG)-$(PY_TAG)m-win_amd64.whl "
+  - "python -m pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-%PY_TAG%-%PY_TAG%m-win_amd64.whl"
   - "python -m pip install -e .[appveyor]"
 
 test_script:
