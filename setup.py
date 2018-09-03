@@ -28,7 +28,7 @@ with open(os.path.join("qucumber", "__version__.py"), "r") as f:
     exec(f.read(), init_file)
 
 install_requires = [
-    "torch>=0.4.1,<0.4.2",
+    "torch>=0.4.1,<0.4.2 ; sys_platform != 'win32'",
     "tqdm>=4.23",
     "numpy>=1.14",
     "matplotlib>=2.2",
@@ -100,11 +100,6 @@ setuptools.setup(
     python_requires=">=3.5,<4",
     install_requires=install_requires,
     extras_require=extras_require,
-    dependency_links=[
-        "http://download.pytorch.org/whl/cpu/torch-0.4.1-cp35-cp35m-win_amd64.whl",
-        "http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-win_amd64.whl",
-        "http://download.pytorch.org/whl/cpu/torch-0.4.1-cp37-cp37m-win_amd64.whl",
-    ],
     include_package_data=True,
     url="http://github.com/PIQuIL/QuCumber",
     author="PIQuIL",
