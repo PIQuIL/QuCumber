@@ -9,6 +9,7 @@ formats:
   - htmlzip
 
 python:
+  use_system_site_packages: true
   pip_install: true
   version: 3.5
   extra_requirements:
