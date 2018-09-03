@@ -101,10 +101,10 @@ setuptools.setup(
     install_requires=install_requires,
     extras_require=extras_require,
     dependency_links=[
-        "http://download.pytorch.org/whl/cu92/",
-        "http://download.pytorch.org/whl/cu90/",
-        "http://download.pytorch.org/whl/cu80/",
-        "http://download.pytorch.org/whl/cpu/",
+        # "http://download.pytorch.org/whl/cu92/",
+        # "http://download.pytorch.org/whl/cu90/",
+        # "http://download.pytorch.org/whl/cu80/",
+        "http://download.pytorch.org/whl/cpu/"
     ],
     include_package_data=True,
     url="http://github.com/PIQuIL/QuCumber",

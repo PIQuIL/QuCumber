@@ -10,6 +10,6 @@ formats:
 
 python:
   pip_install: true
-  version: 3.6
+  version: 3.5
   extra_requirements:
     - rtd
