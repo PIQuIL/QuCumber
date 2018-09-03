@@ -23,9 +23,9 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-init_file = {}
+version_file = {}
 with open(os.path.join("qucumber", "__version__.py"), "r") as f:
-    exec(f.read(), init_file)
+    exec(f.read(), version_file)
 
 install_requires = [
     "torch>=0.4.1,<0.4.2; sys_platform != 'win32'",
@@ -34,6 +34,8 @@ install_requires = [
     "matplotlib>=2.2",
 ]
 
+# because RTD runs out of memory when using `pip install -e .[rtd]` to install
+# docs dependencies for some reason
 with open(".build_tools/readthedocs/requirements.txt", "r") as reqs:
     rtd_requires = [line.strip() for line in reqs.readlines()]
 
@@ -81,7 +83,7 @@ extras_require = {
 
 setuptools.setup(
     name="qucumber",
-    version=init_file["__version__"],
+    version=version_file["__version__"],
     description="Neural Network Quantum State Tomography.",
     long_description=long_description,
     long_description_content_type="text/markdown",
