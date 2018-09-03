@@ -8,9 +8,9 @@ formats:
   - epub
   - htmlzip
 
+requirements_file: ".build_tools/readthedocs/requirements.txt"
+
 python:
   use_system_site_packages: true
-  pip_install: true
+  setup_py_install: true
   version: 3.5
-  extra_requirements:
-    - rtd

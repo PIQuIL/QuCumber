@@ -28,13 +28,14 @@ with open(os.path.join("qucumber", "__version__.py"), "r") as f:
     exec(f.read(), init_file)
 
 install_requires = [
-    "torch>=0.4.1,<0.4.2 ; sys_platform != 'win32'",
+    "torch>=0.4.1,<0.4.2; sys_platform != 'win32'",
     "tqdm>=4.23",
     "numpy>=1.13",
     "matplotlib>=2.2",
 ]
 
-rtd_requires = ["nbsphinx>=0.3.4", "ipython>=6.5.0"]
+with open(".build_tools/readthedocs/requirements.txt", "r") as reqs:
+    rtd_requires = [line.strip() for line in reqs.readlines()]
 
 ci_requires = ["setuptools>=40.0.0", "wheel>=0.31.1", "pytest>=3.7.1"]
 
