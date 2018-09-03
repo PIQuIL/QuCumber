@@ -88,6 +88,6 @@ QuCumber is licensed under the Apache License Version 2.0.
 
 - Lauren Hayward Sierens for many helpful discussions.
 
-- Nick Mercer for creating our awesome logo. You can check out more of Nick's 
-work by visiting [his portfolio](https://www.behance.net/nickdmercec607) on 
+- Nick Mercer for creating our awesome logo. You can check out more of Nick's
+work by visiting [his portfolio](https://www.behance.net/nickdmercec607) on
 Behance!

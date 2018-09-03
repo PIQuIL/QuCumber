@@ -59,7 +59,7 @@ available development tools (like [`black`'s](https://github.com/ambv/black)).
 In most cases it should be sufficient to run the following:
 
 ```bash
-pip install -r requirements-dev.txt -r requirements-rtd.txt
+pip install -e .[dev]
 ```
 
 However, if you get an error with PyTorch not being found (which may happen
@@ -80,8 +80,8 @@ In addition, the following sets of arguments may be useful:
 pytest -m 'not gpu'
 
 # To include Negative Log-Likelihood gradient tests which are skipped by default
-# These tests tend to be fairly slow and may also be a bit inconsistent at
-# times, as they involve random sampling.
+# These tests tend to be fairly slow and are also be a bit inconsistent
+# as they involve random sampling.
 pytest --nll
 
 # To skip tests marked as 'slow', these include tests which train models
@@ -120,7 +120,9 @@ make livehtml  # again, run this from inside the docs directory
 ```
 
 then open your web-browser to `localhost:8000` to view the automatically
-updated documentation.
+updated documentation. Occasionally, the autobuilder may get stuck in an
+infinite loop. In this case, it suffices to exit it with `Ctrl+C` and running
+`make livehtml` again.
 
 ### Code Style
 
@@ -158,7 +160,7 @@ pre-commit install
 ```
 
 Note that the hooks have to be installed in this order as the `flake8` hook
-installation will fail if the `pre-commit` has already been installed.
+installation will fail if the `pre-commit` hook has already been installed.
 
 #### Jupyter Notebook style
 
@@ -201,7 +203,8 @@ Once you've finished writing your code (and testing it sufficiently!), you can
 open up a pull request against the `develop` branch (don't PR to `master`, as
 we want it to be as close to the last stable release as possible).
 
-Your code will be run through all of the checks listed above automatically,
+Your code will be run through all of the checks listed above (except the
+Jupyter Notebook style checks) automatically,
 and the checks *must* pass in order for your code to be merged. A PIQuIL
-team member will then review your code, when they get the chance, and if
+team member will then review your code when they get the chance, and if
 everything looks good, will merge your code.

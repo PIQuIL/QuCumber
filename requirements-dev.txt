@@ -1,6 +1,0 @@
--r .build_tools/travis/requirements.txt
--r .build_tools/readthedocs/requirements.txt
-pre_commit>=1.10.5
-sphinx_rtd_theme>=0.4.1
-sphinx-autobuild>=0.7.1
-nbval>=0.9.1

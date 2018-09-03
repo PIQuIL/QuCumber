@@ -48,11 +48,10 @@ init:
 
 install:
   - "python --version"
-  - "python -m pip install -r .build_tools/appveyor/requirements.txt"
-  - "python setup.py install"
+  - "python -m pip install -e .[appveyor]"
 
 test_script:
-  - IF "%APPVEYOR_REPO_BRANCH%" == "master" ( pytest -m "not slow" ) ELSE ( pytest -m "not slow and not extra" )
+  - pytest -m "not slow and not extra"
 
 after_test:
   - "python setup.py bdist_wheel --plat-name=%PLAT_NAME% --python-tag=%PY_TAG%"
