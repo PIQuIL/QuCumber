@@ -7,7 +7,8 @@ branches:
   except:
   - gh-pages
 
-build: off  # run in 'script' mode, since we don't need any VisualStudio stuff
+build:
+  verbosity: minimal  # run in 'script' mode, since we don't need any VisualStudio stuff
 
 # The following is based on the python-appveyor-demo by Olivier Grisel (ogrisel)
 # Source: https://github.com/ogrisel/python-appveyor-demo
