@@ -29,7 +29,7 @@
 \begin{document}
 
 \begin{center}{\Large \textbf{
-			QuCumber: neural network-based generative modelling for quantum wavefunction reconstruction
+			QuCumber: wavefunction reconstruction with neural networks
 		}}\end{center}
 
 \begin{center}
@@ -194,7 +194,7 @@ To instanciate a positive wavefunction, one needs to specify the number of visib
 The biases are initialized to zero, and the weights are initalized randomly according to a normal distrubution with zero mean and a variance of $1/$\verb|num_visible|.
 \begin{python}
 from qucumber.nn_states import PositivWavefunction
-nn_state = PositiveWavefunction(num_visible=10, num_hidden=10)
+state = PositiveWavefunction(num_visible=10, num_hidden=10)
 \end{python}
 The number of visible units (\verb|num_visible|) is given by the size of the physical system $N$, i.e., the number of spins or qubits.
 In contrast, the number of hidden units (\verb|num_hidden|) can be varied to change the expressiveness of the RBM.
@@ -228,7 +228,7 @@ The first example of a callback is the \verb|MetricEvaluator| which computes any
 from qucumber.callbacks import MetricEvaluator
 import qucumber.utils.training_statistics as ts
 log_every = 100
-space = nn_state.generate_hilbert_space(10)
+space = state.generate_hilbert_space(10)
 callbacks = [
     MetricEvaluator(
         log_every,
@@ -247,7 +247,7 @@ Once the metrics to monitor during training have been chosen, we can invoke the 
 
 
 \begin{python}
-nn_state.fit(
+state.fit(
     train_data,
     epochs=400,
     pos_batch_size=100
@@ -261,12 +261,14 @@ nn_state.fit(
 With the \verb|verbose=True| option, the program will print the epoch, and all callbacks every \verb|log_every| epochs. These values are plotted in Figure~\ref{fig:KL}. 
 The trained RBM and callbacks can saved (or loaded) to a file, and additional data like the fidelity, can we saved as a python dictionary.
 \begin{python}
-nn_state.save(
+state.save(
     "filename.pt",
-    meta data={"fidelity": callbacks[0].Fidelity},
+    metadata={"fidelity": callbacks[0].Fidelity},
 )
-nn_state.load(location) [HOW DO WE LOAD METADATA???]
+state.load("filename.pt")
 \end{python}
+
+The metadata can be loaded separately with \verb|torch.load()| which returns a python dictionary.
 
 
 \begin{figure}[]
@@ -283,79 +285,50 @@ nn_state.load(location) [HOW DO WE LOAD METADATA???]
 \section{Sampling from a trained RBM}
 \label{Sec:Sampling_a-Trained_RBM}
 
+[[ THIS WHOLE SECITON NEEDS SOME LOVE]]
+
 RBMs are generative models, which means that they can produce new configurations of visible and hidden units
 drawn according to the learned joint distribution.
-These configurations are generated using block Gibbs Sampling and represent a Markov chain.
-The number of samples to generate (Gibbs steps) is specified by the variable $k$:
-\begin{python}
-samples = nn_state.sample(num_samples=1000, k=10)
-\end{python}
-
-Drawing these samples is the main purpose of generative modelling. 
-They can be used for a variety of tasks defined by the user.
-For example, they can be used to calculate estimators for some physical observable.
+These configurations are generated using block Gibbs Sampling and represent a Markov chain. Similar to Monte Carlo techniques, an estimator $\langle \mathcal{O} \rangle$ 
+$$
+\langle \mathcal{O} \rangle = \frac{1}{\sum_{\bm{\sigma}} |\psi(\bm{\sigma})|^2}
+\sum_{\bm{\sigma}}  \mathcal{O}(\bm{\sigma}) |\psi(\bm{\sigma})|^2
+$$
+can be computed via sampling as 
+$$
+\langle \mathcal{O}\rangle \approx \frac{1}{N_{\rm MC}} \sum_k^{N_{\rm MC}}  \mathcal{O} (\bm{\sigma'})
+$$
+with states $ \bm{\sigma'}$ drawn according to the probability distribution from the Born rule.
 
 Some observables only depend on the state under study -- a simple example being the magnetization of any Ising 
 system, which can be calculated simply by averaging over all samples $\bm{\sigma}^{(k)}$ in the computational basis.
+In QuCumber, one specifies the number of samples and the number of Gibbs steps between samples, $k$:
+\begin{python}
+samples = state.sample(num_samples=1000, k=10)
+\end{python}
 
-Although somewhat obtuse, the following one-liner converts the binary samples to $\pm 1$ spins and computes $\langle |M|\rangle$,
+The magnetization of these samples can be computer directly. Although somewhat obtuse, the following one-liner converts the binary valued samples to $\pm 1$ spins and computes the average magnetization, $\langle |M|\rangle$,
 \begin{python}
 magnetization = samples.mul(2.0).sub(1.0).mean(1).abs().mean()
 \end{python}
 
-The magnetization from our training set is[NUMBER], while the new samples gives [NUMBER].
-We emphasize that is magnetization was computed from new samples generated from the RBM and not the original data set. 
-
 Most observables, however, depend on the Hamiltonian that underlies the original model.
-Therefore, we now turn to a discussion of sampling observables from an RBM.
+Therefore, we now turn to a discussion of sampling general observables from an RBM.
 
-
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-%\subsubsection{General Observables}
-%\label{Sec:Observables}
-
-%Observables like energy, magnetization, or correlation functions can be calculated directly on the sampled data from the RBM.
-%For a general wavefunction $\Psi$ and a general observable (Hermetian operator) $\mathcal{O}$ the expectation value is,
-%\begin{align}
-	%\braket{\mathcal{O}} & = \frac{\braket{\Psi | \mathcal{O} | \Psi}}{\braket{\Psi | \Psi}} = \frac{\sum_{\bm{\sigma}} \braket{\Psi | {\bm{\sigma}}} \braket{{\bm{\sigma}} | \mathcal{O} | \Psi}}{\sum_{\bm{\sigma}} \braket{\Psi | {\bm{\sigma}}} \braket{{\bm{\sigma}} | \Psi}} 
-	%%= \frac{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2 \frac{\braket{{\bm{\sigma}} | \mathcal{O} | \Psi}}{\braket{\Psi | {\bm{\sigma}}}} }{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2} \\
-		%= \frac{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2 \mathcal{O}_L({\bm{\sigma}}) }{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2}
-%\end{align}
-%where we have defined the local estimator,
-%\begin{equation}
-	%\mathcal{O}_L({\bm{\sigma}}) = \frac{\braket{{\bm{\sigma}} | \mathcal{O} | \Psi}}{\braket{\Psi | {\bm{\sigma}}}} .
-%\end{equation}
-%This can be used to compute a Monte Carlo estimator in the usual way.  Namely, since 
-%$ \mathcal{P}({\bm{\sigma}}) = { | \braket{\Psi | {\bm{\sigma}}} |^2 }/{\sum_{\bm{\sigma}} | \braket{\Psi | {\bm{\sigma}}} |^2}$
-%is interpreted as a probability distribution,
-%%the calculation of the expectation value can be simplified into the calculation of the average 
-%%of the local estimator $\mathcal{O}_L({\bm{\sigma}})$ with states ${\bm \sigma}$ drawn from this distribution.
-%Thus, if we sample from the RBM using Gibbs sampling, where the probability distribution $\mathcal{P}({\bm{\sigma}})$ is the  
-%marginalized distribution of the machine,
-%we can evaluate $\braket{\mathcal{O}}$ by computing the mean of $\mathcal{O}_L({\bm{\sigma}})$ over 
-%some number $N_{\rm MC}$ of sampled configurations ${\bm{\sigma}^{(k)}}$:
-%\begin{align}
-	%\label{Eq:}
-	%\mathcal{\langle O \rangle} \approx \frac{1}{N_{\rm MC}} \sum_{k=1}^{N_{\rm MC}} \mathcal{O}_L({\bm{\sigma}}^{(k)}).
-%\end{align}
-%%\textcolor{red}{[CHECK definitions of $k$, $N$, and $M$ below... Also need to crosscheck with code. What it really returns.]}
-%Some observables only depend on the state under study -- a simple example being the magnetization of any Ising 
-%system, which can be calculated simply by averaging over all samples $\bm{\sigma}^{(k)}$ in the computational basis:
-%\end{python}
 
 \subsection{Energy calculation using the Observables module}
+[[ESPECIALLY THIS SECITON!] 
 %\subsection{Example2: Energy of a TFIM chain}
 
 For the transverse field Ising model a standard observable is the energy, obtained as the expectation value of
 the Hamiltonian operator in equation~\ref{TFIM}.
 Calculating the energy for a sample $\ket{\bm{\sigma} }= \ket{\sigma_1 \dots \sigma_n}$ is not as straightforward as for the magnetization,
 because the Hamiltonian operator ${\sigma}^x_i$ is off-diagonal in the computational basis.
-Simply calculating $\bra{\bm{\sigma} } \mathcal{H} \ket{\bm{\sigma} }$ ignores the second part of the Hamiltonian completely.
-%This is because the Hamiltonian is not a diagonal observable. 
+
 If we write the wavefunction in its expanded form, $\ket{\psi} = \sum_{\bm{\sigma}} \psi(\bm{\sigma}) \ket{\bm{\sigma}} $,
 we calculate the expectation value of the Hamiltonian using the local observable,
 \begin{align}
-	\braket{ \mathcal{H}}_L({\bm{\sigma}}) & = \sum_{ \bm{\sigma'}} \mathcal{H}_{\bm{\sigma}, \bm{\sigma}'} \cdot \psi(\bm{\sigma}') / \psi(\bm{\sigma})                                                     \\
+    \braket{ \mathcal{H}_L({\bm{\sigma}})} & = \sum_{ \bm{\sigma'}} \mathcal{H}_{\bm{\sigma}, \bm{\sigma}'} \cdot \psi(\bm{\sigma}') / \psi(\bm{\sigma})                                                     \\
 	                             & =  \left[ -\sum_i \sigma_i \sigma_{i+1} - h \sum_i \frac{\psi(\sigma_1, \sigma_2, \dots , -\sigma_i, \sigma_{i+1} \dots)}{\psi (\bm{\sigma})} \right]
 \end{align}
 giving an estimator
@@ -373,16 +346,14 @@ $\psi_{\bm{\lambda}}(\bm{\sigma}) = \sqrt{p_{\bm{\lambda}}(\bm{\sigma})}$
 with $p_{\lambda}(\bm{\sigma})$ (see Eq.~\ref{Eq:marginal_distribution}). The partition functions $Z_{\lambda}$ cancel out if we divide the probabilities and the calculation is tractable also for large system sizes.
 The \verb|observable.py| package contains a few examples like this.
 
+[THIS NEEDS TO BE DONE PROPERLY]
 \begin{python}
-	sys.path.append('../examples/')
-	from observables import quantum_ising_chain as TFIM
-	# TFIM stands for transverse field ising model
-	n_measurements= 50 # number of measurements
-	hx=1.0       # Magnetic field
-	tfim = TFIM.TransverseFieldIsingChain(hx,n_measurements)
-	simulation = tfim.Run(nn_state,n_eq=200) # run
-
-	Energy = simulation['energy']
+from qucumber.observables import Observable
+from quantum_ising_chain import TFIMChainEnergy
+TFIM_energy = TFIMChainEnergy(1.0)
+energy_stats = tfim_energy.statistics_from_samples(state, samples)
+E =energy_stats["mean"]
+var = energy_stats["variance"]
 \end{python}
 
 
@@ -395,7 +366,8 @@ $\psi( \boldsymbol{\sigma})$ that could be lost by the Born rule that leads to t
 However for real wavefunctions for mixed sign, or more generally complex wavefunctions, more care must be taken to ensure 
 this phase information is contained in the reconstruction.  The first step is to enlarge the representation of the RBM to 
 include a complex phase.  The second is to ensure that the measurement data contains sufficient information to reconstruct
-this phase as well as the amplitude.  With these generalizations, QuCumber also provides the possibility to do state reconstruction for complex wavefunctions.
+this phase as well as the amplitude.
+Given these addition , QuCumber also provides to do state reconstruction for complex wavefunctions.
 
 There are different possible ways to enlarge the representation power of an RBM (or other generative models) to 
 incorporate complex wavefunctions.  
