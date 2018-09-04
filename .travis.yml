@@ -26,11 +26,7 @@ matrix:
       sudo: true
 
 install:
-  - travis_retry pip install -r .build_tools/travis/requirements.txt
-
-  - echo 'Installing package...' && echo -n 'travis_fold:start:pkg_install'
-  - python setup.py install
-  - echo -n 'travis_fold:end:pkg_install'
+  - travis_retry pip install -e .[travis]
 
 script:
   - inv license-check
@@ -42,10 +38,6 @@ script:
 
   - flake8
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check ./; fi
-
-  # don't run linters on notebooks, they're too picky
-  # - inv lint-examples -l flake8
-  # - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv lint-examples -l black; fi
 
   - echo 'Building package...' && echo -n 'travis_fold:start:pkg_build'
   - python setup.py sdist bdist_wheel

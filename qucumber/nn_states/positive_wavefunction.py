@@ -170,6 +170,7 @@ class PositiveWavefunction(Wavefunction):
         k=1,
         lr=1e-3,
         progbar=False,
+        starting_epoch=1,
         time=False,
         callbacks=None,
         optimizer=torch.optim.SGD,
@@ -180,6 +181,8 @@ class PositiveWavefunction(Wavefunction):
         :param data: The training samples
         :type data: np.array
         :param epochs: The number of full training passes through the dataset.
+                       Technically, this specifies the index of the *last* training
+                       epoch, which is relevant if `starting_epoch` is being set.
         :type epochs: int
         :param pos_batch_size: The size of batches for the positive phase
                                taken from the data.
@@ -195,6 +198,9 @@ class PositiveWavefunction(Wavefunction):
                         is passed, will use a Jupyter notebook compatible
                         progress bar.
         :type progbar: bool or str
+        :param starting_epoch: The epoch to start from. Useful if continuing training
+                               from a previous state.
+        :type starting_epoch: int
         :param callbacks: Callbacks to run while training.
         :type callbacks: list[qucumber.callbacks.Callback]
         :param optimizer: The constructor of a torch optimizer.
@@ -209,6 +215,7 @@ class PositiveWavefunction(Wavefunction):
             k=k,
             lr=lr,
             progbar=progbar,
+            starting_epoch=starting_epoch,
             time=time,
             callbacks=callbacks,
             optimizer=optimizer,

@@ -422,6 +422,7 @@ class Wavefunction(abc.ABC):
         lr=1e-3,
         input_bases=None,
         progbar=False,
+        starting_epoch=1,
         time=False,
         callbacks=None,
         optimizer=torch.optim.SGD,
@@ -432,6 +433,8 @@ class Wavefunction(abc.ABC):
         :param data: The training samples
         :type data: np.array
         :param epochs: The number of full training passes through the dataset.
+                       Technically, this specifies the index of the *last* training
+                       epoch, which is relevant if `starting_epoch` is being set.
         :type epochs: int
         :param pos_batch_size: The size of batches for the positive phase
                                taken from the data.
@@ -450,6 +453,9 @@ class Wavefunction(abc.ABC):
                         is passed, will use a Jupyter notebook compatible
                         progress bar.
         :type progbar: bool or str
+        :param starting_epoch: The epoch to start from. Useful if continuing training
+                               from a previous state.
+        :type starting_epoch: int
         :param callbacks: Callbacks to run while training.
         :type callbacks: list[qucumber.callbacks.Callback]
         :param optimizer: The constructor of a torch optimizer.
@@ -488,7 +494,7 @@ class Wavefunction(abc.ABC):
 
         num_batches = ceil(train_samples.shape[0] / pos_batch_size)
         for ep in progress_bar(
-            range(1, epochs + 1), desc="Epochs ", disable=disable_progbar
+            range(starting_epoch, epochs + 1), desc="Epochs ", disable=disable_progbar
         ):
             data_iterator = self._shuffle_data(
                 pos_batch_size,
