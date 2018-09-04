@@ -364,26 +364,22 @@ var = energy_stats["variance"]
 For the positive-real wavefunctions there is no additional information contained in the wavefunction
 $\psi( \boldsymbol{\sigma})$ that could be lost by the Born rule that leads to the representation in equation \ref{wfpd}.
 However for real wavefunctions for mixed sign, or more generally complex wavefunctions, more care must be taken to ensure 
-this phase information is contained in the reconstruction.  The first step is to enlarge the representation of the RBM to 
-include a complex phase.  The second is to ensure that the measurement data contains sufficient information to reconstruct
-this phase as well as the amplitude.
-Given these addition , QuCumber also provides to do state reconstruction for complex wavefunctions.
+this phase information is contained in the reconstruction.  
 
-There are different possible ways to enlarge the representation power of an RBM (or other generative models) to 
-incorporate complex wavefunctions.  
-In additionally to the marginal distribution (Eq.~\ref{Eq:marginal_distribution}) representing the complex amplitude,
-we require a phase factor that is learned by an additional set of hidden units and corresponding network parameters $\bm{\mu}$ of the RBM:
+In QuCumber, we represent the phase as an additional RBM with the same visible units but different parameters $\bm{\mu}$. Schematically, the two RBMS are shown in Figure~\ref{fig:complex}
 \begin{align}
 	\psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma})= \sqrt{p_{\bm{\lambda}} (\bm{\sigma})} e^{i \phi_{\bm{\mu}} (\bm{\sigma})/2},
 \end{align}
 %
+where we choose $\phi_{\bm{\mu}}(\bm{\sigma}) = \log (p_{\bm{\mu}} (\bm{\sigma}))$ \cite{torlai2018tomography}. 
+
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=1\linewidth]{plots/ch3_complexNW.pdf}
-    \caption{}
-    \label{fig:}
+    \caption{Two RBMs for learning a complex wavefunction. The left RBM with parameters $\bm{\lambda}$ learns the amplitude of the wavefunction, while the parameters $\bm{\mu}$ of the right RBM learn the phase information. Both models input the same visible space, however, the phase information is trained with rotated basis. [EXPLAIN BETTER?]}
+    \label{fig:complex}
 \end{figure}
-where we choose $\phi_{\bm{\mu}}(\bm{\sigma}) = \log (p_{\bm{\mu}} (\bm{\sigma}))$ \cite{torlai2018tomography}. 
+
 The complex wavefunction can be rewritten in a generic basis $\{ \bm{\sigma}^b \}$as :
 
 \begin{align}
