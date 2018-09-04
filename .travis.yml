@@ -12,39 +12,45 @@ matrix:
 cache:
   - pip
 
-python:
-  - '3.5'
-  - '3.6'
-  # - '3.7'
-  # travis doesn't fully support 3.7 yet; once it does, uncomment this and delete the python 3.7 blurb below
-
 matrix:
   include:
+    - os: linux
+      dist: trusty
+      python: 3.5
+      sudo: false
+      env: PY_TAG='cp35'
+    - os: linux
+      dist: trusty
+      python: 3.6
+      sudo: false
+      env: PY_TAG='cp36'
     - os: linux
       dist: xenial
       python: 3.7
       sudo: true
+      env: PY_TAG='cp37'
 
 install:
   - travis_retry pip install -e .[travis]
+  - travis_retry pip install tox-travis codecov
 
 script:
   - inv license-check
 
-  - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
-  - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -m 'not slow and not extra'; fi # don't run slow/extra tests if not on master branch
-  - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail; fi
-  - echo -n 'travis_fold:end:pytest'
+  - echo 'Running tests...' && echo -n 'travis_fold:start:tox'
+  - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra'; fi # don't run slow/extra tests if not on master branch
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -- -s; fi
+  - echo -n 'travis_fold:end:tox'
 
   - flake8
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check ./; fi
 
   - echo 'Building package...' && echo -n 'travis_fold:start:pkg_build'
-  - python setup.py sdist bdist_wheel
+  - python setup.py sdist bdist_wheel --python-tag=$PY_TAG
   - echo -n 'travis_fold:end:pkg_build'
 
 after_success:
-  - codecov
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then codecov; fi
 
 before_deploy:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then tar -czvf examples.tar.gz examples; fi
@@ -73,7 +79,7 @@ deploy:
       condition: $TRAVIS_PYTHON_VERSION == '3.6'
   - provider: pypi
     skip_existing: true
-    distributions: "sdist bdist_wheel"
+    distributions: "sdist bdist_wheel --python-tag=$PY_TAG"
     user: PIQuIL
     password:
       secure: ANzomjrVPkzLO7MG9Zekl1Tz/GiO6rJyqZSWlWxF5a8M0+ZBJsFb7Do6kxPNulkEFwEnvjnJpzpY2ryWlhrXnzGZitzWIa5IDLRRHmSQ3GRNPHMIRqf1xle+8/0IwDBuC/eTsOkit7WU1j9lgurCj8snXuTLUVEqf/SecAcLpmLrelRFvz//ZcOopIbwD66RJWT8pYGBH/L3MMIDFj1bIf0UIpXdBXgeTJhxW054+BhdFPGI66IvWU/kOlOcE606wqRqI9bdvop34OewJFnOQ9Elii7LKUPNXoWmq1PrvXCIc1c50BGcLoWFM2CDiOiirzhvvUymtT/Na2BUqPpmnkbi+iRMyaIa6FOa8UIP4TCGuFd4JJlYxaq84bAmikI+1LOOGhfJ0+LACaJaqEM3WRL8VfP/xjWF9GzOuE5W8/fQQUntZaHkqQi4VV2wzULSkc5CpbrR2iX71dROWO4ETzz1wGXmO0dTVfCWMbqk7dT8OPft+tHsWWJqqeCEL3wj1uYEIYpCwLo9oSyVXwrhzRW0dysZfTCx/XfDaws3eFA6iMg6dUoBt12kwGZ5vCbgjBwPOmQrRMUEmYoyZz8n20HKojoxzUpwueFN/nbLv76arJbN8bLeb/GyE6r1Rw0DEzs8f0fBtv5agUnIpMh6EPOFYN4rwHMxt52HU7BB/Kg=

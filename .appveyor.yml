@@ -55,7 +55,7 @@ test_script:
   - pytest -m "not slow and not extra"
 
 after_test:
-  - "python setup.py bdist_wheel --plat-name=%PLAT_NAME% --python-tag=%PY_TAG%"
+  - "python setup.py sdist bdist_wheel --plat-name=%PLAT_NAME% --python-tag=%PY_TAG%"
 
 deploy_script:
   - echo "Starting Artifact Deployment"

@@ -39,14 +39,14 @@ install_requires = [
 with open(".build_tools/readthedocs/requirements.txt", "r") as reqs:
     rtd_requires = [line.strip() for line in reqs.readlines()]
 
-ci_requires = ["setuptools>=40.0.0", "wheel>=0.31.1", "pytest>=3.7.1"]
+build_requires = ["setuptools>=40.0.0", "wheel>=0.31.1"]
 
-test_requires = ["pytest>=3.7.1"]
+test_requires = ["pytest>=3.7.1", "tox>=3.2.1"]
 
-coverage_requires = test_requires + ["codecov>=2.0.15", "pytest-cov>=2.5.1"]
+coverage_requires = test_requires + ["pytest-cov>=2.5.1"]
 
 travis_requires = (
-    ci_requires
+    build_requires
     + coverage_requires
     + [
         "radon>=2.2.0",
@@ -58,7 +58,7 @@ travis_requires = (
     ]
 )
 
-appveyor_requires = ci_requires + test_requires
+appveyor_requires = build_requires + test_requires
 
 dev_requires = (
     travis_requires
@@ -94,6 +94,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: Implementation :: CPython",
         "Operating System :: OS Independent",
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering",
