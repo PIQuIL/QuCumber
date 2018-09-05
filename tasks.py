@@ -105,7 +105,9 @@ def lint_example_notebooks(c, linter="flake8"):
     )
     linter_commands = {
         "black": "black --check --diff -",
-        "flake8": "flake8 - --extend-ignore=W391,W291,E402",  # ignore trailing whitespace
+        # last 3 are to ignore trailing whitespace, rest are from tox.ini
+        # should simplify this once flake8 pushes its --extend-ignore option
+        "flake8": "flake8 - --ignore=E203,E501,W503,W391,W291,E402",
     }
 
     try:

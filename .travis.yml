@@ -32,7 +32,7 @@ matrix:
 
 install:
   - travis_retry pip install -e .[travis]
-  - travis_retry pip install codecov
+  - travis_retry pip install codecov ipython
 
 script:
   - inv license-check
