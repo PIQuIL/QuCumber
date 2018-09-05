@@ -39,46 +39,42 @@ install_requires = [
 with open(".build_tools/readthedocs/requirements.txt", "r") as reqs:
     rtd_requires = [line.strip() for line in reqs.readlines()]
 
+doc_requires = rtd_requires + ["sphinx_rtd_theme>=0.4.1", "sphinx-autobuild>=0.7.1"]
+
 build_requires = ["setuptools>=40.0.0", "wheel>=0.31.1"]
 
 test_requires = ["pytest>=3.7.1", "tox>=3.2.1"]
 
 coverage_requires = test_requires + ["pytest-cov>=2.5.1"]
 
+style_requires = [
+    "radon>=2.2.0",
+    "black==18.6b4; python_version>='3.6'",
+    "flake8>=3.5.0",
+    "flake8-per-file-ignores>=0.6",
+    "flake8-bugbear>=18.2.0",
+]
+
 travis_requires = (
     build_requires
     + coverage_requires
-    + [
-        "radon>=2.2.0",
-        "black==18.6b4; python_version>='3.6'",
-        "flake8>=3.5.0",
-        "flake8-per-file-ignores>=0.6",
-        "flake8-bugbear>=18.2.0",
-        "invoke>=1.1.1",
-    ]
+    + style_requires
+    + ["invoke>=1.1.1", "nbconvert>=5.3.1"]
 )
 
 appveyor_requires = build_requires + test_requires
 
-dev_requires = (
-    travis_requires
-    + rtd_requires
-    + [
-        "pre_commit>=1.10.5",
-        "sphinx_rtd_theme>=0.4.1",
-        "sphinx-autobuild>=0.7.1",
-        "nbconvert>=5.3.1",
-        "nbval>=0.9.1",
-    ]
-)
+dev_requires = travis_requires + doc_requires + ["pre_commit>=1.10.5", "nbval>=0.9.1"]
 
 extras_require = {
     "dev": dev_requires,
     "test": test_requires,
     "coverage": coverage_requires,
+    "style": style_requires,
     "travis": travis_requires,
     "appveyor": appveyor_requires,
     "rtd": rtd_requires,
+    "doc": doc_requires,
 }
 
 setuptools.setup(
