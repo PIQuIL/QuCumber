@@ -215,8 +215,7 @@ Once you've finished writing your code (and testing it sufficiently!), you can
 open up a pull request against the `develop` branch (don't PR to `master`, as
 we want it to be as close to the last stable release as possible).
 
-Your code will be run through all of the checks listed above (except the
-Jupyter Notebook style checks) automatically,
+Your code will be run through all of the checks listed above automatically,
 and the checks *must* pass in order for your code to be merged. A PIQuIL
 team member will then review your code when they get the chance, and if
 everything looks good, will merge your code.

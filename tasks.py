@@ -98,10 +98,14 @@ def lint_example_notebooks(c, linter="flake8"):
                    Can be one of: ["flake8", "black"]
     :type linter: str
     """
-    to_script_command = "jupyter nbconvert {} --stdout --to script"
+    to_script_command = (
+        "jupyter nbconvert {} --stdout --to python "
+        "--template=.build_tools/invoke/code_cells_only.tpl "
+        "| head -c -1"
+    )
     linter_commands = {
         "black": "black --check --diff -",
-        "flake8": "flake8 - --extend-ignore=W391,W291",  # ignore trailing whitespace
+        "flake8": "flake8 - --extend-ignore=W391,W291,E402",  # ignore trailing whitespace
     }
 
     try:
