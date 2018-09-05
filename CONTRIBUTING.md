@@ -40,8 +40,8 @@ Before you start writing your code, there are a few things you need to set up:
 
 ### Fork and Branch
 
-Fork the QuCumber repo on GitHub and create a branch from the `develop` branch
-on your fork. Be sure to give it a descriptive name (ideally referencing
+Fork the QuCumber repository on GitHub and create a branch from the `develop`
+branch on your fork. Be sure to give it a descriptive name (ideally referencing
 the relevant issue number). For example, after cloning your fork to a local
 directory, you could create a branch to solve an issue with the documentation
 of say, the `PositiveWavefunction` class:
@@ -102,6 +102,18 @@ pytest --cov=qucumber  # to show test coverage
 pytest --durations=N  # show test durations for the N slowest tests (use N=0 to show all)
 ```
 
+If you have Python versions 3.5, 3.6, and 3.7 all installed on your system, you
+can also use `tox` to run the unit tests on each version separately like so:
+
+```bash
+tox
+
+tox -- -m "not slow"  # can pass pytest options after a double dash: --
+```
+
+`tox` is currently set up to automatically generate coverage reports when run,
+so you don't have to pass `--cov=qucumber`.
+
 ### Building Documentation
 
 If you're working on code documentation, you can build a copy locally like so:
@@ -120,7 +132,7 @@ make livehtml  # again, run this from inside the docs directory
 ```
 
 then open your web-browser to `localhost:8000` to view the automatically
-updated documentation. Occasionally, the autobuilder may get stuck in an
+updated documentation. Occasionally, the auto-builder may get stuck in an
 infinite loop. In this case, it suffices to exit it with `Ctrl+C` and running
 `make livehtml` again.
 
@@ -131,13 +143,13 @@ conventions + `flake8`. These should have been installed when you installed the
 development dependencies. Our custom `flake8` config can be found in the repository's
 `setup.cfg` file.
 
-To run code style checks, run the following from the repo's root directory:
+To run code style checks, run the following from the repository's root directory:
 
 ```bash
 flake8
 ```
 
-and to run the `black` autoformatter (be aware that this will modify your code)
+and to run the `black` auto-formatter (be aware that this will modify your code)
 
 ```bash
 black ./
@@ -164,21 +176,21 @@ installation will fail if the `pre-commit` hook has already been installed.
 
 #### Jupyter Notebook style
 
-We also require that Jupyter notebooks on this repo follow the same style
+We also require that Jupyter notebooks on this repository follow the same style
 conventions as the main package source code. Unfortunately, the
 git pre-commit hooks won't work on Jupyter notebooks. To get around this,
 we've written some custom [PyInvoke](https://www.pyinvoke.org/) commands to
-check style guide adherence of notebooks in the repo's `./examples/` folder.
+check style guide adherence of notebooks in the repository's `./examples/` folder.
 
 You can check that they are formatted properly by running the following
-commands from the repo's root directory:
+commands from the repository's root directory:
 
 ```bash
 inv lint-examples -l flake8
 inv lint-examples -l black
 ```
 
-Unfortunately, `black` does not support autoformatting of Jupyter notebooks,
+Unfortunately, `black` does not support auto-formatting of Jupyter notebooks,
 but the above command will provide you with the changes that it would have made.
 However, there is an easier way, you can use the
 [blackcellmagic](https://github.com/csurfer/blackcellmagic) Jupyter extension
@@ -186,8 +198,8 @@ to format notebook cells.
 
 ### License Headers
 
-All significant Python source files should contain this repo's license header at
-the top of the file. The header text itself can be found in the
+All significant Python source files should contain this repository's license
+header at the top of the file. The header text itself can be found in the
 [LICENSE_HEADER](LICENSE_HEADER) file.
 
 You can also run the following to check if all Python files of length > 15
