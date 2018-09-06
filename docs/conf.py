@@ -346,7 +346,8 @@ nbsphinx_execute = "never"
 nbsphinx_prolog = r"""
 {% set docname = env.doc2path(env.docname, base='docs') %}
 {% set corrected_docname = "/".join(["examples"] + docname.split('/')[2:]) %}
-{% set last_tag = "-".join(env.config.release.split('-')[:-2]) %}
+{% set split_rel = env.config.release.split('-') %}
+{% set last_tag = "-".join(split_rel[:(-2 if split_rel.__len__() > 2 else None)]) %}
 
 .. only:: html
 
@@ -358,17 +359,24 @@ nbsphinx_prolog = r"""
       This is a static, non-editable tutorial.
 
       We recommend you install QuCumber if you want to run the examples locally.
-      You can then get an archive file containing the examples from the latest release
+      You can then get an archive file containing the examples from the relevant release
       `here <https://github.com/PIQuIL/QuCumber/releases/tag/{{ last_tag }}>`_.
       Alternatively, you can launch an interactive online version, though it may be a bit slow:
       :raw-html:`<a href="https://mybinder.org/v2/gh/PIQuIL/QuCumber/{{ env.config.release }}?filepath={{ corrected_docname }}"><img alt="Binder badge" src="https://mybinder.org/badge.svg"></a>`
 
 """
 
+
+split_rel = release.split("-")
+last_tag = "-".join(split_rel[: (-2 if len(split_rel) > 2 else None)])
+
 rst_epilog = (
     ".. |BinderBadge| image:: _static/binder_badge.png \n"
     + ".. _BinderBadge: https://mybinder.org/v2/gh/PIQuIL/QuCumber/"
     + release
+    + "\n\n"
+    + ".. _Release: https://github.com/PIQuIL/QuCumber/releases/tag/"
+    + last_tag
 )
 
 conf_location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))

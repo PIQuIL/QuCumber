@@ -13,9 +13,13 @@ is divided into two parts.
    phase) from a simple two qubit random state and then generating new data.
 
 We have made interactive python notebooks that can be downloaded (along with
-the data required) here:
+the data required) `here`__. Note that the linked examples are from the most
+recent stable release (relative to the version of the docs you're currently
+viewing), and may not match the examples shown in the following pages.
+It is recommended that you refer to documentation for the latest stable
+release: https://qucumber.readthedocs.io/en/stable/.
 
-https://github.com/PIQuIL/QuCumber/releases
+__ Release_
 
 If you wish to simply view the static, non-interactive notebooks, continue to
 the next page of the documentation.
