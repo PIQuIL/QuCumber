@@ -24,8 +24,15 @@ from .observable import Observable
 from .utils import to_pm1
 
 
-def flip_spin(i, s):
-    s[:, i].sub_(1).abs_()
+def flip_spin(i, samples):
+    r"""Flip the i-th spin configuration in samples.
+
+    :param i: The i-th spin.
+    :type i: int
+    :param samples: A batch of samples.
+    :type samples: torch.Tensor
+    """
+    samples[:, i].sub_(1).abs_()
 
 
 class SigmaX(Observable):
