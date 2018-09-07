@@ -2,6 +2,7 @@ import unittest
 import qucumber.observables as observables
 from qucumber.nn_states import ComplexWavefunction
 
+
 class TestPauli(unittest.TestCase):
     def test_apply(self):
         test_psi = ComplexWavefunction(2, num_hidden=3)
@@ -10,5 +11,5 @@ class TestPauli(unittest.TestCase):
         X.apply(test_psi, test_sample)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
