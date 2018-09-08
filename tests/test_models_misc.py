@@ -26,19 +26,19 @@ import pytest
 
 import qucumber
 from qucumber.nn_states import PositiveWavefunction, ComplexWavefunction
-from . import __tests_location__
+
 
 INIT_SEED = 1234  # seed to initialize model params with
 SAMPLING_SEED = 1337  # seed to draw samples from the model with
 
 
 @pytest.mark.parametrize("wvfn_type", [PositiveWavefunction, ComplexWavefunction])
-def test_model_saving_and_loading(wvfn_type):
+def test_model_saving_and_loading(request, wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
     nn_state = wvfn_type(10, gpu=False)
 
-    model_path = os.path.join(__tests_location__, "wavefunction")
+    model_path = os.path.join(request.fspath.dirname, "wavefunction")
 
     nn_state.save(model_path)
 
@@ -67,12 +67,12 @@ def test_model_saving_and_loading(wvfn_type):
 
 
 @pytest.mark.parametrize("wvfn_type", [PositiveWavefunction, ComplexWavefunction])
-def test_model_saving_bad_metadata_key(wvfn_type):
+def test_model_saving_bad_metadata_key(request, wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
     nn_state = wvfn_type(10, gpu=False)
 
-    model_path = os.path.join(__tests_location__, "wavefunction")
+    model_path = os.path.join(request.fspath.dirname, "wavefunction")
 
     msg = "Metadata with invalid key should raise an error."
     with pytest.raises(ValueError, message=msg):
