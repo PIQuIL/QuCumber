@@ -30,12 +30,12 @@ SAMPLING_SEED = 1337  # seed to draw samples from the model with
 
 
 @pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
-def test_model_saving_and_loading(request, wvfn_type):
+def test_model_saving_and_loading(tmpdir, wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
     nn_state = wvfn_type(10, gpu=False)
 
-    model_path = os.path.join(request.fspath.dirname, "wavefunction")
+    model_path = str(tmpdir.mkdir("wvfn").join("params.pt").realpath())
 
     nn_state.save(model_path)
 
@@ -44,6 +44,7 @@ def test_model_saving_and_loading(request, wvfn_type):
     orig_sample = nn_state.sample(k=10).to(dtype=torch.uint8)
 
     nn_state2 = wvfn_type(10, gpu=False)
+
     nn_state2.load(model_path)
 
     qucumber.set_random_seed(SAMPLING_SEED, cpu=True, gpu=False, quiet=True)
@@ -64,12 +65,12 @@ def test_model_saving_and_loading(request, wvfn_type):
 
 
 @pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
-def test_model_saving_bad_metadata_key(request, wvfn_type):
+def test_model_saving_bad_metadata_key(tmpdir, wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
     nn_state = wvfn_type(10, gpu=False)
 
-    model_path = os.path.join(request.fspath.dirname, "wavefunction")
+    model_path = str(tmpdir.mkdir("wvfn").join("params.pt").realpath())
 
     msg = "Metadata with invalid key should raise an error."
     with pytest.raises(ValueError):
