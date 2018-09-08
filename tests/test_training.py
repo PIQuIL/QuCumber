@@ -26,7 +26,6 @@ import qucumber.utils.training_statistics as ts
 import qucumber.utils.unitaries as unitaries
 from qucumber.callbacks import MetricEvaluator, LambdaCallback
 from qucumber.nn_states import ComplexWaveFunction, PositiveWaveFunction
-from . import __tests_location__
 
 SEED = 1234
 
@@ -165,22 +164,22 @@ def test_stop_training_in_epoch(gpu):
 
 
 @pytest.mark.slow
-def test_trainingpositive():
-    print("Positive WaveFunction")
+def test_trainingpositive(request):
+    print("Positive Wavefunction")
     print("---------------------")
 
     train_samples_path = os.path.join(
-        __tests_location__,
+        request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial1_TrainPosRealWaveFunction",
+        "Tutorial1_TrainPosRealWavefunction",
         "tfim1d_data.txt",
     )
     psi_path = os.path.join(
-        __tests_location__,
+        request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial1_TrainPosRealWaveFunction",
+        "Tutorial1_TrainPosRealWavefunction",
         "tfim1d_psi.txt",
     )
 
@@ -215,7 +214,7 @@ def test_trainingpositive():
             )
         ]
 
-        initialize_posreal_params(nn_state)
+        initialize_posreal_params(request, nn_state)
 
         nn_state.fit(
             data=train_samples,
@@ -257,33 +256,33 @@ vectorization = [
 
 @pytest.mark.slow
 @pytest.mark.parametrize("vectorized", vectorization)
-def test_trainingcomplex(vectorized):
+def test_trainingcomplex(request, vectorized):
     print("Complex WaveFunction")
     print("--------------------")
 
     train_samples_path = os.path.join(
-        __tests_location__,
+        request.fspath.dirname,
         "..",
         "examples",
         "Tutorial2_TrainComplexWaveFunction",
         "qubits_train.txt",
     )
     train_bases_path = os.path.join(
-        __tests_location__,
+        request.fspath.dirname,
         "..",
         "examples",
         "Tutorial2_TrainComplexWaveFunction",
         "qubits_train_bases.txt",
     )
     bases_path = os.path.join(
-        __tests_location__,
+        request.fspath.dirname,
         "..",
         "examples",
         "Tutorial2_TrainComplexWaveFunction",
         "qubits_bases.txt",
     )
     psi_path = os.path.join(
-        __tests_location__,
+        request.fspath.dirname,
         "..",
         "examples",
         "Tutorial2_TrainComplexWaveFunction",
@@ -330,7 +329,7 @@ def test_trainingcomplex(vectorized):
             )
         ]
 
-        initialize_complex_params(nn_state)
+        initialize_complex_params(request, nn_state)
 
         nn_state.fit(
             data=train_samples,
@@ -365,9 +364,11 @@ def test_trainingcomplex(vectorized):
     assert (np.std(KLs) / np.sqrt(len(KLs))) < 0.01
 
 
-def initialize_posreal_params(nn_state):
+def initialize_posreal_params(request, nn_state):
     with open(
-        os.path.join(__tests_location__, "data", "test_training_init_pos_params.npz"),
+        os.path.join(
+            request.fspath.dirname, "data", "test_training_init_pos_params.npz"
+        ),
         "rb",
     ) as f:
         x = np.load(f)
@@ -377,10 +378,10 @@ def initialize_posreal_params(nn_state):
             )
 
 
-def initialize_complex_params(nn_state):
+def initialize_complex_params(request, nn_state):
     with open(
         os.path.join(
-            __tests_location__, "data", "test_training_init_complex_params.npz"
+            request.fspath.dirname, "data", "test_training_init_complex_params.npz"
         ),
         "rb",
     ) as f:

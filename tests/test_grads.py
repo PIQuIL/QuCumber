@@ -23,8 +23,7 @@ import pytest
 import qucumber
 from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction
 from qucumber.utils import unitaries
-from .grads_utils import ComplexGradsUtils, PosGradsUtils
-from . import __tests_location__
+from grads_utils import ComplexGradsUtils, PosGradsUtils
 
 
 K = 10
@@ -58,9 +57,9 @@ def assertPercentDiff(a, b, pdiff, msg=None):
     assert torch.equal(result, expect), msg
 
 
-def positive_wavefunction_data(gpu, num_hidden):
+def positive_wavefunction_data(request, gpu, num_hidden):
     with open(
-        os.path.join(__tests_location__, "data", "test_grad_data.pkl"), "rb"
+        os.path.join(request.fspath.dirname, "data", "test_grad_data.pkl"), "rb"
     ) as f:
         test_data = pickle.load(f)
 
@@ -88,9 +87,9 @@ def positive_wavefunction_data(gpu, num_hidden):
     )
 
 
-def complex_wavefunction_data(gpu, num_hidden):
+def complex_wavefunction_data(request, gpu, num_hidden):
     with open(
-        os.path.join(__tests_location__, "data", "test_grad_data.pkl"), "rb"
+        os.path.join(request.fspath.dirname, "data", "test_grad_data.pkl"), "rb"
     ) as f:
         test_data = pickle.load(f)
 
@@ -185,7 +184,7 @@ def wavefunction_device(request):
 
 @pytest.fixture(scope="module", params=hidden_layer_sizes)
 def wavefunction_data(request, wavefunction_constructor, wavefunction_device):
-    return wavefunction_constructor(wavefunction_device, request.param)
+    return wavefunction_constructor(request, wavefunction_device, request.param)
 
 
 @pytest.fixture(scope="module", params=grad_types)
