@@ -29,8 +29,8 @@
 \begin{document}
 
 \begin{center}{\Large \textbf{
-			QuCumber: wavefunction reconstruction with neural networks
-		}}\end{center}
+	QuCumber: wavefunction reconstruction with neural networks
+}}\end{center}
 
 \begin{center}
 	Matthew J.~S.~Beach,
@@ -39,13 +39,13 @@
 	Patrick Huembeli$^\dag$,
 	Roger G.~Melko\textsuperscript{*},
 	Ejaaz Merali,
-	Giacomo Torlai,
+	Giacomo Torlai
 \end{center}
 
 \begin{center}
 	%{\bf 1} 
 	Department of Physics and Astronomy, University of Waterloo,
-	\\Ontario N2L 3G, Canada
+	\\Ontario N2L 3G1, Canada
 	\\
 	Perimeter Institute for Theoretical Physics, Waterloo,
 	\\Ontario N2L 2Y5, Canada
@@ -64,9 +64,12 @@
 
 \section*{Abstract}
 {\bf
-	In this post we present QuCumber, an open-source Python package which uses Restricted Boltzmann Machines for the reconstruction of quantum states from measurement data. 
-    The use of modern machine learning techniques makes it possible to efficiently learn quantum states and access traditionally challenging many-body quantities which are not directly accessible to experiments. 
-    We give examples of how to use QuCumber on positive-real and complex wavefunctions and how to extract meaningful observables such as energy, magnetization and fidelity.
+In this post we present QuCumber, an open-source Python package which uses Restricted Boltzmann Machines 
+for the reconstruction of quantum states from experimental measurement data. 
+The use of modern machine learning techniques makes it possible to efficiently learn quantum states 
+and access traditionally challenging many-body quantities which are not directly accessible to experiments. 
+We give examples of how to use QuCumber on positive-real and complex wavefunctions 
+and how to extract meaningful observables such as energy, magnetization and fidelity.
 }
 
 \vspace{10pt}
@@ -77,33 +80,53 @@
 
 \section{Introduction}
 
-Scientific progress in controlled quantum systems has allowed for increasingly large-scale devices which can accurately prepare pure quantum states.
-As the size of these devices grows to hundreds of qubits, we face the challenge of analyzing highly complex many-body states with a finite set of experimental measurements.
-Since the computational power required scales exponentially with the number of qubits, there is a growing interest in using machine learning techniques which can successfully distill meaningful statistics from very large amounts of data.
-In this post, we present a software package that can be used to characterize and analyze pure states produced from near-term 
-quantum devices by {\it reconstructing} a quantum wavefunction with machine learning methods.
+Pure quantum states are being routinely prepared on large-scale devices in research labs ...doing quantum physics (?).
+As these devices grow to hundreds of qubits, 
+analyzing many-body quantum states with a finite set of experimental measurements becomes a challenge,
+since the computational power required scales exponentially with the number of qubits.
+To tackle this challenge, we suggest employing machine learning techniques 
+which can successfully extract meaningful statistics from very large amounts of data.
+In this post, we present a software package named QuCumber 
+that can be used to characterize and analyze pure states produced on near-term quantum devices 
+by {\it reconstructing} the underlying quantum wavefunction from measurement data \textcolor{red}{(specify -- what type of measurement?)} with machine learning methods.
 
-QuCumber is based on Restricted Boltzmann Machines (RBM), an unsupervised generative modelling technique 
-used widely in applications~\cite{Smolensky}.
-RBMs can represent many complicated objects including handwritten digits, natural images, and many-body wavefunctions~\cite{Torlai2016thermo, CarleoTroyer2017Science, ChenWang2018, GlasserCirac2018}.
-An RBM can be interpreted as an approximate graphical representation of a probability distribution. This distribution is defined by the energy of a classical Ising model, with tunable couplings which can be optimized during a training procedure.
-With slight modifications, one can represent complex wavefunctions with an amplitude and phase or mixed states~\cite{torlai2018tomography, TorlaiPure} 
+QuCumber is based on Restricted Boltzmann Machines (RBM)~\cite{Smolensky} -- 
+a parametrized generative model representing a probability distribution. 
+In the unsupervised setting, the training data is a sample drawn from the target distribution $q$, 
+and the goal of training is to fit the parameters $\lambda$ of the RBM's distribution $p_\lambda$ 
+such that it resembles the target as accurately as possible.
+This distribution $p_\lambda$ is defined as a Gibbs distribution.
+ \textcolor{red}{I think a short definition of the RBM, the energy and the probability distribution is needed here. Do you agree?}
+ 
+RBMs can be used for a variety of applications~\cite{Hinton_2006_Science, Salakhutdinov_2007}.
+Trained in a unsupervised setting, RBMs have been shown to successfully capture representations 
+of different objects, including handwritten digits \textcolor{red}{ref?}, natural images \textcolor{red}{ref?}, and many-body wavefunctions~\cite{Torlai2016thermo, CarleoTroyer2017Science, ChenWang2018, GlasserCirac2018}.
+With slight modifications, one can represent complex wavefunctions with an amplitude and phase or mixed states~\cite{torlai2018tomography, TorlaiPure}.
 
-The need for QuCumber arises from the growing availability of high quality data obtained from controlled quantum
-systems and devices.
-QuCumber provides a freely accessible open-source software package that supports wavefunction reconstruction directly from experimental data representing measurements of qubit eigenvalues, spin states, or orbital occupation numbers.
+QuCumber provides an open-source software package that supports wavefunction reconstruction directly from experimental data representing measurements of spin states or orbital occupation numbers.
 QuCumber is used to optimize the parameters of an RBM to model the most likely quantum state given a series of measurements,
-a procedure analogous to the maximum likelihood technique, Bayesian inference or quantum state tomography. 
+a procedure analogous to the maximum likelihood technique, Bayesian inference or quantum state tomography \textcolor{red}{ref?}. 
 %however, our method does not scale exponentially with system size.
-Once trained, the RBM parameters encode a compressed version of the underlying wavefunction.
-New quantum state measurements can then be generated by the RBM, and observables that are otherwise not easily accessible from the original data can be calculated. 
+Once trained, the RBM parameters encode the underlying wavefunction.
+New quantum state measurements can then be generated by the RBM, 
+and observables that are otherwise not easily accessible from the original data can be calculated. 
 %Examples of which include off-diagonal correlation functions and entanglement entropies~\cite{Torlai2016thermo, torlai2018tomography}. \textcolor{red}{this is not really a sentence...}
 %QuCumber builds on previous studies which reconstructed wavefunctions from simulation and experimental data. 
-Trained RBMs can be sampled to produce non-trivial measurements such as off-diagonal correlation functions and entanglement entropies~\cite{Torlai2016thermo, torlai2018tomography}.
+Once trained, the RBM can be used to sample non-trivial measurements 
+such as off-diagonal correlation functions and entanglement entropies~\cite{Torlai2016thermo, torlai2018tomography}.
 
-In this paper, we describe how QuCumber can be used for these and other tasks in characterizing quantum many-body phenomenon on hundreds or thousands of qubits.
-In the following, we provide code snippets written in Python 3, using PyTorch with CPU and GPU support~\cite{paszke2017automatic}.
-We refer the reader to the full code documentation (\url{https://piquil.github.io/QuCumber/}) for further information on the code structure and operation.
+In this paper, we describe how QuCumber can be used for these and other tasks 
+in characterizing quantum many-body phenomenon on many qubits.
+
+QuCumber is written in Python 3, using PyTorch with CPU and GPU support~\cite{paszke2017automatic}.
+In the following, we provide some code snippets; for further information on the code structure and operation, 
+refer to the full code documentation (\url{https://piquil.github.io/QuCumber/}),
+and for more theory on RBMs, see the theory file.
+
+In section \ref{Sec:Training_TFIM}, we present how to use QuCumber to reconstruct a wavefunction 
+with all positive and real coefficients in the chosen basis.
+The case of a complex wavefunction is discussed in Section~\ref{Sec:Training_QuCumber_on_complex_wavefunctions}. 
+A glossary of useful terms and equations can be found at the end of the post in Section~\ref{Glossary}.
 
 
 % \subsection{State Reconstruction with RBMs}
@@ -125,22 +148,19 @@ We refer the reader to the full code documentation (\url{https://piquil.github.i
 % QuCumber implements a simple framework for sampling the reconstructed wavefuntion
 % and performing measurements of physical observables on the generated samples.
 
-In section \ref{Sec:Training_TFIM}, we present how at use QuCumber to reconstruct a wavefunction with all positive-real coefficients in the chosen basis.
-The case of a complex wavefunction is discussed in Section \ref{Sec:Training_QuCumber_on_complex_wavefunctions}. A glossary of useful terms and equations appears at the end of the post in Section \ref{Glossary}.
 
 
-\section{Positive Real Wavefunctions}
+\section{positive-real Wavefunctions}
 
-In this section, we discuss the application of QuCumber to wavefunctions that are positive and real-valued in the computational basis.
-That is, the expansion of the wavefunction has all positive and real coefficients in the basis in which experimental
-measurements are performed.
-Recall the Born rule, which states that the probability of measuring a certain quantum state is proportional to the square of its wavefunction.  
-In the case of strictly non-zero, real coefficients, knowing this probability is a complete description of the system. 
-Since an RBM graphical represents a probability, it is straightforward to describe the wavefunction as 
+In this section, we discuss the application of QuCumber to {\it positive-real} wavefunctions --
+that is, the expansion of the wavefunction in the basis in which experimental measurements are performed has all positive and real coefficients.
+According to the Born rule, the probability of measuring a certain quantum state is proportional to the square of the magnitude of its wavefunction.  
+In the case of strictly non-zero real coefficients, this probability provides a complete description of the system \textcolor{red}{in which sense? does this mean, it is possible to recover all individual coefficients of $\psi$ from $p$?}. 
+The RBM, which represents a probability distribution, is used as an ansatz for the wavefunction we want to recover from the given measurements:
 \begin{equation}
     \psi_{\bm{\lambda}}= \sqrt{p_{\bm{\lambda}}} \label{wfpd},
 \end{equation}  
-where ${\bm \lambda}$ are the parameters of the model.
+where ${\bm \lambda}$ are the parameters of the model. \textcolor{red}{need to explain $p$ (this could be done by defining the RBM in the intro or somewhere above this section) and relate it to the measurement data}
 A diagram of an RBM is shown in Figure~\ref{fig:RBM}.
 
 \begin{figure}[htpb]
@@ -155,31 +175,37 @@ A diagram of an RBM is shown in Figure~\ref{fig:RBM}.
 
 
 QuCumber uses contrastive divergence (Appendix~\ref{Glossary}) to determine the most likely state consistent with the given measurements.
-As an example, we demonstrate how to train and sample an RBM model with measurements from the one-dimensional transverse-field Ising model.
+\textcolor{red}{it's not just QuCumber - it's the general training algo for RBMs (that's why I'm callig for a brief definition of an RBM in general}
+As an example, we demonstrate how to train an RBM with measurements from the one-dimensional Transverse-Field Ising Model, 
+and how to sample from the trained model.
 
-\subsection{Learning the transverse field Ising model}
+\subsection{Learning the Transverse-Field Ising Model}
 \label{Sec:Training_TFIM}
 
-The Hamiltonian for the transverse-field Ising model (TFIM) is
+The Hamiltonian for the Transverse-Field Ising Model (TFIM) is
 \begin{equation}
-	\mathcal{H} = -J\sum_i \sigma^z_i \sigma^z_{i+1} - h \sum_i \sigma^x_i \label{TFIM}	
+	\mathcal{H} = -J\sum_i \sigma^z_i \sigma^z_{i+1} - h \sum_i \sigma^x_i, \label{TFIM}
 \end{equation}
-where $\sigma^{\alpha}_i$ is a spin-1/2 Pauli operator on site $i$, with $\alpha=x,y,z$. We consider the critical point where $J=h=1$, which is the most difficult state to reconstuct.
-For training data, we use a data set consisting of $M=10,000$ measurements in the $\sigma^z$-basis for $N=10$ spins (or qubits), generated with standard numerical techniques~\cite{itensor}.
+where $\sigma^{\alpha}_i$ is a spin-1/2 Pauli operator on site $i$, with $\alpha=x,y,z$. 
+We consider the critical point, where $J=h=1$, which is the most difficult state to reconstuct.
+The training set consists of $M=10\,000$ measurements in the $\sigma^z$-basis for $N=10$ spins (or qubits), 
+generated with standard numerical techniques~\cite{itensor}. It can be downloaded from 
+\href{https://github.com/PIQuIL/QuCumber/blob/master/examples/01_Ising/tfim1d_train_samples.txt}{here}.
 
-The example data set is provided in \url{https://github.com/PIQuIL/QuCumber/blob/master/examples/01_Ising/tfim1d_train_samples.txt}.
-
-\subsubsection{An example of measurement data}
+\subsubsection{Preparing the data}
 \label{subsec:example}
 
-The input data needs to be in a numpy array or a torch tensor.
-For a spin system with $N=10$ physical spins and measurements of every spin, one input data point will be an array of the form
-\verb|np.array([1,0,1,1,0,1,0,0,0,1])|
-, with shape \verb|(N,)|.
-Here, we take the representation with $0$ denoting spin-down and $1$, spin-up (in the $\sigma^z$-basis).
-All the input data must be an array of these arrays, which will have the shape \verb|(M, N)|, where $M$ is the number of data elements in the training set, and $N$ the number of spins.
+The input data has to be passed to the RBM as a numpy array or a torch tensor.
+For a spin system with $N=10$ physical spins and measurements of every spin, 
+a single data point is an array of the form \verb|np.array([1,0,1,1,0,1,0,0,0,1])|, with shape \verb|(N,)|,
+where we use $0$ to represent a spin-down state and $1$ for spin-up (in the $\sigma^z$-basis). 
+The entire input data set is then an array of shape \verb|(M, N)|, 
+where $M$ is the number of data points in the training set, and $N$ the number of spins.
 
-We provide a data loading utility to load in the example data set and the exact ground state wavefunction, \verb|true_psi|.
+In this example, we are also provided the exact ground-state wavefunction 
+which we will use as a reference to check how well the learned wavefunction of the RBM corresponds to the truth.
+
+We use QuCumber data loading utility to load the training set and the true ground-state wavefunction:
 \begin{python}
 import qucumber.utils.data as data
 psi_path = "tfim1d_psi.txt"
@@ -187,29 +213,31 @@ train_path = "tfim1d_data.txt"
 train_data, true_psi = data.load_data(train_path, psi_path)
 \end{python}
 
-The central object of QuCumber is the representation of the wavefunction, which in the case of a positive-real wavefunction
-is a standard RBM as per Figure~\ref{fig:RBM}.
-The Python object \verb|PositiveWavefunction| serves this purpose.
-To instanciate a positive wavefunction, one needs to specify the number of visible and hidden units in the RBM.
-The biases are initialized to zero, and the weights are initalized randomly according to a normal distrubution with zero mean and a variance of $1/$\verb|num_visible|.
+Next, we create an ansatz for the positive-real wavefunction, i.e. the RBM, 
+using the python object \verb|PositiveWavefunction|,
+which requires specification of the number of visible and hidden units:
 \begin{python}
 from qucumber.nn_states import PositivWavefunction
 state = PositiveWavefunction(num_visible=10, num_hidden=10)
 \end{python}
-The number of visible units (\verb|num_visible|) is given by the size of the physical system $N$, i.e., the number of spins or qubits.
-In contrast, the number of hidden units (\verb|num_hidden|) can be varied to change the expressiveness of the RBM.
-Errors in the representation can be systematically improved by increasing the number of hidden units and consequently
-the number of parameters (weights and biases) in the network.
+The number of visible units (\verb|num_visible|) is given by the size of the physical system $N$, 
+i.e., the number of spins or qubits.
+In contrast, the number of hidden units (\verb|num_hidden|) can be adjusted to change the expressiveness of the RBM.
+The biases are initialized to zero, and the weights are initalized randomly 
+according to a normal distrubution with zero mean and a variance of $1/$\verb|num_visible|.
+Errors in the representation can be systematically improved by increasing the number of hidden units 
+and consequently the number of parameters (weights and biases) in the network.
 Note, the quality of the reconstruction will depend on the specific wavefunction and the ratio $\alpha = \verb|num_hidden|/\verb|num_visible|$.
-For some typical examples, we find that $\alpha = 1$ leads to good approximations of positive-real wavefunctions \cite{Torlai2016thermo}.
+For some typical examples, we find that $\alpha = 1$ leads to good approximations of positive-real wavefunctions~\cite{Torlai2016thermo}.
 In the general case, however, the value of $\alpha$ required for a given wavefunction reconstruction should be explored and adjusted by the user.
 
 
 \subsubsection{Training the RBM}
 
-To train an neural network state, we called the function \verb|PositiveWavefunction.fit|, which takes a number of hyperparameters.
+To train the RBM, we call the function \verb|PositiveWavefunction.fit|, which takes a number of hyperparameters.
+\textcolor{red}{would be consistent to add a code snippet here, since we documented each step in the previous subsection}
 The choice of hyperparameter depends on the details of the system under study, as well as the size and quality of the training set.
-In this example, we take a learning rate (\verb|lr|) of $10^{-2}$ using stochastic (batch) gradient descent with a positive (and negative) batch size of 100, trained for 500 epochs.
+In this example, we take a learning rate (\verb|lr|) of $10^{-2}$ using stochastic (mini-batch) gradient descent with mini-batch size of 100, trained for 500 epochs.
 The number of Gibbs sampling steps \verb|k|, which dictates the number of steps in the contrastive divergence algorithm \cite{hinton2002training},
 influences the speed of the training. 
 
@@ -637,34 +665,34 @@ We list an overview of terms discussed in the document and relevant for RBMs. Fo
 
 	\item {\it Batch}: The subset of data selected for one iteration of training in stochastic gradient descent.
 
-	\item {\it Biases}: For a visible unit $v_j$ and a hidden unit $h_i$, the respective biases in the RBM energy are $b_j$ and $c_i$. They act like a magnetic field term in the energy Eq~(\ref{RBMenergy}).
+	\item {\it Biases}: For a visible unit $v_j$ and a hidden unit $h_i$, the respective biases in the RBM are $b_j$ and $c_i$. They act like a magnetic field term in the expression for the energy given in Eq.~\eqref{RBMenergy}.
 
 	\item {\it Contrastive Divergence}: An approximate maximum-likelihood learning algorithm for RBMs \cite{hinton2002training}.
 
-	\item {\it Energy}: In analogy to statistical physics the energy of an RBM is defined given the joint configuration $(v,h)$ of visible and hidden units:
+	\item {\it Energy}: In analogy to statistical physics, the energy of an RBM is defined given the joint configuration $(v,h)$ of visible and hidden units as follows:
 	      \begin{equation}
 		      E_{\bm{\lambda}}(v,h) = - \sum\limits_{j=1}^V b_j v_j - \sum\limits_{i=1}^H c_i h_i - \sum\limits_{ij} h_i W_{ij} v_j, \label{RBMenergy}
 	      \end{equation}
 
-	\item {\it Effective energy}: Energy traced over the hidden units $h$.  Often called the ``free energy'' in machine learning literature.
+	\item {\it Effective energy}: Obtained from the energy by tracing out the hidden units $h$; often called the ``free energy'' in machine learning literature.
 	      \begin{equation}
 		      \mathcal{E}_{\bm{\lambda}}(v) = - \sum\limits_{j=1}^V b_j v_j - \sum\limits_{i=1}^H \log \left\{ 1 + \exp \left( \sum\limits_{j} W_{ij}v_j +c_i\right) \right\}, \label{RBMeffectiveenergy}
 	      \end{equation}
 
-	\item {\it Epoch}: A single pass through an entire training set of data.
+	\item {\it Epoch}: A single pass through an entire training set.
 
-	\item {\it Hidden Units}: There are $H$ units in the second layer of the RBM, denoted by the vector $h=(h_1, ..., h_H)$, representing latent variables and are referred to as ``hidden". The number of hidden units $H$ can be adjusted to tune the representational capacity of the RBM.
+	\item {\it Hidden Units}: There are $H$ units in the second layer of the RBM, denoted by the vector $h=(h_1, ..., h_H)$, that represent latent variables and are referred to as ``hidden". The number of hidden units $H$ can be adjusted to tune the representational capacity of the RBM.
 
-	\item{\it Hyperparameter:} RBM architecture, and some details of training, that are fixed before training begins.  Examples are the learning rate, number of hidden units, batch size, or number of training epochs.
+	\item{\it Hyperparameter:} The RBM architecture and some parameters of the training procedure that have to be adjusted to achieve effective training. Examples include the learning rate, number of hidden units, batch size, or number of training epochs.
 
-	\item {\it Joint distribution}: The RBM assigns a probability to each joint configuration $(v,h)$ according to the Boltzmann distribution of the energy,
+	\item {\it Joint distribution}: The RBM assigns a probability to each joint configuration $(v,h)$ according to the Boltzmann distribution:
 	      \begin{equation}
 		      p_{\bm{\lambda}}(v,h) = \frac{1}{Z_{\bm{\lambda}}} e^{-E_{\bm{\lambda}}(v,h)},
 	      \end{equation}
 	      
-	      \item{\it KL-divergence}: The Kullback-Leibler divergence, or relative entropy, is a measure the distance between two probability distributions.
+	      \item{\it KL-divergence}: The Kullback-Leibler divergence, or relative entropy, is a measure for the ``distance" between two probability distributions.
 
-\item{\it Learning Rate}: A hyperparamter that can be adjusted to affect training performance.  Training speed is proportional to the learning rate, however the chance of finding a good minimum to the KL-divergence is higher for low learning rates.
+\item{\it Learning rate}: A hyperparamter that can be adjusted to affect training performance.  Training speed is proportional to the learning rate; however, the chance of finding a suitable minimum of the KL-divergence is higher for low learning rates.
 
 
 	\item {\it Marginal distribution}: Obtained by marginalizing the joint distribution, e.g.
@@ -677,14 +705,14 @@ We list an overview of terms discussed in the document and relevant for RBMs. Fo
 
 	\item {\it Parameters}: An RBM's energy is defined via a set of neural network parameters $\bm{\lambda} = \{b,c,W\}$, consisting of weights and biases.
 
-	\item {\it Partition function}: The normalizing constant of the Boltzmann distribution. It is obtained by summing over all possible pairs of visible and hidden vectors,
+	\item {\it Partition function}: The normalizing constant of the Boltzmann distribution. It is obtained by summing over all possible pairs of visible and hidden vectors:
 	      \begin{equation}
 		      Z_{\bm{\lambda}} = \sum\limits_{v\in \mathcal{V}}\sum\limits_{h\in \mathcal{H}} e^{-E_{\bm{\lambda}}(v,h)}.
 	      \end{equation}
 
-	\item {\it Restricted Boltzmann Machine}: A two-layer network with bidirectionally connected stochastic processing units. ``Restricted" refers to the connections (or weights) between the visible and hidden units. Each visible unit is connected with each hidden unit, but there are no intra-layer connections.
+	\item {\it Restricted Boltzmann Machine}: A two-layer network with bidirectionally connected stochastic processing units. ``Restricted" refers to the connections (or weights) between the visible and hidden units: Each visible unit is connected with each hidden unit, but there are no intra-layer connections.
 
-	\item {\it Visible Units}: There are $V$ units in the first layer of the RBM, denoted by the vector $v=(v_1, ..., v_V)$, which correspond to the experimental data and are therefore called ``visible". The number of visible units $V$ is fixed to the number of physical qubits.
+	\item {\it Visible units}: There are $V$ units in the first layer of the RBM, denoted by the vector $v=(v_1, ..., v_V)$, which correspond to the experimental data and are therefore called ``visible". The number of visible units $V$ is fixed to the number of physical qubits.
 
 	\item {\it Weights}: $W_{ij}$ is the symmetric connection or interaction between the visible unit $v_j$ and the hidden unit $h_i$.
 
@@ -693,7 +721,7 @@ We list an overview of terms discussed in the document and relevant for RBMs. Fo
 
 
 	\section{Algorithm for a real positive wavefunction}
-	The training algorithm of the RBM has the following structure.
+	The training algorithm of the RBM has the following structure:
 	%=================================================================================
 	% RBM.train
 
