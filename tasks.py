@@ -22,7 +22,7 @@ import pathlib
 from pprint import pformat
 from itertools import chain
 
-from invoke import task
+from invoke import task, call
 
 
 ##############################################################################
@@ -52,23 +52,27 @@ def is_license_missing(file_path, length_cutoff, exclude):
     return False
 
 
-@task(iterable=["extensions", "exclude"])
-def license_check(c, length_cutoff=15, extensions=None, exclude=None):
-    """Make sure all python files with more than 15 lines of code contain the license header.
-
-    :param length_cutoff: The maximum length of a file can be without a license header.
-    :type length_cutoff: int
-    :param extensions: File extensions to check for license headers.
-                       Can be provided multiple times. By default only checks
-                       files with a '.py' extension.
-    :type extensions: str
-    :param exclude: Files to exclude. Can be provided multiple times.
-    :type exclude: str
-    """
+@task(
+    iterable=["extensions", "exclude"],
+    help={
+        "length-cutoff": (
+            "The maximum length of a file can be without a license header. "
+            "Default: 15"
+        ),
+        "extensions": (
+            "File extensions to check for license headers. "
+            "Can be provided multiple times. By default only checks "
+            "files with a '.py' extension."
+        ),
+        "exclude": "Files to exclude. Can be provided multiple times.",
+    },
+)
+def license_check(c, extensions, exclude, length_cutoff=15):
+    """Make sure all python files with more than 15 lines of code contain the license header."""
     num_fails = 0
 
-    extensions = extensions if extensions else [".py"]
-    exclude = exclude if exclude else []
+    extensions = set(extensions) | set([".py"])
+    exclude = set(exclude) | set([".tox"])
 
     paths = chain(
         *[pathlib.Path(".").glob("**/*" + extension) for extension in extensions]
@@ -88,16 +92,14 @@ def license_check(c, length_cutoff=15, extensions=None, exclude=None):
 ##############################################################################
 
 
-@task(aliases=["lint_examples", "lint_notebooks"])
+@task(
+    aliases=["lint_examples", "lint_notebooks"],
+    help={
+        "linter": "The linter to validate the notebooks with. Can be one of ['flake8', 'black']"
+    },
+)
 def lint_example_notebooks(c, linter="flake8"):
-    """Lint notebooks in the `./examples` directory.
-
-    Supports flake8 and black linters.
-
-    :param linter: The linter to validate the notebooks with.
-                   Can be one of: ["flake8", "black"]
-    :type linter: str
-    """
+    """Lint notebooks in the `./examples` directory."""
     to_script_command = (
         "jupyter nbconvert {} --stdout --to python "
         "--template=.build_tools/invoke/code_cells_only.tpl "
@@ -136,3 +138,21 @@ def lint_example_notebooks(c, linter="flake8"):
             + "Number of unformatted files reported: {}\n".format(num_fails)
             + "Files with errors: {}".format(pformat(failed_files))
         )
+
+
+##############################################################################
+# --- Full Style Check -------------------------------------------------------
+##############################################################################
+
+
+@task(
+    pre=[call(license_check, (), ())],
+    post=[
+        call(lint_example_notebooks, linter="flake8"),
+        call(lint_example_notebooks, linter="black"),
+    ],
+)
+def style(c):
+    """Runs all style/format checks on code."""
+    c.run("flake8", warn=True, echo=True)
+    c.run("black --diff --check .", warn=True, echo=True)
