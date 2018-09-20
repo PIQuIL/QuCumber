@@ -53,7 +53,7 @@ class VarianceBasedEarlyStopping(Callback):
         metric/observable that we want to check for convergence.
     :type evaluator_callback: :class:`MetricEvaluator<MetricEvaluator>` or
                            :class:`ObservableEvaluator<ObservableEvaluator>`
-    :param quantity_name: The name of the metric/obserable stored in `evaluator_callback`.
+    :param quantity_name: The name of the metric/observable stored in `evaluator_callback`.
     :type quantity_name: str
     :param variance_name: The name of the variance stored in `evaluator_callback`.
     :type variance_name: str

@@ -179,7 +179,7 @@ class PositiveWavefunction(Wavefunction):
         """Train the Wavefunction.
 
         :param data: The training samples
-        :type data: np.array
+        :type data: numpy.ndarray
         :param epochs: The number of full training passes through the dataset.
                        Technically, this specifies the index of the *last* training
                        epoch, which is relevant if `starting_epoch` is being set.

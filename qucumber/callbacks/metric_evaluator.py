@@ -84,7 +84,7 @@ class MetricEvaluator(Callback):
         :type metric: str
 
         :returns: The past values of the metric.
-        :rtype: np.array
+        :rtype: numpy.ndarray
         """
         try:
             return np.array([values[metric] for _, values in self.past_values])
@@ -95,7 +95,7 @@ class MetricEvaluator(Callback):
     def epochs(self):
         """Return a list of all epochs that have been recorded.
 
-        :rtype: np.array
+        :rtype: numpy.ndarray
         """
         return np.array([epoch for epoch, _ in self.past_values])
 

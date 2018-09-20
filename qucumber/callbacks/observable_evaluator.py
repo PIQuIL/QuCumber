@@ -43,7 +43,7 @@ class ObservableStatistics:
         :type statistic: str
 
         :returns: The past values of the statistic.
-        :rtype: np.array
+        :rtype: numpy.ndarray
         """
         try:
             stat = statistic[:-1] if statistic.endswith("s") else statistic
@@ -126,7 +126,7 @@ class ObservableEvaluator(Callback):
         :type observable: str
 
         :returns: The past values of the observable.
-        :rtype: ObservableStatistics
+        :rtype: :class:`ObservableStatistics <qucumber.callbacks.observable_evaluator.ObservableStatistics>`
         """
         try:
             return ObservableStatistics(
@@ -143,7 +143,7 @@ class ObservableEvaluator(Callback):
     def epochs(self):
         """Return a list of all epochs that have been recorded.
 
-        :rtype: np.array
+        :rtype: numpy.ndarray
         """
         return np.array([epoch for epoch, _ in self.past_values])
 
