@@ -306,7 +306,7 @@ class WaveFunctionBase(abc.ABC):
         :type neg_batch: torch.Tensor
         :param bases_batch: Batch of the input bases corresponding to the samples
                             in `samples_batch`.
-        :type bases_batch: np.array
+        :type bases_batch: numpy.ndarray
 
         :returns: List containing the gradients of the parameters.
         :rtype: list
@@ -425,7 +425,7 @@ class WaveFunctionBase(abc.ABC):
         """Train the WaveFunction.
 
         :param data: The training samples
-        :type data: np.array
+        :type data: numpy.ndarray
         :param epochs: The number of full training passes through the dataset.
                        Technically, this specifies the index of the *last* training
                        epoch, which is relevant if `starting_epoch` is being set.

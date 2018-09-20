@@ -20,8 +20,7 @@ def make_complex(x, y=None):
     """A function that combines the real (x) and imaginary (y) parts of a
     vector or a matrix.
 
-    .. note:: x and y must have the same shape. Also, this will not work for
-              rank zero tensors.
+    .. note:: x and y must have the same shape.
 
     :param x: The real part
     :type x: torch.Tensor
@@ -29,7 +28,7 @@ def make_complex(x, y=None):
               complex tensor will have imaginary part equal to zero.
     :type y: torch.Tensor
 
-    :returns: The tensor [x,y] = x + yi.
+    :returns: The tensor :math:`[x,y] = x + iy`.
     :rtype: torch.Tensor
     """
     if y is None:
@@ -196,7 +195,7 @@ def elementwise_mult(x, y):
 
 
 def elementwise_division(x, y):
-    """Elementwise division of x by y.
+    """Element-wise division of x by y.
 
     :param x: A complex tensor.
     :type x: torch.Tensor

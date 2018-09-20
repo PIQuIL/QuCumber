@@ -279,9 +279,9 @@ class ComplexWaveFunction(WaveFunctionBase):
         r"""Compute the gradient of a sample, measured in different bases.
 
         :param basis: A set of bases.
-        :type basis: np.array
+        :type basis: numpy.ndarray
         :param sample: A sample to compute the gradient of.
-        :type sample: np.array
+        :type sample: numpy.ndarray
 
         :returns: A list of 2 tensors containing the parameters of each of the
                   internal RBMs.
