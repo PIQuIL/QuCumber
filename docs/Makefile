@@ -21,7 +21,7 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 test:
-	@$(SPHINXBUILD) -nW -b dummy "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -W -b dummy "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 livehtml:
 	sphinx-autobuild \
@@ -34,7 +34,7 @@ livehtml:
 		$(SPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
 
 livetest:
-	sphinx-autobuild -nW \
+	sphinx-autobuild -W \
 		-z ../qucumber \
 		-z ../examples \
 		-i *.swp \

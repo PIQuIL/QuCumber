@@ -44,6 +44,7 @@ from operator import attrgetter
 
 sys.path.insert(0, os.path.abspath("../"))
 
+
 # -- Project information -----------------------------------------------------
 
 project = "QuCumber"
@@ -78,6 +79,7 @@ except Exception:
 
 print("Building version: " + version + "; release: " + release)
 
+
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -96,6 +98,7 @@ extensions = [
     "sphinx.ext.linkcode",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinxcontrib.spelling",
     "nbsphinx",
 ]
 
@@ -126,9 +129,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 
+# Enable nitpicky mode
+nitpicky = True
 
 # Things that nitpick mode should ignore.
 nitpick_ignore = [
+    ("py:class", "type"),
     ("py:class", "int"),
     ("py:class", "float"),
     ("py:class", "bool"),
@@ -137,9 +143,12 @@ nitpick_ignore = [
     ("py:class", "tuple"),
     ("py:class", "str"),
     ("py:class", "file"),
-    ("py:obj", "None"),
-    ("py:exc", "ValueError"),
     ("py:class", "callable"),
+    ("py:class", "classmethod"),
+    ("py:class", "torch.nn.modules.module.Module"),
+    ("py:obj", "None"),
+    ("py:obj", "ndarray"),
+    ("py:exc", "ValueError"),
 ]
 
 
@@ -184,7 +193,6 @@ html_static_path = ["_static"]
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
-
 
 autodoc_member_order = "alphabetical"
 
@@ -244,6 +252,11 @@ texinfo_documents = [
 
 # -- Extension configuration -------------------------------------------------
 
+# -- Options for spell checking ----------------------------------------------
+
+spelling_ignore_pypi_package_names = True
+
+
 # -- Options for todo extension ----------------------------------------------
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
@@ -264,17 +277,17 @@ imgmath_dvisvgm_args = ["--no-fonts", "-e"]
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 
-# -- Options for intersphinx -------------------------------------------------
 
+# -- Options for intersphinx -------------------------------------------------
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
     "torch": ("https://pytorch.org/docs/stable/", None),
-    "numpy": ("http://docs.scipy.org/doc/numpy", None),
+    "numpy": ("http://docs.scipy.org/doc/numpy/", None),
 }
 
-# -- Options for linkcode extension ------------------------------------------
 
+# -- Options for linkcode extension ------------------------------------------
 
 # adapted from scikit-learn's github_link.py
 # https://github.com/scikit-learn/scikit-learn/blob/1870d6d/doc/sphinxext/github_link.py
@@ -335,9 +348,7 @@ def linkcode_resolve(domain, info):
 
 # -- Options for nbsphinx ----------------------------------------------------
 
-
 nbsphinx_execute = "never"
-
 
 # adapted from nbsphinx's conf.py
 # https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
