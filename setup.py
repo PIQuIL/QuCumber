@@ -39,7 +39,11 @@ install_requires = [
 with open(".build_tools/readthedocs/requirements.txt", "r") as reqs:
     rtd_requires = [line.strip() for line in reqs.readlines()]
 
-doc_requires = rtd_requires + ["sphinx_rtd_theme>=0.4.1", "sphinx-autobuild>=0.7.1"]
+doc_requires = rtd_requires + [
+    "sphinx_rtd_theme>=0.4.1",
+    "sphinx-autobuild>=0.7.1",
+    "sphinxcontrib-spelling>=4.2.0",
+]
 
 build_requires = ["setuptools>=40.0.0", "wheel>=0.31.1"]
 
@@ -53,14 +57,11 @@ style_requires = [
     "flake8>=3.5.0",
     "flake8-per-file-ignores>=0.6",
     "flake8-bugbear>=18.2.0",
+    "invoke>=1.1.1",
+    "nbconvert>=5.3.1",
 ]
 
-travis_requires = (
-    build_requires
-    + coverage_requires
-    + style_requires
-    + ["invoke>=1.1.1", "nbconvert>=5.3.1"]
-)
+travis_requires = build_requires + coverage_requires + style_requires
 
 appveyor_requires = build_requires + test_requires
 
