@@ -18,7 +18,7 @@ from pprint import pformat
 from itertools import chain
 
 from invoke import task, call
-from invoke.terminals import pty_size
+from invoke.exceptions import Exit
 
 
 ##############################################################################
@@ -88,7 +88,10 @@ def license_check(c, extensions, exclude, length_cutoff=15):
         num_fails += int(is_license_missing(str(path), length_cutoff, exclude))
 
     if num_fails > 0:
-        print(f"License Header missing in {num_fails} files.")
+        raise Exit(
+            message="License Header missing in {} files.".format(num_fails),
+            code=num_fails,
+        )
     else:
         print("License checking completed successfully.")
 
@@ -144,11 +147,14 @@ def lint_example_notebooks(c, linter="flake8"):
 
     if num_fails > 0:
         failed_files = sorted(failed_files)
-        print(
-            "-" * pty_size()[0]
-            + "\nSome notebook code is improperly formatted.\n"
-            + f"Number of unformatted files reported: {num_fails}\n"
-            + "Files with errors:\n{}".format(pformat(failed_files))
+        raise Exit(
+            message=(
+                "Notebook code isn't formatted properly "
+                + "(according to {}).\n".format(linter)
+                + "Number of unformatted files reported: {}\n".format(num_fails)
+                + "Files with errors: {}".format(pformat(failed_files))
+            ),
+            code=num_fails,
         )
         sys.exit(num_fails)
 

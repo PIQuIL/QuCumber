@@ -73,7 +73,7 @@ extras_require = {
     "travis": travis_requires,
     "appveyor": appveyor_requires,
     "rtd": rtd_requires,
-    "doc": doc_requires,
+    "docs": doc_requires,
 }
 
 setuptools.setup(
