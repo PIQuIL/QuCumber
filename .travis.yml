@@ -1,95 +1,184 @@
 dist: trusty
-
 sudo: false
 language: python
+
 
 git:
   depth: false
 
-matrix:
-  fast_finish: true
+branches:
+  except:
+    - gh-pages
+
 
 cache:
-  - pip
+  directories:
+    - "$HOME/.cache/pip"
+    - "$HOME/.pyenv"
 
-matrix:
+
+stages:
+  - test
+  - name: deploy
+    if: branch = master
+
+
+jobs:
+  fast_finish: true
+  allow_failures:
+    - env: NIGHTLY_BUILD=1
   include:
-    - os: linux
+    - stage: test
+      os: linux
       dist: trusty
       python: 3.5
       sudo: false
-      env: PY_TAG='cp35'
+      env:
+        - PY_TAG='cp35'
+        - PLAT_NAME='none'
+      install: &test-install
+        - travis_retry pip install -e .[coverage]
+        - travis_retry pip install codecov docutils pytest-xdist
+      script: &test-script
+        - python setup.py check -rms  # check package metadata
+        - pytest -s --cov=qucumber --no-cov-on-fail -n auto
+      after_success: codecov
+
     - os: linux
       dist: trusty
       python: 3.6
       sudo: false
-      env: PY_TAG='cp36'
+      env:
+        - PY_TAG='cp36'
+        - PLAT_NAME='none'
+      install: *test-install
+      script: *test-script
+
     - os: linux
       dist: xenial
       python: 3.7
       sudo: true
-      env: PY_TAG='cp37'
+      env:
+        - PY_TAG='cp37'
+        - PLAT_NAME='none'
+      install: *test-install
+      script: *test-script
 
-install:
-  - travis_retry pip install -e .[travis]
-  - travis_retry pip install codecov ipython
+    - os: linux  # try running QuCumber against nightly build of PyTorch
+      dist: trusty
+      python: 3.6
+      env: NIGHTLY_BUILD=1
+      before_install: *test-install
+      install:
+        - travis_retry pip uninstall -y torch
+        - travis_retry pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+      script: *test-script
 
-script:
-  - inv license-check
+    - os: osx
+      name: "Python 3.5"
+      language: objective-c
+      env:
+        - PYENV_VERSION=3.5.6
+        - PY_TAG='cp35'
+        - PLAT_NAME='macosx'
+      before_install: &mac-install
+        - mkdir -p $HOME/.matplotlib/
+        - "echo backend : TkAgg > $HOME/.matplotlib/matplotlibrc"
+        - brew update && brew upgrade pyenv
+        - eval "$(pyenv init -)"
+        - pyenv install --list
+        - travis_retry pyenv install -s $PYENV_VERSION
+        - pyenv global $PYENV_VERSION
+        - pyenv rehash
+        - pip -V
+      install: *test-install
+      script: *test-script
 
-  - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
-  - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -m 'not slow and not extra'; fi # don't run slow/extra tests if not on master branch
-  - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail; fi
-  - echo -n 'travis_fold:end:pytest'
+    - os: osx
+      name: "Python 3.6"
+      language: objective-c
+      env:
+        - PYENV_VERSION=3.6.6
+        - PY_TAG='cp36'
+        - PLAT_NAME='macosx'
+      before_install: *mac-install
+      install: *test-install
+      script: *test-script
 
-  # lint code files
-  - flake8
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then black --diff --check ./; fi
+    - os: osx
+      name: "Python 3.7"
+      language: objective-c
+      env:
+        - PYENV_VERSION=3.7.0
+        - PY_TAG='cp37'
+        - PLAT_NAME='macosx'
+      before_install: *mac-install
+      install: *test-install
+      script: *test-script
 
-  # lint notebooks, but don't fail build if they fail
-  - inv lint-examples -l flake8 || true
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then inv lint-examples -l black || true; fi
+    - os: linux
+      name: "Style Check"
+      python: 3.6
+      install:
+        - travis_retry pip install ipython
+        - travis_retry pip install -e .[style]
+      script: inv style
 
-  - echo 'Building package...' && echo -n 'travis_fold:start:pkg_build'
-  - python setup.py sdist
-  - echo -n 'travis_fold:end:pkg_build'
+    - os: linux
+      name: "Documentation Format Tests"
+      python: 3.6
+      addons:
+        apt:
+          packages:
+            - libenchant1c2a
+            - pandoc
+      install: travis_retry pip install -e .[docs]
+      script:
+        - cd docs; make test
+        - cd docs; make spelling
+        - cd docs; make linkcheck
 
-after_success:
-  - if [[ $TRAVIS_BRANCH == "master" ]]; then codecov; fi
 
-before_deploy:
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then tar -czvf examples.tar.gz examples; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then zip -r examples.zip examples; fi
-deploy:
-  - provider: releases
-    skip-cleanup: true
-    api-key: "$GITHUB_TOKEN"
-    file:
-      - dist/*.tar.gz
-    file_glob: true
-    on:
-      repo: PIQuIL/QuCumber
-      tags: true
-  - provider: releases  # only upload examples folder once per deploy
-    skip-cleanup: true
-    api-key: "$GITHUB_TOKEN"
-    file:
-      - examples.tar.gz
-      - examples.zip
-    file_glob: true
-    on:
-      repo: PIQuIL/QuCumber
-      tags: true
-      condition: $TRAVIS_PYTHON_VERSION == '3.6'
-  - provider: pypi
-    skip_existing: true
-    distributions: "sdist bdist_wheel --python-tag=$PY_TAG"
-    user: PIQuIL
-    password:
-      secure: ANzomjrVPkzLO7MG9Zekl1Tz/GiO6rJyqZSWlWxF5a8M0+ZBJsFb7Do6kxPNulkEFwEnvjnJpzpY2ryWlhrXnzGZitzWIa5IDLRRHmSQ3GRNPHMIRqf1xle+8/0IwDBuC/eTsOkit7WU1j9lgurCj8snXuTLUVEqf/SecAcLpmLrelRFvz//ZcOopIbwD66RJWT8pYGBH/L3MMIDFj1bIf0UIpXdBXgeTJhxW054+BhdFPGI66IvWU/kOlOcE606wqRqI9bdvop34OewJFnOQ9Elii7LKUPNXoWmq1PrvXCIc1c50BGcLoWFM2CDiOiirzhvvUymtT/Na2BUqPpmnkbi+iRMyaIa6FOa8UIP4TCGuFd4JJlYxaq84bAmikI+1LOOGhfJ0+LACaJaqEM3WRL8VfP/xjWF9GzOuE5W8/fQQUntZaHkqQi4VV2wzULSkc5CpbrR2iX71dROWO4ETzz1wGXmO0dTVfCWMbqk7dT8OPft+tHsWWJqqeCEL3wj1uYEIYpCwLo9oSyVXwrhzRW0dysZfTCx/XfDaws3eFA6iMg6dUoBt12kwGZ5vCbgjBwPOmQrRMUEmYoyZz8n20HKojoxzUpwueFN/nbLv76arJbN8bLeb/GyE6r1Rw0DEzs8f0fBtv5agUnIpMh6EPOFYN4rwHMxt52HU7BB/Kg=
-    on:
-      repo: PIQuIL/QuCumber
-      tags: true
+    - stage: deploy
+      name: "GitHub Release - Examples"
+      os: linux
+      python: 3.6
+      script:
+        - tar -czvf examples.tar.gz examples
+        - zip -r examples.zip examples
+      deploy: &gh-releases
+        provider: releases
+        skip-cleanup: true
+        api-key: "$GITHUB_TOKEN"
+        file:
+          - examples.tar.gz
+          - examples.zip
+        file_glob: true
+        on:
+          repo: PIQuIL/QuCumber
+          tags: true
+
+    - name: "GitHub Release - Package Source Distribution"
+      script: python setup.py sdist
+      os: linux
+      python: 3.6
+      deploy:
+        <<: *gh-releases
+        file: dist/*.tar.gz
+
+    - name: "PyPI"
+      script: skip
+      deploy:
+        provider: pypi
+        skip_existing: true
+        distributions: "sdist bdist_wheel --python-tag=$PY_TAG --plat-name=$PLAT_NAME"
+        user: PIQuIL
+        password:
+          secure: ANzomjrVPkzLO7MG9Zekl1Tz/GiO6rJyqZSWlWxF5a8M0+ZBJsFb7Do6kxPNulkEFwEnvjnJpzpY2ryWlhrXnzGZitzWIa5IDLRRHmSQ3GRNPHMIRqf1xle+8/0IwDBuC/eTsOkit7WU1j9lgurCj8snXuTLUVEqf/SecAcLpmLrelRFvz//ZcOopIbwD66RJWT8pYGBH/L3MMIDFj1bIf0UIpXdBXgeTJhxW054+BhdFPGI66IvWU/kOlOcE606wqRqI9bdvop34OewJFnOQ9Elii7LKUPNXoWmq1PrvXCIc1c50BGcLoWFM2CDiOiirzhvvUymtT/Na2BUqPpmnkbi+iRMyaIa6FOa8UIP4TCGuFd4JJlYxaq84bAmikI+1LOOGhfJ0+LACaJaqEM3WRL8VfP/xjWF9GzOuE5W8/fQQUntZaHkqQi4VV2wzULSkc5CpbrR2iX71dROWO4ETzz1wGXmO0dTVfCWMbqk7dT8OPft+tHsWWJqqeCEL3wj1uYEIYpCwLo9oSyVXwrhzRW0dysZfTCx/XfDaws3eFA6iMg6dUoBt12kwGZ5vCbgjBwPOmQrRMUEmYoyZz8n20HKojoxzUpwueFN/nbLv76arJbN8bLeb/GyE6r1Rw0DEzs8f0fBtv5agUnIpMh6EPOFYN4rwHMxt52HU7BB/Kg=
+        on:
+          repo: PIQuIL/QuCumber
+          tags: true
+
 
 notifications:
   slack:

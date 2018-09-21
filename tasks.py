@@ -23,6 +23,7 @@ from pprint import pformat
 from itertools import chain
 
 from invoke import task, call
+from invoke.exceptions import Exit
 
 
 ##############################################################################
@@ -82,7 +83,10 @@ def license_check(c, extensions, exclude, length_cutoff=15):
         num_fails += int(is_license_missing(str(path), length_cutoff, exclude))
 
     if num_fails > 0:
-        raise RuntimeError("License Header missing in {} files.".format(num_fails))
+        raise Exit(
+            message="License Header missing in {} files.".format(num_fails),
+            code=num_fails,
+        )
     else:
         print("License checking completed successfully.")
 
@@ -109,7 +113,7 @@ def lint_example_notebooks(c, linter="flake8"):
         "black": "black --check --diff -",
         # last 3 are to ignore trailing whitespace, rest are from tox.ini
         # should simplify this once flake8 pushes its --extend-ignore option
-        "flake8": "flake8 - --ignore=E203,E501,W503,W391,W291,E402",
+        "flake8": "flake8 - --show-source --ignore=E203,E501,W503,W391,W291,E402",
     }
 
     try:
@@ -133,10 +137,14 @@ def lint_example_notebooks(c, linter="flake8"):
             failed_files.append(str(path))
 
     if num_fails > 0:
-        raise RuntimeError(
-            "Notebook code isn't formatted properly.\n"
-            + "Number of unformatted files reported: {}\n".format(num_fails)
-            + "Files with errors: {}".format(pformat(failed_files))
+        raise Exit(
+            message=(
+                "Notebook code isn't formatted properly "
+                + "(according to {}).\n".format(linter)
+                + "Number of unformatted files reported: {}\n".format(num_fails)
+                + "Files with errors: {}".format(pformat(failed_files))
+            ),
+            code=num_fails,
         )
 
 
