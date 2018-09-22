@@ -19,6 +19,7 @@ cache:
 
 stages:
   - test
+  - build
   - name: deploy
     if: branch = master
 
@@ -26,7 +27,7 @@ stages:
 jobs:
   fast_finish: true
   allow_failures:
-    - env: NIGHTLY_BUILD=1
+    - env: ALLOW_FAIL=1
   include:
     - stage: test
       os: linux
@@ -67,7 +68,7 @@ jobs:
     - os: linux  # try running QuCumber against nightly build of PyTorch
       dist: trusty
       python: 3.6
-      env: NIGHTLY_BUILD=1
+      env: ALLOW_FAIL=1
       before_install: *test-install
       install:
         - travis_retry pip uninstall -y torch
@@ -138,6 +139,26 @@ jobs:
         - cd docs; make spelling
         - cd docs; make linkcheck
 
+    - stage: build
+      name: "Manylinux Wheels"
+      os: linux
+      sudo: required
+      python: 3.6
+      services:
+        - docker
+      env: CIBW_SKIP='cp27-* cp34-* *i686'
+      install: travis_retry pip install cibuildwheel
+      script:
+        - cibuildwheel --output-dir wheelhouse
+        - ls wheelhouse
+    - name: "OSX Wheels (internally ignoring errors - need to fix)"
+      os: osx
+      language: generic
+      env: CIBW_SKIP='cp27-* cp34-* *i686'
+      install: travis_retry pip install cibuildwheel
+      script:
+        - cibuildwheel --output-dir wheelhouse || true
+        - ls wheelhouse
 
     - stage: deploy
       name: "GitHub Release - Examples"
