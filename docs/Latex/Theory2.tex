@@ -1,27 +1,57 @@
-% =========================================================================
-% SciPost LaTeX template
-% Version 1e (2017-10-31)
-%
-% Submissions to SciPost Journals should make use of this template.
-%
-% INSTRUCTIONS: simply look for the `TODO:' tokens and adapt your file.
-%
-% - please enable line numbers (package: lineno)
-% - you should run LaTeX twice in order for the line numbers to appear
-% =========================================================================
-
-
-% TODO: uncomment ONE of the class declarations below
-% If you are submitting a paper to SciPost Physics: uncomment next line
 \documentclass[submission, Phys, hidelinks]{SciPost}
 \usepackage{braket}
 \usepackage[ruled, vlined]{algorithm2e}
 \usepackage{amsmath, bm}
 \usepackage{dsfont}
-\usepackage{pythonhighlight}
+%\usepackage{pythonhighlight}
+\usepackage{listings}
+%\usepackage{fontspec}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{10} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{10}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.7}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+keepspaces=true, 
+%basicstyle=\ttm,
+basicstyle=\ttfamily\footnotesize,%\setstretch{.5},
+tabsize=3,
+keywordstyle=\color{keywordcolour}\bfseries,
+otherkeywords={self},  
+frame = single,            % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__, apply},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+%frame=tb,                         % Any extra options here
+showstringspaces=false,            %
+%framexleftmargin=-15pt 
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
 \usepackage{xcolor}
 \newcommand{\red}[1]{{\color{red} #1}}
 \SetKwComment{Comment}{$\triangleright$\ }{}
+
+
 
 \begin{document}
 
