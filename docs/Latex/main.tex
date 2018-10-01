@@ -5,9 +5,10 @@
 \usepackage{amsmath, bm}
 \usepackage{dsfont}
 \usepackage{listings}
+\usepackage{color}
+\usepackage{xcolor}
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{10}
 \DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{10}
-\usepackage{color}
 \definecolor{deepblue}{rgb}{0,0,0.7}
 \definecolor{deepred}{rgb}{0.6,0,0}
 \definecolor{deepgreen}{rgb}{0,0.5,0}
@@ -16,14 +17,15 @@
     keepspaces=true, 
     basicstyle=\ttfamily\footnotesize,
     tabsize=3,
-    keywordstyle=\color{keywordcolour}\bfseries,
-    otherkeywords={self}, 
+    keywordstyle=\color{keywordcolour},
+    %otherkeywords={self}, 
     frame = single,
     keywordstyle=\ttb\color{deepblue},
-    emph={MyClass,__init__, apply},
-    emphstyle=\ttb\color{deepred},
+    emph={qucumber, state, SigmaX, SigmaZ, __init__},
+    emphstyle=\color{deepred},
     stringstyle=\color{deepgreen},
     showstringspaces=false,
+    commentstyle  = \color{deepgreen}\ttfamily
 }}
 \lstnewenvironment{python}[1][]{
     \pythonstyle
@@ -31,7 +33,6 @@
 }
 {}
 \newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
-\usepackage{xcolor}
 \newcommand{\red}[1]{{\color{red} #1}}
 \SetKwComment{Comment}{$\triangleright$\ }{}
 
@@ -148,10 +149,7 @@ space = state.generate_hilbert_space(10)
 callbacks = [
     MetricEvaluator(
         log_every,
-        {
-        "Fidelity": ts.fidelity, 
-        "KL": ts.KL, 
-        },
+        {"Fidelity": ts.fidelity, "KL": ts.KL},
     target_psi=true_psi,
     space=space,
     verbose=True
@@ -261,16 +259,14 @@ As an example, $\sigma^x$ can be written as an observable class with
 class SigmaX(Observable):
 
     def apply(self, nn_state, samples):
-        samples = samples.to(device=nn_state.device)
-        # vectors of shape: (2, num_samples,)
-        psis = nn_state.psi(samples)
-        psi_ratio_sum = torch.zeros_like(psis)
+        psi = nn_state.psi(samples)
+        psi_ratio_sum = torch.zeros_like(psi)
 
         for i in range(samples.shape[-1]):  # sum over spin sites
             flip_spin(i, samples)  # flip the spin at site i
             # compute ratio of psi_(-i) / psi and add it to the running sum
             psi_ratio = nn_state.psi(samples)
-            psi_ratio = cplx.elementwise_division(psi_ratio, psis)
+            psi_ratio = cplx.elementwise_division(psi_ratio, psi)
             psi_ratio_sum.add_(psi_ratio)
             flip_spin(i, samples)  # flip it back
 
