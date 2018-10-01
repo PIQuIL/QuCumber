@@ -95,7 +95,7 @@ In Section \ref{sec:positive}, we introduce the reconstruction technique for the
 \section{Positive wavefunctions}\label{sec:positive}
 In this Section, we present the application of QuCumber to reconstruct many-body quantum states described by wavefunctions $|\Psi\rangle$ with positive coefficients $\Psi(\bm{\mathrm{x}})=\langle\bm{\mathrm{x}}|\Psi\rangle \ge0$, where $|\bm{\mathrm{x}}\rangle=|\mathrm{x}_1,\dots,\mathrm{x}_N\rangle$ is a reference basis for the Hilbert space of $N$ quantum degrees of freedom. The neural-network QSR requires raw data $\mathcal{D}=(\bm{\mathrm{x}}_1,\bm{\mathrm{x}}_2,\dots)$ generated through projective measurements of the state $|\Psi\rangle$ in the reference basis, with an underlying probability distribution given by the Born rule, $P(\bm{\mathrm{x}})=|\Psi(\bm{\mathrm{x}})|^2$. Since the wavefunction is strictly positive, the quantum state is completely characterized by the measurement distribution, $\Psi(\bm{\mathrm{x}})=\sqrt{P(\bm{\mathrm{x}})}$. 
 
-The positivity of the wavefunction allows a simple and natural connection between quantum states and classical probabilistic models. Specifically, QuCumber employs the probability distribution $p_{\bm{\lambda}}(\bm{\mathrm{x}})$ of a RBM to capture the distribution $P(\bm{\mathrm{x}})$ underlying the measurement data. Using contrastive divergence (CD)~\cite{hinton2002training}, QuCumber trains the RBM to discover a set of parameters $\bm{\lambda}^*$ that minimizes the Kullback-Leibler (KL) divergence between the two distributions. Upon successful training ($p_{\bm{\lambda}^*}(\bm{\mathrm{x}})\sim P(\bm{\mathrm{x}})$), we obtain a faithful representation of the target quantum state:
+The positivity of the wavefunction allows a simple and natural connection between quantum states and classical probabilistic models. Specifically, QuCumber employs the probability distribution $p_{\bm{\lambda}}(\bm{\mathrm{x}})$ of an RBM to capture the distribution $P(\bm{\mathrm{x}})$ underlying the measurement data. Using contrastive divergence (CD)~\cite{hinton2002training}, QuCumber trains the RBM to discover a set of parameters $\bm{\lambda}^*$ that minimizes the Kullback-Leibler (KL) divergence between the two distributions. Upon successful training ($p_{\bm{\lambda}^*}(\bm{\mathrm{x}})\sim P(\bm{\mathrm{x}})$), we obtain a faithful representation of the target quantum state:
 \begin{equation}\label{wfpd}
     \psi_{\bm{\lambda}^*}(\bm{\mathrm{x}})= \sqrt{p_{\bm{\lambda}^*}(\bm{\mathrm{x}})}
     \simeq\Psi(\bm{\mathrm{x}})\:.
@@ -124,7 +124,7 @@ train_data, true_psi = data.load_data(train_path, psi_path)
 \end{python}
 If no \verb|psi_path| path is provided, QuCumber will load only the training data. 
 
-Next, we initialize a RBM quantum state $\psi_{\bm{\lambda}}(\bm{\sigma}^z)$ with random weights and zero biases using the constructor \verb|PositiveWavefunction|
+Next, we initialize an RBM quantum state $\psi_{\bm{\lambda}}(\bm{\sigma}^z)$ with random weights and zero biases using the constructor \verb|PositiveWavefunction|
 \begin{python}
 from qucumber.nn_states import PositiveWavefunction
 state = PositiveWavefunction(num_visible=10, num_hidden=10)
@@ -188,7 +188,7 @@ state.load("filename.pt")
 \begin{figure}[hbt]
     \centering{}
     \includegraphics[width=\textwidth]{plots/fid_KL.pdf}
-    \caption{\label{fig:KL} Training a RBM with QuCumber on the TFIM. We show the fidelity (left), and the KL divergence (right), as a function of the training iteration.}
+    \caption{\label{fig:KL} Training an RBM with QuCumber on the TFIM. We show the fidelity (left), and the KL divergence (right), as a function of the training iteration.}
 \end{figure}
 
 \subsection{Reconstruction of physical observables} \label{Sec:Sampling_a-Trained_RBM}
