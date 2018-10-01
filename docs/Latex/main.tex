@@ -188,7 +188,7 @@ state.load("filename.pt")
 
 \begin{figure}[hbt]
     \centering{}
-    \includegraphics[width=\textwidth]{plots/fid_KL.pdf}
+    \includegraphics[width=\textwidth]{fid_KL.pdf}
     \caption{\label{fig:KL} Training an RBM with QuCumber on the TFIM. We show the fidelity (left), and the KL divergence (right), as a function of the training iteration.}
 \end{figure}
 
@@ -275,7 +275,7 @@ The reconstruction of two magnetic observables for the TFIM is shown in Fig.~\re
 
 \begin{figure}[htb]
     \centering{}
-    \includegraphics[width=\columnwidth]{plots/obs.pdf}
+    \includegraphics[width=\columnwidth]{obs.pdf}
     \caption{\label{tfim_magn} Reconstruction of the magnetic observables for the TFIM chain with $N=10$ spins. The results from We show the average longitudinal (left) and transverse (right) magnetization per site. The dashed line denotes the results obtained with exact diagonalization.}
 \end{figure}
 
@@ -290,7 +290,7 @@ where we choose $\phi_{\bm{\mu}}(\bm{\sigma}) = \log (p_{\bm{\mu}} (\bm{\sigma})
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=\columnwidth, trim={0 0 0 40}, clip]{plots/2qubits_rotation}
+    \includegraphics[width=\columnwidth, trim={0 0 0 40}, clip]{2qubits_rotation}
     \caption{Unitary rotations for two qubits. (left) Measurements on the reference basis. (right) Measurement in the rotated basis. The unitary rotation (the Hadamard gate on qubit $\sigma_0$) is applied after state preparation and before the projective measurement.}
     \label{phase_learn} 
 \end{figure}
@@ -410,7 +410,7 @@ state.fit(
 In Fig.~\ref{fig:complex} we show the fidelity with the true two-qubit state and the KL divergence during training. 
 \begin{figure}[htb]
     \centering{}
-    \includegraphics[width=\textwidth]{plots/complex_fid_KL.pdf}
+    \includegraphics[width=\textwidth]{complex_fid_KL.pdf}
     \caption{\label{fig:complex} Training a complex RBM with QuCumber on random two-qubit data. We show the fidelity (left), and KL divergence (right), as a function of the training epochs.}
 \end{figure}
 
