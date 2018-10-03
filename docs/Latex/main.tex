@@ -185,7 +185,8 @@ state.load("filename.pt")
 
 \begin{figure}[hbt]
     \centering{}
-    \includegraphics[width=\textwidth]{fid_KL.pdf}
+    %\includegraphics[width=\textwidth, ]{fid_KL.pdf}
+    \includegraphics[width=\columnwidth, trim={0 15 0 0}, clip]{fid_KL.pdf}
     \caption{\label{fig:KL} The fidelity (left) and the KL divergence (right) during training for the reconstruction of the ground state of the one-dimensional TFIM.}
 \end{figure}
 
@@ -290,7 +291,7 @@ The reconstruction of two magnetic observables for the TFIM is shown in Fig.~\re
 
 \begin{figure}[htb]
     \centering{}
-    \includegraphics[width=\columnwidth]{obs.pdf}
+    \includegraphics[width=\columnwidth, trim={0 15 0 0}, clip]{obs.pdf}
     \caption{\label{tfim_magn} Reconstruction of the magnetic observables for the TFIM chain with $N=10$ spins. We show the average longitudinal (left) and transverse (right) magnetization per site obtained by sampling a trained RBM. The dashed line denotes the results from exact diagonalization.}
 \end{figure}
 
@@ -428,7 +429,7 @@ state.fit(
 In Fig.~\ref{fig:complex} we show the total KL divergence and the fidelity with the true two-qubit state during training. 
 \begin{figure}[htb]
     \centering{}
-    \includegraphics[width=\textwidth]{complex_fid_KL.pdf}
+    \includegraphics[width=\textwidth, trim={0 15 0 0}, clip]{complex_fid_KL.pdf}
     \caption{\label{fig:complex} Training a complex RBM with QuCumber on random two-qubit data. We show the fidelity (left), and KL divergence (right), as a function of the training epochs.}
 \end{figure}
 
