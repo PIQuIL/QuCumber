@@ -73,9 +73,10 @@
 
 \section*{Abstract}
 {\bf
-    \red{
-        In this post, we present QuCumber, an open-source Python package that implements a restricted Boltzmann machine to reconstruct unknown quantum states from experimental measurements. The effectiveness of modern machine learning algorithms in compressing high-dimensional data allows neural networks to discover compact representations of a quantum state, and reconstruct traditionally challenging physical properties, not directly accessible in current experiments. We show how to use QuCumber to reconstruct wavefunctions with and without a phase structure and deploy the trained network to estimate expectation values of various physical observables.
-    }
+        As we enter the era of intermediate-scale noisy quantum hardware it is increasingly important to confirm the accurate preparation of quantum states on these near-term devices.
+        The large number of qubits present in such devices poses the problem of high dimensionality where conventional methods of quantum state tomography break down. 
+        In this paper, we present an open-source software package called QuCumber which uses machine learning to effectively reconstruct the most likely quantum state consistent with a set of projective measurements.
+        QuCumber can be used to study traditionally challenging physical properties, not directly accessible in current experiments such as the entanglement entropy. 
 }
 
 \vspace{10pt}
