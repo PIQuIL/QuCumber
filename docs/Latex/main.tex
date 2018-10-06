@@ -18,7 +18,7 @@
     basicstyle=\ttfamily\footnotesize,
     tabsize=3,
     keywordstyle=\color{keywordcolour},
-    %otherkeywords={self}, 
+    %otherkeywords={mul, sub, add, mean},
     frame = single,
     keywordstyle=\ttb\color{deepblue},
     emph={qucumber, state, SigmaX, SigmaZ, __init__},
@@ -75,8 +75,9 @@
 {\bf
         As we enter the era of intermediate-scale noisy quantum hardware it is increasingly important to confirm the accurate preparation of quantum states on these near-term devices.
         The large number of qubits present in such devices poses the problem of high dimensionality where conventional methods of quantum state tomography break down. 
-        In this paper, we present an open-source software package called QuCumber which uses machine learning to effectively reconstruct the most likely quantum state consistent with a set of projective measurements.
-        QuCumber can be used to study traditionally challenging physical properties, not directly accessible in current experiments such as the entanglement entropy. 
+        In this paper, we present an open-source software package called QuCumber that uses machine learning to effectively reconstruct the most likely quantum state consistent with a set of projective measurements. 
+        QuCumber is able to reconstruct wavefunctions for a large number of qubits by representing the wavefunction as a restricted Boltzmann machine.
+        This package can be used to study traditionally challenging physical properties, not directly accessible in current experimentse such as the entanglement entropy. 
 }
 
 \vspace{10pt}
@@ -138,7 +139,7 @@ In practice, we find that $\alpha = 1$ typically leads to good approximations of
 
 
 \subsection{Training}
-Once an appropriate representation of the quantum state has been defined, QuCumber trains the RBM through the function \verb|PositiveWavefunction.fit|. Several input parameters need to be provided aside from the training dataset (\verb|train_data|). These include the number of training iterations (\verb|epochs|), the number of samples used for the positive/negative phase of CD (\verb|pos_batch_size|/\verb|neg_batch_size|), the learning rate (\verb|lr|) and the number of sampling steps in the negative phase of CD (\verb|k|) \red{[Can we change this to $k_{CD}$ in the code as well?]}. The last argument (\verb|callbacks|) allows the user to pass a set of functions to be evaluated during training.
+Once an appropriate representation of the quantum state has been defined, QuCumber trains the RBM through the function \verb|PositiveWavefunction.fit|. Several input parameters need to be provided aside from the training dataset (\verb|train_data|). These include the number of training iterations (\verb|epochs|), the number of samples used for the positive/negative phase of CD (\verb|pos_batch_size|/\verb|neg_batch_size|), the learning rate (\verb|lr|) and the number of sampling steps in the negative phase of CD (\verb|k|). The last argument (\verb|callbacks|) allows the user to pass a set of functions to be evaluated during training.
 
 As an example of a callback, we show the \verb|MetricEvaluator|, which evaluates a function \verb|log_every| epochs during training. Given the small system size and the knowledge of the true ground state, we can evaluate the fidelity between the RBM state and the true ground-state wavefunction (\verb|true_psi|). Similarly, we can calculate the KL divergence between the RBM distribution $p_{\bm{\lambda}}(\bm{x})$, and the data distribution $P(\bm{x})$, which should approach zero for a properly trained RBM. For the current example, we monitor the fidelity and KL divergence (defined in \verb|qucumber.utils.training_statistics|):
 \begin{python}
@@ -185,7 +186,6 @@ state.load("filename.pt")
 
 \begin{figure}[hbt]
     \centering{}
-    %\includegraphics[width=\textwidth, ]{fid_KL.pdf}
     \includegraphics[width=\columnwidth, trim={0 15 0 0}, clip]{fid_KL.pdf}
     \caption{\label{fig:KL} The fidelity (left) and the KL divergence (right) during training for the reconstruction of the ground state of the one-dimensional TFIM.}
 \end{figure}
@@ -250,7 +250,7 @@ Therefore, the expectation values reduces to the Monte Carlo average of the loca
 evaluated on spin configurations $\bm{\sigma}_k$ sampled from the RBM distribution $p_{\bm{\lambda}}(\bm{\sigma})$. 
 
 QuCumber provides an interface for sampling off-diagonal observables in the \verb|Observable| class. Thorough examples can are available in the tutorial section in the \href{https://qucumber.readthedocs.io/en/stable/}{documentation}\!\!
-\footnote{The observables tutorial can be found at 
+\footnote{The observables tutorials are available at
     \href{https://qucumber.readthedocs.io/en/stable/\_examples/Tutorial3\_DataGeneration\_CalculateObservables/tutorial\_sampling\_observables.html
 }{\texttt{https://qucumber.readthedocs.io/en/stable/\_examples\\/Tutorial3\_DataGeneration\_CalculateObservables/tutorial\_sampling\_observables.html}}
 }. 
@@ -274,13 +274,6 @@ class SigmaX(Observable):
         # and divide by number of spins
         return psi_ratio_sum[0].div_(samples.shape[-1])
 \end{python}
-%class SigmaZ(Observable):
-    %def __init__(self):
-        %super(SigmaZ, self).__init__()
-
-    %def apply(self, state, samples):
-        %sigma_z = samples.mul(2.).sub(1.).mean(1).abs()
-        %return sigma_z
 The value of the observable is computed with 
 \begin{python}
 SigmaX.statistics_from_samples(state, samples)
@@ -440,6 +433,7 @@ After successfully training a QuCumber model, we can once again compute generic 
 \section{Conclusion}
 \red{TODO}
 
+
 \section*{Acknowledgements}
 We acknowledge G. Carleo, J. Carrasquilla and L. Hayward Sierens for stimulating discussions. 
 We thank J. Matlock and the Perimeter Institute for Theoretical Physics for the continuing support of PIQuIL.
@@ -451,11 +445,10 @@ Authors are listed alphabetically. For an updated record of individual contribut
 
 This research was supported by the Natural Sciences and Engineering
 Research Council of Canada (NSERC), the
-Canada Research Chair program, the Perimeter Institute
-for Theoretical Physics, and the National Science Foundation
-under Grant No. NSF PHY-1125915. We also gratefully
+Canada Research Chair program, and the Perimeter Institute
+for Theoretical Physics. We also gratefully
 acknowledge the support of NVIDIA Corporation with
-the donation of the Titan Xp GPU used for this research.
+the donation of the Titan Xp GPU used in this work.
 Research at Perimeter Institute is supported by the Government
 of Canada through Industry Canada and by the
 Province of Ontario through the Ministry of Research \&
@@ -466,7 +459,7 @@ Innovation. P.~H. acknowledges support from ICFOstepstone, funded by the Marie S
 \section{Glossary}
 \label{Glossary}
 
-We list an overview of terms discussed in the document and relevant for RBMs. For more detail we refer to the code documentation on \url{https://piquil.github.io/QuCumber/}, and References~\cite{hinton2002training, hinton2012practical}.
+We list an overview of terms discussed in the document and relevant for RBMs. For more detail we refer the reader to the code documentation on \url{https://piquil.github.io/QuCumber/}, and References~\cite{hinton2002training, hinton2012practical}.
 
 \begin{itemize}
 
