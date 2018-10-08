@@ -405,7 +405,7 @@ callbacks = [
 ]
 
 \end{python}
-The training is carried out by calling the \verb|fit| function of \verb|ComplexWavefunction|, given the set of hyper-parameters
+The training is carried out by calling the \verb|fit| function of \verb|ComplexWavefunction|, given the set of hyperparameters
 \begin{python}
 state.fit(
     train_samples,
@@ -483,7 +483,7 @@ We list an overview of terms discussed in the document and relevant for RBMs. Fo
 
 \item {\it Hidden units}: There are $n_h$ units in the hidden layer of the RBM, denoted by the vector $\bm{h}=(h_1, ..., h_{n_h})$. The number of hidden units can be adjusted to increase the representational capacity of the RBM.
 
-\item{\it Hyper-parameter:} A set of training parameters which do not appear in the training cost function. Examples include the learning rate, number of hidden units, batch size, or number of training epochs
+\item{\it Hyperparameters:} A set of parameters that are not allowed by be adjusted by a neural netowrk during training. Examples include the learning rate, number of hidden units, batch size, or number of training epochs.
 
 \item {\it Joint distribution}: The RBM assigns a probability to each joint configuration $(v,h)$ according to the Boltzmann distribution:
 \begin{equation}
