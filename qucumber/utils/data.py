@@ -21,7 +21,7 @@ import numpy as np
 import torch
 
 
-def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=None):
+def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=None, numSamples="All"):
     r"""Load the data required for training.
 
     :param tr_samples_path: The path to the training data.
@@ -33,14 +33,24 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
     :param bases_path: The path to a file containing all possible bases used in
                        the tr_bases_path file.
     :type bases_path: str
+    :param numSamples: Specify number of samples to extract from sample file
+    :type numSamples: int
 
     :returns: A list of all input parameters.
     :rtype: list
     """
     data = []
-    data.append(
-        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"), dtype=torch.double)
-    )
+
+    if numSamples == "All":
+        data.append(
+            torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"), dtype=torch.double)
+        )
+    else:
+        with open(tr_samples_path) as f:
+            lines = [f.readline() for _ in range(numSamples)]
+            data.append(
+                torch.tensor(np.loadtxt(lines, dtype="float32"), dtype=torch.double)
+            )
 
     if tr_psi_path is not None:
         target_psi_data = np.loadtxt(tr_psi_path, dtype="float32")

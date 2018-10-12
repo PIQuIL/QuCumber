@@ -36,6 +36,8 @@ class Timer(Callback):
 
     def __init__(self, verbose=True):
         self.verbose = verbose
+        self.epochTimes = []
+        self.epochCounter = 0
 
     def on_train_start(self, nn_state):
         self.start_time = time.time()
@@ -49,6 +51,10 @@ class Timer(Callback):
             self.calculate_elapsed_time()
 
     def on_epoch_end(self, nn_state, epoch):
+        self.epochCounter += 1
+        if self.epochCounter % 100 == 0:
+            totalTimeElapsed = time.time() - self.start_time
+            self.epochTimes.append(totalTimeElapsed)
         if nn_state.stop_training:
             if self.verbose:
                 print("Training terminated at epoch: {}".format(epoch))
