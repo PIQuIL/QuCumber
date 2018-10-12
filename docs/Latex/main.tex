@@ -73,11 +73,13 @@
 
 \section*{Abstract}
 {\bf
-        As we enter the era of intermediate-scale noisy quantum hardware it is increasingly important to confirm the accurate preparation of quantum states on these near-term devices.
-        The large number of qubits present in such devices poses the problem of high dimensionality where conventional methods of quantum state tomography break down. 
-        In this paper, we present an open-source software package called QuCumber that uses machine learning to effectively reconstruct the most likely quantum state consistent with a set of projective measurements. 
-        QuCumber is able to reconstruct wavefunctions for a large number of qubits by representing the wavefunction as a restricted Boltzmann machine.
-        This package can be used to study traditionally challenging physical properties, not directly accessible in current experimentse such as the entanglement entropy. 
+As we enter a new era of quantum technology, it is increasingly important to develop methods capable of aiding 
+the accurate preparation of quantum states for a variety of materials, matter, and hardware.
+The large number of qubits present in near-term devices poses the problem of high dimensionality, where conventional methods of quantum state tomography break down. 
+        In this paper, we present an open-source software package called QuCumber that uses machine learning to effectively reconstruct a quantum state consistent with a set of projective measurements. 
+        QuCumber is able to reconstruct states for a large number of qubits by representing the wavefunction as a restricted Boltzmann machine.
+It can then be sampled to produce new measurements and expectation values otherwise not easily accessible from the original data.
+        %This package can be used to study physical properties not directly accessible in current experiments, such as the entanglement entropy. 
 }
 
 \vspace{10pt}
@@ -87,7 +89,13 @@
 \vspace{10pt}
 
 \section{Introduction}
-The current advances in designing and building quantum technologies, as well as in the reliable control of synthetic quantum matter, is leading to a new wave of quantum hardware, where highly pure quantum states are routinely prepared in laboratories. Notwithstanding the presence of noise and decoherence, new exciting possibilities have been recently opened by this class of ``noisy" quantum hardware. Notable examples are the quantum-assisted simulation of small molecules and quantum magnets with superconducting hardware~\cite{gambetta17,gambetta18}, and the preparation of ground states breaking different spacial symmetries using a cold Rydberg atom quantum simulator~\cite{Bernien17}. With the growing number of controlled quantum degrees of freedom (e.g.~qubits, atoms, etc.), reliable and scalable classical algorithms are required to aid in the analysis and verification of the quantum devices. This is necessary to extract physical observables otherwise inaccessible from experimental measurements, as well as identifying the source of noise to provide direct feedback for improving the hardware quality. However, traditional approaches for reconstructing unknown quantum states from a set of measurements -- quantum state reconstruction (QSR) -- suffer the exponential overhead that is typical of quantum many-body systems and thus remain suited for systems with a small number of constituents. 
+Current advances in fabricating quantum technologies, as well as in reliable control of synthetic quantum matter, is leading to a new era of quantum 
+hardware where highly pure quantum states are routinely prepared in laboratories. 
+%Notwithstanding the presence of noise and decoherence, new exciting possibilities have been recently opened by this class of ``noisy" quantum hardware. 
+%Examples quantum-assisted simulation of small molecules and quantum magnets with superconducting hardware~\cite{gambetta17,gambetta18}, and the preparation of ground states breaking different spacial symmetries using a cold Rydberg atom quantum simulator~\cite{Bernien17}. 
+With the growing number of controlled quantum degrees of freedom, such as molecules, superconducting qubits, trapped ions, and ultracold atoms \cite{gambetta17,gambetta18,Bernien17}, reliable and scalable classical algorithms are required to aid in the analysis and verification of quantum devices. 
+Efficient classical algorithms can aid in extracting physical observables otherwise inaccessible from experimental measurements, as well as in identifying 
+sources of noise to provide direct feedback for improving hardware quality. However, traditional approaches for reconstructing unknown quantum states from a set of measurements -- quantum state reconstruction (QSR) -- suffer the exponential overhead that is typical of quantum many-body systems and thus remain suited for systems with a small number of constituents. 
 
 Recently, an alternative path to QSR was put forward, based on modern machine learning (ML) techniques~\cite{torlai2018tomography, TorlaiMixed}. This approach relies on a powerful generative model called a {\it restricted Boltzmann machine} (RBM)~\cite{Smolensky}, a stochastic neural network with two layers of binary units. The visible layer $\bm{v}=(v_1,\dots,v_N)$ describes the physical degrees of freedom, and a hidden layer $\bm{h}=(h_1,\dots,h_{N_h})$, used to capture high-order correlation between the visible units. Given the set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$ (see Glossary). RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{Hinton06} and compressing high-dimensional data into lower-dimensional representations~\cite{Hinton504}. More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{Torlai2016thermo, CarleoTroyer2017Science}, and are currently being investigated in the context of their representational power~\cite{Gao} their connection with tensor network states~\cite{GlasserCirac2018} and the renormalization group~\cite{Maciej}.
 
