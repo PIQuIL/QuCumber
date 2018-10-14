@@ -22,10 +22,13 @@ import unittest
 import qucumber.observables as observables
 from qucumber.nn_states import ComplexWavefunction
 
+# TODO: add assertions
 
 class TestPauli(unittest.TestCase):
     def test_spinflip(self):
-        pass
+        test_psi = ComplexWavefunction(2, num_hidden=3)
+        test_sample = test_psi.sample(100, num_samples=1000)
+        observables.pauli.flip_spin(2, test_sample)
 
     def test_apply(self):
         test_psi = ComplexWavefunction(2, num_hidden=3)
