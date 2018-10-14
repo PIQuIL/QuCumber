@@ -24,6 +24,7 @@ from qucumber.nn_states import ComplexWavefunction
 
 # TODO: add assertions
 
+
 class TestPauli(unittest.TestCase):
     def test_spinflip(self):
         test_psi = ComplexWavefunction(2, num_hidden=3)
