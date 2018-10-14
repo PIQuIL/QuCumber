@@ -18,19 +18,20 @@
 # under the License.
 
 import torch
-from .observable    import Observable
+from .observable import Observable
 from qucumber.utils import cplx
+
 
 def swap(s1, s2, A):
     for a in A:
-        _s       = s1[:, a].clone()
+        _s = s1[:, a].clone()
         s1[:, a] = s2[:, a]
-        s2[:, a] = _s 
+        s2[:, a] = _s
 
-    return s1, s2 
+    return s1, s2
 
 
-class EntanglementEntropy(Observable):
+class RenyiEntropy(Observable):
     r"""The :math:`\sigma_y` observable
 
     Computes the 2nd Renyi entropy of the region A based on the SWAP operator.
@@ -60,40 +61,42 @@ class EntanglementEntropy(Observable):
 
         # split the batch of samples into two equal batches
         # if their total number is odd, the last sample is ignored
-        _ns = samples.shape[0]//2
-        samples1 = samples[   : _ns,   :]
-        samples2 = samples[_ns: _ns*2, :]
+        _ns = samples.shape[0] // 2
+        samples1 = samples[:_ns, :]
+        samples2 = samples[_ns : _ns * 2, :]
 
-        #print('Wavefunction:')
-        #print(nn_state.psi(samples))
+        # print('Wavefunction:')
+        # print(nn_state.psi(samples))
         # vectors of shape: (2, num_samples,)
         psi_ket1 = nn_state.psi(samples1)
         psi_ket2 = nn_state.psi(samples2)
-        
-        psi_ket       = cplx.elementwise_mult(psi_ket1, psi_ket2)
-        psi_ket_star  = cplx.conjugate(psi_ket)
 
-        #print('Replicated wavefunction ket')
-        #print(psi_ket)
-        
-        #sample_norm = cplx.elementwise_mult(psi_ket_star, psi_ket).mean(1)[0]
-        #print()
-        #print('Sample norm')
-        #print(sample_norm)
+        psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
+        psi_ket_star = cplx.conjugate(psi_ket)
+
+        # print('Replicated wavefunction ket')
+        # print(psi_ket)
+
+        # sample_norm = cplx.elementwise_mult(psi_ket_star, psi_ket).mean(1)[0]
+        # print()
+        # print('Sample norm')
+        # print(sample_norm)
 
         samples1_, samples2_ = swap(samples1, samples2, A)
         psi_bra1 = nn_state.psi(samples1_)
         psi_bra2 = nn_state.psi(samples2_)
-        
-        psi_bra       = cplx.elementwise_mult(psi_bra1, psi_bra2)
-        psi_bra_star  = cplx.conjugate(psi_bra)
-        #print('Replicated wavefunction bra')
-        #print(psi_bra)
 
-        #print("Weight ratios")
-        #print(cplx.elementwise_division(psi_bra_star, psi_ket_star))
-        
-        #print('Entanglement')
-        EE = -torch.log(cplx.elementwise_division(psi_bra_star, psi_ket_star).mean(1))#/sample_norm)
-        #print(EE)
+        psi_bra = cplx.elementwise_mult(psi_bra1, psi_bra2)
+        psi_bra_star = cplx.conjugate(psi_bra)
+        # print('Replicated wavefunction bra')
+        # print(psi_bra)
+
+        # print("Weight ratios")
+        # print(cplx.elementwise_division(psi_bra_star, psi_ket_star))
+
+        # print('Entanglement')
+        EE = -torch.log(
+            cplx.elementwise_division(psi_bra_star, psi_ket_star).mean(1)
+        )  # /sample_norm)
+        # print(EE)
         return EE
