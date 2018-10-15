@@ -128,7 +128,7 @@ def produceData(epochs,pbs,nbs,k,numQubits,numSamples):
     results.append(trainRBM(numQubits,epochs,pbs,nbs,0.01,k,numSamples,torch.optim.SGD,momentum=0.9))
     results.append(trainRBM(numQubits,epochs,pbs,nbs,0.01,k,numSamples,torch.optim.SGD,momentum=0.9,nesterov=True))
 
-    datafile = open("TrainingCycles.txt","w")
+    datafile = open("Data/Q{0}/B{1}/Epochs.txt".format(numQubits,pbs),"w")
     datafile.write("Batch size is {0}\n".format(pbs))
     datafile.write("\n")
     counter = 0
@@ -143,12 +143,14 @@ def produceData(epochs,pbs,nbs,k,numQubits,numSamples):
         counter += 1
     datafile.close()
 
-def graphData(filename):
+def graphData(filename,numQubits):
     '''
     Graphs a plot of fidelity vs runtime
 
     :param filename: Name of file containing data
     :type filename: str
+    :param numQubits: Number of qubits in the quantum state.
+    :type numQubits: int
 
     :returns: None
     '''
@@ -186,8 +188,13 @@ def graphData(filename):
     plt.title("Learning Curve for Various Optimizers with " +
               r"B = {0}".format(pbs))
     plt.legend()
-    plt.savefig("LearningCurve",dpi = 200)
+    plt.savefig("Data/Q{0}/B{1}/LearningCurve".format(numQubits,pbs),dpi = 200)
     f.close()
 
-produceData(1000,100,100,1,15,"All")
-graphData("TrainingCycles.txt")
+Nvalues = [5,10,15,20]
+Bvalues = [8,16,32,64,128,256]
+
+for N in Nvalues:
+    for B in Bvalues:
+        produceData(1000,B,B,1,N,"All")
+        graphData("Data/Q{0}/B{1}/Epochs.txt".format(N,B),N)
