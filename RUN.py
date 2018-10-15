@@ -53,8 +53,8 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,**kwargs):
 
     # Load the data corresponding to the amplitudes and samples
     # of the quantum system
-    psi_path = r"Samples\{0}Q\AmplitudesP.txt".format(numQubits)
-    train_path = r"Samples\{0}Q\Samples.txt".format(numQubits)
+    psi_path = r"Samples/{0}Q/AmplitudesP.txt".format(numQubits)
+    train_path = r"Samples/{0}Q/Samples.txt".format(numQubits)
     train_data, true_psi = data.load_data(train_path, psi_path,
                                           numSamples=numSamples)
 
@@ -192,7 +192,7 @@ def graphData(filename,numQubits):
     f.close()
 
 Nvalues = [5,10,15,20]
-Bvalues = [8,16,32,64,128,256]
+Bvalues = [16,32,64,128,256]
 
 for N in Nvalues:
     for B in Bvalues:
