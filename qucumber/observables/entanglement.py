@@ -77,7 +77,5 @@ class RenyiEntropy(Observable):
 
         psi_bra = cplx.elementwise_mult(psi_bra1, psi_bra2)
         psi_bra_star = cplx.conjugate(psi_bra)
-        EE = -torch.log(
-            cplx.elementwise_division(psi_bra_star, psi_ket_star).mean(1)
-        )
+        EE = -torch.log(cplx.elementwise_division(psi_bra_star, psi_ket_star).mean(1))
         return EE
