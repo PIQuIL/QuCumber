@@ -45,11 +45,11 @@ class RenyiEntropy(Observable):
     def apply(self, nn_state, samples, A):
         r"""Computes the entanglement entropy via a swap operator which an esimtaor for the 2nd Renyi entropy.
         The swap operator requires an access to two identical copies of a wavefunction. In practice, this translates
-        to the requirement of having two independent sets of samples from the wavefunction replicas. For this 
-        purpose, the batch of samples stored in the param samples is split into two subsets. Although this 
-        procedure is designed to break the autocorrelation between the samples, it must be used with caution.   
-        For a fully unbiased estimate of the entanglement entropy, the batch of samples needs to be built from two 
-        independent initializations of the wavefucntion each having a different random number generator. 
+        to the requirement of having two independent sets of samples from the wavefunction replicas. For this
+        purpose, the batch of samples stored in the param samples is split into two subsets. Although this
+        procedure is designed to break the autocorrelation between the samples, it must be used with caution.
+        For a fully unbiased estimate of the entanglement entropy, the batch of samples needs to be built from two
+        independent initializations of the wavefucntion each having a different random number generator.
 
         :param nn_state: The Wavefunction that drew the samples.
         :type nn_state: qucumber.nn_states.Wavefunction
@@ -65,22 +65,11 @@ class RenyiEntropy(Observable):
         samples1 = samples[:_ns, :]
         samples2 = samples[_ns : _ns * 2, :]
 
-        # print('Wavefunction:')
-        # print(nn_state.psi(samples))
-        # vectors of shape: (2, num_samples,)
         psi_ket1 = nn_state.psi(samples1)
         psi_ket2 = nn_state.psi(samples2)
 
         psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
         psi_ket_star = cplx.conjugate(psi_ket)
-
-        # print('Replicated wavefunction ket')
-        # print(psi_ket)
-
-        # sample_norm = cplx.elementwise_mult(psi_ket_star, psi_ket).mean(1)[0]
-        # print()
-        # print('Sample norm')
-        # print(sample_norm)
 
         samples1_, samples2_ = swap(samples1, samples2, A)
         psi_bra1 = nn_state.psi(samples1_)
@@ -88,15 +77,5 @@ class RenyiEntropy(Observable):
 
         psi_bra = cplx.elementwise_mult(psi_bra1, psi_bra2)
         psi_bra_star = cplx.conjugate(psi_bra)
-        # print('Replicated wavefunction bra')
-        # print(psi_bra)
-
-        # print("Weight ratios")
-        # print(cplx.elementwise_division(psi_bra_star, psi_ket_star))
-
-        # print('Entanglement')
-        EE = -torch.log(
-            cplx.elementwise_division(psi_bra_star, psi_ket_star).mean(1)
-        )  # /sample_norm)
-        # print(EE)
+        EE = -torch.log(cplx.elementwise_division(psi_bra_star, psi_ket_star).mean(1))
         return EE
