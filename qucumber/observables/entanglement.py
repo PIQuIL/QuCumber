@@ -45,11 +45,11 @@ class RenyiEntropy(Observable):
     def apply(self, nn_state, samples, A):
         r"""Computes the entanglement entropy via a swap operator which an esimtaor for the 2nd Renyi entropy.
         The swap operator requires an access to two identical copies of a wavefunction. In practice, this translates
-        to the requirement of having two independent sets of samples from the wavefunction replicas. For this 
-        purpose, the batch of samples stored in the param samples is split into two subsets. Although this 
-        procedure is designed to break the autocorrelation between the samples, it must be used with caution.   
-        For a fully unbiased estimate of the entanglement entropy, the batch of samples needs to be built from two 
-        independent initializations of the wavefucntion each having a different random number generator. 
+        to the requirement of having two independent sets of samples from the wavefunction replicas. For this
+        purpose, the batch of samples stored in the param samples is split into two subsets. Although this
+        procedure is designed to break the autocorrelation between the samples, it must be used with caution.
+        For a fully unbiased estimate of the entanglement entropy, the batch of samples needs to be built from two
+        independent initializations of the wavefucntion each having a different random number generator.
 
         :param nn_state: The Wavefunction that drew the samples.
         :type nn_state: qucumber.nn_states.Wavefunction
