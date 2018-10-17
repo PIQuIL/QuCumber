@@ -128,7 +128,7 @@ def produceData(epochs,pbs,nbs,k,numQubits,numSamples):
     results.append(trainRBM(numQubits,epochs,pbs,nbs,0.01,k,numSamples,torch.optim.SGD,momentum=0.9))
     results.append(trainRBM(numQubits,epochs,pbs,nbs,0.01,k,numSamples,torch.optim.SGD,momentum=0.9,nesterov=True))
 
-    datafile = open("Data/Q{0}/B{1}/Epochs.txt".format(numQubits,pbs),"w")
+    datafile = open("Data/Q{0}/Text/B{1}.txt".format(numQubits,pbs),"w")
     datafile.write("Batch size is {0}\n".format(pbs))
     datafile.write("\n")
     counter = 0
@@ -188,13 +188,14 @@ def graphData(filename,numQubits):
     plt.title("Learning Curve for Various Optimizers with " +
               r"B = {0}".format(pbs))
     plt.legend()
-    plt.savefig("Data/Q{0}/B{1}/LearningCurve".format(numQubits,pbs),dpi = 200)
+    plt.savefig("Data/Q{0}/Graphs/B{1}.txt".format(numQubits,pbs),dpi = 200)
+    plt.clf()
     f.close()
 
-Nvalues = [5,10,15,20]
-Bvalues = [16,32,64,128,256]
+Nvalues = [10,15,20]
+Bvalues = [128,256,512]
 
 for N in Nvalues:
     for B in Bvalues:
-        produceData(1000,B,B,1,N,"All")
-        graphData("Data/Q{0}/B{1}/Epochs.txt".format(N,B),N)
+        produceData(1000,B,B,1,N,20000)
+        graphData("Data/Q{0}/Text/B{1}.txt".format(N,B),N)
