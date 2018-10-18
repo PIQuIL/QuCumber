@@ -34,8 +34,9 @@ class Timer(Callback):
     :type verbose: bool
     """
 
-    def __init__(self, verbose=True):
+    def __init__(self, maxTime, verbose=True):
         self.verbose = verbose
+        self.maxTime = maxTime
         self.epochTimes = []
         self.epochCounter = 0
 
@@ -59,6 +60,8 @@ class Timer(Callback):
             if self.verbose:
                 print("Training terminated at epoch: {}".format(epoch))
             self.calculate_elapsed_time()
+        if time.time() - self.start_time > self.maxTime:
+            nn_state.stop_training = True
 
     def on_train_end(self, nn_state):
         self.calculate_elapsed_time()
