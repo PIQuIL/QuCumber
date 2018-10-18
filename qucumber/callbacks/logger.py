@@ -18,13 +18,13 @@
 # under the License.
 
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class Logger(Callback):
-    r"""Callback which logs output at regular intervals.
+class Logger(CallbackBase):
+    r"""CallbackBase which logs output at regular intervals.
 
-    This Callback is called at the end of each epoch.
+    This CallbackBase is called at the end of each epoch.
 
     :param period: Logging frequency (in epochs).
     :type period: int

@@ -20,13 +20,13 @@
 
 import time
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class Timer(Callback):
-    """Callback which records the training time.
+class Timer(CallbackBase):
+    """CallbackBase which records the training time.
 
-    This Callback is always called at the start and end of training. It will
+    This CallbackBase is always called at the start and end of training. It will
     run at the end of an epoch or batch if the given model's `stop_training`
     property is set to True.
 

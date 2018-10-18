@@ -22,14 +22,14 @@ from pathlib import Path
 
 import torch
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class ModelSaver(Callback):
-    """Callback which allows model parameters (along with some metadata)
+class ModelSaver(CallbackBase):
+    """CallbackBase which allows model parameters (along with some metadata)
     to be saved to disk at regular intervals.
 
-    This Callback is called at the end of each epoch. If `save_initial` is
+    This CallbackBase is called at the end of each epoch. If `save_initial` is
     `True`, will also be called at the start of the training cycle.
 
     :param period: Frequency of model saving (in epochs).

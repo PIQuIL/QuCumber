@@ -1,3 +1,3 @@
-from .complex_wavefunction import ComplexWavefunction
-from .positive_wavefunction import PositiveWavefunction
-from .wavefunction import Wavefunction
+from .complex_wavefunction import ComplexWaveFunction
+from .positive_wavefunction import PositiveWaveFunction
+from .wavefunction import WaveFunctionBase

@@ -21,20 +21,20 @@ import csv
 
 import numpy as np
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class MetricEvaluator(Callback):
+class MetricEvaluator(CallbackBase):
     r"""Evaluate and hold on to the results of the given metric(s).
 
-    This Callback is called at the end of each epoch.
+    This CallbackBase is called at the end of each epoch.
 
     .. note::
-        Since Callbacks are given to :func:`fit<qucumber.nn_states.Wavefunction.fit>`
+        Since CallbackBases are given to :func:`fit<qucumber.nn_states.WaveFunction.fit>`
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`MetricEvaluator<MetricEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.nn_states.Wavefunction.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.WaveFunction.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`MetricEvaluator<MetricEvaluator>` having been called.
@@ -43,7 +43,7 @@ class MetricEvaluator(Callback):
                    metric(s).
     :type period: int
     :param metrics: A dictionary of callables where the keys are the names of
-                    the metrics and the callables take the Wavefunction being trained
+                    the metrics and the callables take the WaveFunction being trained
                     as their positional argument, along with some keyword
                     arguments. The metrics are evaluated and put into an internal
                     dictionary structure resembling the structure of `metrics`.

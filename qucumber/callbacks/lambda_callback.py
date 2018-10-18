@@ -19,10 +19,10 @@
 
 from inspect import signature
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class LambdaCallback(Callback):
+class LambdaCallback(CallbackBase):
     """Class for creating simple callbacks.
 
     This callback is constructed using the passed functions that will be called
@@ -30,32 +30,32 @@ class LambdaCallback(Callback):
 
     :param on_train_start: A function to be called at the start of the training
         cycle. Must follow the same signature as
-        :func:`Callback.on_train_start<Callback.on_train_start>`.
+        :func:`CallbackBase.on_train_start<CallbackBase.on_train_start>`.
     :type on_train_start: callable or None
 
     :param on_train_end: A function to be called at the end of the training
         cycle. Must follow the same signature as
-        :func:`Callback.on_train_end<Callback.on_train_end>`.
+        :func:`CallbackBase.on_train_end<CallbackBase.on_train_end>`.
     :type on_train_end: callable or None
 
     :param on_epoch_start: A function to be called at the start of every epoch.
         Must follow the same signature as
-        :func:`Callback.on_epoch_start<Callback.on_epoch_start>`.
+        :func:`CallbackBase.on_epoch_start<CallbackBase.on_epoch_start>`.
     :type on_epoch_start: callable or None
 
     :param on_epoch_end: A function to be called at the end of every epoch.
         Must follow the same signature as
-        :func:`Callback.on_epoch_end<Callback.on_epoch_end>`.
+        :func:`CallbackBase.on_epoch_end<CallbackBase.on_epoch_end>`.
     :type on_epoch_end: callable or None
 
     :param on_batch_start: A function to be called at the start of every batch.
         Must follow the same signature as
-        :func:`Callback.on_batch_start<Callback.on_batch_start>`.
+        :func:`CallbackBase.on_batch_start<CallbackBase.on_batch_start>`.
     :type on_batch_start: callable or None
 
     :param on_batch_end: A function to be called at the end of every batch.
         Must follow the same signature as
-        :func:`Callback.on_batch_end<Callback.on_batch_end>`.
+        :func:`CallbackBase.on_batch_end<CallbackBase.on_batch_end>`.
     :type on_batch_end: callable or None
     """
 

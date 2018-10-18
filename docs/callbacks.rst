@@ -3,7 +3,7 @@
 Callbacks
 =========
 
-.. autoclass:: qucumber.callbacks.Callback
+.. autoclass:: qucumber.callbacks.CallbackBase
     :members:
 
 .. autoclass:: qucumber.callbacks.LambdaCallback
