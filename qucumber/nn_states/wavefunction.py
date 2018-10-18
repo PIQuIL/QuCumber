@@ -457,7 +457,7 @@ class WaveFunctionBase(abc.ABC):
                                from a previous state.
         :type starting_epoch: int
         :param callbacks: Callbacks to run while training.
-        :type callbacks: list[qucumber.callbacks.Callback]
+        :type callbacks: list[qucumber.callbacks.CallbackBase]
         :param optimizer: The constructor of a torch optimizer.
         :type optimizer: torch.optim.Optimizer
         :param kwargs: Keyword arguments to pass to the optimizer

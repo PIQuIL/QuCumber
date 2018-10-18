@@ -1,4 +1,4 @@
-from .callback import Callback
+from .callback import CallbackBase
 from .callback_list import CallbackList
 from .early_stopping import EarlyStopping
 from .lambda_callback import LambdaCallback
