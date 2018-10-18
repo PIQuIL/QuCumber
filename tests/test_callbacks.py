@@ -19,7 +19,7 @@
 
 import pytest
 
-from qucumber.callbacks import LambdaCallback, EarlyStopping, Logger
+from qucumber.callbacks import LambdaCallback
 
 
 callback_stages = (
