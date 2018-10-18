@@ -4,27 +4,27 @@ Quantum States
 ==============================
 
 
-Positive Wavefunction
+Positive WaveFunction
 ------------------------------
 
-.. autoclass:: qucumber.nn_states.PositiveWavefunction
+.. autoclass:: qucumber.nn_states.PositiveWaveFunction
     :members:
     :inherited-members:
     :show-inheritance:
 
-Complex Wavefunction
+Complex WaveFunction
 ------------------------------
 
-.. autoclass:: qucumber.nn_states.ComplexWavefunction
+.. autoclass:: qucumber.nn_states.ComplexWaveFunction
     :members:
     :inherited-members:
     :show-inheritance:
 
-Abstract Wavefunction
+Abstract WaveFunction
 ------------------------------
 
 .. note:: |AbstractClassNote|
 
-.. autoclass:: qucumber.nn_states.Wavefunction
+.. autoclass:: qucumber.nn_states.WaveFunctionBase
     :members:
     :show-inheritance:

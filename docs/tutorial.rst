@@ -5,11 +5,11 @@ Download the tutorials
 Once you have installed QuCumber, we recommend going through our tutorial that
 is divided into two parts.
 
-#. Training a Wavefunction to reconstruct a positive-real wavefunction (i.e.
+#. Training a wave function to reconstruct a positive-real wave function (i.e.
    no phase) from a transverse-field Ising model (TFIM) and then generating new
    data.
 
-#. Training an Wavefunction to reconstruct a complex wavefunction (i.e. with a
+#. Training an wave function to reconstruct a complex wave function (i.e. with a
    phase) from a simple two qubit random state and then generating new data.
 
 We have made interactive python notebooks that can be downloaded (along with
