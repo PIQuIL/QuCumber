@@ -29,7 +29,7 @@ class TestPauli(unittest.TestCase):
     def test_spinflip(self):
         test_psi = ComplexWaveFunction(2, num_hidden=3)
         test_sample = test_psi.sample(100, num_samples=1000)
-        observables.pauli.flip_spin(2, test_sample)
+        observables.pauli.flip_spin(1, test_sample)
 
     def test_apply(self):
         test_psi = ComplexWaveFunction(2, num_hidden=3)
