@@ -188,7 +188,7 @@ def graphData(filename,numQubits):
     plt.title("Learning Curve for Various Optimizers with " +
               r"B = {0}".format(pbs))
     plt.legend()
-    plt.savefig("Data/Q{0}/Graphs/B{1}.txt".format(numQubits,pbs),dpi = 200)
+    plt.savefig("Data/Q{0}/Graphs/B{1}".format(numQubits,pbs),dpi = 200)
     plt.clf()
     f.close()
 
