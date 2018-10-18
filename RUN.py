@@ -98,6 +98,100 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,**kwargs):
 
     return results
 
+########## STAGE 1: Test various batch sizes on regular SGD ##########
+
+def produceDataB(epochs,k,numQubits,numSamples):
+    '''
+    Writes a datafile containing lists of fidelities and runtimes for
+    several epochs for various batch sizes.
+
+    :param epochs: Total number of epochs to train.
+    :type epochs: int
+    :param k: Number of contrastive divergence steps in training.
+    :type k: int
+    :param numQubits: Number of qubits in the quantum state.
+    :type numQubits: int
+    :param numSamples: Number of samples to use from sample file.
+    :type numSamples: int
+
+    :returns: None
+    '''
+
+    results = []
+    results.append(trainRBM(numQubits,epochs,16,16,0.01,k,numSamples,torch.optim.SGD))
+    results.append(trainRBM(numQubits,epochs,32,32,0.01,k,numSamples,torch.optim.SGD))
+    results.append(trainRBM(numQubits,epochs,64,64,0.01,k,numSamples,torch.optim.SGD))
+    results.append(trainRBM(numQubits,epochs,128,128,0.01,k,numSamples,torch.optim.SGD))
+    results.append(trainRBM(numQubits,epochs,256,256,0.01,k,numSamples,torch.optim.SGD))
+    results.append(trainRBM(numQubits,epochs,512,512,0.01,k,numSamples,torch.optim.SGD))
+
+    datafile = open("Data/BatchSizes/Q{0}/Epochs.txt".format(numQubits),"w")
+    counter = 0
+    for result in results:
+        datafile.write("Batch size is {0}\n".format(2 ** (counter + 3)))
+        datafile.write("Epoch & Fidelity & Runtime" + " \n")
+        for i in range(len(result["epochs"])):
+            datafile.write(str(result["epochs"][i]) + " " +
+                           str(round(result["fidelities"][i].item(),6)) + " " +
+                           str(round(result["times"][i],6)) + "\n")
+        datafile.write("\n")
+        counter += 1
+    datafile.close()
+
+def graphDataB(filename,numQubits):
+    '''
+    Graphs a plot of fidelity vs runtime
+
+    :param filename: Name of file containing data
+    :type filename: str
+    :param numQubits: Number of qubits in the quantum state.
+    :type numQubits: int
+
+    :returns: None
+    '''
+
+    f = open(filename)
+    lines = []
+    line = f.readline()
+    fidelities = []
+    runtimes = []
+    batchsizes = []
+
+    counter = 0
+    while line != "":
+        if line == "\n":
+            plt.plot(runtimes,fidelities,"-o",label = batchsizes[counter])
+            counter += 1
+            fidelities = []
+            runtimes = []
+        elif line[0] == "E":
+            line = f.readline()
+            continue
+        elif line[0] == "B":
+            line = line.strip("\n")
+            line = line.split(" ")
+            batchsizes.append(int(line[3]))
+        else:
+            line = line.strip("\n")
+            line = line.split(" ")
+            fidelities.append(float(line[1]))
+            runtimes.append(float(line[2]))
+        line = f.readline()
+
+    plt.xlabel("Runtime (Seconds)")
+    plt.ylabel("Fidelity")
+    plt.title("Learning Curve for Various Batch Sizes with SGD")
+    plt.legend()
+    plt.savefig("Data/BatchSizes/Q{0}/LC".format(numQubits),dpi = 200)
+    plt.clf()
+    f.close()
+
+# Test N = 5
+produceDataB(1000,1,5,5000)
+graphDataB("Data/BatchSizes/Q5/Epochs.txt",5)
+
+######################################################################
+
 def produceData(epochs,pbs,nbs,k,numQubits,numSamples):
     '''
     Writes a datafile containing lists of fidelities and runtimes for
@@ -192,6 +286,7 @@ def graphData(filename,numQubits):
     plt.clf()
     f.close()
 
+'''
 Nvalues = [10,15,20]
 Bvalues = [128,256,512]
 
@@ -199,3 +294,4 @@ for N in Nvalues:
     for B in Bvalues:
         produceData(1000,B,B,1,N,20000)
         graphData("Data/Q{0}/Text/B{1}.txt".format(N,B),N)
+'''
