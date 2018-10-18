@@ -129,7 +129,7 @@ In section \ref{Sec:Training_TFIM}, we present how at use QuCumber to reconstruc
 The case of a complex wavefunction is discussed in Section \ref{Sec:Training_QuCumber_on_complex_wavefunctions}. A glossary of useful terms and equations appears at the end of the post in Section \ref{Glossary}.
 
 
-\section{Positive Real Wavefunctions}
+\section{Positive Real Wave Functions}
 
 In this section, we discuss the application of QuCumber to wavefunctions that are positive and real-valued in the computational basis.
 That is, the expansion of the wavefunction has all positive and real coefficients in the basis in which experimental
@@ -189,12 +189,12 @@ train_data, true_psi = data.load_data(train_path, psi_path)
 
 The central object of QuCumber is the representation of the wavefunction, which in the case of a positive-real wavefunction
 is a standard RBM as per Figure~\ref{fig:RBM}.
-The Python object \verb|PositiveWavefunction| serves this purpose.
+The Python object \verb|PositiveWaveFunction| serves this purpose.
 To instanciate a positive wavefunction, one needs to specify the number of visible and hidden units in the RBM.
 The biases are initialized to zero, and the weights are initalized randomly according to a normal distrubution with zero mean and a variance of $1/$\verb|num_visible|.
 \begin{python}
-from qucumber.nn_states import PositivWavefunction
-state = PositiveWavefunction(num_visible=10, num_hidden=10)
+from qucumber.nn_states import PositivWaveFunction
+state = PositiveWaveFunction(num_visible=10, num_hidden=10)
 \end{python}
 The number of visible units (\verb|num_visible|) is given by the size of the physical system $N$, i.e., the number of spins or qubits.
 In contrast, the number of hidden units (\verb|num_hidden|) can be varied to change the expressiveness of the RBM.
@@ -207,7 +207,7 @@ In the general case, however, the value of $\alpha$ required for a given wavefun
 
 \subsubsection{Training the RBM}
 
-To train an neural network state, we called the function \verb|PositiveWavefunction.fit|, which takes a number of hyperparameters.
+To train an neural network state, we called the function \verb|PositiveWaveFunction.fit|, which takes a number of hyperparameters.
 The choice of hyperparameter depends on the details of the system under study, as well as the size and quality of the training set.
 In this example, we take a learning rate (\verb|lr|) of $10^{-2}$ using stochastic (batch) gradient descent with a positive (and negative) batch size of 100, trained for 500 epochs.
 The number of Gibbs sampling steps \verb|k|, which dictates the number of steps in the contrastive divergence algorithm \cite{hinton2002training},
@@ -243,7 +243,7 @@ callbacks = [
 ]
 \end{python}
 
-Once the metrics to monitor during training have been chosen, we can invoke the optimization with the \verb|fit| function of \verb|PositiveWavefunction|.
+Once the metrics to monitor during training have been chosen, we can invoke the optimization with the \verb|fit| function of \verb|PositiveWaveFunction|.
 
 
 \begin{python}
@@ -485,7 +485,7 @@ import torch
 import numpy as np
 import pickle
 
-from qucumber.nn_states import ComplexWavefunction
+from qucumber.nn_states import ComplexWaveFunction
 
 from qucumber.callbacks import MetricEvaluator
 
