@@ -164,7 +164,7 @@ def graphDataB(filename,numQubits):
     counter = 0
     while line != "":
         if line == "\n":
-            plt.plot(runtimes,fidelities,"-o",label = batchsizes[counter])
+            plt.plot(runtimes,fidelities,"-o",label = batchsizes[counter],markersize = 2)
             counter += 1
             fidelities = []
             runtimes = []
@@ -191,7 +191,7 @@ def graphDataB(filename,numQubits):
     f.close()
 
 # Test N = 5
-produceDataB(100000,1,5,5000,15)
+produceDataB(100000,1,5,5000,180)
 graphDataB("Data/BatchSizes/Q5/Epochs.txt",5)
 
 ######################################################################
