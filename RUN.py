@@ -134,7 +134,7 @@ def produceDataB(epochs,k,numQubits,numSamples,mT):
     for result in results:
         datafile.write("Batch size is {0}\n".format(2 ** (counter + 3)))
         datafile.write("Epoch & Fidelity & Runtime" + " \n")
-        for i in range(len(result["epochs"])):
+        for i in range(len(result["times"])):
             datafile.write(str(result["epochs"][i]) + " " +
                            str(round(result["fidelities"][i].item(),6)) + " " +
                            str(round(result["times"][i],6)) + "\n")
