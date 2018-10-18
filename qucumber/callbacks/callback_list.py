@@ -19,10 +19,10 @@
 
 from collections.abc import MutableSequence
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class CallbackList(Callback, MutableSequence):
+class CallbackList(CallbackBase, MutableSequence):
     def __init__(self, callbacks):
         super(CallbackList, self).__init__()
         self.callbacks = list(callbacks)
@@ -34,10 +34,12 @@ class CallbackList(Callback, MutableSequence):
         return self.callbacks[key]
 
     def __setitem__(self, key, value):
-        if isinstance(value, Callback):
+        if isinstance(value, CallbackBase):
             self.callbacks[key] = value
         else:
-            raise TypeError("value must be an instance of qucumber.callbacks.Callback")
+            raise TypeError(
+                "value must be an instance of qucumber.callbacks.CallbackBase"
+            )
 
     def __delitem__(self, index):
         del self.callbacks[index]
@@ -49,10 +51,12 @@ class CallbackList(Callback, MutableSequence):
         return CallbackList(self.callbacks + other.callbacks)
 
     def insert(self, index, value):
-        if isinstance(value, Callback):
+        if isinstance(value, CallbackBase):
             self.callbacks.insert(index, value)
         else:
-            raise TypeError("value must be an instance of qucumber.callbacks.Callback")
+            raise TypeError(
+                "value must be an instance of qucumber.callbacks.CallbackBase"
+            )
 
     def on_train_start(self, rbm):
         for cb in self.callbacks:

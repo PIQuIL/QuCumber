@@ -29,7 +29,7 @@ def fidelity(nn_state, target_psi, space, **kwargs):
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: Wavefunction
+    :type nn_state: WaveFunction
     :param target_psi: The true wavefunction of the system.
     :type target_psi: torch.Tensor
     :param space: The hilbert space of the system.
@@ -55,7 +55,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: Wavefunction
+    :type nn_state: WaveFunction
     :param basis: The basis to rotate the wavefunction to.
     :type basis: str
     :param space: The hilbert space of the system.
@@ -113,7 +113,7 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: Wavefunction
+    :type nn_state: WaveFunction
     :param target_psi: The true wavefunction of the system.
     :type target_psi: torch.Tensor
     :param space: The hilbert space of the system.

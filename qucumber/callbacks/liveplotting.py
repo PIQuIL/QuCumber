@@ -23,13 +23,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class LivePlotting(Callback):
+class LivePlotting(CallbackBase):
     """Plots metrics/observables.
 
-    This Callback is called at the end of each epoch.
+    This CallbackBase is called at the end of each epoch.
 
     :param period: Frequency with which the callback updates the plots
                    (in epochs).

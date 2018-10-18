@@ -20,7 +20,7 @@
 import torch
 
 from qucumber.utils import cplx
-from .observable import Observable
+from .observable import ObservableBase
 from .utils import to_pm1
 
 
@@ -35,7 +35,7 @@ def flip_spin(i, samples):
     samples[:, i].sub_(1).abs_()
 
 
-class SigmaX(Observable):
+class SigmaX(ObservableBase):
     r"""The :math:`\sigma_x` observable
 
     Computes the magnetization in the X direction of a spin chain.
@@ -48,8 +48,8 @@ class SigmaX(Observable):
     def apply(self, nn_state, samples):
         r"""Computes the magnetization along X of each sample in the given batch of samples.
 
-        :param nn_state: The Wavefunction that drew the samples.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction that drew the samples.
+        :type nn_state: qucumber.nn_states.WaveFunction
         :param samples: A batch of samples to calculate the observable on.
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
@@ -75,7 +75,7 @@ class SigmaX(Observable):
         return psi_ratio_sum[0].div_(samples.shape[-1])
 
 
-class SigmaY(Observable):
+class SigmaY(ObservableBase):
     r"""The :math:`\sigma_y` observable
 
     Computes the magnetization in the Y direction of a spin chain.
@@ -88,8 +88,8 @@ class SigmaY(Observable):
     def apply(self, nn_state, samples):
         r"""Computes the magnetization along Y of each sample in the given batch of samples.
 
-        :param nn_state: The Wavefunction that drew the samples.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction that drew the samples.
+        :type nn_state: qucumber.nn_states.WaveFunction
         :param samples: A batch of samples to calculate the observable on.
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
@@ -121,7 +121,7 @@ class SigmaY(Observable):
         return psi_ratio_sum[0].div_(samples.shape[-1])
 
 
-class SigmaZ(Observable):
+class SigmaZ(ObservableBase):
     r"""The :math:`\sigma_z` observable.
 
     Computes the magnetization in the Z direction of a spin chain.
@@ -134,8 +134,8 @@ class SigmaZ(Observable):
     def apply(self, nn_state, samples):
         r"""Computes the magnetization of each sample given a batch of samples.
 
-        :param nn_state: The Wavefunction that drew the samples.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction that drew the samples.
+        :type nn_state: qucumber.nn_states.WaveFunction
         :param samples: A batch of samples to calculate the observable on.
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor

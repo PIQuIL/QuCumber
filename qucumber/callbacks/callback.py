@@ -18,30 +18,30 @@
 # under the License.
 
 
-class Callback:
+class CallbackBase:
     """Base class for callbacks."""
 
     def on_train_start(self, nn_state):
         """Called at the start of the training cycle.
 
-        :param nn_state: The Wavefunction being trained.
-        :type nn_state: Wavefunction
+        :param nn_state: The WaveFunction being trained.
+        :type nn_state: WaveFunction
         """
         pass
 
     def on_train_end(self, nn_state):
         """Called at the end of the training cycle.
 
-        :param nn_state: The Wavefunction being trained.
-        :type nn_state: Wavefunction
+        :param nn_state: The WaveFunction being trained.
+        :type nn_state: WaveFunction
         """
         pass
 
     def on_epoch_start(self, nn_state, epoch):
         """Called at the start of each epoch.
 
-        :param nn_state: The Wavefunction being trained.
-        :type nn_state: Wavefunction
+        :param nn_state: The WaveFunction being trained.
+        :type nn_state: WaveFunction
         :param epoch: The current epoch.
         :type epoch: int
         """
@@ -50,8 +50,8 @@ class Callback:
     def on_epoch_end(self, nn_state, epoch):
         """Called at the end of each epoch.
 
-        :param nn_state: The Wavefunction being trained.
-        :type nn_state: Wavefunction
+        :param nn_state: The WaveFunction being trained.
+        :type nn_state: WaveFunction
         :param epoch: The current epoch.
         :type epoch: int
         """
@@ -60,8 +60,8 @@ class Callback:
     def on_batch_start(self, nn_state, epoch, batch):
         """Called at the start of each batch.
 
-        :param nn_state: The Wavefunction being trained.
-        :type nn_state: Wavefunction
+        :param nn_state: The WaveFunction being trained.
+        :type nn_state: WaveFunction
         :param epoch: The current epoch.
         :type epoch: int
         :param batch: The current batch index.
@@ -72,8 +72,8 @@ class Callback:
     def on_batch_end(self, nn_state, epoch, batch):
         """Called at the end of each batch.
 
-        :param nn_state: The Wavefunction being trained.
-        :type nn_state: Wavefunction
+        :param nn_state: The WaveFunction being trained.
+        :type nn_state: WaveFunction
         :param epoch: The current epoch.
         :type epoch: int
         :param batch: The current batch index.

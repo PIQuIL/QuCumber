@@ -20,11 +20,11 @@
 import torch
 
 from qucumber.rbm import BinaryRBM
-from .wavefunction import Wavefunction
+from .wavefunction import WaveFunctionBase
 
 
-class PositiveWavefunction(Wavefunction):
-    """Class capable of learning Wavefunctions with no phase.
+class PositiveWaveFunction(WaveFunctionBase):
+    """Class capable of learning WaveFunctionBases with no phase.
 
     :param num_visible: The number of visible units, ie. the size of the system being learned.
     :type num_visible: int
@@ -84,7 +84,7 @@ class PositiveWavefunction(Wavefunction):
     def phase(self, v):
         r"""Compute the phase of a given vector/matrix of visible states.
 
-        In the case of a Positive Wavefunction, the phase is just zero.
+        In the case of a Positive WaveFunctionBase, the phase is just zero.
 
         :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.Tensor
@@ -176,7 +176,7 @@ class PositiveWavefunction(Wavefunction):
         optimizer=torch.optim.SGD,
         **kwargs
     ):
-        """Train the Wavefunction.
+        """Train the WaveFunctionBase.
 
         :param data: The training samples
         :type data: np.array
@@ -241,7 +241,7 @@ class PositiveWavefunction(Wavefunction):
             state_dict = torch.load(location, map_location=lambda storage, loc: storage)
         else:
             state_dict = torch.load(location)
-        wvfn = PositiveWavefunction(
+        wvfn = PositiveWaveFunction(
             num_visible=len(state_dict["rbm_am"]["visible_bias"]),
             num_hidden=len(state_dict["rbm_am"]["hidden_bias"]),
             gpu=gpu,

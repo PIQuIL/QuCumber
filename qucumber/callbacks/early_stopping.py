@@ -18,10 +18,10 @@
 # under the License.
 
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class EarlyStopping(Callback):
+class EarlyStopping(CallbackBase):
     r"""Stop training once the model stops improving.
     The specific criterion for stopping is:
 
@@ -31,7 +31,7 @@ class EarlyStopping(Callback):
     (time :math:`t`), :math:`p` is the "patience" parameter, and
     :math:`\epsilon` is the tolerance.
 
-    This Callback is called at the end of each epoch.
+    This CallbackBase is called at the end of each epoch.
 
     :param period: Frequency with which the callback checks whether training
                    has converged (in epochs).
