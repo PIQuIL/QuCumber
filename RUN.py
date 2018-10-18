@@ -21,7 +21,7 @@ listOptimizers = [
     "NAG $\gamma$ = 0.9"
 ]
 
-def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,**kwargs):
+def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,**kwargs):
     '''
     Takes amplitudes and samples file as input and runs an RBM in order
     to reconstruct the quantum state. Returns a dictionary containing
@@ -43,6 +43,8 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,**kwargs):
     :type numSamples: int
     :param optimizer: The constructor of a torch optimizer.
     :type optimizer: torch.optim.Optimizer
+    :param mT: Maximum time elapsed during training.
+    :type mT: int or float
     :param kwargs: Keyword arguments to pass to the optimizer
 
     :returns: Dictionary of fidelities and runtimes at various epochs.
@@ -77,7 +79,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,**kwargs):
             verbose=True,
             space=space
         ),
-        Timer(verbose = True)
+        Timer(mT,verbose = True)
     ]
 
     nn_state.fit(
@@ -100,7 +102,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,**kwargs):
 
 ########## STAGE 1: Test various batch sizes on regular SGD ##########
 
-def produceDataB(epochs,k,numQubits,numSamples):
+def produceDataB(epochs,k,numQubits,numSamples,mT):
     '''
     Writes a datafile containing lists of fidelities and runtimes for
     several epochs for various batch sizes.
@@ -113,17 +115,19 @@ def produceDataB(epochs,k,numQubits,numSamples):
     :type numQubits: int
     :param numSamples: Number of samples to use from sample file.
     :type numSamples: int
+    :param mT: Maximum time elapsed during training.
+    :type mT: int or float
 
     :returns: None
     '''
 
     results = []
-    results.append(trainRBM(numQubits,epochs,16,16,0.01,k,numSamples,torch.optim.SGD))
-    results.append(trainRBM(numQubits,epochs,32,32,0.01,k,numSamples,torch.optim.SGD))
-    results.append(trainRBM(numQubits,epochs,64,64,0.01,k,numSamples,torch.optim.SGD))
-    results.append(trainRBM(numQubits,epochs,128,128,0.01,k,numSamples,torch.optim.SGD))
-    results.append(trainRBM(numQubits,epochs,256,256,0.01,k,numSamples,torch.optim.SGD))
-    results.append(trainRBM(numQubits,epochs,512,512,0.01,k,numSamples,torch.optim.SGD))
+    results.append(trainRBM(numQubits,epochs,16,16,0.01,k,numSamples,torch.optim.SGD,mT))
+    results.append(trainRBM(numQubits,epochs,32,32,0.01,k,numSamples,torch.optim.SGD,mT))
+    results.append(trainRBM(numQubits,epochs,64,64,0.01,k,numSamples,torch.optim.SGD,mT))
+    results.append(trainRBM(numQubits,epochs,128,128,0.01,k,numSamples,torch.optim.SGD,mT))
+    results.append(trainRBM(numQubits,epochs,256,256,0.01,k,numSamples,torch.optim.SGD,mT))
+    results.append(trainRBM(numQubits,epochs,512,512,0.01,k,numSamples,torch.optim.SGD,mT))
 
     datafile = open("Data/BatchSizes/Q{0}/Epochs.txt".format(numQubits),"w")
     counter = 0
@@ -187,7 +191,7 @@ def graphDataB(filename,numQubits):
     f.close()
 
 # Test N = 5
-produceDataB(1000,1,5,5000)
+produceDataB(100000,1,5,5000,15)
 graphDataB("Data/BatchSizes/Q5/Epochs.txt",5)
 
 ######################################################################
