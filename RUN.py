@@ -122,6 +122,8 @@ def produceDataB(epochs,k,numQubits,numSamples,mT):
     '''
 
     results = []
+    results.append(trainRBM(numQubits,epochs,2,2,0.01,k,numSamples,torch.optim.SGD,mT))
+    results.append(trainRBM(numQubits,epochs,4,4,0.01,k,numSamples,torch.optim.SGD,mT))
     results.append(trainRBM(numQubits,epochs,8,8,0.01,k,numSamples,torch.optim.SGD,mT))
     results.append(trainRBM(numQubits,epochs,16,16,0.01,k,numSamples,torch.optim.SGD,mT))
     results.append(trainRBM(numQubits,epochs,32,32,0.01,k,numSamples,torch.optim.SGD,mT))
@@ -133,7 +135,7 @@ def produceDataB(epochs,k,numQubits,numSamples,mT):
     datafile = open("Data/BatchSizes/Q{0}/Epochs.txt".format(numQubits),"w")
     counter = 0
     for result in results:
-        datafile.write("Batch size is {0}\n".format(2 ** (counter + 3)))
+        datafile.write("Batch size is {0}\n".format(2 ** (counter + 1)))
         datafile.write("Epoch & Fidelity & Runtime" + " \n")
         for i in range(len(result["times"])):
             datafile.write(str(result["epochs"][i]) + " " +
