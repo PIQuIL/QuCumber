@@ -186,13 +186,13 @@ def graphDataB(filename,numQubits):
     plt.ylabel("Fidelity")
     plt.title("Learning Curve for Various Batch Sizes with SGD")
     plt.legend()
-    plt.savefig("Data/BatchSizes/Q{0}/LC".format(numQubits),dpi = 200)
+    plt.savefig(filename[0:len(filename) - 10] + "LC",dpi = 200)
     plt.clf()
     f.close()
 
 # Test N = 5
 produceDataB(100000,1,5,5000,180)
-graphDataB("Data/BatchSizes/Q5/Epochs.txt",5)
+graphDataB("Data/BatchSizes/Trial1/Q5/Epochs.txt",5)
 
 ######################################################################
 
