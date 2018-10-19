@@ -67,7 +67,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,**kwargs):
     nn_state = PositiveWavefunction(num_visible = nv,num_hidden = nh,
                                     gpu = False)
 
-    log_every = 100
+    log_every = 20
     space = nn_state.generate_hilbert_space(nv)
 
     # And now the training can begin!
