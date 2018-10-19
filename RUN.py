@@ -122,6 +122,7 @@ def produceDataB(epochs,k,numQubits,numSamples,mT):
     '''
 
     results = []
+    results.append(trainRBM(numQubits,epochs,8,8,0.01,k,numSamples,torch.optim.SGD,mT))
     results.append(trainRBM(numQubits,epochs,16,16,0.01,k,numSamples,torch.optim.SGD,mT))
     results.append(trainRBM(numQubits,epochs,32,32,0.01,k,numSamples,torch.optim.SGD,mT))
     results.append(trainRBM(numQubits,epochs,64,64,0.01,k,numSamples,torch.optim.SGD,mT))
