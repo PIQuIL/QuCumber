@@ -102,7 +102,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,**kwargs):
 
 ########## STAGE 1: Test various batch sizes on regular SGD ##########
 
-def produceDataB(epochs,k,numQubits,numSamples,mT):
+def produceDataB(epochs,k,numQubits,numSamples,mT,batchSizes):
     '''
     Writes a datafile containing lists of fidelities and runtimes for
     several epochs for various batch sizes.
@@ -117,25 +117,20 @@ def produceDataB(epochs,k,numQubits,numSamples,mT):
     :type numSamples: int
     :param mT: Maximum time elapsed during training.
     :type mT: int or float
+    :param batchSizes: List of batch sizes to try.
+    :type batchSizes: listof int
 
     :returns: None
     '''
 
     results = []
-    results.append(trainRBM(numQubits,epochs,2,2,0.01,k,numSamples,torch.optim.SGD,mT))
-    results.append(trainRBM(numQubits,epochs,4,4,0.01,k,numSamples,torch.optim.SGD,mT))
-    results.append(trainRBM(numQubits,epochs,8,8,0.01,k,numSamples,torch.optim.SGD,mT))
-    results.append(trainRBM(numQubits,epochs,16,16,0.01,k,numSamples,torch.optim.SGD,mT))
-    results.append(trainRBM(numQubits,epochs,32,32,0.01,k,numSamples,torch.optim.SGD,mT))
-    results.append(trainRBM(numQubits,epochs,64,64,0.01,k,numSamples,torch.optim.SGD,mT))
-    results.append(trainRBM(numQubits,epochs,128,128,0.01,k,numSamples,torch.optim.SGD,mT))
-    results.append(trainRBM(numQubits,epochs,256,256,0.01,k,numSamples,torch.optim.SGD,mT))
-    results.append(trainRBM(numQubits,epochs,512,512,0.01,k,numSamples,torch.optim.SGD,mT))
+    for b in batchSizes:
+        results.append(trainRBM(numQubits,epochs,b,b,0.01,k,numSamples,torch.optim.SGD,mT))
 
     datafile = open("Data/BatchSizes/Q{0}/Epochs.txt".format(numQubits),"w")
     counter = 0
     for result in results:
-        datafile.write("Batch size is {0}\n".format(2 ** (counter + 1)))
+        datafile.write("Batch size is {0}\n".format(batchSizes[counter]))
         datafile.write("Epoch & Fidelity & Runtime" + " \n")
         for i in range(len(result["times"])):
             datafile.write(str(result["epochs"][i]) + " " +
@@ -194,7 +189,7 @@ def graphDataB(filename,numQubits):
     f.close()
 
 # Test N = 5
-produceDataB(100000,1,5,5000,180)
+produceDataB(100000,1,5,5000,180,[2,4,8,16,32,64,128,256,512])
 graphDataB("Data/BatchSizes/Trial1/Q5/Epochs.txt",5)
 
 ######################################################################
