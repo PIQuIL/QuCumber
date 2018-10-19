@@ -1,5 +1,5 @@
-Batch size is 8
-Epoch & Fidelity & Runtime 
+Batch size is 16
+Epoch & Fidelity & Runtime
 100 0.77 13.104419
 200 0.853714 26.164784
 300 0.885429 39.154773
@@ -14,8 +14,8 @@ Epoch & Fidelity & Runtime
 1200 0.910656 156.149153
 1300 0.920486 169.137237
 
-Batch size is 16
-Epoch & Fidelity & Runtime 
+Batch size is 32
+Epoch & Fidelity & Runtime
 100 0.701343 6.935787
 200 0.792031 13.875499
 300 0.859323 20.808396
@@ -43,8 +43,8 @@ Epoch & Fidelity & Runtime
 2500 0.974516 173.052173
 2600 0.97705 179.979748
 
-Batch size is 32
-Epoch & Fidelity & Runtime 
+Batch size is 64
+Epoch & Fidelity & Runtime
 100 0.59731 3.723114
 200 0.698687 7.427431
 300 0.74974 11.092031
@@ -95,8 +95,8 @@ Epoch & Fidelity & Runtime
 4800 0.946222 176.327169
 4900 0.945074 180.002334
 
-Batch size is 64
-Epoch & Fidelity & Runtime 
+Batch size is 128
+Epoch & Fidelity & Runtime
 100 0.467046 2.143987
 200 0.567879 4.21437
 300 0.647428 6.269796
@@ -186,8 +186,8 @@ Epoch & Fidelity & Runtime
 8700 0.958171 177.647886
 8800 0.958767 179.689708
 
-Batch size is 128
-Epoch & Fidelity & Runtime 
+Batch size is 256
+Epoch & Fidelity & Runtime
 100 0.428098 1.292418
 200 0.51965 2.568054
 300 0.592274 3.826382
@@ -333,8 +333,8 @@ Epoch & Fidelity & Runtime
 14300 0.971904 178.542731
 14400 0.972757 179.790239
 
-Batch size is 256
-Epoch & Fidelity & Runtime 
+Batch size is 512
+Epoch & Fidelity & Runtime
 100 0.386263 0.861841
 200 0.419787 1.709522
 300 0.45774 2.546985
@@ -558,4 +558,3 @@ Epoch & Fidelity & Runtime
 22100 0.952242 177.915571
 22200 0.952145 178.71751
 22300 0.951921 179.519609
-
