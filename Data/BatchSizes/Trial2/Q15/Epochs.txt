@@ -1,0 +1,27 @@
+Batch size is 8
+Epoch & Fidelity & Runtime 
+
+Batch size is 16
+Epoch & Fidelity & Runtime 
+10 0.262551 283.975961
+
+Batch size is 32
+Epoch & Fidelity & Runtime 
+10 0.195259 265.441037
+
+Batch size is 64
+Epoch & Fidelity & Runtime 
+10 0.123488 256.418442
+
+Batch size is 128
+Epoch & Fidelity & Runtime 
+10 0.080826 251.404756
+
+Batch size is 256
+Epoch & Fidelity & Runtime 
+10 0.06381 250.441744
+
+Batch size is 512
+Epoch & Fidelity & Runtime 
+10 0.059271 251.336696
+
