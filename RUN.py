@@ -276,7 +276,7 @@ def graphData(filename,numQubits):
     counter = 0
     while line != "":
         if line == "\n":
-            plt.plot(runtimes,fidelities,"-o",label = listOptimizers[counter])
+            plt.plot(runtimes,fidelities,"-o",label = listOptimizers[counter],markersize = 2)
             counter += 1
             fidelities = []
             runtimes = []
@@ -295,7 +295,7 @@ def graphData(filename,numQubits):
     plt.title("Learning Curve for Various Optimizers with " +
               r"$\alpha = {0}$".format(lr))
     plt.legend()
-    plt.savefig("Data/Optimizers/Q{0}/LC".format(numQubits),dpi = 200)
+    plt.savefig(filename[0:len(filename) - 10] + "LC",dpi = 200)
     plt.clf()
     f.close()
 
@@ -308,7 +308,9 @@ for N in Nvalues:
         produceData(1000,B,B,1,N,20000)
         graphData("Data/Q{0}/Text/B{1}.txt".format(N,B),N)
 '''
-produceData(10000,10,1,5,5000,0.01,10,1)
-graphData("Data/Optimizers/Q5/Epochs.txt",5)
+#produceData(10000,10,1,5,5000,0.01,10,1)
+graphData("Data/Optimizers/LR0p01/Trial1/Q5/Epochs.txt",5)
+graphData("Data/Optimizers/LR0p01/Trial1/Q10/Epochs.txt",10)
+graphData("Data/Optimizers/LR0p01/Trial1/Q15/Epochs.txt",15)
 
 ######################################################################
