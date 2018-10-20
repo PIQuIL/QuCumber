@@ -34,9 +34,10 @@ class Timer(Callback):
     :type verbose: bool
     """
 
-    def __init__(self, maxTime, verbose=True):
+    def __init__(self, maxTime, logEvery, verbose=True):
         self.verbose = verbose
         self.maxTime = maxTime
+        self.logEvery = logEvery
         self.epochTimes = []
         self.epochCounter = 0
 
@@ -53,7 +54,7 @@ class Timer(Callback):
 
     def on_epoch_end(self, nn_state, epoch):
         self.epochCounter += 1
-        if self.epochCounter % 100 == 0:
+        if self.epochCounter % self.logEvery == 0:
             totalTimeElapsed = time.time() - self.start_time
             self.epochTimes.append(totalTimeElapsed)
         if nn_state.stop_training:
