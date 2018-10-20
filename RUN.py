@@ -221,7 +221,6 @@ def produceData(epochs,pbs,nbs,k,numQubits,numSamples):
     results.append(trainRBM(numQubits,epochs,pbs,nbs,1,k,numSamples,torch.optim.Adadelta))
     results.append(trainRBM(numQubits,epochs,pbs,nbs,0.001,k,numSamples,torch.optim.Adam))
     results.append(trainRBM(numQubits,epochs,pbs,nbs,0.002,k,numSamples,torch.optim.Adamax))
-    results.append(trainRBM(numQubits,epochs,pbs,nbs,0.01,k,numSamples,torch.optim.RMSprop))
     results.append(trainRBM(numQubits,epochs,pbs,nbs,0.01,k,numSamples,torch.optim.SGD))
     results.append(trainRBM(numQubits,epochs,pbs,nbs,0.01,k,numSamples,torch.optim.SGD,momentum=0.9))
     results.append(trainRBM(numQubits,epochs,pbs,nbs,0.01,k,numSamples,torch.optim.SGD,momentum=0.9,nesterov=True))
