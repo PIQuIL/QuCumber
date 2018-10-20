@@ -21,7 +21,7 @@ listOptimizers = [
     "NAG $\gamma$ = 0.9"
 ]
 
-def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,**kwargs):
+def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,**kwargs):
     '''
     Takes amplitudes and samples file as input and runs an RBM in order
     to reconstruct the quantum state. Returns a dictionary containing
@@ -45,6 +45,8 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,**kwargs):
     :type optimizer: torch.optim.Optimizer
     :param mT: Maximum time elapsed during training.
     :type mT: int or float
+    :param log_every: Update callbacks every this number of epochs.
+    :type log_every: int
     :param kwargs: Keyword arguments to pass to the optimizer
 
     :returns: Dictionary of fidelities and runtimes at various epochs.
@@ -67,7 +69,6 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,**kwargs):
     nn_state = PositiveWavefunction(num_visible = nv,num_hidden = nh,
                                     gpu = False)
 
-    log_every = 20
     space = nn_state.generate_hilbert_space(nv)
 
     # And now the training can begin!
@@ -79,7 +80,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,**kwargs):
             verbose=True,
             space=space
         ),
-        Timer(mT,verbose = True)
+        Timer(mT,log_every,verbose = True)
     ]
 
     nn_state.fit(
@@ -102,7 +103,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,**kwargs):
 
 ########## STAGE 1: Test various batch sizes on regular SGD ##########
 
-def produceDataB(epochs,k,numQubits,numSamples,mT,batchSizes):
+def produceDataB(epochs,k,numQubits,numSamples,mT,batchSizes,log_every):
     '''
     Writes a datafile containing lists of fidelities and runtimes for
     several epochs for various batch sizes.
@@ -119,13 +120,15 @@ def produceDataB(epochs,k,numQubits,numSamples,mT,batchSizes):
     :type mT: int or float
     :param batchSizes: List of batch sizes to try.
     :type batchSizes: listof int
+    :param log_every: Update callbacks every this number of epochs.
+    :type log_every: int
 
     :returns: None
     '''
 
     results = []
     for b in batchSizes:
-        results.append(trainRBM(numQubits,epochs,b,b,0.01,k,numSamples,torch.optim.SGD,mT))
+        results.append(trainRBM(numQubits,epochs,b,b,0.01,k,numSamples,torch.optim.SGD,mT,log_every))
 
     datafile = open("Data/BatchSizes/Q{0}/Epochs.txt".format(numQubits),"w")
     counter = 0
@@ -189,7 +192,7 @@ def graphDataB(filename,numQubits):
     f.close()
 
 # Test N = 5
-produceDataB(100000,1,5,5000,180,[2,4,8,16,32,64,128,256,512])
+produceDataB(100000,1,5,5000,60,[2,4,8,16,32,64,128,256,512],10)
 graphDataB("Data/BatchSizes/Trial1/Q5/Epochs.txt",5)
 
 ######################################################################
