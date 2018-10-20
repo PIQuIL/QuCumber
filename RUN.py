@@ -15,7 +15,6 @@ listOptimizers = [
     "Adadelta",
     "Adam",
     "Adamax",
-    "RMSprop",
     "SGD",
     "SGD $\gamma$ = 0.9",
     "NAG $\gamma$ = 0.9"
