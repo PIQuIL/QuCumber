@@ -308,7 +308,7 @@ for N in Nvalues:
         produceData(1000,B,B,1,N,20000)
         graphData("Data/Q{0}/Text/B{1}.txt".format(N,B),N)
 '''
-#produceData(10000,10,1,5,5000,0.01,10,1)
+produceData(10000,10,1,5,5000,0.01,10,1)
 graphData("Data/Optimizers/LR0p01/Trial1/Q5/Epochs.txt",5)
 graphData("Data/Optimizers/LR0p01/Trial1/Q10/Epochs.txt",10)
 graphData("Data/Optimizers/LR0p01/Trial1/Q15/Epochs.txt",15)
