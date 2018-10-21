@@ -100,8 +100,6 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,**k
 
     return results
 
-########## STAGE 1: Test various batch sizes on regular SGD ##########
-
 def produceDataB(epochs,k,numQubits,numSamples,mT,batchSizes,log_every,trial):
     '''
     Writes a datafile containing lists of fidelities and runtimes for
@@ -191,10 +189,6 @@ def graphDataB(numQubits,trial):
     plt.savefig("Data/BatchSizes/Q{0}/Trial{1}".format(numQubits,trial),dpi = 200)
     plt.clf()
     f.close()
-
-######################################################################
-
-#### STAGE 2: Test various learning rates on various optimizers ######
 
 def produceData(epochs,b,k,numQubits,numSamples,lr,mT,log_every):
     '''
@@ -294,10 +288,3 @@ def graphData(filename,numQubits):
     plt.savefig(filename[0:len(filename) - 10] + "LC",dpi = 200)
     plt.clf()
     f.close()
-
-produceData(10000,10,1,5,5000,0.01,10,1)
-graphData("Data/Optimizers/LR0p01/Trial1/Q5/Epochs.txt",5)
-graphData("Data/Optimizers/LR0p01/Trial1/Q10/Epochs.txt",10)
-graphData("Data/Optimizers/LR0p01/Trial1/Q15/Epochs.txt",15)
-
-######################################################################
