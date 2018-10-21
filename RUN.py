@@ -299,15 +299,6 @@ def graphData(filename,numQubits):
     plt.clf()
     f.close()
 
-'''
-Nvalues = [10,15,20]
-Bvalues = [128,256,512]
-
-for N in Nvalues:
-    for B in Bvalues:
-        produceData(1000,B,B,1,N,20000)
-        graphData("Data/Q{0}/Text/B{1}.txt".format(N,B),N)
-'''
 produceData(10000,10,1,5,5000,0.01,10,1)
 graphData("Data/Optimizers/LR0p01/Trial1/Q5/Epochs.txt",5)
 graphData("Data/Optimizers/LR0p01/Trial1/Q10/Epochs.txt",10)
