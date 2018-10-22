@@ -2,6 +2,7 @@ import HyperParams as HP
 
 batchSizes = [2,4,8,16,32,64,128,256,512]
 lrs = [0.0001,0.001,0.01,0.1,1]
+kValues = [1,2,4,8,16]
 
 def RUN(study,numQubits,trial,opt = "SGD"):
     if study == "BatchSizes":
@@ -20,6 +21,13 @@ def RUN(study,numQubits,trial,opt = "SGD"):
         if numQubits == 20:
             HP.produceData(100000,4,1,numQubits,80000,lrs,opt,300,1,trial)
         HP.graphData(numQubits,opt,trial)
+    if study == "kValues":
+        if numQubits == 10:
+            HP.produceDataK(100000,4,numQubits,60000,300,kValues,1,trial)
+        elif numQubits == 15:
+            HP.produceDataK(100000,4,numQubits,70000,300,kValues,1,trial)
+        elif numQubits == 20:
+            HP.produceDataK(100000,4,numQubits,80000,300,kValues,1,trial)
+        HP.graphDataK(numQubits,trial)
 
-RUN("LearningRates",10,1)
-HP.graphLR(10,1)
+RUN("kValues",10,1)

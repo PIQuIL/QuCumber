@@ -358,3 +358,93 @@ def graphLR(numQubits,trial):
     plt.savefig("Data/CompareOpt/Q{0}/T{1}".format(numQubits,trial),dpi = 200)
     plt.clf()
     f.close()
+
+def produceDataK(epochs,b,numQubits,numSamples,mT,kValues,log_every,trial):
+    '''
+    Writes a datafile containing lists of fidelities and runtimes for
+    several epochs for various k values.
+
+    :param epochs: Total number of epochs to train.
+    :type epochs: int
+    :param b: Batch size.
+    :type b: int
+    :param numQubits: Number of qubits in the quantum state.
+    :type numQubits: int
+    :param numSamples: Number of samples to use from sample file.
+    :type numSamples: int
+    :param mT: Maximum time elapsed during training.
+    :type mT: int or float
+    :param kValues: List of k values to try.
+    :type kValues: listof int
+    :param log_every: Update callbacks every this number of epochs.
+    :type log_every: int
+    :param trial: Trial number.
+    :type trial: int
+
+    :returns: None
+    '''
+
+    results = []
+    for k in kValues:
+        results.append(trainRBM(numQubits,epochs,4,4,0.01,k,numSamples,torch.optim.SGD,mT,log_every))
+
+    datafile = open("Data/kValues/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+    counter = 0
+    for result in results:
+        datafile.write("k value is {0}\n".format(kValues[counter]))
+        datafile.write("Epoch & Fidelity & Runtime" + " \n")
+        for i in range(len(result["times"])):
+            datafile.write(str(result["epochs"][i]) + " " +
+                           str(round(result["fidelities"][i].item(),6)) + " " +
+                           str(round(result["times"][i],6)) + "\n")
+        datafile.write("\n")
+        counter += 1
+    datafile.close()
+
+def graphDataK(numQubits,trial):
+    '''
+    Graphs a plot of fidelity vs runtime
+
+    :param numQubits: Number of qubits in the quantum state.
+    :type numQubits: int
+    :param trial: Trial number.
+    :type trial: int
+
+    :returns: None
+    '''
+
+    f = open("Data/kValues/Q{0}/Trial{1}.txt".format(numQubits,trial))
+    lines = []
+    line = f.readline()
+    fidelities = []
+    runtimes = []
+    kvalues = []
+
+    counter = 0
+    while line != "":
+        if line == "\n":
+            plt.plot(runtimes,fidelities,"-o",label = kvalues[counter],markersize = 2)
+            counter += 1
+            fidelities = []
+            runtimes = []
+        elif line[0] == "E":
+            line = f.readline()
+            continue
+        elif line[0] == "k":
+            line = line.strip("\n")
+            line = line.split(" ")
+            kvalues.append(int(line[3]))
+        else:
+            line = line.strip("\n")
+            line = line.split(" ")
+            fidelities.append(float(line[1]))
+            runtimes.append(float(line[2]))
+        line = f.readline()
+
+    plt.xlabel("Runtime (Seconds)")
+    plt.ylabel("Fidelity")
+    plt.title("Learning Curve for Various k Values with SGD")
+    plt.legend()
+    plt.savefig("Data/kValues/Q{0}/Trial{1}".format(numQubits,trial),dpi = 200)
+    plt.clf()
+    f.close()
