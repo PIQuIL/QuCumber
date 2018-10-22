@@ -190,7 +190,7 @@ def graphDataB(numQubits,trial):
     plt.clf()
     f.close()
 
-def produceData(epochs,b,k,numQubits,numSamples,lr,mT,log_every):
+def produceData(epochs,b,k,numQubits,numSamples,lrs,opt,mT,log_every,trial):
     '''
     Writes a datafile containing lists of fidelities and runtimes for
     several epochs for various optimizers.
@@ -205,32 +205,48 @@ def produceData(epochs,b,k,numQubits,numSamples,lr,mT,log_every):
     :type numQubits: int
     :param numSamples: Number of samples to use from sample file.
     :type numSamples: int
-    :param lr: Learning rate.
-    :type lr: float
+    :param lrs: List of learning rates.
+    :type lrs: listof float
+    :param opt: Type of optimizer.
+    :type opt: str
     :param mT: Maximum time elapsed during training.
     :type mT: int or float
     :param batchSizes: List of batch sizes to try.
     :type batchSizes: listof int
     :param log_every: Update callbacks every this number of epochs.
     :type log_every: int
+    :param trial: Trial number.
+    :type trial: int
 
     :returns: None
     '''
 
     results = []
-    results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.Adadelta,mT,log_every))
-    results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.Adam,mT,log_every))
-    results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.Adamax,mT,log_every))
-    results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.SGD,mT,log_every))
-    results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.SGD,mT,log_every,momentum=0.9))
-    results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.SGD,mT,log_every,momentum=0.9,nesterov=True))
+    if opt == "Adadelta":
+        for lr in lrs:
+            results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.Adadelta,mT,log_every))
+    if opt == "Adam":
+        for lr in lrs:
+            results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.Adam,mT,log_every))
+    if opt == "Adamax":
+        for lr in lrs:
+            results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.Adamax,mT,log_every))
+    if opt == "SGD":
+        for lr in lrs:
+            results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.SGD,mT,log_every))
+    if opt == "SGDM":
+        for lr in lrs:
+            results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.SGD,mT,log_every,momentum=0.9))
+    if opt == "NAG":
+        for lr in lrs:
+            results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.SGD,mT,log_every,momentum=0.9,nesterov=True))
 
-    datafile = open("Data/Optimizers/Q{0}/Epochs.txt".format(numQubits),"w")
-    datafile.write("Learning rate is {0}\n".format(lr))
+    datafile = open("Data/LearningRates/Q{0}/{1}{2}.txt".format(numQubits,opt,trial),"w")
+    datafile.write("Optimizer is {0}\n".format(opt))
     datafile.write("\n")
     counter = 0
     for result in results:
-        datafile.write("Optimizer is " + str(listOptimizers[counter]) + "\n")
+        datafile.write("LR is " + str(lrs[counter]) + "\n")
         datafile.write("Epoch & Fidelity & Runtime" + " \n")
         for i in range(len(result["times"])):
             datafile.write(str(result["epochs"][i]) + " " +
@@ -240,25 +256,24 @@ def produceData(epochs,b,k,numQubits,numSamples,lr,mT,log_every):
         counter += 1
     datafile.close()
 
-def graphData(filename,numQubits):
+def graphData(numQubits,opt,trial):
     '''
     Graphs a plot of fidelity vs runtime
 
-    :param filename: Name of file containing data
-    :type filename: str
     :param numQubits: Number of qubits in the quantum state.
     :type numQubits: int
+    :param opt: Type of optimizer.
+    :type opt: str
+    :param trial: Trial number.
+    :type trial: int
 
     :returns: None
     '''
 
-    f = open(filename)
+    f = open("Data/LearningRates/Q{0}/{1}{2}.txt".format(numQubits,opt,trial))
     lines = []
-    line = f.readline()
-    line = line.strip("\n")
-    line = line.split(" ")
-    lr = line[3]
-    line = f.readline()
+    f.readline()
+    f.readline()
     line = f.readline()
     fidelities = []
     runtimes = []
@@ -266,13 +281,17 @@ def graphData(filename,numQubits):
     counter = 0
     while line != "":
         if line == "\n":
-            plt.plot(runtimes,fidelities,"-o",label = listOptimizers[counter],markersize = 2)
+            plt.plot(runtimes,fidelities,"-o",label = lr,markersize = 2)
             counter += 1
             fidelities = []
             runtimes = []
-        elif line[0] == "E" or line[0] == "O":
+        elif line[0] == "E":
             line = f.readline()
             continue
+        elif line[0:2] == "LR":
+            line = line.strip("\n")
+            line = line.split(" ")
+            lr = line[2]
         else:
             line = line.strip("\n")
             line = line.split(" ")
@@ -282,9 +301,8 @@ def graphData(filename,numQubits):
 
     plt.xlabel("Runtime (Seconds)")
     plt.ylabel("Fidelity")
-    plt.title("Learning Curve for Various Optimizers with " +
-              r"$\alpha = {0}$".format(lr))
+    plt.title("Learning Curve for {0} with Various Learning Rates".format(opt))
     plt.legend()
-    plt.savefig(filename[0:len(filename) - 10] + "LC",dpi = 200)
+    plt.savefig("Data/LearningRates/Q{0}/{1}{2}".format(numQubits,opt,trial),dpi = 200)
     plt.clf()
     f.close()
