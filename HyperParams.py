@@ -306,3 +306,53 @@ def graphData(numQubits,opt,trial):
     plt.savefig("Data/LearningRates/Q{0}/{1}{2}".format(numQubits,opt,trial),dpi = 200)
     plt.clf()
     f.close()
+
+def graphLR(numQubits):
+    '''
+    Graphs a plot of fidelity vs runtime
+
+    :param numQubits: Number of qubits in the quantum state.
+    :type numQubits: int
+
+    :returns: None
+    '''
+
+    f = open("Data/Q{0}.txt".format(numQubits))
+    lines = []
+    line = f.readline()
+    fidelities = []
+    runtimes = []
+
+    counter = 0
+    while line != "":
+        if line == "\n":
+            label = r"{0} ($\alpha = {1}$)".format(opt,lr)
+            plt.plot(runtimes,fidelities,"-o",label = label,markersize = 2)
+            counter += 1
+            fidelities = []
+            runtimes = []
+        elif line[0] == "E":
+            line = f.readline()
+            continue
+        elif line[0] == "O":
+            line = line.strip("\n")
+            line = line.split(" ")
+            opt = line[2]
+        elif line[0:2] == "LR":
+            line = line.strip("\n")
+            line = line.split(" ")
+            lr = line[2]
+        else:
+            line = line.strip("\n")
+            line = line.split(" ")
+            fidelities.append(float(line[1]))
+            runtimes.append(float(line[2]))
+        line = f.readline()
+
+    plt.xlabel("Runtime (Seconds)")
+    plt.ylabel("Fidelity")
+    plt.title("Learning Curves for Various Optimizers with N = {0}".format(numQubits))
+    plt.legend()
+    plt.savefig("Data/Q{0}".format(numQubits),dpi = 200)
+    plt.clf()
+    f.close()
