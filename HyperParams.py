@@ -307,17 +307,19 @@ def graphData(numQubits,opt,trial):
     plt.clf()
     f.close()
 
-def graphLR(numQubits):
+def graphLR(numQubits,trial):
     '''
     Graphs a plot of fidelity vs runtime
 
     :param numQubits: Number of qubits in the quantum state.
     :type numQubits: int
+    :param trial: Trial number.
+    :type trial: int
 
     :returns: None
     '''
 
-    f = open("Data/Q{0}.txt".format(numQubits))
+    f = open("Data/CompareOpt/Q{0}/T{1}.txt".format(numQubits,trial))
     lines = []
     line = f.readline()
     fidelities = []
@@ -353,6 +355,6 @@ def graphLR(numQubits):
     plt.ylabel("Fidelity")
     plt.title("Learning Curves for Various Optimizers with N = {0}".format(numQubits))
     plt.legend()
-    plt.savefig("Data/Q{0}".format(numQubits),dpi = 200)
+    plt.savefig("Data/CompareOpt/Q{0}/T{1}".format(numQubits,trial),dpi = 200)
     plt.clf()
     f.close()

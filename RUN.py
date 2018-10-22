@@ -22,3 +22,4 @@ def RUN(study,numQubits,trial,opt = "SGD"):
         HP.graphData(numQubits,opt,trial)
 
 RUN("LearningRates",10,1)
+HP.graphLR(10,1)
