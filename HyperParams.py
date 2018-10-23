@@ -524,3 +524,76 @@ def tryIsingGraph(trial):
     plt.savefig("Data/Ising/Trial{0}".format(trial),dpi = 200)
     plt.clf()
     f.close()
+
+def tryThis(epochs,b,lr,k,numQubits,numSamples,mT,log_every,trial):
+    '''
+    Try running RBM on original tutorial data for 1D Ising Model.
+
+    :param epochs: Total number of epochs to train.
+    :type epochs: int
+    :param b: Batch size.
+    :type b: int
+    :param lr: Learning rate.
+    :type lr: float
+    :param k: Number of contrastive divergence steps in training.
+    :type k: int
+    :param numQubits: Number of qubits in the quantum state.
+    :type numQubits: int
+    :param numSamples: Number of samples to use from sample file. Can use "All"
+    :type numSamples: int
+    :param mT: Maximum time elapsed during training.
+    :type mT: int or float
+    :param log_every: Update callbacks every this number of epochs.
+    :type log_every: int
+    :param trial: Trial number.
+    :type trial: int
+
+    :returns: None
+    '''
+    results = trainRBM(numQubits,epochs,b,b,lr,k,numSamples,torch.optim.SGD,mT,log_every)
+    datafile = open("Data/TryThis/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+    datafile.write("Epoch & Fidelity & Runtime" + " \n")
+    for i in range(len(results["times"])):
+        datafile.write(str(results["epochs"][i]) + " " +
+                       str(round(results["fidelities"][i].item(),6)) + " " +
+                       str(round(results["times"][i],6)) + "\n")
+    datafile.write("\n")
+    datafile.close()
+
+def tryThisGraph(numQubits,trial):
+    '''
+    Graphs a plot of fidelity vs runtime
+
+    :param trial: Trial number.
+    :type trial: int
+
+    :returns: None
+    '''
+
+    f = open("Data/TryThis/Q{0}/Trial{1}.txt".format(numQubits,trial))
+    lines = []
+    line = f.readline()
+    fidelities = []
+    runtimes = []
+
+    while line != "":
+        if line == "\n":
+            plt.plot(runtimes,fidelities,"-o",markersize = 2)
+            fidelities = []
+            runtimes = []
+        elif line[0] == "E":
+            line = f.readline()
+            continue
+        else:
+            line = line.strip("\n")
+            line = line.split(" ")
+            fidelities.append(float(line[1]))
+            runtimes.append(float(line[2]))
+        line = f.readline()
+
+    plt.xlabel("Runtime (Seconds)")
+    plt.ylabel("Fidelity")
+    plt.title("Learning Curve for QST with N = {0}".format(numQubits))
+    plt.savefig("Data/TryThis/Q{0}/Trial{1}".format(numQubits,trial),dpi = 200)
+    plt.clf()
+    f.close()

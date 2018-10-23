@@ -30,4 +30,4 @@ def RUN(study,numQubits,trial,opt = "SGD"):
             HP.produceDataK(100000,4,numQubits,80000,300,kValues,1,trial)
         HP.graphDataK(numQubits,trial)
 
-RUN("kValues",10,1)
+HP.tryThis(100000,4,0.01,4,10,60000,30,1,1)
