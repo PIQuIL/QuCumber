@@ -443,7 +443,7 @@ def graphDataK(numQubits,trial):
 
     plt.xlabel("Runtime (Seconds)")
     plt.ylabel("Fidelity")
-    plt.title("Learning Curve for Various k Values with SGD")
+    plt.title("Learning Curve for Various k Values for N = {0}".format(numQubits))
     plt.legend()
     plt.savefig("Data/kValues/Q{0}/Trial{1}".format(numQubits,trial),dpi = 200)
     plt.clf()
