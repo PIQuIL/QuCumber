@@ -132,15 +132,16 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
     unitary_dict = unitaries.create_dict()
     target_psi = target_psi.to(nn_state.device)
     Z = nn_state.compute_normalization(space)
+    eps = 0.000001
     if bases is None:
         num_bases = 1
         for i in range(len(space)):
             KL += (
-                cplx.norm_sqr(target_psi[:, i]) * cplx.norm_sqr(target_psi[:, i]).log()
+                cplx.norm_sqr(target_psi[:, i]) * (cplx.norm_sqr(target_psi[:, i]) + eps).log()
             )
             KL -= (
                 cplx.norm_sqr(target_psi[:, i])
-                * cplx.norm_sqr(nn_state.psi(space[i])).log()
+                * (cplx.norm_sqr(nn_state.psi(space[i])) + eps).log()
             )
             KL += cplx.norm_sqr(target_psi[:, i]) * Z.log()
     else:
