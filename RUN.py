@@ -1,9 +1,24 @@
 import HyperParams as HP
+import torch
 
-batchSizes = [2,4,8,16,32,64,128,256,512]
-lrs = [0.0001,0.001,0.01,0.1,1]
-kValues = [1,2,4,8,16]
+batchSizes = [16,32]
+lrs = [0.001,0.01]
+kValues = [2,4]
+opts = [torch.optim.SGD,torch.optim.Adam]
 
 def RUN(test):
     if test == "BatchSizes":
-        HP.produceData(10,100000,batchSizes,0.01,1,20000,torch.optim.SGD,30,1)
+        HP.produceData(5,100000,batchSizes,0.01,1,20000,torch.optim.SGD,15,1)
+        HP.graphData("BatchSizes",5,1,"Learning Curve")
+    elif test == "GibbsSampling":
+        HP.produceData(5,100000,16,0.01,kValues,20000,torch.optim.SGD,15,1)
+        HP.graphData("GibbsSampling",5,1,"Learning Curve")
+    elif test == "LearningRates":
+        HP.produceData(5,100000,16,lrs,4,20000,torch.optim.SGD,15,1)
+        HP.graphData("LearningRates",5,1,"Learning Curve")
+    elif test == "Optimizers":
+        HP.produceData(5,100000,16,lrs,4,20000,opts,15,1)
+        HP.graphData("Optimizers",5,1,"Learning Curve")
+    elif test == "TryThis":
+        HP.produceData(5,100000,16,0.01,1,20000,torch.optim.SGD,15,1)
+        HP.graphData("TryThis",5,1,"Learning Curve")
