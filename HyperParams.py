@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+import os
 
 from qucumber.nn_states import PositiveWavefunction
 from qucumber.callbacks import MetricEvaluator
@@ -114,8 +115,8 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,**kwargs):
     :type k: int OR listof int
     :param numSamples: Number of samples to use from sample file. Can use "All"
     :type numSamples: int
-    :param optimizer: The constructor of a torch optimizer.
-    :type optimizer: torch.optim.Optimizer OR listof torch.optim.Optimizer
+    :param opt: The constructor of a torch optimizer.
+    :type opt: torch.optim.Optimizer OR listof torch.optim.Optimizer
     :param mT: Maximum time elapsed during training.
     :type mT: int or float
     :param log_every: Update callbacks every this number of epochs.
@@ -129,8 +130,8 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,**kwargs):
     # Test multiple batch sizes for fixed learning rate and optimizer
     if type(b) == list:
         for B in b:
-            results.append(trainRBM(numQubits,epochs,B,B,lr,k,numSamples,optimizer,mT,log_every,**kwargs))
-        files = os.listdir("Data/BatchSizes")
+            results.append(trainRBM(numQubits,epochs,B,B,lr,k,numSamples,opt,mT,log_every,**kwargs))
+        files = os.listdir("Data/BatchSizes/Q{0}".format(numQubits))
         trial = int(files[-1][5]) + 1
         datafile = open("Data/BatchSizes/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
         datafile.write("Batch Sizes: ")
@@ -141,13 +142,13 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,**kwargs):
     # Test multiple optimizers with their ideal learning rate
     elif type(opt) == list:
         for i in range(len(opt)):
-            results.append(trainRBM(numQubits,epochs,b,b,lr[i],k,numSamples,optimizer[i],mT,log_every,**kwargs))
-        files = os.listdir("Data/Optimizers")
+            results.append(trainRBM(numQubits,epochs,b,b,lr[i],k,numSamples,opt[i],mT,log_every,**kwargs))
+        files = os.listdir("Data/Optimizers/Q{0}".format(numQubits))
         trial = int(files[-1][5]) + 1
         datafile = open("Data/Optimizers/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
         datafile.write("Optimizers: ")
         for OPT in opt:
-            datafile.write(str(OPT)[10:len(OPT)] + " ")
+            datafile.write(str(OPT)[8:len(str(OPT)) - 2].split(".")[-1] + " ")
         datafile.write("\n")
         datafile.write("Learning Rates: ")
         for LR in lr:
@@ -157,8 +158,8 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,**kwargs):
     # Test multiple learning rates for fixed optimizer
     elif type(lr) == list:
         for LR in lr:
-            results.append(trainRBM(numQubits,epochs,b,b,LR,k,numSamples,optimizer,mT,log_every,**kwargs))
-        files = os.listdir("Data/LearningRates")
+            results.append(trainRBM(numQubits,epochs,b,b,LR,k,numSamples,opt,mT,log_every,**kwargs))
+        files = os.listdir("Data/LearningRates/Q{0}".format(numQubits))
         trial = int(files[-1][5]) + 1
         datafile = open("Data/LearningRates/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
         datafile.write("Learning Rates: ")
@@ -167,10 +168,10 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,**kwargs):
         datafile.write("\n")
 
     # Test multiple k values
-    elif type(lr) == list:
+    elif type(k) == list:
         for K in k:
-            results.append(trainRBM(numQubits,epochs,b,b,LR,K,numSamples,optimizer,mT,log_every,**kwargs))
-        files = os.listdir("Data/GibbsSampling")
+            results.append(trainRBM(numQubits,epochs,b,b,lr,K,numSamples,opt,mT,log_every,**kwargs))
+        files = os.listdir("Data/GibbsSampling/Q{0}".format(numQubits))
         trial = int(files[-1][5]) + 1
         datafile = open("Data/GibbsSampling/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
         datafile.write("k Values: ")
@@ -180,14 +181,14 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,**kwargs):
 
     # Else try run for single set of specified hyperparameters
     else:
-        results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,optimizer,mT,log_every,**kwargs))
+        results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,opt,mT,log_every,**kwargs))
         files = os.listdir("Data/TryThis")
         trial = int(files[-1][5]) + 1
         datafile = open("Data/TryThis/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
 
     counter = 0
     for result in results:
-        datafile.write("Epoch & Fidelity & Runtime" + " \n")
+        datafile.write("Epoch & Fidelity & KL & Runtime" + " \n")
         for i in range(len(result["times"])):
             datafile.write(str(result["epochs"][i]) + " " +
                            str(round(result["fidelities"][i].item(),6)) + " " +
