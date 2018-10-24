@@ -182,7 +182,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,**kwargs):
     # Else try run for single set of specified hyperparameters
     else:
         results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,opt,mT,log_every,**kwargs))
-        files = os.listdir("Data/TryThis")
+        files = os.listdir("Data/TryThis/Q{0}".format(numQubits))
         trial = int(files[-1][5]) + 1
         datafile = open("Data/TryThis/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
 
@@ -215,16 +215,19 @@ def graphData(folder,numQubits,trial,title):
     '''
 
     f = open("Data/{0}/Q{1}/Trial{2}.txt".format(folder,numQubits,trial))
-    lines = []
     line = f.readline()
-    hpValues = line.strip("\n").split(" ")
-    if folder == "Optimizers":
+    if folder != "TryThis":
+        if folder == "Optimizers":
+            hpValues = line.strip("\n").split(" ")[1:-1]
+            line = f.readline()
+            LRs = line.strip("\n").split(" ")[2:-1]
+        else:
+            hpValues = line.strip("\n").split(" ")[2:-1]
         line = f.readline()
-        LRs = line.strip("\n").split(" ")
-    line = f.readline()
-    fidelities = []
-    runtimes = []
-    KLs = []
+        line = f.readline()
+    fidelities = [[]]
+    runtimes = [[]]
+    KLs = [[]]
 
     counter = 0
     while line != "":
@@ -245,33 +248,53 @@ def graphData(folder,numQubits,trial,title):
         line = f.readline()
 
     if folder == "Optimizers":
-        label = hpValues[counter] + r"($\alpha$ = {0})".format(LRs[counter])
+        for i in range(len(hpValues)):
+            label = hpValues[i] + r"($\alpha$ = {0})".format(LRs[i])
+            plt.plot(runtimes[i],fidelities[i],"-o",label = label,markersize = 2)
         plotname = "Data/{0}/Q{1}/Trial{2}".format(folder,numQubits,trial)
-        plt.plot(runtimes,fidelities,"-o",label = label,markersize = 2)
         plt.xlabel("Runtime (Seconds)")
         plt.ylabel("Fidelity")
         plt.title(title)
         plt.legend()
         plt.savefig(plotname + "F",dpi = 200)
         plt.clf()
-        plt.plot(runtimes,KLs,"-o",label = label,markersize = 2)
+        for i in range(len(hpValues)):
+            label = hpValues[i] + r"($\alpha$ = {0})".format(LRs[i])
+            plt.plot(runtimes[i],KLs[i],"-o",label = label,markersize = 2)
         plt.xlabel("Runtime (Seconds)")
         plt.ylabel("Fidelity")
         plt.title(title)
         plt.legend()
         plt.savefig(plotname + "K",dpi = 200)
         plt.clf()
-    else:
-        label = hpValues[counter]
+    elif folder == "TryThis":
+        plt.plot(runtimes[0],fidelities[0],"-o",markersize = 2)
         plotname = "Data/{0}/Q{1}/Trial{2}".format(folder,numQubits,trial)
-        plt.plot(runtimes,fidelities,"-o",label = label,markersize = 2)
+        plt.xlabel("Runtime (Seconds)")
+        plt.ylabel("Fidelity")
+        plt.title(title)
+        plt.savefig(plotname + "F",dpi = 200)
+        plt.clf()
+        plt.plot(runtimes[0],KLs[0],"-o",markersize = 2)
+        plt.xlabel("Runtime (Seconds)")
+        plt.ylabel("Fidelity")
+        plt.title(title)
+        plt.savefig(plotname + "K",dpi = 200)
+        plt.clf()
+    else:
+        for i in range(len(hpValues)):
+            label = hpValues[i]
+            plt.plot(runtimes[i],fidelities[i],"-o",label = label,markersize = 2)
+        plotname = "Data/{0}/Q{1}/Trial{2}".format(folder,numQubits,trial)
         plt.xlabel("Runtime (Seconds)")
         plt.ylabel("Fidelity")
         plt.title(title)
         plt.legend()
         plt.savefig(plotname + "F",dpi = 200)
         plt.clf()
-        plt.plot(runtimes,KLs,"-o",label = label,markersize = 2)
+        for i in range(len(hpValues)):
+            label = hpValues[i]
+            plt.plot(runtimes[i],KLs[i],"-o",label = label,markersize = 2)
         plt.xlabel("Runtime (Seconds)")
         plt.ylabel("Fidelity")
         plt.title(title)
