@@ -10,16 +10,6 @@ import qucumber.utils.training_statistics as ts
 import qucumber.utils.data as data
 
 
-
-listOptimizers = [
-    "Adadelta",
-    "Adam",
-    "Adamax",
-    "SGD",
-    "SGD $\gamma$ = 0.9",
-    "NAG $\gamma$ = 0.9"
-]
-
 def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,**kwargs):
     '''
     Takes amplitudes and samples file as input and runs an RBM in order
@@ -52,6 +42,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,**k
     :rtype: dict["epochs"]
             dict["fidelities"]
             dict["times"]
+            dict["KLs"]
     '''
 
     # Load the data corresponding to the amplitudes and samples
@@ -96,7 +87,8 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,**k
 
     results = {"epochs": np.arange(log_every, epochs + 1, log_every),
                "fidelities": callbacks[0].Fidelity,
-               "times": callbacks[1].epochTimes}
+               "times": callbacks[1].epochTimes,
+               "KLs":callbacks[0].KL}
 
     return results
 
