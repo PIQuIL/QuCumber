@@ -159,9 +159,10 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,**kwargs):
     elif type(lr) == list:
         for LR in lr:
             results.append(trainRBM(numQubits,epochs,b,b,LR,k,numSamples,opt,mT,log_every,**kwargs))
-        files = os.listdir("Data/LearningRates/Q{0}".format(numQubits))
+        optStr = str(opt)[8:len(str(opt)) - 2].split(".")[-1]
+        files = os.listdir("Data/LearningRates/Q{0}/{1}".format(numQubits,optStr))
         trial = int(files[-1][5]) + 1
-        datafile = open("Data/LearningRates/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+        datafile = open("Data/LearningRates/Q{0}/{1}/Trial{2}.txt".format(numQubits,optStr,trial),"w")
         datafile.write("Learning Rates: ")
         for LR in lr:
             datafile.write(str(LR) + " ")
@@ -198,7 +199,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,**kwargs):
         counter += 1
     datafile.close()
 
-def graphData(folder,numQubits,trial,title):
+def graphData(folder,numQubits,trial,title,opt = "SGD"):
     '''
     Graphs plots of fidelity vs RT and KL vs RT
 
@@ -210,11 +211,16 @@ def graphData(folder,numQubits,trial,title):
     :type trial: int
     :param title: Title for graph.
     :type title: str
+    :param opt: Optimizer of interest. Default is SGD.
+    :type opt: str
 
     :returns: None
     '''
 
-    f = open("Data/{0}/Q{1}/Trial{2}.txt".format(folder,numQubits,trial))
+    if folder == "LearningRates":
+        f = open("Data/{0}/Q{1}/{2}/Trial{3}.txt".format(folder,numQubits,opt,trial))
+    else:
+        f = open("Data/{0}/Q{1}/Trial{2}.txt".format(folder,numQubits,trial))
     line = f.readline()
     if folder != "TryThis":
         if folder == "Optimizers":
@@ -285,7 +291,10 @@ def graphData(folder,numQubits,trial,title):
         for i in range(len(hpValues)):
             label = hpValues[i]
             plt.plot(runtimes[i],fidelities[i],"-o",label = label,markersize = 2)
-        plotname = "Data/{0}/Q{1}/Trial{2}".format(folder,numQubits,trial)
+        if folder == "LearningRates":
+            plotname = "Data/{0}/Q{1}/{2}/Trial{3}".format(folder,numQubits,opt,trial)
+        else:
+            plotname = "Data/{0}/Q{1}/Trial{2}".format(folder,numQubits,trial)
         plt.xlabel("Runtime (Seconds)")
         plt.ylabel("Fidelity")
         plt.title(title)
