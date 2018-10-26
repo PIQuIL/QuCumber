@@ -95,7 +95,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,ndi
 
     return results
 
-def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwargs):
+def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialNum,**kwargs):
     '''
     Writes a datafile containing lists of fidelities and KLs for
     various times. The options are as follows.
@@ -125,6 +125,8 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
     :type log_every: int
     :param ndiff: Nh - Nv
     :type ndiff: int
+    :param trialNum: Trial number.
+    :type trialNum: int or "Next"
     :param kwargs: Keyword arguments to pass to the optimizer
 
     :returns: None
@@ -136,7 +138,10 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
         for B in b:
             results.append(trainRBM(numQubits,epochs,B,B,lr,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/BatchSizes/Q{0}".format(numQubits))
-        trial = int(files[-1][5]) + 1
+        if trialNum == "Next":
+            trial = int(files[-1][5]) + 1
+        else:
+            trial = trialNum
         infofile = open("Data/BatchSizes/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
@@ -156,7 +161,10 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
         for i in range(len(opt)):
             results.append(trainRBM(numQubits,epochs,b,b,lr[i],k,numSamples,opt[i],mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/Optimizers/Q{0}".format(numQubits))
-        trial = int(files[-1][5]) + 1
+        if trialNum == "Next":
+            trial = int(files[-1][5]) + 1
+        else:
+            trial = trialNum
         infofile = open("Data/Optimizers/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
@@ -180,7 +188,10 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
             results.append(trainRBM(numQubits,epochs,b,b,LR,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
         optStr = str(opt)[8:len(str(opt)) - 2].split(".")[-1]
         files = os.listdir("Data/LearningRates/Q{0}/{1}".format(numQubits,optStr))
-        trial = int(files[-1][5]) + 1
+        if trialNum == "Next":
+            trial = int(files[-1][5]) + 1
+        else:
+            trial = trialNum
         infofile = open("Data/LearningRates/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
@@ -200,7 +211,10 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
         for K in k:
             results.append(trainRBM(numQubits,epochs,b,b,lr,K,numSamples,opt,mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/GibbsSampling/Q{0}".format(numQubits))
-        trial = int(files[-1][5]) + 1
+        if trialNum == "Next":
+            trial = int(files[-1][5]) + 1
+        else:
+            trial = trialNum
         infofile = open("Data/GibbsSampling/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
@@ -219,7 +233,10 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
     else:
         results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/TryThis/Q{0}".format(numQubits))
-        trial = int(files[-1][5]) + 1
+        if trialNum == "Next":
+            trial = int(files[-1][5]) + 1
+        else:
+            trial = trialNum
         infofile = open("Data/TryThis/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
