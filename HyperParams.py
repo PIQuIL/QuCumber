@@ -204,7 +204,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
                     trial = int(char) + 1
         else:
             trial = trialNum
-        infofile = open("Data/LearningRates/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile = open("Data/LearningRates/Q{0}/{1}/Trial{2}Info.txt".format(numQubits,optStr,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
         infofile.write("b: {0}\n".format(b))
