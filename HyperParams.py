@@ -139,7 +139,11 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
             results.append(trainRBM(numQubits,epochs,B,B,lr,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/BatchSizes/Q{0}".format(numQubits))
         if trialNum == "Next":
-            trial = int(files[-1][5]) + 1
+            prevFile = files[-1]
+            trial = 0
+            for char in prevFile:
+                if char.isdigit():
+                    trial = int(char) + 1
         else:
             trial = trialNum
         infofile = open("Data/BatchSizes/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
@@ -162,7 +166,11 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
             results.append(trainRBM(numQubits,epochs,b,b,lr[i],k,numSamples,opt[i],mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/Optimizers/Q{0}".format(numQubits))
         if trialNum == "Next":
-            trial = int(files[-1][5]) + 1
+            prevFile = files[-1]
+            trial = 0
+            for char in prevFile:
+                if char.isdigit():
+                    trial = int(char) + 1
         else:
             trial = trialNum
         infofile = open("Data/Optimizers/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
@@ -189,7 +197,11 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
         optStr = str(opt)[8:len(str(opt)) - 2].split(".")[-1]
         files = os.listdir("Data/LearningRates/Q{0}/{1}".format(numQubits,optStr))
         if trialNum == "Next":
-            trial = int(files[-1][5]) + 1
+            prevFile = files[-1]
+            trial = 0
+            for char in prevFile:
+                if char.isdigit():
+                    trial = int(char) + 1
         else:
             trial = trialNum
         infofile = open("Data/LearningRates/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
@@ -212,7 +224,11 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
             results.append(trainRBM(numQubits,epochs,b,b,lr,K,numSamples,opt,mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/GibbsSampling/Q{0}".format(numQubits))
         if trialNum == "Next":
-            trial = int(files[-1][5]) + 1
+            prevFile = files[-1]
+            trial = 0
+            for char in prevFile:
+                if char.isdigit():
+                    trial = int(char) + 1
         else:
             trial = trialNum
         infofile = open("Data/GibbsSampling/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
@@ -234,7 +250,11 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
         results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/TryThis/Q{0}".format(numQubits))
         if trialNum == "Next":
-            trial = int(files[-1][5]) + 1
+            prevFile = files[-1]
+            trial = 0
+            for char in prevFile:
+                if char.isdigit():
+                    trial = int(char) + 1
         else:
             trial = trialNum
         infofile = open("Data/TryThis/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
