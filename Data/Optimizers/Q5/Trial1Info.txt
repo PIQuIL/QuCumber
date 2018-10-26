@@ -1,0 +1,5 @@
+numQubits: 5
+numSamples: 20000
+b: 16
+k: 4
+ndiff: 0

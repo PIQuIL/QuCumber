@@ -1,0 +1,6 @@
+numQubits: 5
+numSamples: 20000
+b: 16
+k: 4
+opt: <class 'torch.optim.sgd.SGD'>
+ndiff: 0
