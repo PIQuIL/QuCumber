@@ -48,7 +48,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,**k
 
     # Load the data corresponding to the amplitudes and samples
     # of the quantum system
-    psi_path = r"Samples/{0}Q/AmplitudesP.txt".format(numQubits)
+    psi_path = r"Samples/{0}Q/Amplitudes.txt".format(numQubits)
     train_path = r"Samples/{0}Q/Samples.txt".format(numQubits)
     train_data, true_psi = data.load_data(train_path, psi_path,
                                           numSamples=numSamples)
