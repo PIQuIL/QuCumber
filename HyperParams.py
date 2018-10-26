@@ -11,7 +11,7 @@ import qucumber.utils.training_statistics as ts
 import qucumber.utils.data as data
 
 
-def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,**kwargs):
+def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,ndiff,**kwargs):
     '''
     Takes amplitudes and samples file as input and runs an RBM in order
     to reconstruct the quantum state. Returns a dictionary containing
@@ -37,6 +37,8 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,**k
     :type mT: int or float
     :param log_every: Update callbacks every this number of epochs.
     :type log_every: int
+    :param ndiff: Nh - Nv
+    :type ndiff: int
     :param kwargs: Keyword arguments to pass to the optimizer
 
     :returns: Dictionary of fidelities and runtimes at various epochs.
@@ -56,7 +58,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,**k
     # Specify the number of visible and hidden units and
     # initialize the RBM
     nv = train_data.shape[-1]
-    nh = nv
+    nh = nv + ndiff
     nn_state = PositiveWavefunction(num_visible = nv,num_hidden = nh,
                                     gpu = False)
 
