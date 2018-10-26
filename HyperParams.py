@@ -137,6 +137,14 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
             results.append(trainRBM(numQubits,epochs,B,B,lr,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/BatchSizes/Q{0}".format(numQubits))
         trial = int(files[-1][5]) + 1
+        infofile = open("Data/BatchSizes/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile.write("numQubits: {0}\n".format(numQubits))
+        infofile.write("numSamples: {0}\n".format(numSamples))
+        infofile.write("lr: {0}\n".format(lr))
+        infofile.write("k: {0}\n".format(k))
+        infofile.write("opt: {0}\n".format(str(opt)))
+        infofile.write("ndiff: {0}".format(ndiff))
+        infofile.close()
         datafile = open("Data/BatchSizes/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
         datafile.write("Batch Sizes: ")
         for B in b:
@@ -149,6 +157,13 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
             results.append(trainRBM(numQubits,epochs,b,b,lr[i],k,numSamples,opt[i],mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/Optimizers/Q{0}".format(numQubits))
         trial = int(files[-1][5]) + 1
+        infofile = open("Data/Optimizers/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile.write("numQubits: {0}\n".format(numQubits))
+        infofile.write("numSamples: {0}\n".format(numSamples))
+        infofile.write("b: {0}\n".format(b))
+        infofile.write("k: {0}\n".format(k))
+        infofile.write("ndiff: {0}".format(ndiff))
+        infofile.close()
         datafile = open("Data/Optimizers/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
         datafile.write("Optimizers: ")
         for OPT in opt:
@@ -166,6 +181,14 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
         optStr = str(opt)[8:len(str(opt)) - 2].split(".")[-1]
         files = os.listdir("Data/LearningRates/Q{0}/{1}".format(numQubits,optStr))
         trial = int(files[-1][5]) + 1
+        infofile = open("Data/LearningRates/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile.write("numQubits: {0}\n".format(numQubits))
+        infofile.write("numSamples: {0}\n".format(numSamples))
+        infofile.write("b: {0}\n".format(b))
+        infofile.write("k: {0}\n".format(k))
+        infofile.write("opt: {0}\n".format(str(opt)))
+        infofile.write("ndiff: {0}".format(ndiff))
+        infofile.close()
         datafile = open("Data/LearningRates/Q{0}/{1}/Trial{2}.txt".format(numQubits,optStr,trial),"w")
         datafile.write("Learning Rates: ")
         for LR in lr:
@@ -178,6 +201,14 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
             results.append(trainRBM(numQubits,epochs,b,b,lr,K,numSamples,opt,mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/GibbsSampling/Q{0}".format(numQubits))
         trial = int(files[-1][5]) + 1
+        infofile = open("Data/GibbsSampling/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile.write("numQubits: {0}\n".format(numQubits))
+        infofile.write("numSamples: {0}\n".format(numSamples))
+        infofile.write("b: {0}\n".format(b))
+        infofile.write("lr: {0}\n".format(lr))
+        infofile.write("opt: {0}\n".format(str(opt)))
+        infofile.write("ndiff: {0}".format(ndiff))
+        infofile.close()
         datafile = open("Data/GibbsSampling/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
         datafile.write("k Values: ")
         for K in k:
@@ -189,6 +220,15 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwar
         results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
         files = os.listdir("Data/TryThis/Q{0}".format(numQubits))
         trial = int(files[-1][5]) + 1
+        infofile = open("Data/TryThis/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile.write("numQubits: {0}\n".format(numQubits))
+        infofile.write("numSamples: {0}\n".format(numSamples))
+        infofile.write("b: {0}\n".format(b))
+        infofile.write("lr: {0}\n".format(lr))
+        infofile.write("k: {0}\n".format(k))
+        infofile.write("opt: {0}\n".format(str(opt)))
+        infofile.write("ndiff: {0}".format(ndiff))
+        infofile.close()
         datafile = open("Data/TryThis/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
 
     counter = 0
