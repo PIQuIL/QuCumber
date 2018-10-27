@@ -336,7 +336,7 @@ def graphData(folder,numQubits,trial,title,opt = "SGD"):
 
     if folder == "Optimizers":
         for i in range(len(hpValues)):
-            label = hpValues[i] + r"($\alpha$ = {0})".format(LRs[i])
+            label = hpValues[i] + r" ($\alpha$ = {0})".format(LRs[i])
             plt.plot(runtimes[i],fidelities[i],"-o",label = label,markersize = 2)
         plotname = "Data/{0}/Q{1}/Trial{2}".format(folder,numQubits,trial)
         plt.xlabel("Runtime (Seconds)")
