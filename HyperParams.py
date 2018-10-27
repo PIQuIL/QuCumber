@@ -346,7 +346,7 @@ def graphData(folder,numQubits,trial,title,opt = "SGD"):
         plt.savefig(plotname + "F",dpi = 200)
         plt.clf()
         for i in range(len(hpValues)):
-            label = hpValues[i] + r"($\alpha$ = {0})".format(LRs[i])
+            label = hpValues[i] + r" ($\alpha$ = {0})".format(LRs[i])
             plt.plot(runtimes[i],KLs[i],"-o",label = label,markersize = 2)
         plt.xlabel("Runtime (Seconds)")
         plt.ylabel("KL Divergence")
