@@ -1,0 +1,6 @@
+numQubits: 10
+numSamples: 1500
+b: 2
+k: 1
+opt: <class 'torch.optim.rmsprop.RMSprop'>
+ndiff: 0
