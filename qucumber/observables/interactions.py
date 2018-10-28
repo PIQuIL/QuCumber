@@ -19,6 +19,7 @@
 
 from .observable import Observable
 from .utils import to_pm1
+import torch
 
 
 class NeighbourInteraction(Observable):
@@ -65,3 +66,97 @@ class NeighbourInteraction(Observable):
         # average over spin sites.
         # not using mean bc interaction_terms.shape[-1] < num_spins = L
         return interaction_terms.sum(1).div_(L)
+
+def transform(sample,j,operator):
+    '''
+    Transforms a given sample based on specified set of raising and
+    lowering operators. Transformed state can be used to obtain
+    corresponding amplitude coefficient in local estimator.
+
+    :param sample: Sample for which value of observable is being determined.
+    :type sample: str
+    :param j: Subscript of first spin observable.
+    :type j: int
+    :param operator: The observable to be measured.
+                     One of "S+S-" "S-S+".
+    :type operator: str
+
+    :returns: Transformed sample after applying two spin observable.
+    :rtype: str
+    '''
+    newSample = torch.tensor(sample)
+    if operator == "S+S-":
+        newSample[j] = 1
+        newSample[j+1] = 0
+    elif operator == "S-S+":
+        newSample[j] = 0
+        newSample[j+1] = 1
+    return newSample
+
+class Heisenberg1DEnergy(Observable):
+    r"""Observable defining the energy of a 1D Heisenberg model.
+
+    :param h: The strength of the tranverse field
+    :type h: float
+    :param density: Whether to compute the energy per spin site.
+    :type density: bool
+    :param periodic_bcs: If `True` use periodic boundary conditions,
+                         otherwise use open boundary conditions.
+    :type periodic_bcs: bool
+    """
+
+    def __init__(self):
+        super(Heisenberg1DEnergy, self).__init__()
+
+    @staticmethod
+    def _convert(operator,sample,nn_state):
+        '''
+        Calculates the value of an observable corresponding to a given
+        spin configuration.
+
+        :param operator: The observable to be measured.
+                         One of "SzSz" "S+S-" "S-S+".
+        :type operator: str
+        :param sample: Sample for which value of observable is being determined.
+        :type sample: str
+
+        :returns: Value of the observable corresponding to the given sample.
+        :rtype: float
+        '''
+        total = torch.tensor([0,0], dtype=torch.float64)
+        org = nn_state.psi(sample)
+        if operator == "SzSz":
+            for i in range(len(sample)-1):
+                if sample[i] == 0 and sample[i+1] == 0 or sample[i] == 1 and sample[i+1] == 1:
+                    total += 0.25
+                else:
+                    total += -0.25
+        elif operator == "S+S-":
+            for i in range(len(sample)-1):
+                if sample[i] == 0 and sample[i+1] == 1:
+                    total += nn_state.psi(transform(sample,i,"S+S-"))/org
+        elif operator == "S-S+":
+            for i in range(len(sample)-1):
+                if sample[i] == 1 and sample[i+1] == 0:
+                    total += nn_state.psi(transform(sample,i,"S-S+"))/org
+
+        return total
+
+    def apply(self, nn_state, samples):
+        r"""Computes the energy of each sample given a batch of
+        samples.
+
+        :param samples: A batch of samples to calculate the observable on.
+                        Must be using the :math:`\sigma_i = 0, 1` convention.
+        :type samples: torch.Tensor
+        """
+
+        total = torch.tensor([0,0], dtype=torch.float64)
+        for i in range(len(samples)):
+            total += -self._convert("SzSz",samples[i],nn_state)
+            total += -0.5 * self._convert("S+S-",samples[i],nn_state)
+            total += -0.5 * self._convert("S-S+",samples[i],nn_state)
+
+        total[1] = 0
+        print(total/len(samples))
+        return total/len(samples)
