@@ -334,6 +334,18 @@ def graphData(folder,numQubits,trial,title,opt = "SGD"):
             runtimes[counter].append(float(line[3]))
         line = f.readline()
 
+    resultsfile = open("Data/{0}/Q{1}/Trial{2}Results.txt".format(folder,numQubits,trial),"w")
+    for i in range(len(fidelities) - 1):
+        resultsfile.write("---------------\n")
+        resultsfile.write(hpValues[i] + "\n")
+        for j in range(len(fidelities[i])):
+            if fidelities[i][j] >= 0.99:
+                resultsfile.write("TR for 99%: " + str(runtimes[i][j]) + "\n")
+                break
+        resultsfile.write("Max Fidelity: " + str(max(fidelities[i])) + "\n")
+        resultsfile.write("---------------\n")
+    resultsfile.close()
+
     if folder == "Optimizers":
         for i in range(len(hpValues)):
             label = hpValues[i] + r" ($\alpha$ = {0})".format(LRs[i])
