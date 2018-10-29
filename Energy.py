@@ -135,4 +135,56 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
         resultsfile.write(str(round(float(runtimes[i]),3)) + "  \n")
     resultsfile.close()
 
-trainEnergy(10,numSamples1 = 1500,numSamples2 = 1500,burn_in = 1000,steps = 1000)
+def analysis(numQubits):
+    fidelities = []
+    runtimes = []
+    errors = []
+    samples = []
+    burn_in = []
+    steps = []
+    for i in range(1,28):
+        trialfile = open("Data/Energy/Q{0}/Trial{1}.txt".format(numQubits,i))
+        lines = trialfile.readlines()
+        fidelitiesList = []
+        runtimesList = []
+        errorsList = []
+        for j in range(len(lines)):
+            if j == 0:
+                samples.append(lines[j].strip("\n").split(" ")[1])
+            elif j == 1:
+                burn_in.append(lines[j].strip("\n").split(" ")[1])
+            elif j == 2:
+                steps.append(lines[j].strip("\n").split(" ")[1])
+            elif j > 3:
+                newline = lines[j].strip("\n").split(" ")
+                fidelitiesList.append(newline[0])
+                errorsList.append(newline[2])
+                runtimesList.append(newline[4])
+        fidelities.append(fidelitiesList)
+        runtimes.append(runtimesList)
+        errors.append(errorsList)
+        trialfile.close()
+
+    runtime10 = []
+    for i in range(len(runtimes)):
+        runtime10.append(float(runtimes[i][10]))
+
+    trials = list(range(1,28))
+    plt.plot(trials,runtime10)
+    plt.xlabel("Trial Number")
+    plt.ylabel("RT for 10 Epochs")
+    plt.show()
+
+    errorAt99 = []
+    for i in range(len(fidelities)):
+        for j in range(len(fidelities[i])):
+            if float(fidelities[i][j]) >= 0.986:
+                errorAt99.append(float(errors[i][j]))
+                break
+    
+    plt.plot(trials,errorAt99)
+    plt.xlabel("Trial Number")
+    plt.ylabel("Relative H error at Fidelity of 99%")
+    plt.show()
+
+analysis(10)
