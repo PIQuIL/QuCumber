@@ -5,12 +5,13 @@ import matplotlib.pyplot as plt
 from qucumber.nn_states import PositiveWavefunction
 from qucumber.callbacks import MetricEvaluator
 from qucumber.callbacks import ObservableEvaluator
+from qucumber.callbacks import Timer
 from qucumber.observables import Heisenberg1DEnergy
 
 import qucumber.utils.training_statistics as ts
 import qucumber.utils.data as data
 
-def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,steps = 100):
+def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,steps = 100,mT = 60):
     '''
     Trains RBM on samples using energy observable as metric.
 
@@ -28,6 +29,8 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     :param steps: Number of Gibbs steps to perform between each sample.
                   Default is 100.
     :type steps: int
+    :param mT: Maximum time elapsed during training.
+    :type mT: int or float
 
     :returns: None
     '''
@@ -69,7 +72,8 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
             target_psi=true_psi,
             verbose=True,
             space=space
-        )
+        ),
+        Timer(mT,log_every,verbose = True)
     ]
 
     nn_state.fit(
@@ -93,6 +97,13 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     line = obsFile.readline()
     H = round(float(line.strip("\n").split(" ")[1]),2)
 
+    files = os.listdir("Data/Energy/Q{0}".format(numQubits))
+    prevFile = files[-1]
+    trial = 0
+    for char in prevFile:
+        if char.isdigit():
+            trial = int(char) + 1
+
     ax = plt.axes()
     ax.plot(epoch, energies, color = "red")
     ax.set_xlim(log_every, epochs)
@@ -101,6 +112,24 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Energy")
     ax.grid()
-    plt.show()
+    plt.tight_layout()
+    plt.savefig("Data/Energy/Q{0}/Trial{1}".format(numQubits,trial))
 
-trainEnergy(10,numSamples1 = 1500,numSamples2 = 1500,burn_in = 100,steps = 100)
+    fidelities = callbacks[1].Fidelity
+    runtimes = callbacks[2].epochTimes
+    relativeErrors = []
+    for i in range(len(energies)):
+        relativeErrors.append(abs(energies[i] - H)/abs(H))
+
+    resultsfile = open("Data/Energy/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+    resultsfile.write("samples: " + str(numSamples2) + "\n")
+    resultsfile.write("burn_in: " + str(burn_in) + "\n")
+    resultsfile.write("steps: " + str(steps) + "\n")
+    resultsfile.write("\n")
+    for i in range(len(fidelities)):
+        resultsfile.write(str(round(float(fidelities[i]),3)) + "  ")
+        resultsfile.write(str(round(float(relativeErrors[i]),6)) + "  ")
+        resultsfile.write(str(round(float(runtimes[i]),3)) + "  \n")
+    resultsfile.close()
+
+trainEnergy(10,numSamples1 = 1500,numSamples2 = 1500,burn_in = 1000,steps = 1000)
