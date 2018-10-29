@@ -11,7 +11,7 @@ from qucumber.observables import Heisenberg1DEnergy
 import qucumber.utils.training_statistics as ts
 import qucumber.utils.data as data
 
-def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,steps = 100,mT = 60):
+def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,steps = 100,mT = 60,trialNum = "Next"):
     '''
     Trains RBM on samples using energy observable as metric.
 
@@ -31,6 +31,8 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     :type steps: int
     :param mT: Maximum time elapsed during training.
     :type mT: int or float
+    :param trialNum: Trial number. Default is "Next".
+    :type trialNum: int
 
     :returns: None
     '''
@@ -98,11 +100,12 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     H = round(float(line.strip("\n").split(" ")[1]),2)
 
     files = os.listdir("Data/Energy/Q{0}".format(numQubits))
-    prevFile = files[-1]
-    trial = 0
-    for char in prevFile:
-        if char.isdigit():
-            trial = int(char) + 1
+    if trialNum == "Next":
+        prevFile = files[-1]
+        trial = 0
+        for char in prevFile:
+            if char.isdigit():
+                trial = int(char) + 1
 
     ax = plt.axes()
     ax.plot(epoch, energies, color = "red")
@@ -113,7 +116,7 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     ax.set_ylabel("Energy")
     ax.grid()
     plt.tight_layout()
-    plt.savefig("Data/Energy/Q{0}/Trial{1}".format(numQubits,trial))
+    plt.savefig("Data/Energy/Q{0}/Trial{1}".format(numQubits,trialNum))
 
     fidelities = callbacks[1].Fidelity
     runtimes = callbacks[2].epochTimes
@@ -121,7 +124,7 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     for i in range(len(energies)):
         relativeErrors.append(abs(energies[i] - H)/abs(H))
 
-    resultsfile = open("Data/Energy/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+    resultsfile = open("Data/Energy/Q{0}/Trial{1}.txt".format(numQubits,trialNum),"w")
     resultsfile.write("samples: " + str(numSamples2) + "\n")
     resultsfile.write("burn_in: " + str(burn_in) + "\n")
     resultsfile.write("steps: " + str(steps) + "\n")
