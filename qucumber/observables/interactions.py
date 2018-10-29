@@ -123,7 +123,7 @@ class Heisenberg1DEnergy(Observable):
         :returns: Value of the observable corresponding to the given sample.
         :rtype: float
         '''
-        total = torch.tensor([0,0], dtype=torch.float64)
+        total = 0
         org = nn_state.psi(sample)
         if operator == "SzSz":
             for i in range(len(sample)-1):
@@ -134,11 +134,11 @@ class Heisenberg1DEnergy(Observable):
         elif operator == "S+S-":
             for i in range(len(sample)-1):
                 if sample[i] == 0 and sample[i+1] == 1:
-                    total += nn_state.psi(transform(sample,i,"S+S-"))/org
+                    total += float(nn_state.psi(transform(sample,i,"S+S-"))[0])/float(org[0])
         elif operator == "S-S+":
             for i in range(len(sample)-1):
                 if sample[i] == 1 and sample[i+1] == 0:
-                    total += nn_state.psi(transform(sample,i,"S-S+"))/org
+                    total += float(nn_state.psi(transform(sample,i,"S-S+"))[0])/float(org[0])
 
         return total
 
@@ -151,12 +151,10 @@ class Heisenberg1DEnergy(Observable):
         :type samples: torch.Tensor
         """
 
-        total = torch.tensor([0,0], dtype=torch.float64)
+        obs_values = torch.zeros(len(samples))
         for i in range(len(samples)):
-            total += -self._convert("SzSz",samples[i],nn_state)
-            total += -0.5 * self._convert("S+S-",samples[i],nn_state)
-            total += -0.5 * self._convert("S-S+",samples[i],nn_state)
-
-        total[1] = 0
-        print(total/len(samples))
-        return total/len(samples)
+            obs_values[i] += -self._convert("SzSz",samples[i],nn_state)
+            obs_values[i] += -0.5 * self._convert("S+S-",samples[i],nn_state)
+            obs_values[i] += -0.5 * self._convert("S-S+",samples[i],nn_state)
+            
+        return obs_values
