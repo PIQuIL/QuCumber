@@ -49,7 +49,7 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
 
     nn_state = PositiveWavefunction(num_visible=nv, num_hidden=nh)
 
-    epochs = 10
+    epochs = 1000
     pbs = 2
     nbs = 2
     lr = 0.001
@@ -92,7 +92,8 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     errors = callbacks[0].Heisenberg1DEnergy.std_error
     variance = callbacks[0].Heisenberg1DEnergy.variance
 
-    epoch = np.arange(log_every, epochs + 1, log_every)
+    epoch = np.arange(log_every, len(energies) + 1, log_every)
+    epoch.astype(int)
 
     obsFile = open("Samples/{0}Q/Observables.txt".format(numQubits))
     obsFile.readline()
@@ -109,12 +110,15 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
 
     ax = plt.axes()
     ax.plot(epoch, energies, color = "red")
-    ax.set_xlim(log_every, epochs)
+    ax.set_xlim(left = 1)
     ax.axhline(H,color = "black")
     ax.fill_between(epoch, energies - errors, energies + errors, alpha = 0.2, color = "black")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Energy")
     ax.grid()
+    plt.title("Samples = {0}".format(numSamples2) +
+              " & Burn In = {0}".format(burn_in) +
+              " & Steps = {0} for N = {1}".format(steps,numQubits))
     plt.tight_layout()
     plt.savefig("Data/Energy/Q{0}/Trial{1}".format(numQubits,trialNum))
 
@@ -128,11 +132,14 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     resultsfile.write("samples: " + str(numSamples2) + "\n")
     resultsfile.write("burn_in: " + str(burn_in) + "\n")
     resultsfile.write("steps: " + str(steps) + "\n")
-    resultsfile.write("\n")
+    resultsfile.write("Fidelities & ROE & RT & Mean & Variance & STD Error\n")
     for i in range(len(fidelities)):
         resultsfile.write(str(round(float(fidelities[i]),3)) + "  ")
         resultsfile.write(str(round(float(relativeErrors[i]),6)) + "  ")
-        resultsfile.write(str(round(float(runtimes[i]),3)) + "  \n")
+        resultsfile.write(str(round(float(runtimes[i]),3)) + "  ")
+        resultsfile.write(str(round(float(energies[i]),5)) + "  ")
+        resultsfile.write(str(round(float(variance[i]),5)) + "  ")
+        resultsfile.write(str(round(float(errors[i]),5)) + "  \n")
     resultsfile.close()
 
 def analysis(numQubits):
