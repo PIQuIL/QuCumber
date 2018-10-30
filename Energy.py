@@ -157,9 +157,9 @@ def analysis(numQubits):
                 steps.append(lines[j].strip("\n").split(" ")[1])
             elif j > 3:
                 newline = lines[j].strip("\n").split(" ")
-                fidelitiesList.append(newline[0])
-                errorsList.append(newline[2])
-                runtimesList.append(newline[4])
+                fidelitiesList.append(float(newline[0]))
+                errorsList.append(float(newline[2]))
+                runtimesList.append(float(newline[4]))
         fidelities.append(fidelitiesList)
         runtimes.append(runtimesList)
         errors.append(errorsList)
@@ -173,18 +173,21 @@ def analysis(numQubits):
     plt.plot(trials,runtime10)
     plt.xlabel("Trial Number")
     plt.ylabel("RT for 10 Epochs")
-    plt.show()
+    plt.savefig("Data/Energy/Q{0}/RTCompare".format(numQubits))
 
-    errorAt99 = []
-    for i in range(len(fidelities)):
-        for j in range(len(fidelities[i])):
-            if float(fidelities[i][j]) >= 0.986:
-                errorAt99.append(float(errors[i][j]))
-                break
-    
-    plt.plot(trials,errorAt99)
-    plt.xlabel("Trial Number")
-    plt.ylabel("Relative H error at Fidelity of 99%")
-    plt.show()
-
-analysis(10)
+    for i in range(len(errors)):
+        epochs = list(range(1,len(errors[i]) + 1))
+        fig,axarr = plt.subplots(2,sharex = True)
+        axarr[0].plot(epochs,fidelities[i])
+        axarr[1].plot(epochs,errors[i])
+        axarr[0].set_ylim(0.92,1)
+        axarr[1].set_ylim(0,0.01)
+        axarr[0].set_ylabel("Fidelity")
+        axarr[1].set_ylabel("Relative H Error")
+        axarr[0].set_title("Samples = {0}".format(samples[i]) +
+                           " & Burn In = {0}".format(burn_in[i]) +
+                           " & Steps = {0}".format(steps[i]))
+        plt.xlabel("Epoch")
+        plt.savefig("Data/Energy/Q{0}/Trial{1}".format(numQubits,i+1))
+        plt.clf()
+        plt.close()
