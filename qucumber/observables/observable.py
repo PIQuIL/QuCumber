@@ -193,9 +193,10 @@ class Observable(abc.ABC):
 
         mean = obs_samples.mean().item()
         variance = obs_samples.var().item()
+        median = obs_samples.median().item()
         std_error = np.sqrt(variance / len(obs_samples))
 
-        return {"mean": mean, "variance": variance, "std_error": std_error}
+        return {"mean": mean, "variance": variance, "std_error": std_error, "median": median}
 
 
 # make module path show up properly in sphinx docs

@@ -60,6 +60,7 @@ class System:
         """
         means = {name: 0.0 for name in self.observables.keys()}
         variances = {name: 0.0 for name in self.observables.keys()}
+        medians = {name: 0.0 for name in self.observables.keys()}
         total_samples = 0.0
 
         chains = None
@@ -86,6 +87,7 @@ class System:
                     obs_stats["variance"],
                     num_chains,
                 )
+                medians[obs_name] = obs_stats["median"]
 
             total_samples += num_chains
 
@@ -94,6 +96,7 @@ class System:
                 "mean": means[obs_name],
                 "variance": variances[obs_name],
                 "std_error": np.sqrt(variances[obs_name] / total_samples),
+                "median": medians[obs_name]
             }
             for obs_name in self.observables.keys()
         }
