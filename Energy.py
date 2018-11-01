@@ -91,14 +91,39 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     energies = callbacks[0].Heisenberg1DEnergy.mean
     errors = callbacks[0].Heisenberg1DEnergy.std_error
     variance = callbacks[0].Heisenberg1DEnergy.variance
-
-    epoch = np.arange(log_every, len(energies) + 1, log_every)
-    epoch.astype(int)
+    median = callbacks[0].Heisenberg1DEnergy.median
+    lls = []
+    uls = []
+    mmRatio = []
+    minError = []
+    maxError = []
 
     obsFile = open("Samples/{0}Q/Observables.txt".format(numQubits))
     obsFile.readline()
     line = obsFile.readline()
     H = round(float(line.strip("\n").split(" ")[1]),2)
+
+    C = 2.576
+    for i in range(len(energies)):
+        mean = energies[i]
+        med = median[i]
+        mmRatio.append(mean/med)
+        std = np.sqrt(variance[i])
+        ll = mean - C * std / np.sqrt(numSamples2)
+        ul = mean + C * std / np.sqrt(numSamples2)
+        lls.append(ll)
+        uls.append(ul)
+        lld = abs(ll - H)/abs(H)
+        uld = abs(ul - H)/abs(H)
+        if lld > uld:
+            minError.append(uld)
+            maxError.append(lld)
+        else:
+            minError.append(lld)
+            maxError.append(uld)
+
+    epoch = np.arange(log_every, len(energies) + 1, log_every)
+    epoch.astype(int)
 
     files = os.listdir("Data/Energy/Q{0}".format(numQubits))
     if trialNum == "Next":
@@ -125,76 +150,30 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     fidelities = callbacks[1].Fidelity
     runtimes = callbacks[2].epochTimes
     relativeErrors = []
+    stdErrors = []
     for i in range(len(energies)):
         relativeErrors.append(abs(energies[i] - H)/abs(H))
+        stdErrors.append(C * np.sqrt(variance[i])/np.sqrt(numSamples2))
 
     resultsfile = open("Data/Energy/Q{0}/Trial{1}.txt".format(numQubits,trialNum),"w")
     resultsfile.write("samples: " + str(numSamples2) + "\n")
     resultsfile.write("burn_in: " + str(burn_in) + "\n")
     resultsfile.write("steps: " + str(steps) + "\n")
-    resultsfile.write("Fidelities & ROE & RT & Mean & Variance & STD Error\n")
+    resultsfile.write("Exact H:" + str(H) + "\n")
+    resultsfile.write("   Fidelity  ROE       Mean      Median    CI Width LL on CI  UL on CI  mmRatio  Min Err  Max Err\n")
     for i in range(len(fidelities)):
-        resultsfile.write(str(round(float(fidelities[i]),3)) + "  ")
-        resultsfile.write(str(round(float(relativeErrors[i]),6)) + "  ")
-        resultsfile.write(str(round(float(runtimes[i]),3)) + "  ")
-        resultsfile.write(str(round(float(energies[i]),5)) + "  ")
-        resultsfile.write(str(round(float(variance[i]),5)) + "  ")
-        resultsfile.write(str(round(float(errors[i]),5)) + "  \n")
+        resultsfile.write(str(epoch[i]) + "  ")
+        resultsfile.write("%.6f" % round(float(fidelities[i]),6) + "  ")
+        resultsfile.write("%.6f" % round(float(relativeErrors[i]),6) + "  ")
+        resultsfile.write("%.5f" % round(float(energies[i]),5) + "  ")
+        resultsfile.write("%.5f" % round(float(median[i]),5) + "  ")
+        resultsfile.write("%.5f" % round(float(stdErrors[i]),5) + "  ")
+        resultsfile.write("%.5f" % round(float(lls[i]),5) + "  ")
+        resultsfile.write("%.5f" % round(float(uls[i]),5) + "  ")
+        resultsfile.write("%.5f" % round(float(mmRatio[i]),5) + "  ")
+        resultsfile.write("%.5f" % round(float(minError[i]),5) + "  ")
+        resultsfile.write("%.5f" % round(float(maxError[i]),5) + "  \n")
+
     resultsfile.close()
 
-def analysis(numQubits):
-    fidelities = []
-    runtimes = []
-    errors = []
-    samples = []
-    burn_in = []
-    steps = []
-    for i in range(1,28):
-        trialfile = open("Data/Energy/Q{0}/Trial{1}.txt".format(numQubits,i))
-        lines = trialfile.readlines()
-        fidelitiesList = []
-        runtimesList = []
-        errorsList = []
-        for j in range(len(lines)):
-            if j == 0:
-                samples.append(lines[j].strip("\n").split(" ")[1])
-            elif j == 1:
-                burn_in.append(lines[j].strip("\n").split(" ")[1])
-            elif j == 2:
-                steps.append(lines[j].strip("\n").split(" ")[1])
-            elif j > 3:
-                newline = lines[j].strip("\n").split(" ")
-                fidelitiesList.append(float(newline[0]))
-                errorsList.append(float(newline[2]))
-                runtimesList.append(float(newline[4]))
-        fidelities.append(fidelitiesList)
-        runtimes.append(runtimesList)
-        errors.append(errorsList)
-        trialfile.close()
-
-    runtime10 = []
-    for i in range(len(runtimes)):
-        runtime10.append(float(runtimes[i][10]))
-
-    trials = list(range(1,28))
-    plt.plot(trials,runtime10)
-    plt.xlabel("Trial Number")
-    plt.ylabel("RT for 10 Epochs")
-    plt.savefig("Data/Energy/Q{0}/RTCompare".format(numQubits))
-
-    for i in range(len(errors)):
-        epochs = list(range(1,len(errors[i]) + 1))
-        fig,axarr = plt.subplots(2,sharex = True)
-        axarr[0].plot(epochs,fidelities[i])
-        axarr[1].plot(epochs,errors[i])
-        axarr[0].set_ylim(0.92,1)
-        axarr[1].set_ylim(0,0.01)
-        axarr[0].set_ylabel("Fidelity")
-        axarr[1].set_ylabel("Relative H Error")
-        axarr[0].set_title("Samples = {0}".format(samples[i]) +
-                           " & Burn In = {0}".format(burn_in[i]) +
-                           " & Steps = {0}".format(steps[i]))
-        plt.xlabel("Epoch")
-        plt.savefig("Data/Energy/Q{0}/Trial{1}".format(numQubits,i+1))
-        plt.clf()
-        plt.close()
+trainEnergy(10,numSamples1 = 5000,numSamples2 = 10000,burn_in = 1000,steps = 100,mT = 300,trialNum = 34)
