@@ -54,10 +54,14 @@ def trainEnergy(numQubits,
 
     # Load the data corresponding to the amplitudes and samples
     # of the quantum system
-    psi_path = r"Samples/{0}Q/Amplitudes.txt".format(numQubits)
-    train_path = r"Samples/{0}Q/Samples.txt".format(numQubits)
-    train_data, true_psi = data.load_data(train_path, psi_path,
-                                          numSamples=numSamples1)
+    if storeFidelities:
+        psi_path = r"Samples/{0}Q/Amplitudes.txt".format(numQubits)
+        train_path = r"Samples/{0}Q/Samples.txt".format(numQubits)
+        train_data, true_psi = data.load_data(train_path, psi_path,
+                                              numSamples=numSamples1)
+    else:
+        train_path = r"Samples/{0}Q/Samples.txt".format(numQubits)
+        train_data = data.load_data(train_path, numSamples=numSamples1)[0]
 
     nv = train_data.shape[-1]
     nn_state = PositiveWavefunction(num_visible=nv, num_hidden=nh)
@@ -70,7 +74,9 @@ def trainEnergy(numQubits,
 
     log_every = 1
     h1d_energy = Heisenberg1DEnergy()
-    space = nn_state.generate_hilbert_space(nv)
+
+    if storeFidelities:
+        space = nn_state.generate_hilbert_space(nv)
 
     if storeFidelities:
         callbacks = [
