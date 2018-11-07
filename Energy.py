@@ -11,12 +11,23 @@ from qucumber.observables import Heisenberg1DEnergy
 import qucumber.utils.training_statistics as ts
 import qucumber.utils.data as data
 
-def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,steps = 100,mT = 60,trialNum = "Next"):
+def trainEnergy(numQubits,
+                nh,
+                numSamples1 = 10000,
+                numSamples2 = 5000,
+                burn_in = 500,
+                steps = 100,
+                mT = 500,
+                trial = 1,
+                storeFidelities = False,
+                plotError = False):
     '''
     Trains RBM on samples using energy observable as metric.
 
     :param numQubits: Number of qubits.
     :type numQubits: int
+    :param nh: Number of hidden units.
+    :type nh: int
     :param numSamples1: Number of samples to use from training file.
                         Default is "All".
     :type numSamples1: int or "All"
@@ -31,8 +42,12 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     :type steps: int
     :param mT: Maximum time elapsed during training.
     :type mT: int or float
-    :param trialNum: Trial number. Default is "Next".
-    :type trialNum: int
+    :param trial: Trial number. Default is 1.
+    :type trial: int
+    :param storeFidelities: Store fidelities.
+    :type storeFidelities: bool
+    :param plotError: Plot error.
+    :type plotError: bool
 
     :returns: None
     '''
@@ -45,8 +60,6 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
                                           numSamples=numSamples1)
 
     nv = train_data.shape[-1]
-    nh = nv
-
     nn_state = PositiveWavefunction(num_visible=nv, num_hidden=nh)
 
     epochs = 1000
@@ -59,24 +72,37 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
     h1d_energy = Heisenberg1DEnergy()
     space = nn_state.generate_hilbert_space(nv)
 
-    callbacks = [
-        ObservableEvaluator(
-            log_every,
-            [h1d_energy],
-            verbose=True,
-            num_samples=numSamples2,
-            burn_in=burn_in,
-            steps=steps,
-        ),
-        MetricEvaluator(
-            log_every,
-            {"Fidelity": ts.fidelity},
-            target_psi=true_psi,
-            verbose=True,
-            space=space
-        ),
-        Timer(mT,log_every,verbose = True)
-    ]
+    if storeFidelities:
+        callbacks = [
+            ObservableEvaluator(
+                log_every,
+                [h1d_energy],
+                verbose=True,
+                num_samples=numSamples2,
+                burn_in=burn_in,
+                steps=steps,
+            ),
+            MetricEvaluator(
+                log_every,
+                {"Fidelity": ts.fidelity},
+                target_psi=true_psi,
+                verbose=True,
+                space=space
+            ),
+            Timer(mT,log_every,verbose = True)
+        ]
+    else:
+        callbacks = [
+            ObservableEvaluator(
+                log_every,
+                [h1d_energy],
+                verbose=True,
+                num_samples=numSamples2,
+                burn_in=burn_in,
+                steps=steps,
+            ),
+            Timer(mT,log_every,verbose = True)
+        ]
 
     nn_state.fit(
         train_data,
@@ -124,46 +150,46 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
 
     epoch = np.arange(log_every, len(energies) + 1, log_every)
     epoch.astype(int)
+    nn_state.save("Data/Energy/Q{0}/Trial{1}.pt".format(numQubits,trial))
 
-    files = os.listdir("Data/Energy/Q{0}".format(numQubits))
-    if trialNum == "Next":
-        prevFile = files[-1]
-        trial = 0
-        for char in prevFile:
-            if char.isdigit():
-                trial = int(char) + 1
+    if plotError:
+        ax = plt.axes()
+        ax.plot(epoch, energies, color = "red")
+        ax.set_xlim(left = 1)
+        ax.axhline(H,color = "black")
+        ax.fill_between(epoch, energies - errors, energies + errors, alpha = 0.2, color = "black")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Energy")
+        ax.grid()
+        plt.title("Samples = {0}".format(numSamples2) +
+                  " & Burn In = {0}".format(burn_in) +
+                  " & Steps = {0} for N = {1}".format(steps,numQubits))
+        plt.tight_layout()
+        plt.savefig("Data/Energy/Q{0}/Trial{1}".format(numQubits,trial))
 
-    ax = plt.axes()
-    ax.plot(epoch, energies, color = "red")
-    ax.set_xlim(left = 1)
-    ax.axhline(H,color = "black")
-    ax.fill_between(epoch, energies - errors, energies + errors, alpha = 0.2, color = "black")
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel("Energy")
-    ax.grid()
-    plt.title("Samples = {0}".format(numSamples2) +
-              " & Burn In = {0}".format(burn_in) +
-              " & Steps = {0} for N = {1}".format(steps,numQubits))
-    plt.tight_layout()
-    plt.savefig("Data/Energy/Q{0}/Trial{1}".format(numQubits,trialNum))
-
-    fidelities = callbacks[1].Fidelity
-    runtimes = callbacks[2].epochTimes
+    if storeFidelities:
+        fidelities = callbacks[1].Fidelity
+        runtimes = callbacks[2].epochTimes
+    else:
+        runtimes = callbacks[1].epochTimes
     relativeErrors = []
     stdErrors = []
     for i in range(len(energies)):
         relativeErrors.append(abs(energies[i] - H)/abs(H))
         stdErrors.append(C * np.sqrt(variance[i])/np.sqrt(numSamples2))
 
-    resultsfile = open("Data/Energy/Q{0}/Trial{1}.txt".format(numQubits,trialNum),"w")
+    resultsfile = open("Data/Energy/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
     resultsfile.write("samples: " + str(numSamples2) + "\n")
     resultsfile.write("burn_in: " + str(burn_in) + "\n")
     resultsfile.write("steps: " + str(steps) + "\n")
     resultsfile.write("Exact H:" + str(H) + "\n")
     resultsfile.write("   Fidelity  ROE       Mean      Median    CI Width LL on CI  UL on CI  mmRatio  Min Err  Max Err\n")
-    for i in range(len(fidelities)):
+    for i in range(len(energies)):
         resultsfile.write(str(epoch[i]) + "  ")
-        resultsfile.write("%.6f" % round(float(fidelities[i]),6) + "  ")
+        if storeFidelities:
+            resultsfile.write("%.6f" % round(float(fidelities[i]),6) + "  ")
+        else:
+            resultsfile.write("   N/A  " + "  ")
         resultsfile.write("%.6f" % round(float(relativeErrors[i]),6) + "  ")
         resultsfile.write("%.5f" % round(float(energies[i]),5) + "  ")
         resultsfile.write("%.5f" % round(float(median[i]),5) + "  ")
@@ -176,4 +202,4 @@ def trainEnergy(numQubits,numSamples1 = "All",numSamples2 = 1000,burn_in = 100,s
 
     resultsfile.close()
 
-trainEnergy(10,numSamples1 = 5000,numSamples2 = 10000,burn_in = 1000,steps = 100,mT = 300,trialNum = 34)
+trainEnergy(10,1,numSamples1 = 10000,numSamples2 = 5000,burn_in = 500,steps = 100,mT = 30,trial = 1)
