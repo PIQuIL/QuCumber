@@ -208,4 +208,63 @@ def trainEnergy(numQubits,
 
     resultsfile.close()
 
-trainEnergy(10,1,numSamples1 = 10000,numSamples2 = 5000,burn_in = 500,steps = 100,mT = 30,trial = 1)
+def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1):
+    '''
+    Returns 99% confidence interval on trained RBM. Used to determine
+    whether or not low relative error was obtained by chance.
+    Essentially a tool for validating reconstruction accuracy.
+
+    :param numQubits: Number of qubits.
+    :type numQubits: int
+    :param numSamples: Number of samples to generate.
+    :type numSamples: int
+    :param burn_in: Number of Gibbs steps to perform before recording
+                    any samples. Default is 500.
+    :type burn_in: int
+    :param steps: Number of Gibbs steps to perform between each sample.
+                  Default is 100.
+    :type steps: int
+    :param trial: Trial number.
+    :type trial: int
+
+    :returns: None
+    '''
+
+    trainedRBM = PositiveWavefunction.autoload("Data/Energy/Q{0}/Trial{1}.pt".format(numQubits,trial))
+    h1d_energy = Heisenberg1DEnergy()
+    h1d_stats = h1d_energy.statistics(trainedRBM,numSamples,burn_in = burn_in,steps = steps)
+
+    mean = h1d_stats["mean"]
+    variance = h1d_stats["variance"]
+
+    obsFile = open("Samples/{0}Q/Observables.txt".format(numQubits))
+    obsFile.readline()
+    line = obsFile.readline()
+    H = round(float(line.strip("\n").split(" ")[1]),2)
+    ROE = abs(mean - H)/abs(H)
+
+    C = 2.576
+    std = np.sqrt(variance)
+    ll = mean - C * std / np.sqrt(numSamples)
+    ul = mean + C * std / np.sqrt(numSamples)
+    lld = abs(ll - H)/abs(H)
+    uld = abs(ul - H)/abs(H)
+    if lld > uld:
+        minError = uld
+        maxError = lld
+    else:
+        minError = lld
+        maxError = uld
+
+    confidenceFile = open("Data/Energy/Q{0}/Trial{1}CI.txt".format(numQubits,trial),"w")
+    confidenceFile.write("ROE: {0}\n".format(ROE))
+    confidenceFile.write("Min Error for 99% CI: {0}\n".format(minError))
+    confidenceFile.write("Max Error for 99% CI: {0}\n".format(maxError))
+    confidenceFile.close()
+
+    print("ROE: {0}".format(ROE))
+    print("Min Error for 99% CI: {0}".format(minError))
+    print("Max Error for 99% CI: {0}".format(maxError))
+
+trainEnergy(40,1,numSamples1 = 10000,numSamples2 = 5000,burn_in = 500,steps = 100,mT = 600,trial = 1)
+confidence(40,10000,1000,100,1)
