@@ -20,7 +20,8 @@ def trainEnergy(numQubits,
                 mT = 500,
                 trial = 1,
                 storeFidelities = False,
-                plotError = False):
+                plotError = False,
+                model = "Heisenberg1D"):
     '''
     Trains RBM on samples using energy observable as metric.
 
@@ -48,6 +49,10 @@ def trainEnergy(numQubits,
     :type storeFidelities: bool
     :param plotError: Plot error.
     :type plotError: bool
+    :param model: Model that sampling is based on.
+                  Default is Heisenberg1D.
+                  Other option is TFIM1D.
+    :type model: str
 
     :returns: None
     '''
@@ -55,12 +60,12 @@ def trainEnergy(numQubits,
     # Load the data corresponding to the amplitudes and samples
     # of the quantum system
     if storeFidelities:
-        psi_path = r"Samples/{0}Q/Amplitudes.txt".format(numQubits)
-        train_path = r"Samples/{0}Q/Samples.txt".format(numQubits)
+        psi_path = r"Samples/{0}/{1}Q/Amplitudes.txt".format(model,numQubits)
+        train_path = r"Samples/{0}/{1}Q/Samples.txt".format(model,numQubits)
         train_data, true_psi = data.load_data(train_path, psi_path,
                                               numSamples=numSamples1)
     else:
-        train_path = r"Samples/{0}Q/Samples.txt".format(numQubits)
+        train_path = r"Samples/{0}/{1}Q/Samples.txt".format(model,numQubits)
         train_data = data.load_data(train_path, numSamples=numSamples1)[0]
 
     nv = train_data.shape[-1]
@@ -130,7 +135,7 @@ def trainEnergy(numQubits,
     minError = []
     maxError = []
 
-    obsFile = open("Samples/{0}Q/Observables.txt".format(numQubits))
+    obsFile = open("Samples/{0}/{1}Q/Observables.txt".format(model,numQubits))
     obsFile.readline()
     line = obsFile.readline()
     H = round(float(line.strip("\n").split(" ")[1]),2)
@@ -156,7 +161,7 @@ def trainEnergy(numQubits,
 
     epoch = np.arange(log_every, len(energies) + 1, log_every)
     epoch.astype(int)
-    nn_state.save("Data/Energy/Q{0}/Trial{1}.pt".format(numQubits,trial))
+    nn_state.save("Data/{0}/Energy/Q{1}/Trial{2}.pt".format(model,numQubits,trial))
 
     if plotError:
         ax = plt.axes()
@@ -171,7 +176,7 @@ def trainEnergy(numQubits,
                   " & Burn In = {0}".format(burn_in) +
                   " & Steps = {0} for N = {1}".format(steps,numQubits))
         plt.tight_layout()
-        plt.savefig("Data/Energy/Q{0}/Trial{1}".format(numQubits,trial))
+        plt.savefig("Data/{0}/Energy/Q{1}/Trial{2}".format(model,numQubits,trial))
 
     if storeFidelities:
         fidelities = callbacks[1].Fidelity
@@ -184,7 +189,7 @@ def trainEnergy(numQubits,
         relativeErrors.append(abs(energies[i] - H)/abs(H))
         stdErrors.append(C * np.sqrt(variance[i])/np.sqrt(numSamples2))
 
-    resultsfile = open("Data/Energy/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+    resultsfile = open("Data/{0}/Energy/Q{1}/Trial{2}.txt".format(model,numQubits,trial),"w")
     resultsfile.write("samples: " + str(numSamples2) + "\n")
     resultsfile.write("burn_in: " + str(burn_in) + "\n")
     resultsfile.write("steps: " + str(steps) + "\n")
@@ -208,7 +213,7 @@ def trainEnergy(numQubits,
 
     resultsfile.close()
 
-def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1):
+def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1,model = "Heisenberg1D"):
     '''
     Returns 99% confidence interval on trained RBM. Used to determine
     whether or not low relative error was obtained by chance.
@@ -226,18 +231,22 @@ def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1):
     :type steps: int
     :param trial: Trial number.
     :type trial: int
+    :param model: Model that sampling is based on.
+                  Default is Heisenberg1D.
+                  Other option is TFIM1D.
+    :type model: str
 
     :returns: None
     '''
 
-    trainedRBM = PositiveWavefunction.autoload("Data/Energy/Q{0}/Trial{1}.pt".format(numQubits,trial))
+    trainedRBM = PositiveWavefunction.autoload("Data/{0}/Energy/Q{1}/Trial{2}.pt".format(model,numQubits,trial))
     h1d_energy = Heisenberg1DEnergy()
     h1d_stats = h1d_energy.statistics(trainedRBM,numSamples,burn_in = burn_in,steps = steps)
 
     mean = h1d_stats["mean"]
     variance = h1d_stats["variance"]
 
-    obsFile = open("Samples/{0}Q/Observables.txt".format(numQubits))
+    obsFile = open("Samples/{0}/{1}Q/Observables.txt".format(model,numQubits))
     obsFile.readline()
     line = obsFile.readline()
     H = round(float(line.strip("\n").split(" ")[1]),2)
@@ -256,7 +265,7 @@ def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1):
         minError = lld
         maxError = uld
 
-    confidenceFile = open("Data/Energy/Q{0}/Trial{1}CI.txt".format(numQubits,trial),"w")
+    confidenceFile = open("Data/{0}/Energy/Q{1}/Trial{2}CI.txt".format(model,numQubits,trial),"w")
     confidenceFile.write("ROE: {0}\n".format(ROE))
     confidenceFile.write("Min Error for 99% CI: {0}\n".format(minError))
     confidenceFile.write("Max Error for 99% CI: {0}\n".format(maxError))
@@ -266,5 +275,5 @@ def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1):
     print("Min Error for 99% CI: {0}".format(minError))
     print("Max Error for 99% CI: {0}".format(maxError))
 
-trainEnergy(40,1,numSamples1 = 10000,numSamples2 = 5000,burn_in = 500,steps = 100,mT = 600,trial = 1)
-confidence(40,10000,1000,100,1)
+trainEnergy(10,1,numSamples1 = 10000,numSamples2 = 5000,burn_in = 500,steps = 100,mT = 30,trial = 1,storeFidelities = True,model = "TFIM1D")
+confidence(10,10000,1000,100,trial = 1,model = "TFIM1D")
