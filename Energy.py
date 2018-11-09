@@ -7,6 +7,7 @@ from qucumber.callbacks import MetricEvaluator
 from qucumber.callbacks import ObservableEvaluator
 from qucumber.callbacks import Timer
 from qucumber.observables import Heisenberg1DEnergy
+from Ising import TFIMChainEnergy
 
 import qucumber.utils.training_statistics as ts
 import qucumber.utils.data as data
@@ -78,7 +79,10 @@ def trainEnergy(numQubits,
     k = 1
 
     log_every = 1
-    h1d_energy = Heisenberg1DEnergy()
+    if model == "Heisenberg1D":
+        modelEnergy = Heisenberg1DEnergy()
+    elif model == "TFIM1D":
+        modelEnergy = TFIMChainEnergy(1)
 
     if storeFidelities:
         space = nn_state.generate_hilbert_space(nv)
@@ -87,7 +91,7 @@ def trainEnergy(numQubits,
         callbacks = [
             ObservableEvaluator(
                 log_every,
-                [h1d_energy],
+                [modelEnergy],
                 verbose=True,
                 num_samples=numSamples2,
                 burn_in=burn_in,
@@ -106,7 +110,7 @@ def trainEnergy(numQubits,
         callbacks = [
             ObservableEvaluator(
                 log_every,
-                [h1d_energy],
+                [modelEnergy],
                 verbose=True,
                 num_samples=numSamples2,
                 burn_in=burn_in,
@@ -125,10 +129,17 @@ def trainEnergy(numQubits,
         callbacks=callbacks,
     )
 
-    energies = callbacks[0].Heisenberg1DEnergy.mean
-    errors = callbacks[0].Heisenberg1DEnergy.std_error
-    variance = callbacks[0].Heisenberg1DEnergy.variance
-    median = callbacks[0].Heisenberg1DEnergy.median
+    if model == "Heisenberg1D":
+        energies = callbacks[0].Heisenberg1DEnergy.mean
+        errors = callbacks[0].Heisenberg1DEnergy.std_error
+        variance = callbacks[0].Heisenberg1DEnergy.variance
+        median = callbacks[0].Heisenberg1DEnergy.median
+    elif model == "TFIM1D":
+        energies = callbacks[0].TFIMChainEnergy.mean
+        errors = callbacks[0].TFIMChainEnergy.std_error
+        variance = callbacks[0].TFIMChainEnergy.variance
+        median = callbacks[0].TFIMChainEnergy.median
+
     lls = []
     uls = []
     mmRatio = []
@@ -240,11 +251,15 @@ def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1,model = 
     '''
 
     trainedRBM = PositiveWavefunction.autoload("Data/{0}/Energy/Q{1}/Trial{2}.pt".format(model,numQubits,trial))
-    h1d_energy = Heisenberg1DEnergy()
-    h1d_stats = h1d_energy.statistics(trainedRBM,numSamples,burn_in = burn_in,steps = steps)
 
-    mean = h1d_stats["mean"]
-    variance = h1d_stats["variance"]
+    if model == "Heisenberg1D":
+        modelEnergy = Heisenberg1DEnergy()
+    elif model == "TFIM1D":
+        modelEnergy = TFIMChainEnergy(1)
+    modelStats = modelEnergy.statistics(trainedRBM,numSamples,burn_in = burn_in,steps = steps)
+
+    mean = modelStats["mean"]
+    variance = modelStats["variance"]
 
     obsFile = open("Samples/{0}/{1}Q/Observables.txt".format(model,numQubits))
     obsFile.readline()
