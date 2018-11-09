@@ -79,7 +79,7 @@ class TFIMChainEnergy(Observable):
 
         energy = transverse_field_terms.mul(self.h).add(interaction_terms).mul(-1.)
 
-        return energy.div(samples.shape[-1])
+        return energy
 
 
 def Convergence(nn_state, tfim_energy, n_measurements, steps):
