@@ -72,13 +72,21 @@ def trainEnergy(numQubits,
     nv = train_data.shape[-1]
     nn_state = PositiveWavefunction(num_visible=nv, num_hidden=nh)
 
-    epochs = 1000
-    pbs = 2
-    nbs = 2
-    lr = 0.001
-    k = 1
+    if model == "Heisenberg1D":
+        epochs = 10000
+        pbs = 2
+        nbs = 2
+        lr = 0.001
+        k = 1
+        log_every = 1
+    elif model == "TFIM1D":
+        epochs = 10000
+        pbs = 100
+        nbs = 100
+        lr = 0.01
+        k = 1
+        log_every = 10
 
-    log_every = 1
     if model == "Heisenberg1D":
         modelEnergy = Heisenberg1DEnergy()
     elif model == "TFIM1D":
@@ -170,7 +178,7 @@ def trainEnergy(numQubits,
             minError.append(lld)
             maxError.append(uld)
 
-    epoch = np.arange(log_every, len(energies) + 1, log_every)
+    epoch = np.arange(log_every, len(energies) * log_every + 1, log_every)
     epoch.astype(int)
     nn_state.save("Data/{0}/Energy/Q{1}/Trial{2}.pt".format(model,numQubits,trial))
 
