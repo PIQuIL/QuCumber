@@ -209,6 +209,7 @@ def trainEnergy(numQubits,
         stdErrors.append(C * np.sqrt(variance[i])/np.sqrt(numSamples2))
 
     resultsfile = open("Data/{0}/Energy/Q{1}/Trial{2}.txt".format(model,numQubits,trial),"w")
+    resultsfile.write("nh: " + str(nh) + "\n")
     resultsfile.write("samples1: " + str(numSamples1) + "\n")
     resultsfile.write("samples2: " + str(numSamples2) + "\n")
     resultsfile.write("burn_in: " + str(burn_in) + "\n")
