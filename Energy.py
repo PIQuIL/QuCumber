@@ -22,7 +22,7 @@ def trainEnergy(numQubits,
                 trial = 1,
                 storeFidelities = False,
                 plotError = False,
-                model = "Heisenberg1D"):
+                model = "Heisenberg1DFM"):
     '''
     Trains RBM on samples using energy observable as metric.
 
@@ -51,8 +51,8 @@ def trainEnergy(numQubits,
     :param plotError: Plot error.
     :type plotError: bool
     :param model: Model that sampling is based on.
-                  Default is Heisenberg1D.
-                  Other option is TFIM1D.
+                  Default is Heisenberg1DFM.
+                  Other options are Heisenberg1DAFM and TFIM1D.
     :type model: str
 
     :returns: None
@@ -234,7 +234,7 @@ def trainEnergy(numQubits,
 
     resultsfile.close()
 
-def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1,model = "Heisenberg1D"):
+def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1,model = "Heisenberg1DFM"):
     '''
     Returns 99% confidence interval on trained RBM. Used to determine
     whether or not low relative error was obtained by chance.
@@ -254,7 +254,7 @@ def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1,model = 
     :type trial: int
     :param model: Model that sampling is based on.
                   Default is Heisenberg1D.
-                  Other option is TFIM1D.
+                  Other options are Heisenberg1DAFM and TFIM1D.
     :type model: str
 
     :returns: None
