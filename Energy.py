@@ -85,7 +85,7 @@ def trainEnergy(numQubits,
         nbs = 100
         lr = 0.01
         k = 1
-        log_every = 10
+        log_every = 20
 
     if model == "Heisenberg1D":
         modelEnergy = Heisenberg1DEnergy()
