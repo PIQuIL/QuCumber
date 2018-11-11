@@ -233,6 +233,7 @@ magnetization = samples.mul(2.0).sub(1.0).mean(1).abs().mean()
 where we converted the binary samples of the RBM back into $\pm 1$ spins.
 
 \subsubsection{Off-diagonal observables}
+
 We turn now to the case of off-diagonal observables, where the expectation value assumes the following form
 \begin{equation}
     \langle \hat{\mathcal{O}} \rangle = \frac{1}{\sum_{\bm{\sigma}} |\psi_{\bm{\lambda}}(\bm{\sigma})|^2}
@@ -247,7 +248,10 @@ of the so-called \emph{local estimator} of the observable:
 \begin{equation}
     \mathcal{O}^{[L]}_{\bm{\sigma}_k}=\sum_{\bm{\sigma}^\prime}\frac{\psi_{\bm{\lambda}}(\bm{\sigma}^\prime)}{\psi_{\bm{\lambda}}(\bm{\sigma})} \mathcal{O}_{\bm{\sigma\sigma}^\prime}\:.
 \end{equation}
-As long as the matrix representation $\mathcal{O}_{\bm{\sigma\sigma}^\prime}$ is sufficiently sparse in the reference basis, the summation can be evaluated efficiently. As an example, we consider the specific case of the transverse magnetization for the $j$-th spin, $M_j^x=\langle\hat{\sigma}^x_j\rangle$, with matrix elements
+As long as the matrix representation $\mathcal{O}_{\bm{\sigma\sigma}^\prime}$ is sufficiently sparse in the reference basis, the summation can be evaluated efficiently. 
+
+\subsubsection{Transverse magnetization}\label{subsubsec:sigmax}
+As an example, we consider the specific case of the transverse magnetization for the $j$-th spin, $M_j^x=\langle\hat{\sigma}^x_j\rangle$, with matrix elements
 \begin{equation}
     \langle\bm{\sigma}|\hat{\sigma}^x_j|\bm{\sigma}^{\prime}\rangle=\delta_{\sigma_j^\prime,1-\sigma_j}\prod_{i\ne j}\delta_{\sigma_i^\prime,\sigma_j}\:.
 \end{equation}
@@ -297,6 +301,44 @@ The reconstruction of two magnetic observables for the TFIM is shown in Fig.~\re
     \includegraphics[width=\columnwidth, trim={0 15 0 0}, clip]{obs.pdf}
     \caption{\label{tfim_magn} Reconstruction of the magnetic observables for the TFIM chain with $N=10$ spins. We show the average longitudinal (left) and transverse (right) magnetization per site obtained by sampling a trained RBM. The dashed line denotes the results from exact diagonalization.}
 \end{figure}
+
+\subsubsection{Swap observable }
+\label{sec:swap}
+
+Numerically, measurement of bipartite entanglement entropy is usually accessed through the computation of Renyi entropies. Physically, the latter mediates the average amount of uncertainty associated with a subregion $A$ that remains despite the full-knowledge of the state of the rest of the system. In zero-temperature Monte Carlo simulations, Renyi entropies can be estimated through the Swap operator. It is a type of an off-diagonal observable. A particularity of the Swap operator is that it acts on an extended product space consisting of independent copies of the wavefunction. Those copies are referred as replicas and are at the heart of entanglement entropy calculations both within numerical and analytic calculations. 
+
+As the name suggests, the action of the Swap operator is to swap the spin configurations  between the replicas as dictated by the extent of region $A$:
+
+\begin{equation}
+  \widehat{Swap}_A |\bm{\sigma_A, \sigma_{\bar A}}\rangle_1 \otimes  |\bm{\sigma^{\prime}_A, \sigma^{\prime}_{\bar A}}\rangle_2 = |\bm{\sigma^{\prime}_A, \sigma_{\bar A}}\rangle_1 \otimes  |\bm{\sigma_A, \sigma^{\prime}_{\bar A}}\rangle_2 .
+\end{equation}
+Here the subcript of the ket indicates replica's index while two labels inside a ket, such as $\sigma_A, \sigma_{\bar A}$, describe the spins configurations within the region $A$ and its complement correspondingly. 
+
+In QuCumber, the Swap operator is implemented as a routine within entanglement observable unit: 
+\begin{python}
+def swap(s1, s2, A):
+    for a in A:
+        _s = s1[:, a].clone()
+        s1[:, a] = s2[:, a]
+        s2[:, a] = _s
+    return s1, s2
+\end{python}
+where $s1$ and $s2$ are batches of samples produced from each replica. While ideally those samples should be entirely independent, in order to save computational costs, QuCumber just splits a given batch into two equal parts and treats them as if they were independent samples. This code is implemented within RenyiEntropy observable within the same unit:
+
+\begin{python}
+class RenyiEntropy(Observable):
+    def apply(self, nn_state, samples, A):
+        _ns = samples.shape[0] // 2
+        samples1 = samples[:_ns, :]
+        samples2 = samples[_ns : _ns * 2, :]
+\end{python}
+The rest of the implementation is very similar to the one for the transverse magnetization observable from sec. \ref{subsubsec:sigmax} once the amplitude of a sample is substituted with the product of amplitudes drawn from each replica:
+
+\begin{python}
+psi_ket1 = nn_state.psi(samples1)
+psi_ket2 = nn_state.psi(samples2)
+psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
+\end{python}
 
 
 \section{Complex wavefunctions}
