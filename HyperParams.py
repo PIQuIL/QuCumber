@@ -11,7 +11,7 @@ import qucumber.utils.training_statistics as ts
 import qucumber.utils.data as data
 
 
-def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,ndiff,**kwargs):
+def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,ndiff,model,**kwargs):
     '''
     Takes amplitudes and samples file as input and runs an RBM in order
     to reconstruct the quantum state. Returns a dictionary containing
@@ -39,6 +39,8 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,ndi
     :type log_every: int
     :param ndiff: Nh - Nv
     :type ndiff: int
+    :param model: Model being studied.
+    :type model: str
     :param kwargs: Keyword arguments to pass to the optimizer
 
     :returns: Dictionary of fidelities and runtimes at various epochs.
@@ -50,8 +52,8 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,ndi
 
     # Load the data corresponding to the amplitudes and samples
     # of the quantum system
-    psi_path = r"Samples/{0}Q/Amplitudes.txt".format(numQubits)
-    train_path = r"Samples/{0}Q/Samples.txt".format(numQubits)
+    psi_path = r"Samples/{0}/{1}Q/Amplitudes.txt".format(model,numQubits)
+    train_path = r"Samples/{0}/{1}Q/Samples.txt".format(model,numQubits)
     train_data, true_psi = data.load_data(train_path, psi_path,
                                           numSamples=numSamples)
 
@@ -95,7 +97,7 @@ def trainRBM(numQubits,epochs,pbs,nbs,lr,k,numSamples,optimizer,mT,log_every,ndi
 
     return results
 
-def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialNum,**kwargs):
+def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialNum,model,**kwargs):
     '''
     Writes a datafile containing lists of fidelities and KLs for
     various times. The options are as follows.
@@ -127,6 +129,8 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
     :type ndiff: int
     :param trialNum: Trial number.
     :type trialNum: int or "Next"
+    :param model: Model being studied.
+    :type model: str
     :param kwargs: Keyword arguments to pass to the optimizer
 
     :returns: None
@@ -136,8 +140,8 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
     # Test multiple batch sizes for fixed learning rate and optimizer
     if type(b) == list:
         for B in b:
-            results.append(trainRBM(numQubits,epochs,B,B,lr,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
-        files = os.listdir("Data/BatchSizes/Q{0}".format(numQubits))
+            results.append(trainRBM(numQubits,epochs,B,B,lr,k,numSamples,opt,mT,log_every,ndiff,model,**kwargs))
+        files = os.listdir("Data/{0}/BatchSizes/Q{1}".format(model,numQubits))
         if trialNum == "Next":
             prevFile = files[-1]
             trial = 0
@@ -146,7 +150,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
                     trial = int(char) + 1
         else:
             trial = trialNum
-        infofile = open("Data/BatchSizes/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile = open("Data/{0}/BatchSizes/Q{1}/Trial{2}Info.txt".format(model,numQubits,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
         infofile.write("lr: {0}\n".format(lr))
@@ -154,7 +158,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
         infofile.write("opt: {0}\n".format(str(opt)))
         infofile.write("ndiff: {0}".format(ndiff))
         infofile.close()
-        datafile = open("Data/BatchSizes/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+        datafile = open("Data/{0}/BatchSizes/Q{1}/Trial{2}.txt".format(model,numQubits,trial),"w")
         datafile.write("Batch Sizes: ")
         for B in b:
             datafile.write(str(B) + " ")
@@ -163,8 +167,8 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
     # Test multiple optimizers with their ideal learning rate
     elif type(opt) == list:
         for i in range(len(opt)):
-            results.append(trainRBM(numQubits,epochs,b,b,lr[i],k,numSamples,opt[i],mT,log_every,ndiff,**kwargs))
-        files = os.listdir("Data/Optimizers/Q{0}".format(numQubits))
+            results.append(trainRBM(numQubits,epochs,b,b,lr[i],k,numSamples,opt[i],mT,log_every,ndiff,model,**kwargs))
+        files = os.listdir("Data/{0}/Optimizers/Q{1}".format(model,numQubits))
         if trialNum == "Next":
             prevFile = files[-1]
             trial = 0
@@ -173,14 +177,14 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
                     trial = int(char) + 1
         else:
             trial = trialNum
-        infofile = open("Data/Optimizers/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile = open("Data/{0}/Optimizers/Q{1}/Trial{2}Info.txt".format(model,numQubits,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
         infofile.write("b: {0}\n".format(b))
         infofile.write("k: {0}\n".format(k))
         infofile.write("ndiff: {0}".format(ndiff))
         infofile.close()
-        datafile = open("Data/Optimizers/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+        datafile = open("Data/{0}/Optimizers/Q{1}/Trial{2}.txt".format(model,numQubits,trial),"w")
         datafile.write("Optimizers: ")
         for OPT in opt:
             datafile.write(str(OPT)[8:len(str(OPT)) - 2].split(".")[-1] + " ")
@@ -193,9 +197,9 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
     # Test multiple learning rates for fixed optimizer
     elif type(lr) == list:
         for LR in lr:
-            results.append(trainRBM(numQubits,epochs,b,b,LR,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
+            results.append(trainRBM(numQubits,epochs,b,b,LR,k,numSamples,opt,mT,log_every,ndiff,model,**kwargs))
         optStr = str(opt)[8:len(str(opt)) - 2].split(".")[-1]
-        files = os.listdir("Data/LearningRates/Q{0}/{1}".format(numQubits,optStr))
+        files = os.listdir("Data/{0}/LearningRates/Q{1}/{2}".format(model,numQubits,optStr))
         if trialNum == "Next":
             prevFile = files[-1]
             trial = 0
@@ -204,7 +208,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
                     trial = int(char) + 1
         else:
             trial = trialNum
-        infofile = open("Data/LearningRates/Q{0}/{1}/Trial{2}Info.txt".format(numQubits,optStr,trial),"w")
+        infofile = open("Data/{0}/LearningRates/Q{1}/{2}/Trial{3}Info.txt".format(model,numQubits,optStr,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
         infofile.write("b: {0}\n".format(b))
@@ -212,7 +216,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
         infofile.write("opt: {0}\n".format(str(opt)))
         infofile.write("ndiff: {0}".format(ndiff))
         infofile.close()
-        datafile = open("Data/LearningRates/Q{0}/{1}/Trial{2}.txt".format(numQubits,optStr,trial),"w")
+        datafile = open("Data/{0}/LearningRates/Q{1}/{2}/Trial{3}.txt".format(model,numQubits,optStr,trial),"w")
         datafile.write("Learning Rates: ")
         for LR in lr:
             datafile.write(str(LR) + " ")
@@ -221,8 +225,8 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
     # Test multiple k values
     elif type(k) == list:
         for K in k:
-            results.append(trainRBM(numQubits,epochs,b,b,lr,K,numSamples,opt,mT,log_every,ndiff,**kwargs))
-        files = os.listdir("Data/GibbsSampling/Q{0}".format(numQubits))
+            results.append(trainRBM(numQubits,epochs,b,b,lr,K,numSamples,opt,mT,log_every,ndiff,model,**kwargs))
+        files = os.listdir("Data/{0}/GibbsSampling/Q{1}".format(model,numQubits))
         if trialNum == "Next":
             prevFile = files[-1]
             trial = 0
@@ -231,7 +235,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
                     trial = int(char) + 1
         else:
             trial = trialNum
-        infofile = open("Data/GibbsSampling/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile = open("Data/{0}/GibbsSampling/Q{1}/Trial{2}Info.txt".format(model,numQubits,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
         infofile.write("b: {0}\n".format(b))
@@ -239,7 +243,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
         infofile.write("opt: {0}\n".format(str(opt)))
         infofile.write("ndiff: {0}".format(ndiff))
         infofile.close()
-        datafile = open("Data/GibbsSampling/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+        datafile = open("Data/{0}/GibbsSampling/Q{1}/Trial{2}.txt".format(model,numQubits,trial),"w")
         datafile.write("k Values: ")
         for K in k:
             datafile.write(str(K) + " ")
@@ -247,8 +251,8 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
 
     # Else try run for single set of specified hyperparameters
     else:
-        results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,opt,mT,log_every,ndiff,**kwargs))
-        files = os.listdir("Data/TryThis/Q{0}".format(numQubits))
+        results.append(trainRBM(numQubits,epochs,b,b,lr,k,numSamples,opt,mT,log_every,ndiff,model,**kwargs))
+        files = os.listdir("Data/{0}/TryThis/Q{1}".format(model,numQubits))
         if trialNum == "Next":
             prevFile = files[-1]
             trial = 0
@@ -257,7 +261,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
                     trial = int(char) + 1
         else:
             trial = trialNum
-        infofile = open("Data/TryThis/Q{0}/Trial{1}Info.txt".format(numQubits,trial),"w")
+        infofile = open("Data/{0}/TryThis/Q{1}/Trial{2}Info.txt".format(model,numQubits,trial),"w")
         infofile.write("numQubits: {0}\n".format(numQubits))
         infofile.write("numSamples: {0}\n".format(numSamples))
         infofile.write("b: {0}\n".format(b))
@@ -266,7 +270,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
         infofile.write("opt: {0}\n".format(str(opt)))
         infofile.write("ndiff: {0}".format(ndiff))
         infofile.close()
-        datafile = open("Data/TryThis/Q{0}/Trial{1}.txt".format(numQubits,trial),"w")
+        datafile = open("Data/{0}/TryThis/Q{1}/Trial{2}.txt".format(model,numQubits,trial),"w")
 
     counter = 0
     for result in results:
@@ -280,7 +284,7 @@ def produceData(numQubits,epochs,b,lr,k,numSamples,opt,mT,log_every,ndiff,trialN
         counter += 1
     datafile.close()
 
-def graphData(folder,numQubits,trial,title,opt = "SGD"):
+def graphData(folder,numQubits,trial,title,model,opt = "SGD"):
     '''
     Graphs plots of fidelity vs RT and KL vs RT
 
@@ -292,6 +296,8 @@ def graphData(folder,numQubits,trial,title,opt = "SGD"):
     :type trial: int
     :param title: Title for graph.
     :type title: str
+    :param model: Model being studied.
+    :type model: str
     :param opt: Optimizer of interest. Default is SGD.
     :type opt: str
 
@@ -299,9 +305,9 @@ def graphData(folder,numQubits,trial,title,opt = "SGD"):
     '''
 
     if folder == "LearningRates":
-        f = open("Data/{0}/Q{1}/{2}/Trial{3}.txt".format(folder,numQubits,opt,trial))
+        f = open("Data/{0}/{1}/Q{2}/{3}/Trial{4}.txt".format(model,folder,numQubits,opt,trial))
     else:
-        f = open("Data/{0}/Q{1}/Trial{2}.txt".format(folder,numQubits,trial))
+        f = open("Data/{0}/{1}/Q{2}/Trial{3}.txt".format(model,folder,numQubits,trial))
     line = f.readline()
     if folder != "TryThis":
         if folder == "Optimizers":
@@ -334,7 +340,7 @@ def graphData(folder,numQubits,trial,title,opt = "SGD"):
             runtimes[counter].append(float(line[3]))
         line = f.readline()
 
-    resultsfile = open("Data/{0}/Q{1}/Trial{2}Results.txt".format(folder,numQubits,trial),"w")
+    resultsfile = open("Data/{0}/{1}/Q{2}/Trial{3}Results.txt".format(model,folder,numQubits,trial),"w")
     for i in range(len(fidelities) - 1):
         resultsfile.write("---------------\n")
         resultsfile.write(hpValues[i] + "\n")
@@ -350,7 +356,7 @@ def graphData(folder,numQubits,trial,title,opt = "SGD"):
         for i in range(len(hpValues)):
             label = hpValues[i] + r" ($\alpha$ = {0})".format(LRs[i])
             plt.plot(runtimes[i],fidelities[i],"-o",label = label,markersize = 2)
-        plotname = "Data/{0}/Q{1}/Trial{2}".format(folder,numQubits,trial)
+        plotname = "Data/{0}/{1}/Q{2}/Trial{3}".format(model,folder,numQubits,trial)
         plt.xlabel("Runtime (Seconds)")
         plt.ylabel("Fidelity")
         plt.title(title)
@@ -368,7 +374,7 @@ def graphData(folder,numQubits,trial,title,opt = "SGD"):
         plt.clf()
     elif folder == "TryThis":
         plt.plot(runtimes[0],fidelities[0],"-o",markersize = 2)
-        plotname = "Data/{0}/Q{1}/Trial{2}".format(folder,numQubits,trial)
+        plotname = "Data/{0}/{1}/Q{2}/Trial{3}".format(model,folder,numQubits,trial)
         plt.xlabel("Runtime (Seconds)")
         plt.ylabel("Fidelity")
         plt.title(title)
@@ -385,9 +391,9 @@ def graphData(folder,numQubits,trial,title,opt = "SGD"):
             label = hpValues[i]
             plt.plot(runtimes[i],fidelities[i],"-o",label = label,markersize = 2)
         if folder == "LearningRates":
-            plotname = "Data/{0}/Q{1}/{2}/Trial{3}".format(folder,numQubits,opt,trial)
+            plotname = "Data/{0}/{1}/Q{2}/{3}/Trial{4}".format(model,folder,numQubits,opt,trial)
         else:
-            plotname = "Data/{0}/Q{1}/Trial{2}".format(folder,numQubits,trial)
+            plotname = "Data/{0}/{1}/Q{2}/Trial{3}".format(model,folder,numQubits,trial)
         plt.xlabel("Runtime (Seconds)")
         plt.ylabel("Fidelity")
         plt.title(title)
