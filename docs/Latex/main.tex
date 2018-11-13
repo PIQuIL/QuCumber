@@ -15,13 +15,13 @@
 \newcommand\pythonstyle{\lstset{
     language=Python,
     keepspaces=true, 
-    basicstyle=\ttfamily\footnotesize,
+    basicstyle=\ttfamily\small,
     tabsize=3,
     keywordstyle=\color{keywordcolour},
     %otherkeywords={mul, sub, add, mean},
     frame = single,
-    keywordstyle=\ttb\color{deepblue},
-    emph={qucumber, state, SigmaX, SigmaZ, __init__},
+    keywordstyle=\color{deepblue},
+    emph={SigmaX, SigmaZ, __init__, RenyiEntropy, swap},
     emphstyle=\color{deepred},
     stringstyle=\color{deepgreen},
     showstringspaces=false,
@@ -278,14 +278,13 @@ class SigmaX(Observable):
 
         for i in range(samples.shape[-1]):  # sum over spin sites
             flip_spin(i, samples)  # flip the spin at site i
-            # compute ratio of psi_(-i) / psi and add it to the running sum
+            # add ratio psi_(-i) / psi to the running sum
             psi_ratio = nn_state.psi(samples)
             psi_ratio = cplx.elementwise_division(psi_ratio, psi)
             psi_ratio_sum.add_(psi_ratio)
             flip_spin(i, samples)  # flip it back
 
-        # take real part (imaginary part should be approximately zero)
-        # and divide by number of spins
+        # take real part and divide by number of spins
         return psi_ratio_sum[0].div_(samples.shape[-1])
 \end{python}
 The value of the observable is computed with 
