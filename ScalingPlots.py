@@ -9,7 +9,7 @@ lineValues = [slope * i + intercept for i in numQubits]
 
 plt.plot(numQubits,nh,"o")
 plt.plot(numQubits,lineValues,"b")
-plt.title(r"$Min N_{h}$ Required for ROE $\leq 2 \cdot 10^{-3}$ with 99% Confidence")
+plt.title(r"Min $N_{h}$ Required for ROE $\leq 2 \cdot 10^{-3}$ with 99% Confidence")
 plt.xlabel("Number of Qubits")
 plt.ylabel("$N_{h}$")
 plt.savefig("NhPlot",dpi = 200)
@@ -29,7 +29,7 @@ for i in range(len(numQubits)):
 
 plt.errorbar(numQubits,numSamples,yerr = [lowerErrors,upperErrors],fmt = "o")
 plt.plot(numQubits,lineValues,"b")
-plt.title(r"Min M Required for ROE $\leq 2 \cdot 10^{-3}$ with 99% Confidence")
+plt.title(r"Min $M$ Required for ROE $\leq 2 \cdot 10^{-3}$ with 99% Confidence")
 plt.xlabel("Number of Qubits")
 plt.ylabel("Number of Samples")
 plt.savefig("MPlot",dpi = 200)
