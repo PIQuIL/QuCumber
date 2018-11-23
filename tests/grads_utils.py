@@ -165,7 +165,7 @@ class ComplexGradsUtils:
                         v[j] = vis[x, j]
 
                 U = torch.tensor(
-                    [1., 0.], dtype=torch.double, device=self.nn_state.device
+                    [1.0, 0.0], dtype=torch.double, device=self.nn_state.device
                 )
                 for ii in range(num_nontrivial_U):
                     tmp = unitary_dict[basis[nontrivial_sites[ii]]]

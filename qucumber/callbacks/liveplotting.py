@@ -20,8 +20,9 @@
 from operator import itemgetter
 
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import ticker
+
+# import matplotlib.pyplot as plt
+# from matplotlib import ticker
 
 from .callback import CallbackBase
 
@@ -70,7 +71,7 @@ class LivePlotting(CallbackBase):
             self.ax.set_xlim(0, self.total_epochs)
 
         self.ax.grid()
-        self.ax.xaxis.set_major_locator(ticker.MultipleLocator(min(self.period, 5.)))
+        self.ax.xaxis.set_major_locator(ticker.MultipleLocator(min(self.period, 5.0)))
         self.fig.show()
         self.fig.canvas.draw()
 
@@ -112,9 +113,9 @@ class LivePlotting(CallbackBase):
                 )
 
             y_avg = np.max(np.abs(past_values))
-            y_log_avg = np.log10(y_avg) if y_avg != 0 else -1.
+            y_log_avg = np.log10(y_avg) if y_avg != 0 else -1.0
             y_tick_exp = int(np.sign(y_log_avg) * np.ceil(np.abs(y_log_avg)))
-            y_tick_interval = (10 ** y_tick_exp) / 2.
+            y_tick_interval = (10 ** y_tick_exp) / 2.0
             self.ax.yaxis.set_major_locator(ticker.MultipleLocator(y_tick_interval))
 
             self.ax.set_xlabel("Epochs")

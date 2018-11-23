@@ -171,7 +171,7 @@ class ComplexWaveFunction(WaveFunctionBase):
         Upsi_v = torch.zeros_like(Upsi, device=self.device)
         Z = torch.zeros(grad_size, dtype=torch.double, device=self.device)
         Z2 = torch.zeros((2, grad_size), dtype=torch.double, device=self.device)
-        U = torch.tensor([1., 1.], dtype=torch.double, device=self.device)
+        U = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
         Ut = np.zeros_like(Us[:, 0], dtype=complex)
         ints_size = np.arange(sites.size)
 
