@@ -117,7 +117,7 @@ class BinaryRBM(nn.Module):
             vb_grad = -v
             hb_grad = -prob
         else:
-            W_grad = -torch.einsum("ij,ik->jk", (prob, v))
+            W_grad = -torch.matmul(prob.t(), v)
             vb_grad = -torch.einsum("ij->j", (v,))
             hb_grad = -torch.einsum("ij->j", (prob,))
 
