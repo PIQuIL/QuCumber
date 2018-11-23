@@ -222,7 +222,7 @@ class SumObservable(ObservableBase):
             self.name = name
 
     def apply(self, samples, rbm):
-        result = 0.
+        result = 0.0
         if isinstance(self.left, (float, int)):
             result += self.left
         if isinstance(self.right, (float, int)):

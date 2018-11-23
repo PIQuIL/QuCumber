@@ -25,7 +25,7 @@ def to_pm1(samples):
                     Must be using the :math:`\sigma_i = 0, 1` convention.
     :type samples: torch.Tensor
     """
-    return samples.mul(2.).sub(1.)
+    return samples.mul(2.0).sub(1.0)
 
 
 def to_01(samples):
@@ -35,7 +35,7 @@ def to_01(samples):
                     Must be using the :math:`\sigma_i = -1, +1` convention.
     :type samples: torch.Tensor
     """
-    return samples.add(1.).div(2.)
+    return samples.add(1.0).div(2.0)
 
 
 def update_statistics(avg_a, var_a, len_a, avg_b, var_b, len_b):

@@ -40,7 +40,7 @@ def fidelity(nn_state, target_psi, space, **kwargs):
     :rtype: torch.Tensor
     """
     Z = nn_state.compute_normalization(space)
-    F = torch.tensor([0., 0.], dtype=torch.double, device=nn_state.device)
+    F = torch.tensor([0.0, 0.0], dtype=torch.double, device=nn_state.device)
     target_psi = target_psi.to(nn_state.device)
     for i in range(len(space)):
         psi = nn_state.psi(space[i]) / Z.sqrt()
@@ -90,7 +90,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
                     cnt += 1
                 else:
                     v[j] = space[x, j]
-            U = torch.tensor([1., 0.], dtype=torch.double, device=nn_state.device)
+            U = torch.tensor([1.0, 0.0], dtype=torch.double, device=nn_state.device)
             for ii in range(num_nontrivial_U):
                 tmp = unitaries[basis[nontrivial_sites[ii]]]
                 tmp = tmp[
@@ -137,7 +137,8 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
         num_bases = 1
         for i in range(len(space)):
             KL += (
-                cplx.norm_sqr(target_psi[:, i]) * (cplx.norm_sqr(target_psi[:, i]) + eps).log()
+                cplx.norm_sqr(target_psi[:, i])
+                * (cplx.norm_sqr(target_psi[:, i]) + eps).log()
             )
             KL -= (
                 cplx.norm_sqr(target_psi[:, i])

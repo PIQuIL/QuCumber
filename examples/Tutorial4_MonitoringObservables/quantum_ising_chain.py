@@ -55,7 +55,7 @@ class TFIMChainEnergy(Observable):
         :type samples: torch.Tensor
         """
         samples = to_pm1(samples)
-        log_psis = -nn_state.rbm_am.effective_energy(to_01(samples)).div(2.)
+        log_psis = -nn_state.rbm_am.effective_energy(to_01(samples)).div(2.0)
 
         shape = log_psis.shape + (samples.shape[-1],)
         log_flipped_psis = torch.zeros(
@@ -66,7 +66,7 @@ class TFIMChainEnergy(Observable):
             self._flip_spin(i, samples)  # flip the spin at site i
             log_flipped_psis[:, i] = -nn_state.rbm_am.effective_energy(
                 to_01(samples)
-            ).div(2.)
+            ).div(2.0)
             self._flip_spin(i, samples)  # flip it back
 
         log_flipped_psis = torch.logsumexp(log_flipped_psis, 1, keepdim=True).squeeze()
@@ -77,7 +77,7 @@ class TFIMChainEnergy(Observable):
         # convert to ratio of probabilities
         transverse_field_terms = log_flipped_psis.sub(log_psis).exp()
 
-        energy = transverse_field_terms.mul(self.h).add(interaction_terms).mul(-1.)
+        energy = transverse_field_terms.mul(self.h).add(interaction_terms).mul(-1.0)
 
         return energy.div(samples.shape[-1])
 
