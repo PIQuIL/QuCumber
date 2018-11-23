@@ -36,15 +36,15 @@ def create_dict(**kwargs):
     """
     dictionary = {
         "X": torch.tensor(
-            [[[1., 1.], [1., -1.]], [[0., 0.], [0., 0.]]], dtype=torch.double
+            [[[1.0, 1.0], [1.0, -1.0]], [[0.0, 0.0], [0.0, 0.0]]], dtype=torch.double
         )
         / np.sqrt(2),
         "Y": torch.tensor(
-            [[[1., 0.], [1., 0.]], [[0., -1.], [0., 1.]]], dtype=torch.double
+            [[[1.0, 0.0], [1.0, 0.0]], [[0.0, -1.0], [0.0, 1.0]]], dtype=torch.double
         )
         / np.sqrt(2),
         "Z": torch.tensor(
-            [[[1., 0.], [0., 1.]], [[0., 0.], [0., 0.]]], dtype=torch.double
+            [[[1.0, 0.0], [0.0, 1.0]], [[0.0, 0.0], [0.0, 0.0]]], dtype=torch.double
         ),
     }
 

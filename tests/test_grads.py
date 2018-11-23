@@ -33,14 +33,14 @@ from . import __tests_location__
 
 K = 10
 SEED = 1234
-EPS = 1.e-6
+EPS = 1.0e-6
 
 TOL = torch.tensor(2e-9, dtype=torch.double)
 PDIFF = torch.tensor(100, dtype=torch.double)  # NLL grad tests are a bit too random tbh
 
 
 def percent_diff(a, b):  # for NLL
-    numerator = torch.abs(a - b) * 100.
+    numerator = torch.abs(a - b) * 100.0
     denominator = torch.abs(0.5 * (a + b))
     return numerator / denominator
 
