@@ -103,7 +103,7 @@ A visible layer $\bm{v}=(v_1,\dots,v_N)$ describes the physical degrees of freed
 Given a set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$ (see Glossary). 
 RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{hinton_training_2002}, for compressing high-dimensional data into lower-dimensional representations~\cite{hinton_reducing_2006}, and for other tasks \cite{lecun_deep_2015}\red{[BE SPECIFC?]}
 More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{torlai_learning_2016,CarleoTroyer2017Science,carleo_constructing_2018}
-They are currently being investigated for their representational power~\cite{gao_efficient_2017,choo_symmetries_2018,glasser_neural-network_2018}, their relationship with tensor networks~\cite{stoudenmire_supervised_2016,stoudenmire_learning_2018,huggins_towards_2018,xu_neural_2018,newman_stable_2018,chen_equivalence_2018} and the renormalization group~\cite{mehta_exact_2014,koch-janusz_mutual_2018,li_neural_2018, beny_deep_2013,efthymiou_super-resolving_2018,lenggenhager_optimal_2018}, and in other contexts in quantum many-body physics \red{[BE SPECIFIC]} \cite{PhysRevB.96.205152}.
+They are currently being investigated for their representational power~\cite{gao_efficient_2017,choo_symmetries_2018,glasser_neural-network_2018}, their relationship with tensor networks~\cite{chen_equivalence_2018} and the renormalization group~\cite{mehta_exact_2014,koch-janusz_mutual_2018,iso_scale-invariant_2018,lenggenhager_optimal_2018}, and in other contexts in quantum many-body physics \red{[BE SPECIFIC]} \cite{PhysRevB.96.205152}.
 
 In this post, we present QuCumber, a {\it quantum calculator used for many-body eigenstate reconstruction}. 
 QuCumber is an open-source Python package that implements neural-network quantum state reconstruction of many-body wavefunctions from measurement data. 
@@ -514,7 +514,7 @@ After successfully training a QuCumber model, we can once again compute generic 
 
 
 \section*{Acknowledgements}
-We acknowledge G. Carleo, J. Carrasquilla and L. Hayward Sierens for stimulating discussions. 
+We acknowledge G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for stimulating discussions. 
 We thank J. Matlock and the Perimeter Institute for Theoretical Physics for the continuing support of PIQuIL.
 
 \paragraph{Author contributions}
@@ -538,7 +538,7 @@ Innovation. P.~H. acknowledges support from ICFOstepstone, funded by the Marie S
 \section{Glossary}
 \label{Glossary}
 
-We list an overview of terms discussed in the document and relevant for RBMs. For more detail we refer the reader to the code documentation on \url{https://piquil.github.io/QuCumber/}, and References~\cite{hinton2002training, hinton2012practical}.
+We list an overview of terms discussed in the document and relevant for RBMs. For more detail we refer the reader to the code documentation on \url{https://piquil.github.io/QuCumber}, and References~\cite{hinton2002training, hinton2012practical}.
 
 \begin{itemize}
 
