@@ -95,12 +95,27 @@ With the growing number of controlled quantum degrees of freedom, such as superc
 Efficient classical algorithms can aid in extracting physical observables otherwise inaccessible from experimental measurements, as well as in identifying 
 sources of noise to provide direct feedback for improving experimental hardware. However, traditional approaches for reconstructing unknown quantum states from a set of measurements, such as quantum state tomography, often suffer the exponential overhead that is typical of quantum many-body systems.
 
-Recently, an alternative path to quantum state reconstruction was put forward, based on modern machine learning (ML) techniques~\cite{torlai2018tomography, TorlaiMixed, torlai2018tomography,torlai_latent_2018,carrasquilla_reconstructing_2018}. 
-This approach relies on a powerful generative model called a {\it restricted Boltzmann machine} (RBM)~\cite{Smolensky,smolensky_information_1986}, a stochastic neural network with two layers of binary units. A visible layer $\bm{v}=(v_1,\dots,v_N)$ describes the physical degrees of freedom, while a hidden layer $\bm{h}=(h_1,\dots,h_{N_h})$ is used to capture high-order correlation between the visible units. Given a set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$ (see Glossary). RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{Hinton06}, for compressing high-dimensional data into lower-dimensional representations~\cite{Hinton504}, and for other tasks. More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{Torlai2016thermo, CarleoTroyer2017Science}.  They are currently being investigated for their representational power~\cite{Gao}, their relationship with tensor networks and the renormalization group~\cite{GlasserCirac2018,Maciej,ChenWang2018}, and in other contexts in quantum many-body physics \cite{PhysRevB.96.205152}.
+Recently, an alternative path to quantum state reconstruction was put forward, based on modern machine learning (ML) techniques~\cite{torlai_neural-network_2018,torlai_latent_2018,carrasquilla_reconstructing_2018,lennon_efficiently_2018,kim_mixed_2018}. 
+This approach relies on a powerful generative model called a {\it restricted Boltzmann machine} (RBM)~\cite{smolensky_information_1986}, 
+a stochastic neural network with two layers of binary units. 
+A visible layer $\bm{v}=(v_1,\dots,v_N)$ describes the physical degrees of freedom, while a hidden layer $\bm{h}=(h_1,\dots,h_{N_h})$ is used to capture high-order correlation between the visible units. 
+Given a set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$ (see Glossary). 
+RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{hinton_training_2002}, for compressing high-dimensional data into lower-dimensional representations~\cite{hinton_reducing_2006}, and for other tasks \cite{lecun_deep_2015}\red{[BE SPECIFC?]}
+More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{torlai_learning_2016,CarleoTroyer2017Science,carleo_constructing_2018}
+They are currently being investigated for their representational power~\cite{gao_efficient_2017,choo_symmetries_2018,glasser_neural-network_2018}, their relationship with tensor networks~\cite{stoudenmire_supervised_2016,stoudenmire_learning_2018,huggins_towards_2018,xu_neural_2018,newman_stable_2018,chen_equivalence_2018} and the renormalization group~\cite{mehta_exact_2014,koch-janusz_mutual_2018,li_neural_2018, beny_deep_2013,efthymiou_super-resolving_2018,lenggenhager_optimal_2018}, and in other contexts in quantum many-body physics \red{[BE SPECIFIC]} \cite{PhysRevB.96.205152}.
 
-In this post, we present QuCumber, a {\it quantum calculator used for many-body eigenstates reconstruction}. QuCumber is an open-source Python package that implements neural-network quantum state reconstruction of many-body wavefunctions from measurement data. Some examples are magnetic spin projections, orbital occupation number, polarization of photons, or the logical state of qubits. Given a training dataset of measurements, QuCumber discovers the most likely quantum state compatible with the measurements by finding the optimal set of parameters $\bm{\lambda}$ of an RBM. A properly trained RBM is an approximation of the unknown quantum state underlying the data. It can be used to calculate various physical observables of interest, including measurements that may not be possible in the original experiment.
+In this post, we present QuCumber, a {\it quantum calculator used for many-body eigenstate reconstruction}. 
+QuCumber is an open-source Python package that implements neural-network quantum state reconstruction of many-body wavefunctions from measurement data. 
+Some examples are magnetic spin projections, orbital occupation number, polarization of photons, or the logical state of qubits. 
+Given a training dataset of measurements, QuCumber discovers the most likely quantum state compatible with the measurements by finding the optimal set of parameters $\bm{\lambda}$ of an RBM. 
+A properly trained RBM is an approximation of the unknown quantum state underlying the data. 
+It can be used to calculate various physical observables of interest, including measurements that may not be possible in the original experiment.
 
-This post is organized as follows. In Section \ref{sec:positive}, we introduce the reconstruction technique for the case of positive wavefunctions, where all coefficients are (or can be transformed to be) real and positive. We discuss the required format for input data, as well as training of the RBM and the reconstruction of both diagonal and off-diagonal observables. In Section~\ref{sec:complex}, we consider the more general case of a complex-valued wavefunction. We illustrate a general strategy to extract the phase structure from raw data by performing appropriate unitary rotations on the state before measurements. We then show a practical reconstruction of an entangled state of two qubits. A Glossary of useful terms and equations can be found at the end of the post in Appendix~\ref{Glossary}.
+This post is organized as follows. 
+In Section \ref{sec:positive}, we introduce the reconstruction technique for the case of positive wavefunctions, where all coefficients are (or can be transformed to be) real and positive. 
+We discuss the required format for input data, as well as training of the RBM and the reconstruction of both diagonal and off-diagonal observables. In Section~\ref{sec:complex}, we consider the more general case of a complex-valued wavefunction. 
+We illustrate a general strategy to extract the phase structure from raw data by performing appropriate unitary rotations on the state before measurements. 
+We then show a practical reconstruction of an entangled state of two qubits. A Glossary of useful terms and equations can be found at the end of the post in Appendix~\ref{Glossary}.
 
 \section{Positive wavefunctions}\label{sec:positive}
 We begin by presenting the application of QuCumber to reconstruct many-body quantum states described by wavefunctions $|\Psi\rangle$ with positive coefficients $\Psi(\bm{\mathrm{x}})=\langle\bm{\mathrm{x}}|\Psi\rangle \ge0$, where $|\bm{\mathrm{x}}\rangle=|\mathrm{x}_1,\dots,\mathrm{x}_N\rangle$ is a reference basis for the Hilbert space of $N$ quantum degrees of freedom. The neural-network quantum state reconstruction requires raw data $\mathcal{D}=(\bm{\mathrm{x}}_1,\bm{\mathrm{x}}_2,\dots)$ generated through projective measurements of the state $|\Psi\rangle$ in the reference basis. These measurements adhere to the probability distribution given by the Born rule, $P(\bm{\mathrm{x}})=|\Psi(\bm{\mathrm{x}})|^2$. Since the wavefunction is strictly positive, the quantum state is completely characterized by the measurement distribution, i.e.~$\Psi(\bm{\mathrm{x}})=\sqrt{P(\bm{\mathrm{x}})}$. 
@@ -219,7 +234,7 @@ The expectation value can be approximated by a Monte Carlo estimator,
 where the spin configurations $\bm{\sigma}_k$ are sampled from the RBM distribution $p_{\bm{\lambda}}(\bm{\sigma})$. This process is particularly efficient given the bipartite structure of the network which allows the use of block Gibbs sampling. 
 
 
-A simple example for the TFIM is the average magnetization per spin, $M=\sum_j\langle\hat{\sigma}_j\rangle/N$, which can be calculated directly on the spin configuration sampled by the RBM (i.e.,~the state of the visible layer). The visible samples are obtained with the \verb|sample| function of the RBM state object:
+A simple example for the TFIM is the average magnetization per spin, $\sum_j\langle\hat{\sigma}_j\rangle/N$, which can be calculated directly on the spin configuration sampled by the RBM (i.e.,~the state of the visible layer). The visible samples are obtained with the \verb|sample| function of the RBM state object:
 \begin{python}
 samples = state.sample(num_samples=1000, k=10)
 \end{python}
@@ -581,7 +596,7 @@ The KL divergence of identical distributions is zero, while for orthogonal distr
 \cite{efthymiou_super-resolving_2018,beny_deep_2013,GlasserCirac2018,lenggenhager_optimal_2018}
 \cite{smolensky_information_1986}
 \cite{Smolensky}
-\bibliography{RBMs,bibliography,RGandDL,TNandDL,MLtomography}
+\bibliography{RBMs,RGandDL,TNandDL,MLtomography,RBMphysics,bibliography,representationsDL}
 \nolinenumbers
 \end{document}
 
