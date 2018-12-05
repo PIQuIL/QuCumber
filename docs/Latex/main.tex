@@ -77,8 +77,8 @@
 As we enter a new era of quantum technology, it is increasingly important to develop methods capable of aiding 
 the accurate preparation of quantum states for a variety of materials, matter, and hardware.
 The large number of qubits present in near-term experiments poses the problem of high dimensionality, where conventional methods of quantum state tomography break down. 
-        In this paper, we present an open-source software package called QuCumber that uses machine learning to effectively reconstruct a quantum state consistent with a set of projective measurements. 
-        QuCumber is able to reconstruct states for a large number of qubits by representing the wavefunction as a restricted Boltzmann machine.
+In this paper, we present an open-source software package called QuCumber that uses machine learning to effectively reconstruct a quantum state consistent with a set of projective measurements. 
+QuCumber is able to reconstruct states for a large number of qubits by representing the wavefunction as a restricted Boltzmann machine.
 It can then be sampled to produce new measurements and expectation values not easily accessible from the original data.
 }
 
@@ -95,7 +95,8 @@ With the growing number of controlled quantum degrees of freedom, such as superc
 Efficient classical algorithms can aid in extracting physical observables otherwise inaccessible from experimental measurements, as well as in identifying 
 sources of noise to provide direct feedback for improving experimental hardware. However, traditional approaches for reconstructing unknown quantum states from a set of measurements, such as quantum state tomography, often suffer the exponential overhead that is typical of quantum many-body systems.
 
-Recently, an alternative path to quantum state reconstruction was put forward, based on modern machine learning (ML) techniques~\cite{torlai2018tomography, TorlaiMixed}. This approach relies on a powerful generative model called a {\it restricted Boltzmann machine} (RBM)~\cite{Smolensky}, a stochastic neural network with two layers of binary units. A visible layer $\bm{v}=(v_1,\dots,v_N)$ describes the physical degrees of freedom, while a hidden layer $\bm{h}=(h_1,\dots,h_{N_h})$ is used to capture high-order correlation between the visible units. Given a set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$ (see Glossary). RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{Hinton06}, for compressing high-dimensional data into lower-dimensional representations~\cite{Hinton504}, and for other tasks. More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{Torlai2016thermo, CarleoTroyer2017Science}.  They are currently being investigated for their representational power~\cite{Gao}, their relationship with tensor networks and the renormalization group~\cite{GlasserCirac2018,Maciej,ChenWang2018}, and in other contexts in quantum many-body physics \cite{PhysRevB.96.205152}.
+Recently, an alternative path to quantum state reconstruction was put forward, based on modern machine learning (ML) techniques~\cite{torlai2018tomography, TorlaiMixed, torlai2018tomography,torlai_latent_2018,carrasquilla_reconstructing_2018}. 
+This approach relies on a powerful generative model called a {\it restricted Boltzmann machine} (RBM)~\cite{Smolensky,smolensky_information_1986}, a stochastic neural network with two layers of binary units. A visible layer $\bm{v}=(v_1,\dots,v_N)$ describes the physical degrees of freedom, while a hidden layer $\bm{h}=(h_1,\dots,h_{N_h})$ is used to capture high-order correlation between the visible units. Given a set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$ (see Glossary). RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{Hinton06}, for compressing high-dimensional data into lower-dimensional representations~\cite{Hinton504}, and for other tasks. More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{Torlai2016thermo, CarleoTroyer2017Science}.  They are currently being investigated for their representational power~\cite{Gao}, their relationship with tensor networks and the renormalization group~\cite{GlasserCirac2018,Maciej,ChenWang2018}, and in other contexts in quantum many-body physics \cite{PhysRevB.96.205152}.
 
 In this post, we present QuCumber, a {\it quantum calculator used for many-body eigenstates reconstruction}. QuCumber is an open-source Python package that implements neural-network quantum state reconstruction of many-body wavefunctions from measurement data. Some examples are magnetic spin projections, orbital occupation number, polarization of photons, or the logical state of qubits. Given a training dataset of measurements, QuCumber discovers the most likely quantum state compatible with the measurements by finding the optimal set of parameters $\bm{\lambda}$ of an RBM. A properly trained RBM is an approximation of the unknown quantum state underlying the data. It can be used to calculate various physical observables of interest, including measurements that may not be possible in the original experiment.
 
@@ -578,7 +579,9 @@ The KL divergence of identical distributions is zero, while for orthogonal distr
 \end{itemize}
 
 \cite{efthymiou_super-resolving_2018,beny_deep_2013,GlasserCirac2018,lenggenhager_optimal_2018}
-\bibliography{bibliography,tomography,RGandDL,TNandDL}
+\cite{smolensky_information_1986}
+\cite{Smolensky}
+\bibliography{RBMs,bibliography,RGandDL,TNandDL,MLtomography}
 \nolinenumbers
 \end{document}
 

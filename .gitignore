@@ -383,3 +383,4 @@ TSWLatexianTemp*
 
 # standalone packages
 *.sta
+examples/Tutorial1_TrainPosRealWavefunction/fid_KL.pdf
