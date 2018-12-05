@@ -328,7 +328,7 @@ that acts on an extended product space consisting of independent copies of the w
 As the name suggests, the action of the Swap operator is to swap the spin configurations in region $A$
 between the replicas,
 \begin{equation}
-  \widehat{Swap}_A |\bm{\sigma_A, \sigma_{\bar A}}\rangle_1 \otimes  |\bm{\sigma^{\prime}_A, \sigma^{\prime}_{\bar A}}\rangle_2 = |\bm{\sigma^{\prime}_A, \sigma_{\bar A}}\rangle_1 \otimes  |\bm{\sigma_A, \sigma^{\prime}_{\bar A}}\rangle_2 .
+  \widehat{\textrm{Swap}}_A |\bm{\sigma}_A, \bm{\sigma}_{\bar A}\rangle_1 \otimes  |\bm{\sigma}^{\prime}_A, \bm{\sigma}^{\prime}_{\bar A}\rangle_2 = |\bm{\sigma}^{\prime}_A, \bm\sigma_{\bar A}\rangle_1 \otimes  |\bm\sigma_A, \bm\sigma^{\prime}_{\bar A}\rangle_2 .
 \end{equation}
 Here the subcript of the ket indicates the replica index while two labels inside a ket, such as $\sigma_A, \sigma_{\bar A}$, describe the spins configurations within the subregion and its complement. 
 
@@ -341,7 +341,7 @@ def swap(s1, s2, A):
         s2[:, a] = _s
     return s1, s2
 \end{python}
-where $s1$ and $s2$ are batches of samples produced from each replica. While ideally those samples should be entirely independent, in order to save computational costs, QuCumber just splits a given batch into two equal parts and treats them as if they were independent samples. This code is implemented within the \verb|RenyiEntropy| observable,
+where \verb|s1| and \verb|s2| are batches of samples produced from each replica. While ideally those samples should be entirely independent, in order to save computational costs, QuCumber just splits a given batch into two equal parts and treats them as if they were independent samples. This code is implemented within the \verb|RenyiEntropy| observable,
 \begin{python}
 class RenyiEntropy(Observable):
     def apply(self, nn_state, samples, A):
