@@ -201,7 +201,7 @@ expectation values of physical observables (magnetization, energy, etc).
 In the following, we show how to compute diagonal and off-diagonal observables in QuCumber. 
 
 \subsection{Reconstruction of physical observables} \label{Sec:Sampling_a-Trained_RBM}
-In this Section, we discuss how to calculate the average value of a generic physical observable $\hat{\mathcal{O}}$ from a trained RBM. We start with the case of observables that are diagonal in the reference basis with which the RBM was trained. We then discuss the more general cases of off-diagonal observables and entanglement entropies.
+In this section, we discuss how to calculate the average value of a generic physical observable $\hat{\mathcal{O}}$ from a trained RBM. We start with the case of observables that are diagonal in the reference basis with which the RBM was trained. We then discuss the more general cases of off-diagonal observables and entanglement entropies.
 
 \subsubsection{Diagonal observables}
 We begin by considering an observable with only diagonal matrix elements,
@@ -211,7 +211,7 @@ The expectation value of $\hat{\mathcal{O}}$ is given by
     \langle \hat{\mathcal{O}} \rangle = \frac{1}{\sum_{\bm{\sigma}} |\psi_{\bm{\lambda}}(\bm{\sigma})|^2}
     \sum_{\bm{\sigma}} \mathcal{O}_{\bm{\sigma}}|\psi_{\bm{\lambda}}(\bm{\sigma})|^2\:.
 \end{equation}
-In this case, the exponential sum can be approximated by a Monte Carlo average
+The expectation value can be approximated by a Monte Carlo estimator,
 \begin{equation}
     \langle \hat{\mathcal{O}}\rangle \approx \frac{1}{N_{\rm MC}} \sum_{k=1}^{N_{\rm MC}} \mathcal{O}_{\bm{\sigma}_k}\:,
 \end{equation}
@@ -228,6 +228,7 @@ magnetization = samples.mul(2.0).sub(1.0).mean(1).abs().mean()
 \end{python}
 where we converted the binary samples of the RBM back into $\pm 1$ spins.
 
+
 \subsubsection{Off-diagonal observables}
 
 We turn now to the case of off-diagonal observables, where the expectation value assumes the following form
@@ -236,7 +237,7 @@ We turn now to the case of off-diagonal observables, where the expectation value
     \sum_{\bm{\sigma\sigma}^\prime} \psi_{\bm{\lambda}}(\bm{\sigma})
     \psi_{\bm{\lambda}}(\bm{\sigma}^\prime)\mathcal{O}_{\bm{\sigma\sigma}^\prime}\:.
 \end{equation}
-This expression can once again be approximated with a Monte Carlo average 
+This expression can once again be approximated with a Monte Carlo estimator 
 \begin{equation}
     \langle \hat{\mathcal{O}}\rangle \approx \frac{1}{N_{\rm MC}} \sum_{k=1}^{N_{\rm MC}} \mathcal{O}^{[L]}_{\bm{\sigma}_k}
 \end{equation}
@@ -246,7 +247,13 @@ of the so-called \emph{local estimator} of the observable:
 \end{equation}
 As long as the matrix representation $\mathcal{O}_{\bm{\sigma\sigma}^\prime}$ is sufficiently sparse in the reference basis, the summation can be evaluated efficiently. 
 
-\subsubsection{Transverse magnetization}\label{subsubsec:sigmax}
+\begin{figure}[t]
+    \centering{}
+    \includegraphics[width=\columnwidth, trim={0 15 0 0}, clip]{obs.pdf}
+    \caption{\label{tfim_magn} Reconstruction of the magnetic observables for the TFIM chain with $N=10$ spins. We show the average longitudinal (left) and transverse (right) magnetization per site obtained by sampling a trained RBM. The dashed line denotes the results from exact diagonalization.}
+\end{figure}
+
+%\subsubsection{Transverse magnetization}\label{subsubsec:sigmax}
 As an example, we consider the specific case of the transverse magnetization for the $j$-th spin, $M_j^x=\langle\hat{\sigma}^x_j\rangle$, with matrix elements
 \begin{equation}
     \langle\bm{\sigma}|\hat{\sigma}^x_j|\bm{\sigma}^{\prime}\rangle=\delta_{\sigma_j^\prime,1-\sigma_j}\prod_{i\ne j}\delta_{\sigma_i^\prime,\sigma_j}\:.
@@ -259,11 +266,11 @@ Therefore, the expectation values reduces to the Monte Carlo average of the loca
 \end{equation}
 evaluated on spin configurations $\bm{\sigma}_k$ sampled from the RBM distribution $p_{\bm{\lambda}}(\bm{\sigma})$. 
 
-QuCumber provides an interface for sampling off-diagonal observables in the \verb|Observable| class. Thorough examples can are available in the tutorial section in the \href{https://qucumber.readthedocs.io/en/stable/}{documentation}\!\!
+QuCumber provides an interface for sampling off-diagonal observables in the \verb|Observable| class. Thorough examples can are available in the tutorial section in the \href{https://qucumber.readthedocs.io/en/stable/}{documentation}.\!\!
 \footnote{The observables tutorials are available at
     \href{https://qucumber.readthedocs.io/en/stable/\_examples/Tutorial3\_DataGeneration\_CalculateObservables/tutorial\_sampling\_observables.html
 }{\texttt{https://qucumber.readthedocs.io/en/stable/\_examples\\/Tutorial3\_DataGeneration\_CalculateObservables/tutorial\_sampling\_observables.html}}
-}. 
+}
 As an example, $\sigma^x$ can be written as an observable class with
 \begin{python}
 class SigmaX(Observable):
@@ -287,29 +294,29 @@ The value of the observable is computed with
 \begin{python}
 SigmaX.statistics_from_samples(state, samples)
 \end{python}
-Similarly, the user can define other observables like $\sigma^z$ or the energy. 
+Similarly, the user can define other observables like the energy, etc.
 
-The reconstruction of two magnetic observables for the TFIM is shown in Fig.~\ref{tfim_magn}, where a different RBM was trained for each value of the transverse field $h$. In the left plot, we show the average longitudinal magnetization per site, which can be calculated directly from the configurations sampled by the RBM. In the right plot, we show the off-diagonal observable of transverse magnetization. In both cases, QuCumber successfully discovers a set of parameters $\bm{\lambda}^*$ that correctly approximates the ground-state wavefunction underlying the data.
+The reconstruction of two magnetic observables for the TFIM is shown in Fig.~\ref{tfim_magn}, where a different RBM was trained for each value of the transverse field $h$. In the left plot, we show the average longitudinal magnetization per site, which can be calculated directly from the configurations sampled by the RBM. In the right plot, we show the off-diagonal observable of transverse magnetization. In both cases, QuCumber successfully discovers an optimal set of parameters $\bm{\lambda}$ that accurately approximate the ground-state wavefunction underlying the data.
 
-\begin{figure}[htb]
-    \centering{}
-    \includegraphics[width=\columnwidth, trim={0 15 0 0}, clip]{obs.pdf}
-    \caption{\label{tfim_magn} Reconstruction of the magnetic observables for the TFIM chain with $N=10$ spins. We show the average longitudinal (left) and transverse (right) magnetization per site obtained by sampling a trained RBM. The dashed line denotes the results from exact diagonalization.}
-\end{figure}
 
-\subsubsection{Swap observable }
+\subsubsection{Entanglement entropy }
 \label{sec:swap}
 
-Numerically, measurement of bipartite entanglement entropy is usually accessed through the computation of Renyi entropies. Physically, the latter mediates the average amount of uncertainty associated with a subregion $A$ that remains despite the full-knowledge of the state of the rest of the system. In zero-temperature Monte Carlo simulations, Renyi entropies can be estimated through the Swap operator. It is a type of an off-diagonal observable. A particularity of the Swap operator is that it acts on an extended product space consisting of independent copies of the wavefunction. Those copies are referred as replicas and are at the heart of entanglement entropy calculations both within numerical and analytic calculations. 
+A quantity of significant interest in quantum many-body systems is the amount of entanglement between a subregion 
+$A$ and its complement $\bar{A}$.
+Numerically, measurement of bipartite entanglement entropy is commonly accessed through the computation of the second Renyi entropy \cite{Swap}. 
+When one has access to a pure state wavefunction $\psi_{\bm{\lambda}}(\bm{\mathrm{x}})$,
+Renyi entropies can be estimated through the ``Swap'' operator.  It is a type of an off-diagonal observable
+that acts on an extended product space consisting of independent copies of the wavefunction, $\psi_{\bm{\lambda}}(\bm{\mathrm{x}}) \otimes \psi_{\bm{\lambda}}(\bm{\mathrm{x}})$, referred to as ``replicas''. 
 
-As the name suggests, the action of the Swap operator is to swap the spin configurations  between the replicas as dictated by the extent of region $A$:
-
+As the name suggests, the action of the Swap operator is to swap the spin configurations in region $A$
+between the replicas,
 \begin{equation}
   \widehat{Swap}_A |\bm{\sigma_A, \sigma_{\bar A}}\rangle_1 \otimes  |\bm{\sigma^{\prime}_A, \sigma^{\prime}_{\bar A}}\rangle_2 = |\bm{\sigma^{\prime}_A, \sigma_{\bar A}}\rangle_1 \otimes  |\bm{\sigma_A, \sigma^{\prime}_{\bar A}}\rangle_2 .
 \end{equation}
-Here the subcript of the ket indicates replica's index while two labels inside a ket, such as $\sigma_A, \sigma_{\bar A}$, describe the spins configurations within the region $A$ and its complement correspondingly. 
+Here the subcript of the ket indicates the replica index while two labels inside a ket, such as $\sigma_A, \sigma_{\bar A}$, describe the spins configurations within the subregion and its complement. 
 
-In QuCumber, the Swap operator is implemented as a routine within entanglement observable unit: 
+In QuCumber, the Swap operator is implemented as a routine within the \verb|entanglement| observable unit: 
 \begin{python}
 def swap(s1, s2, A):
     for a in A:
@@ -318,8 +325,7 @@ def swap(s1, s2, A):
         s2[:, a] = _s
     return s1, s2
 \end{python}
-where $s1$ and $s2$ are batches of samples produced from each replica. While ideally those samples should be entirely independent, in order to save computational costs, QuCumber just splits a given batch into two equal parts and treats them as if they were independent samples. This code is implemented within RenyiEntropy observable within the same unit:
-
+where $s1$ and $s2$ are batches of samples produced from each replica. While ideally those samples should be entirely independent, in order to save computational costs, QuCumber just splits a given batch into two equal parts and treats them as if they were independent samples. This code is implemented within the \verb|RenyiEntropy| observable,
 \begin{python}
 class RenyiEntropy(Observable):
     def apply(self, nn_state, samples, A):
@@ -327,8 +333,8 @@ class RenyiEntropy(Observable):
         samples1 = samples[:_ns, :]
         samples2 = samples[_ns : _ns * 2, :]
 \end{python}
-The rest of the implementation is very similar to the one for the transverse magnetization observable from sec. \ref{subsubsec:sigmax} once the amplitude of a sample is substituted with the product of amplitudes drawn from each replica:
-
+The rest of the implementation is very similar to that for the transverse magnetization observable from the last section,
+once the amplitude of a sample is substituted with the product of amplitudes drawn from each replica.
 \begin{python}
 psi_ket1 = nn_state.psi(samples1)
 psi_ket2 = nn_state.psi(samples2)
@@ -338,7 +344,9 @@ psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
 
 \section{Complex wavefunctions}
 \label{sec:complex}
-For positive wavefunctions, the probability distribution underlying the outcomes of projective measurement in the reference basis already contains all the information about the unknown quantum state. In this Section, we consider a target quantum state with a non-trivial sign/phase structure. This means that the wavefunction coefficients in the reference basis can be of different signs, as well as complex-valued, $\Psi(\bm{\sigma})=\Phi(\bm{\sigma})e^{i\theta(\bm{\sigma})}$. We first need to generalize the RBM representation of the quantum state to capture generic complex wavefunctions. To this end, we introduce an additional RBM with network parameters $\bm{\mu}$ and define the total RBM state as:
+For positive wavefunctions, the probability distribution underlying the outcomes of projective measurement in the reference basis  contains all possible information about the unknown quantum state. 
+However, in the more general case of a wavefunction with a non-trivial sign/phase structure, this is not the case.
+In this section, we consider a target quantum state where the wavefunction coefficients in the reference basis can be of different signs, as well as complex-valued, $\Psi(\bm{\sigma})=\Phi(\bm{\sigma})e^{i\theta(\bm{\sigma})}$. We first need to generalize the RBM representation of the quantum state to capture generic complex wavefunctions. To this end, we introduce an additional RBM with network parameters $\bm{\mu}$ and define the total RBM state as:
 \begin{equation}
     \psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma})= \sqrt{p_{\bm{\lambda}} (\bm{\sigma})} e^{i \phi_{\bm{\mu}} (\bm{\sigma})/2}
 \end{equation}
