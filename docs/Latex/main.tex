@@ -369,12 +369,16 @@ psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
 \section{Complex wavefunctions}
 \label{sec:complex}
 For positive wavefunctions, the probability distribution underlying the outcomes of projective measurement in the reference basis  contains all possible information about the unknown quantum state. 
-However, in the more general case of a wavefunction with a non-trivial sign/phase structure, this is not the case.
-In this section, we consider a target quantum state where the wavefunction coefficients in the reference basis can be of different signs, as well as complex-valued, $\Psi(\bm{\sigma})=\Phi(\bm{\sigma})e^{i\theta(\bm{\sigma})}$. We first need to generalize the RBM representation of the quantum state to capture generic complex wavefunctions. To this end, we introduce an additional RBM with network parameters $\bm{\mu}$ and define the total RBM state as:
+However, in the more general case of a wavefunction with a non-trivial sign or phase structure, this is not the case.
+In this section, we consider a target quantum state where the wavefunction coefficients in the reference basis can be 
+complex-valued, $\Psi(\bm{\sigma})=\Phi(\bm{\sigma})e^{i\theta(\bm{\sigma})}$. We first need to generalize the RBM representation of the quantum state to capture a generic complex wavefunction. To this end, we introduce an additional RBM 
+with marginalized distribution $p_{\bm{\mu}}(\bm{\sigma})$ parameterized by a new set of network weights and biases $\bm{\mu}$.
+We use this to define the quantum state as:
 \begin{equation}
     \psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma})= \sqrt{p_{\bm{\lambda}} (\bm{\sigma})} e^{i \phi_{\bm{\mu}} (\bm{\sigma})/2}
 \end{equation}
-where we choose $\phi_{\bm{\mu}}(\bm{\sigma}) = \log (p_{\bm{\mu}} (\bm{\sigma}))$ \cite{torlai2018tomography}. Furthermore, the reconstruction requires a different type of measurement settings. In fact, projective measurements in the reference basis do not convey any information on the phases $\theta(\bm{\sigma})$, since $P(\bm{\sigma})=|\Psi(\bm{\sigma})|^2=\Phi^2(\bm{\sigma})$.
+where $\phi_{\bm{\mu}}(\bm{\sigma}) = \log (p_{\bm{\mu}} (\bm{\sigma}))$ \cite{torlai2018tomography}.
+In this case, the reconstruction requires a different type of measurement setting. It is easy to see that projective measurements in the reference basis do not convey any information on the phases $\theta(\bm{\sigma})$, since $P(\bm{\sigma})=|\Psi(\bm{\sigma})|^2=\Phi^2(\bm{\sigma})$.
 
 \begin{figure}[htb]
     \centering
