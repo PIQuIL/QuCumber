@@ -436,7 +436,8 @@ import qucumber.utils.unitaries as unitaries
 import qucumber.utils.cplx as cplx
 \end{python}
 Since we are dealing with a complex wavefunction, we load the corresponding module 
-\verb|ComplexWavefunction| to build the RBM quantum state $\psi_{\bm{\lambda\mu}}(\bm{\sigma})$. Furthermore, the following additional utility modules are required: the \verb|utils.cplx| backend for complex algebra, and the \verb|utils.unitaries| module  which contains a set of elementary local rotations. By default, the set of unitaries include rotation to the $\sigma^x$ and $\sigma^y$ local basis implemented by the $\hat{\mathrm{H}}$ and $\hat{\mathrm{K}}$ gates respectively.
+\verb|ComplexWavefunction| to build the RBM quantum state $\psi_{\bm{\lambda\mu}}(\bm{\sigma})$. Furthermore, the following additional utility modules are required: the \verb|utils.cplx| backend for complex algebra \textcolor{red}{[Still true?]}, 
+and the \verb|utils.unitaries| module  which contains a set of elementary local rotations. By default, the set of unitaries include local rotations to the $\sigma^x$ and $\sigma^y$ basis, implemented by the $\hat{\mathrm{H}}$ and $\hat{\mathrm{K}}$ gates respectively.
 
 We continue by loading the data in QuCumber, which is done using the \verb|load_data| function of the data utility:
 \begin{python}
@@ -453,8 +454,8 @@ As before, we may load the true target wavefunction from \verb|qubits_psi.txt|, 
 \begin{equation}
     (b_0, b_1)=(\mathrm{z},\mathrm{z})\:,\:(\mathrm{x},\mathrm{z})\:,\:(\mathrm{z},\mathrm{x})\:,\:(\mathrm{y},\mathrm{z})\:,\:(\mathrm{z},\mathrm{y})
 \end{equation}
-Finally, before the training, we initialize the set of unitary rotations and create the RBM state object. In the case of the provided dataset, the unitaries required are the well-known $\hat{\mathrm{H}}$ and $\hat{\mathrm{K}}$ gates. The dictionary needed can be created with \verb|unitaries.create_dict()|. 
-By default, when \verb|unitaries.create_dict()| is called, it will contain the identity and the $\hat{\mathrm{H}}$ and $\hat{\mathrm{K}}$ gates with the keys \verb|Z|, \verb|Y|, and \verb|X| respectively. It is possible to add additional gates by specifying them as 
+Finally, before the training, we initialize the set of unitary rotations and create the RBM state object. In the case of the provided dataset, the unitaries are the $\hat{\mathrm{H}}$ and $\hat{\mathrm{K}}$ gates. The required dictionary can be created with \verb|unitaries.create_dict()|. 
+By default, when \verb|unitaries.create_dict()| is called, it will contain the identity and the $\hat{\mathrm{H}}$ and $\hat{\mathrm{K}}$ gates with the keys \verb|Z|, \verb|Y|, and \verb|X| respectively \textcolor{red}{[X then Y?]}. It is possible to add additional gates by specifying them as 
 \begin{python}
 U = torch.tensor([[re_part], [im_part]], dtype=torch.double)
 unitary_dict = unitaries.create_dict(unitary_name="U")
@@ -467,11 +468,12 @@ state = ComplexWavefunction(
    num_visible=2 num_hidden=2, unitary_dict=unitary_dict
 )
 \end{python}
-
-The key difference between positive and complex wavefunction reconstruction is the requirement of additional measurements in different basis. Despite this, loading the data, initializing models, and training the RBMs are all very similar to the positive case.
+The key difference between positive and complex wavefunction reconstruction is the requirement of additional measurements in different basis. Despite this, loading the data, initializing models, and training the RBMs are all very similar to the positive case, as we now discuss.
 
 \subsection{Training}
-The training procedure is somewhat similar to the case of a positive wavefunction, where QuCumber optimized the parameters $\bm{\lambda}$ to minimize the KL divergence between the data and the RBM distribution. When measuring in multiple bases, the optimization now runs over the set of parameters $(\bm{\lambda},\bm{\mu})$ and minimizes the sum of KL divergences between the data distribution $P(\bm{\sigma}^{\bm{b}})$ and the RBM distribution $|\psi_{\bm{\lambda\mu}}(\bm{\sigma}^{\bm{b}})|^2$ for each bases $\bm{b}$ appearing in the training dataset. For example, if a given training sample is measured in the basis $(\mathrm{x},\mathrm{z})$, QuCumber applies the appropriate unitary rotation $\bm{\mathcal{U}}=\hat{\mathrm{H}}_0\otimes\hat{\mathcal{I}}_1$ to the RBM state before collecting the gradient signal. 
+Like in the case of a positive wavefunction, for the complex case
+QuCumber optimizes the parameters $\bm{\lambda}$ to minimize the KL divergence between the data and the RBM distribution. When measuring in multiple bases, the optimization now runs over the set of parameters $(\bm{\lambda},\bm{\mu})$ and minimizes the sum of KL divergences between the data distribution $P(\bm{\sigma}^{\bm{b}})$ and the RBM distribution $|\psi_{\bm{\lambda\mu}}(\bm{\sigma}^{\bm{b}})|^2$ for each bases $\bm{b}$ appearing in the training dataset \cite{torlai2018tomography}. 
+For example, if a given training sample is measured in the basis $(\mathrm{x},\mathrm{z})$, QuCumber applies the appropriate unitary rotation $\bm{\mathcal{U}}=\hat{\mathrm{H}}_0\otimes\hat{\mathcal{I}}_1$ to the RBM state before collecting the gradient signal. 
 
 Similar to the case of positive wavefunction, we generate the Hilbert space (to compute fidelity and KL divergence) and initialize the callbacks
 \begin{python}
@@ -508,14 +510,18 @@ In Fig.~\ref{fig:complex} we show the total KL divergence and the fidelity with 
     \includegraphics[width=\textwidth, trim={0 15 0 0}, clip]{complex_fid_KL.pdf}
     \caption{\label{fig:complex} Training a complex RBM with QuCumber on random two-qubit data. We show the fidelity (left), and KL divergence (right), as a function of the training epochs.}
 \end{figure}
+After successfully training a QuCumber model, we can once again compute expectation values of physical observables.
+Like discussed in Section~\ref{Sec:Sampling_a-Trained_RBM}, observables can be diagonal or off-diagonal in the reference basis.
 
-After successfully training a QuCumber model, we can once again compute generic observables in the reference basis.  
-\red{[SOMETHING ABOUT OBSERVABLES?!?!?!?!?!??!}
-\red{[CONCLUDING PARAGRAPH??]}
 
 \section{Conclusion}
-\red{TODO}
 
+We have introduced the open source software package QuCumber, a quantum calculator used for many-body eigenstate
+reconstruction. QuCumber is capable of taking data representing projective measurements of a quantum wavefunction, and 
+reconstructing the wavefunction using a restricted Boltzmann machine (RBM).
+
+RBM are generative models.  Once properly trained, QuCumber can produce a new set of measurement samples.  These samples, when produced in the reference basis, can be used to verify the training of the RBM against the original data set.  More importantly, they can be used to calculate expectation values of observables, both diagonal and off-diagonal in the reference basis.  In fact,
+any expectation value typically estimated by conventional Monte Carlo methods may be implemented as an estimator in QuCumber.  Such estimators may be 
 
 \section*{Acknowledgements}
 We acknowledge G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for stimulating discussions. 
