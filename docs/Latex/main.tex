@@ -505,23 +505,27 @@ state.fit(
 \end{python}
 
 In Fig.~\ref{fig:complex} we show the total KL divergence and the fidelity with the true two-qubit state during training. 
+After successfully training a QuCumber model, we can once again compute expectation values of physical observables,
+as discussed in Section~\ref{Sec:Sampling_a-Trained_RBM}.
 \begin{figure}[htb]
     \centering{}
     \includegraphics[width=\textwidth, trim={0 15 0 0}, clip]{complex_fid_KL.pdf}
     \caption{\label{fig:complex} Training a complex RBM with QuCumber on random two-qubit data. We show the fidelity (left), and KL divergence (right), as a function of the training epochs.}
 \end{figure}
-After successfully training a QuCumber model, we can once again compute expectation values of physical observables.
-Like discussed in Section~\ref{Sec:Sampling_a-Trained_RBM}, observables can be diagonal or off-diagonal in the reference basis.
-
 
 \section{Conclusion}
 
 We have introduced the open source software package QuCumber, a quantum calculator used for many-body eigenstate
-reconstruction. QuCumber is capable of taking data representing projective measurements of a quantum wavefunction, and 
+reconstruction. QuCumber is capable of taking input data representing projective measurements of a quantum wavefunction, and 
 reconstructing the wavefunction using a restricted Boltzmann machine (RBM).
 
-RBM are generative models.  Once properly trained, QuCumber can produce a new set of measurement samples.  These samples, when produced in the reference basis, can be used to verify the training of the RBM against the original data set.  More importantly, they can be used to calculate expectation values of observables, both diagonal and off-diagonal in the reference basis.  In fact,
-any expectation value typically estimated by conventional Monte Carlo methods may be implemented as an estimator in QuCumber.  Such estimators may be 
+RBM are generative models.  Once properly trained, QuCumber can produce a new set of measurement samples.  These samples,  produced in the reference basis, can be used to verify the training of the RBM against the original data set.  More importantly, they can be used to calculate expectation values of observables, both diagonal and off-diagonal in the reference basis.  In fact,
+any expectation value typically estimated by conventional Monte Carlo methods may be implemented as an estimator in QuCumber.  Such estimators may be inaccessible in the reference basis, for example.  Or, they may be difficult or impossible to implement in the
+setup for which the original data was obtained.  This is particularly relevant for many experiments, where it is easy to imagine many possible observables that are inaccessible, due to fundamental or technical challenges.
+
+Future versions of QuCumber, as well as the next generation of quantum state reconstruction software, may explore different generative models, such as variational autoencoders or generative adversarial networks.
+In addition, future techniques may include hybridization between machine learning and other well-established methods in 
+computational quantum many-body physics, such as variational Monte Carlo and tensor networks.
 
 \section*{Acknowledgements}
 We acknowledge G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for stimulating discussions. 
