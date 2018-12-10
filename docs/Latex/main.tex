@@ -76,7 +76,7 @@
 \section*{Abstract}
 {\bf
 As we enter a new era of quantum technology, it is increasingly important to develop methods capable of aiding 
-the accurate preparation of quantum states for a variety of materials, matter, and hardware.
+the accurate preparation of quantum states for a variety of materials, matter, and devices.
 The large number of qubits present in near-term experiments poses the problem of high dimensionality, where conventional methods of quantum state tomography break down. 
 In this paper, we present an open-source software package called QuCumber that uses machine learning to effectively reconstruct a quantum state consistent with a set of projective measurements. 
 QuCumber is able to reconstruct states for a large number of qubits by representing the wavefunction as a restricted Boltzmann machine.
@@ -92,18 +92,18 @@ It can then be sampled to produce new measurements and expectation values not ea
 \section{Introduction}
 Current advances in fabricating quantum technologies, as well as in reliable control of synthetic quantum matter, is leading to a new era of quantum 
 hardware where highly pure quantum states are routinely prepared in laboratories. 
-With the growing number of controlled quantum degrees of freedom, such as superconducting qubits, molecules, trapped ions, and ultracold atoms \cite{gambetta17,gambetta18,Bernien17}, reliable and scalable classical algorithms are required to aid in the analysis and verification of experimental quantum states. 
+With the growing number of controlled quantum degrees of freedom, such as superconducting qubits, molecules, trapped ions, and ultracold atoms \cite{gambetta17,gambetta18,Bernien17}, reliable and scalable classical algorithms are required for the analysis and verification of experimental quantum states. 
 Efficient classical algorithms can aid in extracting physical observables otherwise inaccessible from experimental measurements, as well as in identifying 
 sources of noise to provide direct feedback for improving experimental hardware. However, traditional approaches for reconstructing unknown quantum states from a set of measurements, such as quantum state tomography, often suffer the exponential overhead that is typical of quantum many-body systems.
 
 Recently, an alternative path to quantum state reconstruction was put forward, based on modern machine learning (ML) techniques~\cite{torlai_neural-network_2018,torlai_latent_2018,carrasquilla_reconstructing_2018,lennon_efficiently_2018,kim_mixed_2018}. 
 This approach relies on a powerful generative model called a {\it restricted Boltzmann machine} (RBM)~\cite{smolensky_information_1986}, 
 a stochastic neural network with two layers of binary units. 
-A visible layer $\bm{v}=(v_1,\dots,v_N)$ describes the physical degrees of freedom, while a hidden layer $\bm{h}=(h_1,\dots,h_{N_h})$ is used to capture high-order correlation between the visible units. 
-Given a set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$ (see Glossary). 
-RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{hinton_training_2002}, for compressing high-dimensional data into lower-dimensional representations~\cite{hinton_reducing_2006}, and for other tasks \cite{lecun_deep_2015}\red{[BE SPECIFC?]}
+A visible layer $\bm{v}$ describes the physical degrees of freedom, while a hidden layer $\bm{h}$ is used to capture high-order correlation between the visible units (see Glossary). 
+Given a set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$. 
+RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{hinton_training_2002}, for compressing high-dimensional data into lower-dimensional representations~\cite{hinton_reducing_2006}, and for other tasks \cite{lecun_deep_2015}.
 More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{torlai_learning_2016,CarleoTroyer2017Science,carleo_constructing_2018}
-They are currently being investigated for their representational power~\cite{gao_efficient_2017,choo_symmetries_2018,glasser_neural-network_2018}, their relationship with tensor networks~\cite{chen_equivalence_2018} and the renormalization group~\cite{mehta_exact_2014,koch-janusz_mutual_2018,iso_scale-invariant_2018,lenggenhager_optimal_2018}, and in other contexts in quantum many-body physics \red{[BE SPECIFIC]} \cite{PhysRevB.96.205152}.
+They are currently being investigated for their representational power~\cite{gao_efficient_2017,choo_symmetries_2018,glasser_neural-network_2018}, their relationship with tensor networks~\cite{chen_equivalence_2018} and the renormalization group~\cite{mehta_exact_2014,koch-janusz_mutual_2018,iso_scale-invariant_2018,lenggenhager_optimal_2018}, and in other contexts in quantum many-body physics \cite{PhysRevB.96.205152}.
 
 In this post, we present QuCumber, a {\it quantum calculator used for many-body eigenstate reconstruction}. 
 QuCumber is an open-source Python package that implements neural-network quantum state reconstruction of many-body wavefunctions from measurement data. 
@@ -371,7 +371,9 @@ psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
 For positive wavefunctions, the probability distribution underlying the outcomes of projective measurement in the reference basis  contains all possible information about the unknown quantum state. 
 However, in the more general case of a wavefunction with a non-trivial sign or phase structure, this is not the case.
 In this section, we consider a target quantum state where the wavefunction coefficients in the reference basis can be 
-complex-valued, $\Psi(\bm{\sigma})=\Phi(\bm{\sigma})e^{i\theta(\bm{\sigma})}$. We first need to generalize the RBM representation of the quantum state to capture a generic complex wavefunction. To this end, we introduce an additional RBM 
+complex-valued, $\Psi(\bm{\sigma})=\Phi(\bm{\sigma})e^{i\theta(\bm{\sigma})}$. 
+We continue to choose the reference basis as $\bm{\sigma} = \bm{\sigma}^z$.
+We first need to generalize the RBM representation of the quantum state to capture a generic complex wavefunction. To this end, we introduce an additional RBM 
 with marginalized distribution $p_{\bm{\mu}}(\bm{\sigma})$ parameterized by a new set of network weights and biases $\bm{\mu}$.
 We use this to define the quantum state as:
 \begin{equation}
@@ -392,12 +394,12 @@ The general strategy to learn a phase structure is to apply a unitary transforma
 \begin{split}
     \Psi(\bm{\sigma}^{\bm{b}})
     &=\langle \bm{\sigma}^{\bm{b}}|\Psi\rangle=\sum_{\bm{\sigma}}\langle \bm{\sigma}^{\bm{b}}|\bm{\sigma}\rangle\langle\bm{\sigma}|\Psi\rangle\\
-    &=\sum_{\bm{\sigma}}\mathcal{U}(\bm{\sigma}^{\bm{b}},\bm{\sigma})\Psi(\bm{\sigma})\:,
+    &=\sum_{\bm{\sigma}}\bm{\mathcal{U}}(\bm{\sigma}^{\bm{b}},\bm{\sigma})\Psi(\bm{\sigma})\:,
 \end{split}
 \end{equation}
 and the resulting measurement distribution is
 \begin{equation}
-    P_{\bm{b}}(\bm{\sigma}^{\bm{b}})=\bigg|\sum_{\bm{\sigma}}\mathcal{U}(\bm{\sigma}^{\bm{b}},\bm{\sigma})\Psi(\bm{\sigma})\bigg|^2\:.
+    P_{\bm{b}}(\bm{\sigma}^{\bm{b}})=\bigg|\sum_{\bm{\sigma}}\bm{\mathcal{U}}(\bm{\sigma}^{\bm{b}},\bm{\sigma})\Psi(\bm{\sigma})\bigg|^2\:.
 \end{equation}
 To clarify the procedure, let us consider the simple example of a quantum state of two qubits:
 \begin{equation}
@@ -416,7 +418,7 @@ is called the {\it Hadamard gate}. This transformation is equivalent to rotating
 where $\Delta\theta=\theta_{0\sigma_1}-\theta_{1\sigma_1}$. Therefore, the statistics collected by measuring in this basis implicitly contains partial information on the phases. To obtain the full phases structure, additional transformations are required, one example being the rotation from the reference basis to the $\sigma^y_j$ local basis, realized by
 the elementary gate
 \begin{equation}
-        \hat{\mathrm{K}}_j=\langle\sigma_j^y|\sigma_j^z\rangle=\frac{1}{\sqrt{2}}\begin{bmatrix}1 & -i\\
+        \hat{\mathrm{K}}=\frac{1}{\sqrt{2}}\begin{bmatrix}1 & -i\\
     1 & i
 \end{bmatrix}\:.
 \end{equation}
@@ -436,7 +438,7 @@ import qucumber.utils.unitaries as unitaries
 import qucumber.utils.cplx as cplx
 \end{python}
 Since we are dealing with a complex wavefunction, we load the corresponding module 
-\verb|ComplexWavefunction| to build the RBM quantum state $\psi_{\bm{\lambda\mu}}(\bm{\sigma})$. Furthermore, the following additional utility modules are required: the \verb|utils.cplx| backend for complex algebra \textcolor{red}{[Still true?]}, 
+\verb|ComplexWavefunction| to build the RBM quantum state $\psi_{\bm{\lambda\mu}}(\bm{\sigma})$. Furthermore, the following additional utility modules are required: the \verb|utils.cplx| backend for complex algebra, 
 and the \verb|utils.unitaries| module  which contains a set of elementary local rotations. By default, the set of unitaries include local rotations to the $\sigma^x$ and $\sigma^y$ basis, implemented by the $\hat{\mathrm{H}}$ and $\hat{\mathrm{K}}$ gates respectively.
 
 We continue by loading the data in QuCumber, which is done using the \verb|load_data| function of the data utility:
@@ -455,7 +457,7 @@ As before, we may load the true target wavefunction from \verb|qubits_psi.txt|, 
     (b_0, b_1)=(\mathrm{z},\mathrm{z})\:,\:(\mathrm{x},\mathrm{z})\:,\:(\mathrm{z},\mathrm{x})\:,\:(\mathrm{y},\mathrm{z})\:,\:(\mathrm{z},\mathrm{y})
 \end{equation}
 Finally, before the training, we initialize the set of unitary rotations and create the RBM state object. In the case of the provided dataset, the unitaries are the $\hat{\mathrm{H}}$ and $\hat{\mathrm{K}}$ gates. The required dictionary can be created with \verb|unitaries.create_dict()|. 
-By default, when \verb|unitaries.create_dict()| is called, it will contain the identity and the $\hat{\mathrm{H}}$ and $\hat{\mathrm{K}}$ gates with the keys \verb|Z|, \verb|Y|, and \verb|X| respectively \textcolor{red}{[X then Y?]}. It is possible to add additional gates by specifying them as 
+By default, when \verb|unitaries.create_dict()| is called, it will contain the identity, the $\hat{\mathrm{H}}$ gate, and the $\hat{\mathrm{K}}$ gate, with the keys \verb|Z|,  \verb|X|, and \verb|Y|, respectively. It is possible to add additional gates by specifying them as 
 \begin{python}
 U = torch.tensor([[re_part], [im_part]], dtype=torch.double)
 unitary_dict = unitaries.create_dict(unitary_name="U")
@@ -503,7 +505,6 @@ state.fit(
     callbacks=callbacks,
 )
 \end{python}
-
 In Fig.~\ref{fig:complex} we show the total KL divergence and the fidelity with the true two-qubit state during training. 
 After successfully training a QuCumber model, we can once again compute expectation values of physical observables,
 as discussed in Section~\ref{Sec:Sampling_a-Trained_RBM}.
@@ -519,17 +520,18 @@ We have introduced the open source software package QuCumber, a quantum calculat
 reconstruction. QuCumber is capable of taking input data representing projective measurements of a quantum wavefunction, and 
 reconstructing the wavefunction using a restricted Boltzmann machine (RBM).
 
-RBM are generative models.  Once properly trained, QuCumber can produce a new set of measurement samples.  These samples,  produced in the reference basis, can be used to verify the training of the RBM against the original data set.  More importantly, they can be used to calculate expectation values of observables, both diagonal and off-diagonal in the reference basis.  In fact,
+RBMs are generative models.  Once properly trained, QuCumber can produce a new set of measurements, sampled stochastically from the RBM.  These samples,  produced in the reference basis, can be used to verify the training of the RBM against the original data set.  More importantly, they can be used to calculate expectation values of many physical observables.
+In fact,
 any expectation value typically estimated by conventional Monte Carlo methods may be implemented as an estimator in QuCumber.  Such estimators may be inaccessible in the reference basis, for example.  Or, they may be difficult or impossible to implement in the
-setup for which the original data was obtained.  This is particularly relevant for many experiments, where it is easy to imagine many possible observables that are inaccessible, due to fundamental or technical challenges.
+setup for which the original data was obtained.  This is particularly relevant for experiments, where it is easy to imagine many possible observables that are inaccessible, due to fundamental or technical challenges.
 
 Future versions of QuCumber, as well as the next generation of quantum state reconstruction software, may explore different generative models, such as variational autoencoders or generative adversarial networks.
 In addition, future techniques may include hybridization between machine learning and other well-established methods in 
 computational quantum many-body physics, such as variational Monte Carlo and tensor networks.
 
 \section*{Acknowledgements}
-We acknowledge G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for stimulating discussions. 
-We thank J. Matlock and the Perimeter Institute for Theoretical Physics for the continuing support of PIQuIL.
+We acknowledge M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for stimulating discussions. 
+We thank the Perimeter Institute for Theoretical Physics for the continuing support of PIQuIL.
 
 \paragraph{Author contributions}
 Authors are listed alphabetically. For an updated record of individual contributions, consult the repository at \url{https://github.com/PIQuIL/QuCumber/graphs/contributors}.
@@ -576,11 +578,11 @@ We list an overview of terms discussed in the document and relevant for RBMs. Fo
 
 \item {\it Hidden units}: There are $n_h$ units in the hidden layer of the RBM, denoted by the vector $\bm{h}=(h_1, ..., h_{n_h})$. The number of hidden units can be adjusted to increase the representational capacity of the RBM.
 
-\item{\it Hyperparameters:} A set of parameters that are not allowed by be adjusted by a neural netowrk during training. Examples include the learning rate, number of hidden units, batch size, or number of training epochs.
+\item{\it Hyperparameters:} A set of parameters that are not allowed to be adjusted by a neural netowrk during training. Examples include the learning rate, number of hidden units, batch size, or number of training epochs.
 
 \item {\it Joint distribution}: The RBM assigns a probability to each joint configuration $(v,h)$ according to the Boltzmann distribution:
 \begin{equation}
-   p_{\bm{\lambda}}(\bm{v},\bm{h}) = \frac{1}{Z_{\bm{\lambda}}} e^{-E_{\bm{\lambda}}(\bm{v},\bm{h})},
+   p_{\bm{\lambda}}(\bm{v},\bm{h}) = \frac{1}{Z_{\bm{\lambda}}} e^{-E_{\bm{\lambda}}(\bm{v},\bm{h})}.
 \end{equation}
 
 \item{\it KL divergence}: The Kullback-Leibler divergence, or relative entropy, is a measure for the ``distance" between two probability distributions $P$ and $Q$, defined as:
@@ -602,14 +604,14 @@ The KL divergence of identical distributions is zero, while for orthogonal distr
 
 \item {\it Parameters}: The set of weights and biases $\bm{\lambda} = \{\bm{W},\bm{b},\bm{c}\}$ characterizing the RBM energy function. 
 
-\item {\it Partition function}: The normalizing constant of the Boltzmann distribution. It is obtained by summing over all possible pairs of visible and hidden vectors:
+\item {\it Partition function}: The normalizing constant of the Boltzmann distribution. It is obtained by tracing over all possible pairs of visible and hidden vectors:
 \begin{equation}
    Z_{\bm{\lambda}} = \sum\limits_{\bm{v},\bm{h}}e^{-E_{\bm{\lambda}}(\bm{v},\bm{h})}.
 \end{equation}
 
 \item {\it Restricted Boltzmann Machine}: A two-layer network with bidirectionally connected stochastic processing units. ``Restricted" refers to the connections (or weights) between the visible and hidden units: each visible unit is connected with each hidden unit, but there are no intra-layer connections.
 
-\item {\it Visible units}: There are $n_v$ units in the visible layer of the RBM, denoted by the vector $v=(v_1, ..., v_{n_v})$. These units correspond to the physical degree of freedom, and $n_v$ is fixed by the number thereof.
+\item {\it Visible units}: There are $n_v$ units in the visible layer of the RBM, denoted by the vector $\bm{v}=(v_1,\dots,v_{n_v})$. These units correspond to the physical degree of freedom $N$, and therefore $n_v=N$ is fixed by the number thereof.
 
 \item {\it Weights}: $W_{ij}$ is the symmetric connection or interaction between the visible unit $v_j$ and the hidden unit $h_i$.
 
