@@ -54,9 +54,11 @@
     Giacomo~Torlai\textsuperscript{1,2}
 \end{center}
 
+\vspace{-1cm}
+
 \begin{center}
-    ${\bf 1}$ Department of Physics and Astronomy, University of Waterloo,
-    Ontario N2L 3G1, Canada
+    \mbox{${\bf 1}$ Department of Physics and Astronomy, University of Waterloo,
+    Ontario N2L 3G1, Canada}
     \\
     ${\bf 2}$ Perimeter Institute for Theoretical Physics, Waterloo,
     Ontario N2L 2Y5, Canada
@@ -72,6 +74,9 @@
 \end{center}
 
 %\linenumbers
+
+\vspace{-1cm}
+
 
 \section*{Abstract}
 {\bf
@@ -92,20 +97,20 @@ It can then be sampled to produce new measurements and expectation values not ea
 \section{Introduction}
 Current advances in fabricating quantum technologies, as well as in reliable control of synthetic quantum matter, is leading to a new era of quantum 
 hardware where highly pure quantum states are routinely prepared in laboratories. 
-With the growing number of controlled quantum degrees of freedom, such as superconducting qubits, molecules, trapped ions, and ultracold atoms \cite{gambetta17,gambetta18,Bernien17}, reliable and scalable classical algorithms are required for the analysis and verification of experimental quantum states. 
+With the growing number of controlled quantum degrees of freedom, such as superconducting qubits, trapped ions, and ultracold atoms \cite{gambetta17,gambetta18,Bernien17,ion53}, reliable and scalable classical algorithms are required for the analysis and verification of experimental quantum states. 
 Efficient classical algorithms can aid in extracting physical observables otherwise inaccessible from experimental measurements, as well as in identifying 
 sources of noise to provide direct feedback for improving experimental hardware. However, traditional approaches for reconstructing unknown quantum states from a set of measurements, such as quantum state tomography, often suffer the exponential overhead that is typical of quantum many-body systems.
 
 Recently, an alternative path to quantum state reconstruction was put forward, based on modern machine learning (ML) techniques~\cite{torlai_neural-network_2018,torlai_latent_2018,carrasquilla_reconstructing_2018,lennon_efficiently_2018,kim_mixed_2018}. 
-This approach relies on a powerful generative model called a {\it restricted Boltzmann machine} (RBM)~\cite{smolensky_information_1986}, 
+The most common approach relies on a powerful generative model called a {\it restricted Boltzmann machine} (RBM)~\cite{smolensky_information_1986}, 
 a stochastic neural network with two layers of binary units. 
 A visible layer $\bm{v}$ describes the physical degrees of freedom, while a hidden layer $\bm{h}$ is used to capture high-order correlation between the visible units (see Glossary). 
 Given a set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$. 
 RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{hinton_training_2002}, for compressing high-dimensional data into lower-dimensional representations~\cite{hinton_reducing_2006}, and for other tasks \cite{lecun_deep_2015}.
-More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{torlai_learning_2016,CarleoTroyer2017Science,carleo_constructing_2018}
-They are currently being investigated for their representational power~\cite{gao_efficient_2017,choo_symmetries_2018,glasser_neural-network_2018}, their relationship with tensor networks~\cite{chen_equivalence_2018} and the renormalization group~\cite{mehta_exact_2014,koch-janusz_mutual_2018,iso_scale-invariant_2018,lenggenhager_optimal_2018}, and in other contexts in quantum many-body physics \cite{PhysRevB.96.205152}.
+More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{torlai_learning_2016,CarleoTroyer2017Science,carleo_constructing_2018}.
+They are currently being investigated for their representational power~\cite{gao_efficient_2017,choo_symmetries_2018,glasser_neural-network_2018}, their relationship with tensor networks and the renormalization group~\cite{mehta_exact_2014,koch-janusz_mutual_2018,iso_scale-invariant_2018,lenggenhager_optimal_2018,chen_equivalence_2018}, and in other contexts in quantum many-body physics \cite{PhysRevB.96.205152,SteveW}.
 
-In this post, we present QuCumber, a {\it quantum calculator used for many-body eigenstate reconstruction}. 
+In this post, we present QuCumber: a {\it quantum calculator used for many-body eigenstate reconstruction}. 
 QuCumber is an open-source Python package that implements neural-network quantum state reconstruction of many-body wavefunctions from measurement data. 
 Some examples are magnetic spin projections, orbital occupation number, polarization of photons, or the logical state of qubits. 
 Given a training dataset of measurements, QuCumber discovers the most likely quantum state compatible with the measurements by finding the optimal set of parameters $\bm{\lambda}$ of an RBM. 
@@ -113,10 +118,11 @@ A properly trained RBM is an approximation of the unknown quantum state underlyi
 It can be used to calculate various physical observables of interest, including measurements that may not be possible in the original experiment.
 
 This post is organized as follows. 
-In Section \ref{sec:positive}, we introduce the reconstruction technique for the case of positive wavefunctions, where all coefficients are (or can be transformed to be) real and positive. 
-We discuss the required format for input data, as well as training of the RBM and the reconstruction of both diagonal and off-diagonal observables. In Section~\ref{sec:complex}, we consider the more general case of a complex-valued wavefunction. 
-We illustrate a general strategy to extract the phase structure from raw data by performing appropriate unitary rotations on the state before measurements. 
-We then show a practical reconstruction of an entangled state of two qubits. A Glossary of useful terms and equations can be found at the end of the post in Appendix~\ref{Glossary}.
+In Section \ref{sec:positive}, we introduce the reconstruction technique for the case where all coefficients of the wavefunction  are
+real and positive. 
+We discuss the required format for input data, as well as training of the RBM and the reconstruction of typical observables. In Section~\ref{sec:complex}, we consider the more general case of a complex-valued wavefunction. 
+We illustrate a general strategy to extract the phase structure from data by performing appropriate unitary rotations on the state before measurements. 
+We then demonstrate a practical reconstruction of an entangled state of two qubits. A Glossary of useful terms and equations can be found at the end of the post in Appendix~\ref{Glossary}.
 
 \section{Positive wavefunctions}\label{sec:positive}
 We begin by presenting the application of QuCumber to reconstruct many-body quantum states described by wavefunctions $|\Psi\rangle$ with positive coefficients $\Psi(\x)=\langle\x|\Psi\rangle \ge 0$, 
@@ -531,7 +537,7 @@ computational quantum many-body physics, such as variational Monte Carlo and ten
 
 \section*{Acknowledgements}
 We acknowledge M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for stimulating discussions. 
-We thank the Perimeter Institute for Theoretical Physics for the continuing support of PIQuIL.
+We thank the Perimeter Institute for the continuing support of PIQuIL.
 
 \paragraph{Author contributions}
 Authors are listed alphabetically. For an updated record of individual contributions, consult the repository at \url{https://github.com/PIQuIL/QuCumber/graphs/contributors}.
