@@ -304,7 +304,7 @@ QuCumber provides an interface for sampling off-diagonal observables in the \ver
 }
 As an example, $\sigma^x$ can be written as an observable class with
 \begin{python}
-class SigmaX(Observable):
+class SigmaX(ObservableBase):
 
     def apply(self, nn_state, samples):
         psi = nn_state.psi(samples)
@@ -358,7 +358,7 @@ def swap(s1, s2, A):
 \end{python}
 where \verb|s1| and \verb|s2| are batches of samples produced from each replica. While ideally those samples should be entirely independent, in order to save computational costs, QuCumber just splits a given batch into two equal parts and treats them as if they were independent samples. This code is implemented within the \verb|RenyiEntropy| observable,
 \begin{python}
-class RenyiEntropy(Observable):
+class RenyiEntropy(ObservableBase):
     def apply(self, nn_state, samples, A):
         _ns = samples.shape[0] // 2
         samples1 = samples[:_ns, :]
