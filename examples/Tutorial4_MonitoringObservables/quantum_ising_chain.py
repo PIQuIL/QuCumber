@@ -20,12 +20,12 @@
 import torch
 import numpy as np
 
-from qucumber.observables import Observable, to_01, to_pm1
+from qucumber.observables import ObservableBase, to_01, to_pm1
 
 __all__ = ["TFIMChainEnergy"]
 
 
-class TFIMChainEnergy(Observable):
+class TFIMChainEnergy(ObservableBase):
     r"""Observable defining the energy of a Transverse Field Ising Model (TFIM)
     spin chain with nearest neighbour interactions, and :math:`J=1`.
 
