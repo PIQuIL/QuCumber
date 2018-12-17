@@ -20,6 +20,7 @@
 
 import unittest
 import torch
+from math import isclose
 import qucumber.observables as observables
 from qucumber.nn_states import WaveFunctionBase
 
@@ -111,7 +112,7 @@ class TestPauli(unittest.TestCase):
 
     def test_apply(self):
         test_psi = TestWaveFunction(2)
-        test_sample = test_psi.sample(num_samples=1000)
+        test_sample = test_psi.sample(num_samples=100000)
         X = observables.SigmaX()
 
         measure_X = float(X.apply(test_psi, test_sample).mean())
@@ -122,8 +123,11 @@ class TestPauli(unittest.TestCase):
         self.assertTrue(0.0 == measure_Y, msg="measure Pauli Y failed")
 
         Z = observables.SigmaZ()
+
         measure_Z = float(Z.apply(test_psi, test_sample).mean())
-        self.assertTrue(0.0 == measure_Z, msg="measure Pauli Z failed")
+        self.assertTrue(
+            isclose(0.0, measure_Z, abs_tol=1e-2), msg="measure Pauli Z failed"
+        )
 
 
 if __name__ == "__main__":
