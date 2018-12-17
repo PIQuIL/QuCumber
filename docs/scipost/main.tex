@@ -565,42 +565,41 @@ We list an overview of terms discussed in the document and relevant for RBMs. Fo
 
 \begin{itemize}
 
-\item {\it Batch}: The subset of data selected for one iteration of training in stochastic gradient descent.
+\item {\it Batch}: A subset of data upon which the gradient is computed and the network parameters are adjusted accordingly. A smaller batch size often results in a more stochastic trajectory, while a large batch size more closely approximates the exact gradient and has less variance.
 
-\item {\it Biases}: For a visible unit $v_j$ and a hidden unit $h_i$, the respective biases in the RBM are $b_j$ and $c_i$. They act like a magnetic field term in the expression for the energy given in Eq.~\eqref{RBMenergy}.
+\item {\it Biases}: Adjustable parameters in an RBM, denoted by $b_j$ and $c_i$ in Eq.~\eqref{RBMeffectiveenergy}. They act like an on-site magnetic field term.
 
-\item {\it Contrastive divergence}: An approximate maximum-likelihood learning algorithm for RBMs \cite{hinton2002training}.
+\item {\it Contrastive divergence}: An approximate maximum-likelihood learning algorithm for RBMs \cite{hinton2002training}. CD estimates the gradient of the effective energy (\ref{RBMenergy} with respect to model parameters by using Gibbs sampling to compare the generated and target distributions.
 
-\item {\it Energy}: The energy of the joint configuration $(v, h)$ of a RBM is defined as follows:
+\item {\it Energy}: The energy of the joint configuration $(\bm{v}, \bm{h})$ of a RBM is defined as follows:
 \begin{equation}
    E_{\bm{\lambda}}(\bm{v},\bm{h}) = - \sum\limits_{j=1}^{n_v} b_j v_j - \sum\limits_{i=1}^{n_h} c_i h_i - \sum\limits_{ij} h_i W_{ij} v_j, \label{RBMenergy}
 \end{equation}
 
-\item {\it Effective energy}: Obtained from the energy by tracing out the hidden units $h$; often called the ``free energy'' in machine learning literature.
+\item {\it Effective energy}: Obtained from the energy by tracing out the hidden units $\bm{h}$; often called the ``free energy'' in machine learning literature.
 \begin{equation}
    \mathcal{E}_{\bm{\lambda}}(\bm{v}) = - \sum\limits_{j=1}^{n_v} b_j v_j - \sum\limits_{i=1}^{nh} \log \left[ 1 + \exp \left( \sum\limits_{j}^{n_v} W_{ij}v_j +c_i\right) \right], \label{RBMeffectiveenergy}
 \end{equation}
 
-\item {\it Epoch}: A single pass through an entire training set.
+\item {\it Epoch}: A single pass through an entire training set. For example, with a training set of 1,000 samples, an epoch consists of 10 batches of size 100.
 
 \item {\it Hidden units}: There are $n_h$ units in the hidden layer of the RBM, denoted by the vector $\bm{h}=(h_1, ..., h_{n_h})$. The number of hidden units can be adjusted to increase the representational capacity of the RBM.
 
-\item{\it Hyperparameters:} A set of parameters that are not allowed to be adjusted by a neural netowrk during training. Examples include the learning rate, number of hidden units, batch size, or number of training epochs.
+\item{\it Hyperparameters:} A set of parameters that are not allowed to be adjusted by a neural netowrk during training. Examples include the learning rate, number of hidden units, batch size, and number of training epochs.
 
-\item {\it Joint distribution}: The RBM assigns a probability to each joint configuration $(v,h)$ according to the Boltzmann distribution:
+\item {\it Joint distribution}: The RBM assigns a probability to each joint configuration $(\bm v, \bm h)$ according to the Boltzmann distribution:
 \begin{equation}
    p_{\bm{\lambda}}(\bm{v},\bm{h}) = \frac{1}{Z_{\bm{\lambda}}} e^{-E_{\bm{\lambda}}(\bm{v},\bm{h})}.
 \end{equation}
 
-\item{\it KL divergence}: The Kullback-Leibler divergence, or relative entropy, is a measure for the ``distance" between two probability distributions $P$ and $Q$, defined as:
+\item{\it KL divergence}: The Kullback-Leibler divergence, or relative entropy, is a measure of the ``distance" between two probability distributions $P$ and $Q$, defined as:
 \begin{equation}
-\mathrm{KL}(Q\:||\:P)=\sum_{\bm{v}}Q(\bm{v})\log\frac{Q(\bm{v})}{P(\bm{v})}
+\mathrm{KL}(P\:||\:Q)=\sum_{\bm{v}}P(\bm{v})\log\frac{P(\bm{v})}{Q(\bm{v})}
 \end{equation}
+The KL divergence between two identical distributions is zero, while for orthogonal distributions it is infinite.
+Note that it is not symmetric between $P$ and $Q$.
 
-
-The KL divergence of identical distributions is zero, while for orthogonal distributions it is infinite.
-
-\item{\it Learning rate}: The step-size used in the gradient descent algorithm for the optimization of the network parameters.
+\item{\it Learning rate}: The step-size used in the gradient descent algorithm for the optimization of the network parameters. A small learning rate may result in better optimization but will take more time to converge. If the learning rate is too high, training might not converge or will find a poor optimum.
 
 \item {\it Marginal distribution}: Obtained by marginalizing the joint distribution, e.g.
 \begin{equation}\label{Eq:marginal_distribution}
@@ -609,7 +608,7 @@ The KL divergence of identical distributions is zero, while for orthogonal distr
 
 \item {\it QuCumber}: A quantum calculator used for many-body eigenstate reconstruction.
 
-\item {\it Parameters}: The set of weights and biases $\bm{\lambda} = \{\bm{W},\bm{b},\bm{c}\}$ characterizing the RBM energy function. 
+\item {\it Parameters}: The set of weights and biases $\bm{\lambda} = \{\bm{W},\bm{b},\bm{c}\}$ characterizing the RBM energy function. These are adjusted during training.
 
 \item {\it Partition function}: The normalizing constant of the Boltzmann distribution. It is obtained by tracing over all possible pairs of visible and hidden vectors:
 \begin{equation}
@@ -618,7 +617,7 @@ The KL divergence of identical distributions is zero, while for orthogonal distr
 
 \item {\it Restricted Boltzmann Machine}: A two-layer network with bidirectionally connected stochastic processing units. ``Restricted" refers to the connections (or weights) between the visible and hidden units: each visible unit is connected with each hidden unit, but there are no intra-layer connections.
 
-\item {\it Visible units}: There are $n_v$ units in the visible layer of the RBM, denoted by the vector $\bm{v}=(v_1,\dots,v_{n_v})$. These units correspond to the physical degree of freedom $N$, and therefore $n_v=N$ is fixed by the number thereof.
+\item {\it Visible units}: There are $n_v$ units in the visible layer of the RBM, denoted by the vector $\bm{v}=(v_1,\dots,v_{n_v})$. These units correspond to the physical degrees of freedom. In the cases considered in this paper, the number of visible units is equal to the number of spins $N$.
 
 \item {\it Weights}: $W_{ij}$ is the symmetric connection or interaction between the visible unit $v_j$ and the hidden unit $h_i$.
 
