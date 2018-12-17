@@ -67,6 +67,7 @@ instance/
 # Sphinx documentation
 docs/_build/
 docs/_examples/
+docs/scipost/main.pdf
 
 # Example csvs
 examples/*.csv
