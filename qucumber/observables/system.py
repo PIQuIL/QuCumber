@@ -28,7 +28,7 @@ class System:
 
     It keeps track of multiple observables which it can evaluate simultaneously.
 
-    :param \*observables: The Observables to evaluate.
+    :param \*observables: The ObservableBases to evaluate.
     """
 
     def __init__(self, *observables):
@@ -38,8 +38,8 @@ class System:
         """Estimates the expected value, variance, and the standard error of the
         observables over the distribution defined by `nn_state`.
 
-        :param nn_state: The Wavefunction to draw samples from.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction to draw samples from.
+        :type nn_state: qucumber.nn_states.WaveFunction
         :param num_samples: The number of samples to draw. The actual number of
                             samples drawn may be slightly higher if
                             `num_samples % num_chains != 0`.
@@ -104,8 +104,8 @@ class System:
         """Estimates the expected value, variance, and the standard error of the
         observables using the given samples.
 
-        :param nn_state: The Wavefunction that drew the samples.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction that drew the samples.
+        :type nn_state: qucumber.nn_states.WaveFunction
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
         """

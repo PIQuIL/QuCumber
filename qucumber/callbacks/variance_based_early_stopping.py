@@ -20,10 +20,10 @@
 
 import numpy as np
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class VarianceBasedEarlyStopping(Callback):
+class VarianceBasedEarlyStopping(CallbackBase):
     r"""Stop training once the model stops improving. This is a variation
     on the :class:`EarlyStopping<EarlyStopping>` class which takes the variance
     of the metric into account.
@@ -36,7 +36,7 @@ class VarianceBasedEarlyStopping(Callback):
     :math:`\sigma_t` is the variance of the metric, and
     :math:`\kappa` is the tolerance.
 
-    This Callback is called at the end of each epoch.
+    This CallbackBase is called at the end of each epoch.
 
     :param period: Frequency with which the callback checks whether training
                    has converged (in epochs).

@@ -23,7 +23,7 @@ import numpy as np
 from .utils import update_statistics
 
 
-class Observable(abc.ABC):
+class ObservableBase(abc.ABC):
     """Base class for observables."""
 
     _name = None
@@ -31,7 +31,7 @@ class Observable(abc.ABC):
 
     @property
     def name(self):
-        """The name of the Observable."""
+        """The name of the ObservableBase."""
         if self._name is None:
             self._name = self.__class__.__name__
         return self._name
@@ -42,7 +42,7 @@ class Observable(abc.ABC):
 
     @property
     def symbol(self):
-        """The algebraic symbol representing the Observable."""
+        """The algebraic symbol representing the ObservableBase."""
         if self._symbol is None:
             self._symbol = self.__class__.__name__
         return self._symbol
@@ -85,18 +85,18 @@ class Observable(abc.ABC):
         """Computes the value of the observable, row-wise, on a batch of
         samples. Must be implemented by any subclasses.
 
-        :param nn_state: The Wavefunction that drew the samples.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction that drew the samples.
+        :type nn_state: qucumber.nn_states.WaveFunction
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
         """
         raise NotImplementedError
 
     def sample(self, nn_state, k, num_samples=1, initial_state=None, overwrite=False):
-        """Draws samples of the *observable* using the given Wavefunction.
+        """Draws samples of the *observable* using the given WaveFunction.
 
-        :param nn_state: The Wavefunction to draw samples from.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction to draw samples from.
+        :type nn_state: qucumber.nn_states.WaveFunction
         :param k: The number of Gibbs Steps to perform before drawing a sample.
         :type k: int
         :param num_samples: The number of samples to draw.
@@ -120,10 +120,10 @@ class Observable(abc.ABC):
 
     def statistics(self, nn_state, num_samples, num_chains=0, burn_in=1000, steps=1):
         """Estimates the expected value, variance, and the standard error of the
-        observable over the distribution defined by the Wavefunction.
+        observable over the distribution defined by the WaveFunction.
 
-        :param nn_state: The Wavefunction to draw samples from.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction to draw samples from.
+        :type nn_state: qucumber.nn_states.WaveFunction
         :param num_samples: The number of samples to draw. The actual number of
                             samples drawn may be slightly higher if
                             `num_samples % num_chains != 0`.
@@ -184,8 +184,8 @@ class Observable(abc.ABC):
         """Estimates the expected value, variance, and the standard error of the
         observable using the given samples.
 
-        :param nn_state: The Wavefunction that drew the samples.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction that drew the samples.
+        :type nn_state: qucumber.nn_states.WaveFunction
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
         """
@@ -199,14 +199,14 @@ class Observable(abc.ABC):
 
 
 # make module path show up properly in sphinx docs
-Observable.__module__ = "qucumber.observables"
+ObservableBase.__module__ = "qucumber.observables"
 
 
-class SumObservable(Observable):
+class SumObservable(ObservableBase):
     def __init__(self, o1, o2, right=False, name=None, symbol=None):
-        if not isinstance(o1, (float, int, Observable)):
+        if not isinstance(o1, (float, int, ObservableBase)):
             raise TypeError("o1 does not have the right type!")
-        if not isinstance(o2, (float, int, Observable)):
+        if not isinstance(o2, (float, int, ObservableBase)):
             raise TypeError("o2 does not have the right type!")
 
         self.left = o1 if not right else o2
@@ -222,36 +222,36 @@ class SumObservable(Observable):
             self.name = name
 
     def apply(self, samples, rbm):
-        result = 0.
+        result = 0.0
         if isinstance(self.left, (float, int)):
             result += self.left
         if isinstance(self.right, (float, int)):
             result += self.right
 
-        if isinstance(self.left, Observable):
+        if isinstance(self.left, ObservableBase):
             result = result + self.left.apply(samples, rbm)
-        if isinstance(self.right, Observable):
+        if isinstance(self.right, ObservableBase):
             result = result + self.right.apply(samples, rbm)
 
         return result
 
 
-class ProdObservable(Observable):
+class ProdObservable(ObservableBase):
     def __init__(self, o1, o2, name=None, symbol=None):
-        if not isinstance(o1, (float, int, Observable)):
+        if not isinstance(o1, (float, int, ObservableBase)):
             raise TypeError("o1 does not have the right type!")
-        if not isinstance(o2, (float, int, Observable)):
+        if not isinstance(o2, (float, int, ObservableBase)):
             raise TypeError("o2 does not have the right type!")
 
         # assign scalar value to self.left and the observable to self.right
-        if isinstance(o1, (float, int)) and isinstance(o2, Observable):
+        if isinstance(o1, (float, int)) and isinstance(o2, ObservableBase):
             self.left = o1
             self.right = o2
-        elif isinstance(o2, (float, int)) and isinstance(o1, Observable):
+        elif isinstance(o2, (float, int)) and isinstance(o1, ObservableBase):
             self.left = o2
             self.right = o1
         else:
-            raise ValueError("Exactly one of o1 or o2 must be an Observable!")
+            raise ValueError("Exactly one of o1 or o2 must be an ObservableBase!")
 
         if symbol is None:
             self.symbol = "(" + str(self.left) + " * " + str(self.right) + ")"

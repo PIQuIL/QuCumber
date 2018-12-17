@@ -22,11 +22,11 @@ import torch
 
 from qucumber.utils import cplx, unitaries
 from qucumber.rbm import BinaryRBM
-from .wavefunction import Wavefunction
+from .wavefunction import WaveFunctionBase
 
 
-class ComplexWavefunction(Wavefunction):
-    """Class capable of learning Wavefunctions with a non-zero phase.
+class ComplexWaveFunction(WaveFunctionBase):
+    """Class capable of learning WaveFunctionBases with a non-zero phase.
 
     :param num_visible: The number of visible units, ie. the size of the system being learned.
     :type num_visible: int
@@ -171,7 +171,7 @@ class ComplexWavefunction(Wavefunction):
         Upsi_v = torch.zeros_like(Upsi, device=self.device)
         Z = torch.zeros(grad_size, dtype=torch.double, device=self.device)
         Z2 = torch.zeros((2, grad_size), dtype=torch.double, device=self.device)
-        U = torch.tensor([1., 1.], dtype=torch.double, device=self.device)
+        U = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
         Ut = np.zeros_like(Us[:, 0], dtype=complex)
         ints_size = np.arange(sites.size)
 
@@ -263,7 +263,7 @@ class ComplexWavefunction(Wavefunction):
     ):
         if input_bases is None:
             raise ValueError(
-                "input_bases must be provided to train a ComplexWavefunction!"
+                "input_bases must be provided to train a ComplexWaveFunction!"
             )
         else:
             super().fit(
@@ -290,7 +290,7 @@ class ComplexWavefunction(Wavefunction):
     @staticmethod
     def autoload(location, gpu=False):
         state_dict = torch.load(location)
-        wvfn = ComplexWavefunction(
+        wvfn = ComplexWaveFunction(
             unitary_dict=state_dict["unitary_dict"],
             num_visible=len(state_dict["rbm_am"]["visible_bias"]),
             num_hidden=len(state_dict["rbm_am"]["hidden_bias"]),

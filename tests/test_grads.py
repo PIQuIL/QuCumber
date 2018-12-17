@@ -25,7 +25,7 @@ import torch
 import pytest
 
 import qucumber
-from qucumber.nn_states import PositiveWavefunction, ComplexWavefunction
+from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction
 from qucumber.utils import unitaries
 from .grads_utils import ComplexGradsUtils, PosGradsUtils
 from . import __tests_location__
@@ -33,14 +33,14 @@ from . import __tests_location__
 
 K = 10
 SEED = 1234
-EPS = 1.e-6
+EPS = 1.0e-6
 
 TOL = torch.tensor(2e-9, dtype=torch.double)
 PDIFF = torch.tensor(100, dtype=torch.double)  # NLL grad tests are a bit too random tbh
 
 
 def percent_diff(a, b):  # for NLL
-    numerator = torch.abs(a - b) * 100.
+    numerator = torch.abs(a - b) * 100.0
     denominator = torch.abs(0.5 * (a + b))
     return numerator / denominator
 
@@ -75,19 +75,19 @@ def positive_wavefunction_data(gpu, num_hidden):
 
     num_visible = data.shape[-1]
 
-    nn_state = PositiveWavefunction(num_visible, num_hidden, gpu=gpu)
+    nn_state = PositiveWaveFunction(num_visible, num_hidden, gpu=gpu)
     PGU = PosGradsUtils(nn_state)
 
     data = data.to(device=nn_state.device)
     vis = nn_state.generate_hilbert_space(num_visible)
     target_psi = target_psi.to(device=nn_state.device)
 
-    PositiveWavefunctionFixture = namedtuple(
-        "PositiveWavefunctionFixture",
+    PositiveWaveFunctionFixture = namedtuple(
+        "PositiveWaveFunctionFixture",
         ["data", "target_psi", "grad_utils", "nn_state", "vis"],
     )
 
-    return PositiveWavefunctionFixture(
+    return PositiveWaveFunctionFixture(
         data=data, target_psi=target_psi, grad_utils=PGU, nn_state=nn_state, vis=vis
     )
 
@@ -113,7 +113,7 @@ def complex_wavefunction_data(gpu, num_hidden):
     num_visible = data_samples.shape[-1]
 
     unitary_dict = unitaries.create_dict()
-    nn_state = ComplexWavefunction(
+    nn_state = ComplexWaveFunction(
         num_visible, num_hidden, unitary_dict=unitary_dict, gpu=gpu
     )
     CGU = ComplexGradsUtils(nn_state)
@@ -128,8 +128,8 @@ def complex_wavefunction_data(gpu, num_hidden):
     unitary_dict = {b: v.to(device=nn_state.device) for b, v in unitary_dict.items()}
     psi_dict = {b: v.to(device=nn_state.device) for b, v in psi_dict.items()}
 
-    ComplexWavefunctionFixture = namedtuple(
-        "ComplexWavefunctionFixture",
+    ComplexWaveFunctionFixture = namedtuple(
+        "ComplexWaveFunctionFixture",
         [
             "data_samples",
             "data_bases",
@@ -142,7 +142,7 @@ def complex_wavefunction_data(gpu, num_hidden):
         ],
     )
 
-    return ComplexWavefunctionFixture(
+    return ComplexWaveFunctionFixture(
         data_samples=data_samples,
         data_bases=data_bases,
         grad_utils=CGU,

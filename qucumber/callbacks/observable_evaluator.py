@@ -22,7 +22,7 @@ import csv
 
 import numpy as np
 
-from .callback import Callback
+from .callback import CallbackBase
 from qucumber.observables import System
 
 
@@ -60,17 +60,17 @@ class ObservableStatistics:
             )
 
 
-class ObservableEvaluator(Callback):
+class ObservableEvaluator(CallbackBase):
     r"""Evaluate and hold on to the results of the given observable(s).
 
-    This Callback is called at the end of each epoch.
+    This CallbackBase is called at the end of each epoch.
 
     .. note::
-        Since Callbacks are given to :func:`fit<qucumber.nn_states.Wavefunction.fit>`
+        Since CallbackBases are given to :func:`fit<qucumber.nn_states.WaveFunction.fit>`
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`ObservableEvaluator<ObservableEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.nn_states.Wavefunction.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.WaveFunction.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`ObservableEvaluator<ObservableEvaluator>` having been called.
@@ -79,7 +79,7 @@ class ObservableEvaluator(Callback):
                    observables(s).
     :type period: int
     :param observables: A list of Observables. Observable statistics are
-                        evaluated by sampling the Wavefunction. Note that
+                        evaluated by sampling the WaveFunction. Note that
                         observables that have the same name will conflict,
                         and precedence will be given to the right-most
                         observable argument.

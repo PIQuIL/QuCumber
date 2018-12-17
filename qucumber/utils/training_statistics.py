@@ -29,7 +29,7 @@ def fidelity(nn_state, target_psi, space, **kwargs):
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: Wavefunction
+    :type nn_state: WaveFunction
     :param target_psi: The true wavefunction of the system.
     :type target_psi: torch.Tensor
     :param space: The hilbert space of the system.
@@ -40,7 +40,7 @@ def fidelity(nn_state, target_psi, space, **kwargs):
     :rtype: torch.Tensor
     """
     Z = nn_state.compute_normalization(space)
-    F = torch.tensor([0., 0.], dtype=torch.double, device=nn_state.device)
+    F = torch.tensor([0.0, 0.0], dtype=torch.double, device=nn_state.device)
     target_psi = target_psi.to(nn_state.device)
     for i in range(len(space)):
         psi = nn_state.psi(space[i]) / Z.sqrt()
@@ -55,7 +55,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: Wavefunction
+    :type nn_state: WaveFunction
     :param basis: The basis to rotate the wavefunction to.
     :type basis: str
     :param space: The hilbert space of the system.
@@ -90,7 +90,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
                     cnt += 1
                 else:
                     v[j] = space[x, j]
-            U = torch.tensor([1., 0.], dtype=torch.double, device=nn_state.device)
+            U = torch.tensor([1.0, 0.0], dtype=torch.double, device=nn_state.device)
             for ii in range(num_nontrivial_U):
                 tmp = unitaries[basis[nontrivial_sites[ii]]]
                 tmp = tmp[
@@ -113,7 +113,7 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: Wavefunction
+    :type nn_state: WaveFunction
     :param target_psi: The true wavefunction of the system.
     :type target_psi: torch.Tensor
     :param space: The hilbert space of the system.
@@ -132,15 +132,17 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
     unitary_dict = unitaries.create_dict()
     target_psi = target_psi.to(nn_state.device)
     Z = nn_state.compute_normalization(space)
+    eps = 0.000001
     if bases is None:
         num_bases = 1
         for i in range(len(space)):
             KL += (
-                cplx.norm_sqr(target_psi[:, i]) * cplx.norm_sqr(target_psi[:, i]).log()
+                cplx.norm_sqr(target_psi[:, i])
+                * (cplx.norm_sqr(target_psi[:, i]) + eps).log()
             )
             KL -= (
                 cplx.norm_sqr(target_psi[:, i])
-                * cplx.norm_sqr(nn_state.psi(space[i])).log()
+                * (cplx.norm_sqr(nn_state.psi(space[i])) + eps).log()
             )
             KL += cplx.norm_sqr(target_psi[:, i]) * Z.log()
     else:
