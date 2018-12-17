@@ -21,8 +21,8 @@ from operator import itemgetter
 
 import numpy as np
 
-# import matplotlib.pyplot as plt
-# from matplotlib import ticker
+import matplotlib.pyplot as plt
+from matplotlib import ticker
 
 from .callback import CallbackBase
 
