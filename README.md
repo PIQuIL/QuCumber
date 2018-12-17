@@ -11,7 +11,7 @@
 
 QuCumber is a program that reconstructs an unknown quantum wavefunction
 from a set of measurements. The measurements should consist of binary counts;
-for example, the occupation of an atomic orbital, or the Sz eigenvalue of
+for example, the occupation of an atomic orbital, or angular momentum eigenvalue of
 a qubit. These measurements form a training set, which is used to train a
 stochastic neural network called a Restricted Boltzmann Machine. Once trained, the
 neural network is a reconstructed representation of the unknown wavefunction
@@ -20,18 +20,16 @@ producing new instances of measurements, and to calculate estimators not
 contained in the original data set.
 
 QuCumber is developed by the Perimeter Institute Quantum Intelligence Lab (PIQuIL).
-The project is currently in beta. So, expect some rough edges, bugs,
-and backward incompatible updates.
 
 ## Features
 
 QuCumber implements unsupervised generative modelling with a two-layer RBM.
 Each layer is a number of binary stochastic variables (with values 0 or 1). The
 size of the visible layer corresponds to the input data, i.e. the number of
-qubits. The size of the hidden layer is varied to systematically control
+qubits. The size of the hidden layer is a hyperparameter, varied to systematically control
 representation error.
 
-Currently the reconstruction can be performed on pure states with either
+Currently, quantum state reconstruction can be performed on pure states with either
 positive-definite or complex wavefunctions. In the case of a positive-definite
 wavefunction, data is only required in one basis. For complex wavefunctions,
 tomographically complete basis sets will be required to train the wavefunction.
@@ -86,8 +84,10 @@ QuCumber is licensed under the Apache License Version 2.0.
 
 ## Acknowledgments
 
-- Lauren Hayward Sierens for many helpful discussions.
+- We thank M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for many helpful discussions.
 
-- Nick Mercer for creating our awesome logo. You can check out more of Nick's
+- We thank the [Perimeter Institute](https://www.perimeterinstitute.ca) for the continuing support of PIQuIL.
+
+- Thanks to Nick Mercer for creating our awesome logo. You can check out more of Nick's
 work by visiting [his portfolio](https://www.behance.net/nickdmercec607) on
 Behance!
