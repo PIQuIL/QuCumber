@@ -51,7 +51,7 @@
     Xiuzhe~Luo\textsuperscript{2},
     Roger~G.~Melko\textsuperscript{1,2*},
     Ejaaz~Merali\textsuperscript{2},
-    Giacomo~Torlai\textsuperscript{1,2}
+    Giacomo~Torlai\textsuperscript{1,2,4}
 \end{center}
 
 \begin{center}
@@ -62,7 +62,10 @@
     Ontario N2L 3G1, Canada}
     \\
     ${\bf 3}$ ICFO-Institut de Ciencies Fotoniques, Barcelona Institute of Science and Technology,
-    08860 Castelldefels (Barcelona), Spain\\
+    08860 Castelldefels (Barcelona), Spain
+    \\
+    ${\bf 4}$ Center for Computational Quantum Physics, Flatiron Institute,
+    162 5th Avenue, New York, NY 10010, USA\\
 
     * \href{mailto:rgmelko@uwaterloo.ca}{rgmelko@uwaterloo.ca} \\
 \end{center}
@@ -166,7 +169,7 @@ state = PositiveWavefunction(num_visible=10, num_hidden=10)
 The number of visible units (\verb|num_visible|) must be equal to the number of physical spins $N$, while the number of hidden units (\verb|num_hidden|) can be adjusted to systematically increase the representational power of the RBM. 
 
 The quality of the reconstruction will depend on the structure underlying the specific quantum staste and the ratio of visible to hidden units, $\alpha = \verb|num_hidden|/\verb|num_visible|$.
-In practice, we find that $\alpha = 1$ often leads to good approximations of positive wavefunctions~\cite{torlai2018tomography}. However, in the general case, the value of $\alpha$ required for a given wavefunction reconstruction should be explored and adjusted by the user.
+In practice, we find that $\alpha = 1$ often leads to good approximations of positive wavefunctions~\cite{torlai_neural-network_2018}. However, in the general case, the value of $\alpha$ required for a given wavefunction reconstruction should be explored and adjusted by the user.
 
 
 \subsection{Training}
@@ -383,7 +386,7 @@ We use this to define the quantum state as:
 \begin{equation}
     \psi_{\bm{\lambda} \bm{\mu}} (\bm{\sigma})= \sqrt{p_{\bm{\lambda}} (\bm{\sigma})} e^{i \phi_{\bm{\mu}} (\bm{\sigma})/2}
 \end{equation}
-where $\phi_{\bm{\mu}}(\bm{\sigma}) = \log (p_{\bm{\mu}} (\bm{\sigma}))$ \cite{torlai2018tomography}.
+where $\phi_{\bm{\mu}}(\bm{\sigma}) = \log (p_{\bm{\mu}} (\bm{\sigma}))$ \cite{torlai_neural-network_2018}.
 In this case, the reconstruction requires a different type of measurement setting. It is easy to see that projective measurements in the reference basis do not convey any information on the phases $\theta(\bm{\sigma})$, since $P(\bm{\sigma})=|\Psi(\bm{\sigma})|^2=\Phi^2(\bm{\sigma})$.
 
 \begin{figure}[htb]
@@ -478,7 +481,7 @@ The key difference between positive and complex wavefunction reconstruction is t
 
 \subsection{Training}
 Like in the case of a positive wavefunction, for the complex case
-QuCumber optimizes the parameters $\bm{\lambda}$ to minimize the KL divergence between the data and the RBM distribution. When measuring in multiple bases, the optimization now runs over the set of parameters $(\bm{\lambda},\bm{\mu})$ and minimizes the sum of KL divergences between the data distribution $P(\bm{\sigma}^{\bm{b}})$ and the RBM distribution $|\psi_{\bm{\lambda\mu}}(\bm{\sigma}^{\bm{b}})|^2$ for each bases $\bm{b}$ appearing in the training dataset \cite{torlai2018tomography}. 
+QuCumber optimizes the parameters $\bm{\lambda}$ to minimize the KL divergence between the data and the RBM distribution. When measuring in multiple bases, the optimization now runs over the set of parameters $(\bm{\lambda},\bm{\mu})$ and minimizes the sum of KL divergences between the data distribution $P(\bm{\sigma}^{\bm{b}})$ and the RBM distribution $|\psi_{\bm{\lambda\mu}}(\bm{\sigma}^{\bm{b}})|^2$ for each bases $\bm{b}$ appearing in the training dataset \cite{torlai_neural-network_2018}. 
 For example, if a given training sample is measured in the basis $(\mathrm{x},\mathrm{z})$, QuCumber applies the appropriate unitary rotation $\bm{\mathcal{U}}=\hat{\mathrm{H}}_0\otimes\hat{\mathcal{I}}_1$ to the RBM state before collecting the gradient signal. 
 
 Similar to the case of positive wavefunction, we generate the Hilbert space (to compute fidelity and KL divergence) and initialize the callbacks
