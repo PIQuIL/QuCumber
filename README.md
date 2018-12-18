@@ -32,7 +32,7 @@ representation error.
 Currently, quantum state reconstruction can be performed on pure states with either
 positive-definite or complex wavefunctions. In the case of a positive-definite
 wavefunction, data is only required in one basis. For complex wavefunctions,
-tomographically complete basis sets will be required to train the wavefunction.
+measurement data in additional bases will be required to train the wavefunction.
 
 ## Documentation
 

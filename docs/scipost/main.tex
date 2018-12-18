@@ -105,7 +105,7 @@ sources of noise to provide direct feedback for improving experimental hardware.
 Recently, an alternative path to quantum state reconstruction was put forward, based on modern machine learning (ML) techniques~\cite{torlai_neural-network_2018,torlai_latent_2018,carrasquilla_reconstructing_2018,lennon_efficiently_2018,kim_mixed_2018}. 
 The most common approach relies on a powerful generative model called a {\it restricted Boltzmann machine} (RBM)~\cite{smolensky_information_1986}, 
 a stochastic neural network with two layers of binary units. 
-A visible layer $\bm{v}$ describes the physical degrees of freedom, while a hidden layer $\bm{h}$ is used to capture high-order correlation between the visible units (see Glossary). 
+A visible layer $\bm{v}$ describes the physical degrees of freedom, while a hidden layer $\bm{h}$ is used to capture high-order correlations between the visible units (see Glossary). 
 Given a set of neural network parameters $\bm{\lambda}$, the RBM defines a probabilistic model described by the parametric distribution $p_{\bm{\lambda}}(\bm{v})$. 
 RBMs have been widely used in the ML community for the pre-training of deep neural networks~\cite{hinton_training_2002}, for compressing high-dimensional data into lower-dimensional representations~\cite{hinton_reducing_2006}, and for other tasks \cite{lecun_deep_2015}.
 More recently, RBMs have been adopted by the physics community in the context of representing both classical and quantum many-body states~\cite{torlai_learning_2016,CarleoTroyer2017Science,carleo_constructing_2018}.
@@ -168,7 +168,7 @@ state = PositiveWavefunction(num_visible=10, num_hidden=10)
 \end{python}
 The number of visible units (\verb|num_visible|) must be equal to the number of physical spins $N$, while the number of hidden units (\verb|num_hidden|) can be adjusted to systematically increase the representational power of the RBM. 
 
-The quality of the reconstruction will depend on the structure underlying the specific quantum staste and the ratio of visible to hidden units, $\alpha = \verb|num_hidden|/\verb|num_visible|$.
+The quality of the reconstruction will depend on the structure underlying the specific quantum state and the ratio of visible to hidden units, $\alpha = \verb|num_hidden|/\verb|num_visible|$.
 In practice, we find that $\alpha = 1$ often leads to good approximations of positive wavefunctions~\cite{torlai_neural-network_2018}. However, in the general case, the value of $\alpha$ required for a given wavefunction reconstruction should be explored and adjusted by the user.
 
 
@@ -232,7 +232,7 @@ expectation values of physical observables (magnetization, energy, etc).
 In the following, we show how to compute diagonal and off-diagonal observables in QuCumber. 
 
 \subsection{Reconstruction of physical observables} \label{Sec:Sampling_a-Trained_RBM}
-In this section, we discuss how to calculate the average value of a generic physical observable $\hat{\mathcal{O}}$ from a trained RBM. We start with the case of observables that are diagonal in the reference basis with which the RBM was trained. We then discuss the more general cases of off-diagonal observables and entanglement entropies.
+In this section, we discuss how to calculate the average value of a generic physical observable $\hat{\mathcal{O}}$ from a trained RBM. We start with the case of observables that are diagonal in the reference basis where the RBM was trained. We then discuss the more general cases of off-diagonal observables and entanglement entropies.
 
 \subsubsection{Diagonal observables}
 We begin by considering an observable with only diagonal matrix elements,
@@ -291,13 +291,13 @@ As an example, we consider the specific case of the transverse magnetization for
 \end{equation}
 Therefore, the expectation values reduces to the Monte Carlo average of the local observable
 \begin{equation}
-    \langle{\sigma^x}\rangle_j^{[L]}=\frac{\psi_{\bm{\lambda}}(\sigma_1,\dots,1-\sigma_j,\dots,\sigma_N)}
+   (\sigma^x_j)^{[L]}=\frac{\psi_{\bm{\lambda}}(\sigma_1,\dots,1-\sigma_j,\dots,\sigma_N)}
     {\psi_{\bm{\lambda}}(\sigma_1,\dots,\sigma_j,\dots,\sigma_N)} 
 \:.
 \end{equation}
 evaluated on spin configurations $\bm{\sigma}_k$ sampled from the RBM distribution $p_{\bm{\lambda}}(\bm{\sigma})$. 
 
-QuCumber provides an interface for sampling off-diagonal observables in the \verb|Observable| class. Thorough examples can are available in the tutorial section in the \href{https://qucumber.readthedocs.io/en/stable/}{documentation}.\!\!
+QuCumber provides an interface for sampling off-diagonal observables in the \verb|Observable| class. Thorough examples are available in the tutorial section in the \href{https://qucumber.readthedocs.io/en/stable/}{documentation}.\!\!
 \footnote{The observables tutorials are available at
     \href{https://qucumber.readthedocs.io/en/stable/\_examples/Tutorial3\_DataGeneration\_CalculateObservables/tutorial\_sampling\_observables.html
 }{\texttt{https://qucumber.readthedocs.io/en/stable/\_examples\\/Tutorial3\_DataGeneration\_CalculateObservables/tutorial\_sampling\_observables.html}}
@@ -375,7 +375,7 @@ psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
 
 \section{Complex wavefunctions}
 \label{sec:complex}
-For positive wavefunctions, the probability distribution underlying the outcomes of projective measurement in the reference basis  contains all possible information about the unknown quantum state. 
+For positive wavefunctions, the probability distribution underlying the outcomes of projective measurements in the reference basis  contains all possible information about the unknown quantum state. 
 However, in the more general case of a wavefunction with a non-trivial sign or phase structure, this is not the case.
 In this section, we consider a target quantum state where the wavefunction coefficients in the reference basis can be 
 complex-valued, $\Psi(\bm{\sigma})=\Phi(\bm{\sigma})e^{i\theta(\bm{\sigma})}$. 
@@ -481,7 +481,7 @@ The key difference between positive and complex wavefunction reconstruction is t
 
 \subsection{Training}
 Like in the case of a positive wavefunction, for the complex case
-QuCumber optimizes the parameters $\bm{\lambda}$ to minimize the KL divergence between the data and the RBM distribution. When measuring in multiple bases, the optimization now runs over the set of parameters $(\bm{\lambda},\bm{\mu})$ and minimizes the sum of KL divergences between the data distribution $P(\bm{\sigma}^{\bm{b}})$ and the RBM distribution $|\psi_{\bm{\lambda\mu}}(\bm{\sigma}^{\bm{b}})|^2$ for each bases $\bm{b}$ appearing in the training dataset \cite{torlai_neural-network_2018}. 
+QuCumber optimizes the network parameters to minimize the KL divergence between the data and the RBM distribution. When measuring in multiple bases, the optimization now runs over the set of parameters $(\bm{\lambda},\bm{\mu})$ and minimizes the sum of KL divergences between the data distribution $P(\bm{\sigma}^{\bm{b}})$ and the RBM distribution $|\psi_{\bm{\lambda\mu}}(\bm{\sigma}^{\bm{b}})|^2$ for each bases $\bm{b}$ appearing in the training dataset \cite{torlai_neural-network_2018}. 
 For example, if a given training sample is measured in the basis $(\mathrm{x},\mathrm{z})$, QuCumber applies the appropriate unitary rotation $\bm{\mathcal{U}}=\hat{\mathrm{H}}_0\otimes\hat{\mathcal{I}}_1$ to the RBM state before collecting the gradient signal. 
 
 Similar to the case of positive wavefunction, we generate the Hilbert space (to compute fidelity and KL divergence) and initialize the callbacks
@@ -527,7 +527,7 @@ We have introduced the open source software package QuCumber, a quantum calculat
 reconstruction. QuCumber is capable of taking input data representing projective measurements of a quantum wavefunction, and 
 reconstructing the wavefunction using a restricted Boltzmann machine (RBM).
 
-RBMs are generative models.  Once properly trained, QuCumber can produce a new set of measurements, sampled stochastically from the RBM.  These samples,  produced in the reference basis, can be used to verify the training of the RBM against the original data set.  More importantly, they can be used to calculate expectation values of many physical observables.
+RBMs are generative models.  Once properly trained, QuCumber can produce a new set of measurements, sampled stochastically from the RBM.  These samples,  generated in the reference basis, can be used to verify the training of the RBM against the original data set.  More importantly, they can be used to calculate expectation values of many physical observables.
 In fact,
 any expectation value typically estimated by conventional Monte Carlo methods may be implemented as an estimator in QuCumber.  Such estimators may be inaccessible in the reference basis, for example.  Or, they may be difficult or impossible to implement in the
 setup for which the original data was obtained.  This is particularly relevant for experiments, where it is easy to imagine many possible observables that are inaccessible, due to fundamental or technical challenges.
@@ -581,11 +581,11 @@ We list an overview of terms discussed in the document and relevant for RBMs. Fo
    \mathcal{E}_{\bm{\lambda}}(\bm{v}) = - \sum\limits_{j=1}^{n_v} b_j v_j - \sum\limits_{i=1}^{nh} \log \left[ 1 + \exp \left( \sum\limits_{j}^{n_v} W_{ij}v_j +c_i\right) \right], \label{RBMeffectiveenergy}
 \end{equation}
 
-\item {\it Epoch}: A single pass through an entire training set. For example, with a training set of 1,000 samples, an epoch consists of 10 batches of size 100.
+\item {\it Epoch}: A single pass through an entire training set. For example, with a training set of 1,000 samples and a batch size of 100 samples, one epoch consists of 10 gradient updates.
 
 \item {\it Hidden units}: There are $n_h$ units in the hidden layer of the RBM, denoted by the vector $\bm{h}=(h_1, ..., h_{n_h})$. The number of hidden units can be adjusted to increase the representational capacity of the RBM.
 
-\item{\it Hyperparameters:} A set of parameters that are not allowed to be adjusted by a neural netowrk during training. Examples include the learning rate, number of hidden units, batch size, and number of training epochs.
+\item{\it Hyperparameters:} A set of parameters that are not adjusted by a neural network during training. Examples include the learning rate, number of hidden units, batch size, and number of training epochs.
 
 \item {\it Joint distribution}: The RBM assigns a probability to each joint configuration $(\bm v, \bm h)$ according to the Boltzmann distribution:
 \begin{equation}
