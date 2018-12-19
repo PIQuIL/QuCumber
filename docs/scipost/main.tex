@@ -864,8 +864,7 @@ $P$ and $Q$, defined as:
 \begin{equation}
 \mathrm{KL}(P\:||\:Q)=\sum_{\bm{v}}P(\bm{v})\log\frac{P(\bm{v})}{Q(\bm{v})}
 \end{equation}
-The KL divergence between two identical distributions is zero, while for
-orthogonal distributions it is infinite.
+The KL divergence between two identical distributions is zero.
 Note that it is not symmetric between $P$ and $Q$.
 
 \item \textit{Learning rate}: The step-size used in the gradient descent
@@ -873,7 +872,7 @@ algorithm for the optimization of the network parameters. A small learning rate
 may result in better optimization but will take more time to converge. If the
 learning rate is too high, training might not converge or will find a poor optimum.
 
-\item \textit{Marginal distribution}: Obtained by marginalizing the joint distribution, e.g.
+\item \textit{Marginal distribution}: Obtained by marginalizing out the hidden layer from the joint distribution via
 \begin{equation}\label{Eq:marginal_distribution}
    p_{\bm{\lambda}}(\bm{v}) = \frac{1}{Z_{\bm{\lambda}}} \sum_{\bm{h}} e^{-E_{\bm{\lambda}}(\bm{v},\bm{h})} = \frac{1}{Z_{\bm{\lambda}}} e^{- \mathcal{E}_{\bm{\lambda}}(\bm{v})}.
 \end{equation}
