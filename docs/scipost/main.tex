@@ -1,5 +1,7 @@
 \documentclass[submission, Phys, hidelnks]{SciPost}
 \usepackage{physics}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
 \usepackage[ruled, vlined]{algorithm2e}
 \usepackage{amsmath, bm}
 \usepackage{dsfont}
@@ -17,14 +19,13 @@
     basicstyle=\ttfamily\small,
     tabsize=3,
     keywordstyle=\color{keywordcolour},
-    %otherkeywords={mul, sub, add, mean},
-    frame = single,
+    frame=single,
     keywordstyle=\color{deepblue},
     emph={SigmaX, SigmaZ, __init__, RenyiEntropy, swap},
     emphstyle=\color{deepred},
     stringstyle=\color{deepgreen},
     showstringspaces=false,
-    commentstyle  = \color{deepgreen}\ttfamily
+    commentstyle=\color{deepgreen}\ttfamily
 }}
 \lstnewenvironment{python}[1][]{
     \pythonstyle{}
@@ -67,15 +68,11 @@
     ${\bf 4}$ Center for Computational Quantum Physics, Flatiron Institute,
     162 5th Avenue, New York, NY 10010, USA\\
 
-    * \href{mailto:rgmelko@uwaterloo.ca}{rgmelko@uwaterloo.ca} \\
+    * \href{mailto:rgmelko@uwaterloo.ca}{rgmelko@uwaterloo.ca}
 \end{center}
-
 \begin{center}
     \today
 \end{center}
-
-\vspace{-2cm}
-
 \section*{Abstract}
 {\bf
 As we enter a new era of quantum technology, it is increasingly important to
@@ -90,11 +87,9 @@ for a large number of qubits by representing the wavefunction as a Restricted
 Boltzmann machine. New measurements can then be sampled from the machine to
 obtain expectation values not easily accessible from the original data.
 }
-\vspace{10pt}
 \noindent\rule{\textwidth}{1pt}
 \tableofcontents\thispagestyle{fancy}
 \noindent\rule{\textwidth}{1pt}
-% \vspace{10pt}
 
 \section{Introduction}
 Current advances in fabricating quantum technologies, as well as in reliable
@@ -675,10 +670,11 @@ identity, the $\hat{\mathrm{H}}$ gate, and the $\hat{\mathrm{K}}$ gate, with the
 keys \verb|Z|, \verb|X|, and \verb|Y|, respectively. It is possible to add
 additional gates by specifying them as
 \begin{python}
-U = torch.tensor([[re_part], [im_part]], dtype=torch.double)
-unitary_dict = unitaries.create_dict(U=U)
+U = torch.tensor([[<re_part>], [<im_part>]], dtype=torch.double)
+unitary_dict = unitaries.create_dict(<unitary_name>=U)
 \end{python}
-where \verb|re_part| and \verb|im_part|, are to be specified by the user.
+where \verb|re_part|, \verb|im_part|, and \verb|unitary_name| are to be
+specified by the user.
 
 We then initialize the complex RBM object with
 \begin{python}
@@ -840,7 +836,7 @@ of a RBM is defined as follows:
 hidden units $\bm{h}$; often called the ``free energy'' in machine learning
 literature.
 \begin{equation}
-   \mathcal{E}_{\bm{\lambda}}(\bm{v}) = - \sum\limits_{j=1}^{n_v} b_j v_j - \sum\limits_{i=1}^{nh} \log \left[ 1 + \exp \left( \sum\limits_{j}^{n_v} W_{ij}v_j +c_i\right) \right], \label{RBMeffectiveenergy}
+   \mathcal{E}_{\bm{\lambda}}(\bm{v}) = - \sum\limits_{j=1}^{n_v} b_j v_j - \sum\limits_{i=1}^{n_h} \log \left[ 1 + \exp \left( \sum\limits_{j}^{n_v} W_{ij}v_j +c_i\right) \right], \label{RBMeffectiveenergy}
 \end{equation}
 
 \item \textit{Epoch}: A single pass through an entire training set. For example,
