@@ -25,7 +25,7 @@ import qucumber.observables as observables
 from qucumber.nn_states import WaveFunctionBase
 
 
-class TestWaveFunction(WaveFunctionBase):
+class MockWaveFunction(WaveFunctionBase):
 
     _rbm_am = None
     _device = None
@@ -106,12 +106,12 @@ class TestWaveFunction(WaveFunctionBase):
 
 class TestPauli(unittest.TestCase):
     def test_spinflip(self):
-        test_psi = TestWaveFunction(2)
+        test_psi = MockWaveFunction(2)
         test_sample = test_psi.sample(num_samples=1000)
         observables.pauli.flip_spin(1, test_sample)
 
     def test_apply(self):
-        test_psi = TestWaveFunction(2)
+        test_psi = MockWaveFunction(2)
         test_sample = test_psi.sample(num_samples=100000)
         X = observables.SigmaX()
 

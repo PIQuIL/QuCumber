@@ -143,4 +143,4 @@ class SigmaZ(ObservableBase):
         # convert to +/- 1 convention, after computing the
         # mean, to reduce total computations; this works
         # because expectation is linear.
-        return to_pm1(samples).mean(1)
+        return to_pm1(samples.mean(1))
