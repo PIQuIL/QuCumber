@@ -76,17 +76,20 @@
 \section*{Abstract}
 {\bf
 As we enter a new era of quantum technology, it is increasingly important to
-develop methods capable of aiding the accurate preparation of quantum states
-for a variety of materials, matter, and devices. The large number of qubits
-present in near-term experiments poses the problem of high dimensionality,
-where conventional methods of quantum state tomography break down.
+develop methods to aid in the accurate preparation of quantum states
+for a variety of materials, matter, and devices. 
+Computational techniques can be used to reconstruct a state from data,
+however the growing number of qubits demands ongoing algorithmic advances
+in order to keep pace with experiments.
 In this paper, we present an open-source software package called QuCumber that
-uses machine learning to effectively reconstruct a quantum state consistent
-with a set of projective measurements. QuCumber is able to reconstruct states
-for a large number of qubits by representing the wavefunction as a restricted
-Boltzmann machine. New measurements can then be sampled from the machine to
-obtain expectation values not easily accessible from the original data.
+uses machine learning to reconstruct a quantum state consistent
+with a set of projective measurements. QuCumber uses a restricted
+Boltzmann machine to efficiently represent the quantum wavefunction for a large
+number of qubits.
+New measurements can be generated from the machine to
+obtain physical observables not easily accessible from the original data.
 }
+
 \noindent\rule{\textwidth}{1pt}
 \tableofcontents\thispagestyle{fancy}
 \noindent\rule{\textwidth}{1pt}
