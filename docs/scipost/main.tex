@@ -70,9 +70,7 @@
 
     * \href{mailto:rgmelko@uwaterloo.ca}{rgmelko@uwaterloo.ca}
 \end{center}
-\begin{center}
-    \today
-\end{center}
+
 \section*{Abstract}
 {\bf
 As we enter a new era of quantum technology, it is increasingly important to
@@ -83,7 +81,7 @@ where conventional methods of quantum state tomography break down.
 In this paper, we present an open-source software package called QuCumber that
 uses machine learning to effectively reconstruct a quantum state consistent
 with a set of projective measurements. QuCumber is able to reconstruct states
-for a large number of qubits by representing the wavefunction as a Restricted
+for a large number of qubits by representing the wavefunction as a restricted
 Boltzmann machine. New measurements can then be sampled from the machine to
 obtain expectation values not easily accessible from the original data.
 }
@@ -121,7 +119,7 @@ visible units. Given a set of neural network parameters
 RBMs have been widely used in the ML community for the pre-training of deep
 neural networks~\cite{hinton_training_2002}, for compressing high-dimensional
 data into lower-dimensional representations~\cite{hinton_reducing_2006}, and
-for other tasks~\cite{lecun_deep_2015}.
+more~\cite{lecun_deep_2015}.
 More recently, RBMs have been adopted by the physics community in the context
 of representing both classical and quantum many-body
 states~\cite{torlai_learning_2016,CarleoTroyer2017Science,carleo_constructing_2018}.
@@ -129,7 +127,7 @@ They are currently being investigated for their representational
 power~\cite{gao_efficient_2017,choo_symmetries_2018,glasser_neural-network_2018},
 their relationship with tensor networks and the renormalization
 group~\cite{mehta_exact_2014,koch-janusz_mutual_2018,iso_scale-invariant_2018,lenggenhager_optimal_2018,chen_equivalence_2018},
-and in other contexts in quantum many-body physics~\cite{PhysRevB.96.205152,weinstein_neural_2018}.
+and in other contexts in quantum many-body physics~\cite{PhysRevB.96.205152,weinstein_neural_2018,RBM_stabilizer}.
 
 In this post, we present QuCumber: a \textit{quantum calculator used for
 many-body eigenstate reconstruction}. QuCumber is an open-source Python
@@ -174,7 +172,7 @@ The positivity of the wavefunction allows a simple and natural connection
 between quantum states and classical probabilistic models. QuCumber employs the
 probability distribution $p_{\bm{\lambda}}(\x)$ of an RBM to approximate the
 distribution $P(\x)$ underlying the measurement data. Using contrastive
-divergence (CD)~\cite{hinton2002training}, QuCumber trains the RBM to discover
+divergence (CD)~\cite{hinton_training_2002}, QuCumber trains the RBM to discover
 an optimal set of parameters that minimize the Kullback-Leibler (KL) divergence
 between the two distributions. Upon successful training
 ($p_{\bm{\lambda}}(\x)\sim P(\x)$), we obtain a faithful representation of
@@ -808,7 +806,7 @@ ICFO (SEV{--}2015{--}0522), funded by the Spanish Ministry of Economy,
 This section contains an overview of terms discussed in the document which are
 relevant for RBMs. For more detail we refer the reader to the code documentation
 on \url{https://qucumber.readthedocs.io/en/stable/}, and
-References~\cite{hinton2002training, hinton2012practical}.
+References~\cite{hinton_training_2002, hinton2012practical}.
 
 \begin{itemize}
 
@@ -821,7 +819,7 @@ approximates the exact gradient and has less variance.
 $c_i$ in Eq.~\eqref{RBMenergy}. They act like an on-site magnetic field term.
 
 \item \textit{Contrastive divergence}: An approximate maximum-likelihood
-learning algorithm for RBMs~\cite{hinton2002training}. CD estimates the
+learning algorithm for RBMs~\cite{hinton_training_2002}. CD estimates the
 gradient of the effective energy~\eqref{RBMenergy} with respect to model
 parameters by using Gibbs sampling to compare the generated and target
 distributions.
