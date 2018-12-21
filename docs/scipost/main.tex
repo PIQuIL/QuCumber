@@ -70,7 +70,9 @@
 
     * \href{mailto:rgmelko@uwaterloo.ca}{rgmelko@uwaterloo.ca}
 \end{center}
-
+\begin{center}
+\today
+\end{center}
 \section*{Abstract}
 {\bf
 As we enter a new era of quantum technology, it is increasingly important to
@@ -305,14 +307,6 @@ state.save(
 state.load("filename.pt")
 \end{python}
 
-\begin{figure}[hbt]
-    \centering{}
-    \includegraphics[width=\columnwidth, trim={0 15 0 0}, clip]{fid_KL.pdf}
-    \caption{
-        The fidelity (left) and the KL divergence (right) during training for
-        the reconstruction of the ground state of the one-dimensional TFIM.\@
-    }\label{fig:KL}
-\end{figure}
 
 With this we have demonstrated to most basic aspects of QuCumber regarding
 training a model and verifying its accuracy. We note that in this example the
@@ -323,6 +317,15 @@ larger systems. In such cases, users must rely on other estimators to evaluate
 the training, such as expectation values of physical observables (magnetization,
 energy, etc). In the following, we show how to compute diagonal and
 off-diagonal observables in QuCumber.
+
+\begin{figure}[hbt]
+    \centering{}
+    \includegraphics[width=\columnwidth, trim={0 15 0 0}, clip]{fid_KL.pdf}
+    \caption{
+        The fidelity (left) and the KL divergence (right) during training for
+        the reconstruction of the ground state of the one-dimensional TFIM.\@
+    }\label{fig:KL}
+\end{figure}
 
 \subsection{Reconstruction of physical observables}\label{Sec:Sampling_a-Trained_RBM}
 In this section, we discuss how to calculate the average value of a generic
@@ -757,7 +760,7 @@ sampled stochastically from the RBM.\@ These samples, generated in the
 reference basis, can be used to verify the training of the RBM against the
 original data set. More importantly, they can be used to calculate expectation
 values of many physical observables. In fact, any expectation value typically
-estimated by conventional Monte Carlo methods may be implemented as an
+estimated by conventional Monte Carlo methods can be implemented as an
 estimator in QuCumber. Such estimators may be inaccessible in the reference
 basis, for example. Or, they may be difficult or impossible to implement in the
 setup for which the original data was obtained.  This is particularly relevant
@@ -774,7 +777,7 @@ physics, such as variational Monte Carlo and tensor networks.
 \section*{Acknowledgements}
 We acknowledge M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and
 L. Hayward Sierens for stimulating discussions.
-We thank the Perimeter Institute for the continuing support of PIQuIL.\@
+We thank the Perimeter Institute for Theoretical Physics for the continuing support of PIQuIL.\@
 
 \paragraph{Author contributions}
 Authors are listed alphabetically. For an updated record of individual
@@ -816,7 +819,7 @@ results in a more stochastic trajectory, while a large batch size more closely
 approximates the exact gradient and has less variance.
 
 \item \textit{Biases}: Adjustable parameters in an RBM, denoted by $b_j$ and
-$c_i$ in Eq.~\eqref{RBMenergy}. They act like an on-site magnetic field term.
+$c_i$ in Eq.~\eqref{RBMenergy}.
 
 \item \textit{Contrastive divergence}: An approximate maximum-likelihood
 learning algorithm for RBMs~\cite{hinton_training_2002}. CD estimates the
@@ -827,14 +830,14 @@ distributions.
 \item \textit{Energy}: The energy of the joint configuration $(\bm{v}, \bm{h})$
 of a RBM is defined as follows:
 \begin{equation}
-   E_{\bm{\lambda}}(\bm{v},\bm{h}) = - \sum\limits_{j=1}^{n_v} b_j v_j - \sum\limits_{i=1}^{n_h} c_i h_i - \sum\limits_{ij} h_i W_{ij} v_j, \label{RBMenergy}
+   E_{\bm{\lambda}}(\bm{v},\bm{h}) = - \sum\limits_{j=1}^{n_v} b_j v_j - \sum\limits_{i=1}^{n_h} c_i h_i - \sum\limits_{ij} h_i W_{ij} v_j. \label{RBMenergy}
 \end{equation}
 
 \item \textit{Effective energy}: Obtained from the energy by tracing out the
 hidden units $\bm{h}$; often called the ``free energy'' in machine learning
 literature.
 \begin{equation}
-   \mathcal{E}_{\bm{\lambda}}(\bm{v}) = - \sum\limits_{j=1}^{n_v} b_j v_j - \sum\limits_{i=1}^{n_h} \log \left[ 1 + \exp \left( \sum\limits_{j}^{n_v} W_{ij}v_j +c_i\right) \right], \label{RBMeffectiveenergy}
+   \mathcal{E}_{\bm{\lambda}}(\bm{v}) = - \sum\limits_{j=1}^{n_v} b_j v_j - \sum\limits_{i=1}^{n_h} \log \left[ 1 + \exp \left( \sum\limits_{j}^{n_v} W_{ij}v_j +c_i\right) \right]. \label{RBMeffectiveenergy}
 \end{equation}
 
 \item \textit{Epoch}: A single pass through an entire training set. For example,
@@ -860,12 +863,12 @@ configuration $(\bm v, \bm h)$ according to the Boltzmann distribution:
 entropy, is a measure of the ``distance'' between two probability distributions
 $P$ and $Q$, defined as:
 \begin{equation}
-\mathrm{KL}(P\:||\:Q)=\sum_{\bm{v}}P(\bm{v})\log\frac{P(\bm{v})}{Q(\bm{v})}
+\mathrm{KL}(P\:||\:Q)=\sum_{\bm{v}}P(\bm{v})\log\frac{P(\bm{v})}{Q(\bm{v})} .
 \end{equation}
 The KL divergence between two identical distributions is zero.
 Note that it is not symmetric between $P$ and $Q$.
 
-\item \textit{Learning rate}: The step-size used in the gradient descent
+\item \textit{Learning rate}: The step size used in the gradient descent
 algorithm for the optimization of the network parameters. A small learning rate
 may result in better optimization but will take more time to converge. If the
 learning rate is too high, training might not converge or will find a poor optimum.
