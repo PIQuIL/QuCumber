@@ -38,6 +38,8 @@ measurement data in additional bases will be required to train the wavefunction.
 
 Documentation can be found [here](https://piquil.github.io/QuCumber/).
 
+See "QuCumber: wavefunction reconstruction with neural networks" https://arxiv.org/abs/1812.09329
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your
@@ -81,6 +83,10 @@ to the project, and the process for submitting pull requests to us.
 ## License
 
 QuCumber is licensed under the Apache License Version 2.0.
+
+## Citation
+
+Matthew J. S. Beach, Isaac De Vlugt, Anna Golubeva, Patrick Huembeli, Bohdan Kulchytskyy, Xiuzhe Luo, Roger G. Melko, Ejaaz Merali, Giacomo Torlai, "QuCumber: wavefunction reconstruction with neural networks", [arXiv:1812.09329](https://arxiv.org/abs/1812.09329), 2018.
 
 ## Acknowledgments
 
