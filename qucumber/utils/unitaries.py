@@ -50,7 +50,11 @@ def create_dict(**kwargs):
 
     dictionary.update(
         {
-            name: torch.tensor(matrix, dtype=torch.double)
+            name: (
+                matrix.clone().detach()
+                if isinstance(matrix, torch.Tensor)
+                else torch.tensor(matrix)
+            ).to(dtype=torch.double)
             for name, matrix in kwargs.items()
         }
     )

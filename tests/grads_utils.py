@@ -111,14 +111,15 @@ class ComplexGradsUtils:
         psi_dict = {}
         D = int(len(psi_data) / float(len(bases)))
 
+        if isinstance(psi_data, torch.Tensor):
+            psi_data = psi_data.clone().detach().to(dtype=torch.double)
+        else:
+            psi_data = torch.tensor(psi_data, dtype=torch.double)
+
         for b in range(len(bases)):
             psi = torch.zeros(2, D, dtype=torch.double)
-            psi_real = torch.tensor(
-                psi_data[b * D : D * (b + 1), 0], dtype=torch.double
-            )
-            psi_imag = torch.tensor(
-                psi_data[b * D : D * (b + 1), 1], dtype=torch.double
-            )
+            psi_real = psi_data[b * D : (b + 1) * D, 0]
+            psi_imag = psi_data[b * D : (b + 1) * D, 1]
             psi[0] = psi_real
             psi[1] = psi_imag
             psi_dict[bases[b]] = psi

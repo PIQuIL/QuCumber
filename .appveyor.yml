@@ -48,7 +48,7 @@ init:
 
 install:
   - "python --version"
-  - "python -m pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-%PY_TAG%-%PY_TAG%m-win_amd64.whl"
+  - "python -m pip install http://download.pytorch.org/whl/cpu/torch-1.0.0-%PY_TAG%-%PY_TAG%m-win_amd64.whl"
   - "python -m pip install -e .[appveyor]"
 
 test_script:

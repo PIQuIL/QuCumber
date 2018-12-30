@@ -150,7 +150,7 @@ class ComplexWaveFunction(WaveFunctionBase):
     def init_gradient(self, basis, sites):
         Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
         vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
-        Us = np.array(torch.stack([self.unitary_dict[b] for b in basis[sites]]))
+        Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
         rotated_grad = [
             torch.zeros(
                 2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
@@ -161,7 +161,7 @@ class ComplexWaveFunction(WaveFunctionBase):
 
     def rotated_gradient(self, basis, sites, sample):
         Upsi, vp, Us, rotated_grad = self.init_gradient(basis, sites)
-        int_sample = np.array(sample[sites].round().int())
+        int_sample = sample[sites].round().int().cpu().numpy()
         vp = sample.round().clone()
 
         grad_size = (
@@ -179,7 +179,7 @@ class ComplexWaveFunction(WaveFunctionBase):
             # overwrite rotated elements
             vp = sample.round().clone()
             vp[sites] = self.subspace_vector(x, size=sites.size)
-            int_vp = np.array(vp[sites].int())
+            int_vp = vp[sites].int().cpu().numpy()
             all_Us = Us[ints_size, :, int_sample, int_vp]
 
             # Gradient from the rotation

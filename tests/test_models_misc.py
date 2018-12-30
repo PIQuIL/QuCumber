@@ -84,7 +84,7 @@ def test_positive_wavefunction_phase():
 
     vis_state = torch.ones(10).to(dtype=torch.double)
     actual_phase = nn_state.phase(vis_state).to(vis_state)
-    expected_phase = torch.zeros(1).to(vis_state)
+    expected_phase = torch.zeros(1).to(vis_state).squeeze()
 
     msg = "PositiveWaveFunction is giving a non-zero phase for single visible state!"
     assert torch.equal(actual_phase, expected_phase), msg
@@ -102,7 +102,7 @@ def test_positive_wavefunction_psi():
 
     vis_state = torch.ones(10).to(dtype=torch.double)
     actual_psi = nn_state.psi(vis_state)[1].to(vis_state)
-    expected_psi = torch.zeros(1).to(vis_state)
+    expected_psi = torch.zeros(1).to(vis_state).squeeze()
 
     msg = "PositiveWaveFunction is giving a non-zero imaginary part!"
     assert torch.equal(actual_psi, expected_psi), msg

@@ -474,7 +474,12 @@ class WaveFunctionBase(abc.ABC):
 
         neg_batch_size = neg_batch_size if neg_batch_size else pos_batch_size
 
-        train_samples = torch.tensor(data, device=self.device, dtype=torch.double)
+        if isinstance(data, torch.Tensor):
+            train_samples = (
+                data.clone().detach().to(device=self.device, dtype=torch.double)
+            )
+        else:
+            train_samples = torch.tensor(data, device=self.device, dtype=torch.double)
 
         if len(self.networks) > 1:
             all_params = [getattr(self, net).parameters() for net in self.networks]
