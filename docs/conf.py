@@ -336,7 +336,7 @@ def linkcode_resolve(domain, info):
 # -- Options for nbsphinx ----------------------------------------------------
 
 
-nbsphinx_execute = "never"
+nbsphinx_execute = "auto"
 
 
 # adapted from nbsphinx's conf.py
