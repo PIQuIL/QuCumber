@@ -27,14 +27,14 @@ from .callback import CallbackBase
 class MetricEvaluator(CallbackBase):
     r"""Evaluate and hold on to the results of the given metric(s).
 
-    This CallbackBase is called at the end of each epoch.
+    This callback is called at the end of each epoch.
 
     .. note::
-        Since CallbackBases are given to :func:`fit<qucumber.nn_states.WaveFunction.fit>`
+        Since callbacks are given to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`MetricEvaluator<MetricEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.nn_states.WaveFunction.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`MetricEvaluator<MetricEvaluator>` having been called.

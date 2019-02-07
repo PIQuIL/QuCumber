@@ -25,7 +25,7 @@ class CallbackBase:
         """Called at the start of the training cycle.
 
         :param nn_state: The WaveFunction being trained.
-        :type nn_state: WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         """
         pass
 
@@ -33,7 +33,7 @@ class CallbackBase:
         """Called at the end of the training cycle.
 
         :param nn_state: The WaveFunction being trained.
-        :type nn_state: WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         """
         pass
 
@@ -41,7 +41,7 @@ class CallbackBase:
         """Called at the start of each epoch.
 
         :param nn_state: The WaveFunction being trained.
-        :type nn_state: WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param epoch: The current epoch.
         :type epoch: int
         """
@@ -51,7 +51,7 @@ class CallbackBase:
         """Called at the end of each epoch.
 
         :param nn_state: The WaveFunction being trained.
-        :type nn_state: WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param epoch: The current epoch.
         :type epoch: int
         """
@@ -61,7 +61,7 @@ class CallbackBase:
         """Called at the start of each batch.
 
         :param nn_state: The WaveFunction being trained.
-        :type nn_state: WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param epoch: The current epoch.
         :type epoch: int
         :param batch: The current batch index.
@@ -73,7 +73,7 @@ class CallbackBase:
         """Called at the end of each batch.
 
         :param nn_state: The WaveFunction being trained.
-        :type nn_state: WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param epoch: The current epoch.
         :type epoch: int
         :param batch: The current batch index.

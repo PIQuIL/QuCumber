@@ -30,7 +30,7 @@ from .callback import CallbackBase
 class LivePlotting(CallbackBase):
     """Plots metrics/observables.
 
-    This CallbackBase is called at the end of each epoch.
+    This callback is called at the end of each epoch.
 
     :param period: Frequency with which the callback updates the plots
                    (in epochs).

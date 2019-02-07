@@ -33,6 +33,6 @@ Abstract Observable
 
 .. note:: |AbstractClassNote|
 
-.. autoclass:: qucumber.observables.Observable
+.. autoclass:: qucumber.observables.ObservableBase
     :members:
     :show-inheritance:

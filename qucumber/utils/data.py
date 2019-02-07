@@ -74,7 +74,7 @@ def extract_refbasis_samples(train_samples, train_bases):
     :type train_bases: numpy.array
 
     :returns: The samples in the data that are only in the reference basis.
-    :rtype: torch.tensor
+    :rtype: torch.Tensor
     """
     tmp = []
     num_visible = train_samples.shape[-1]

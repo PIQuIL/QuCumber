@@ -24,7 +24,7 @@ from .wavefunction import WaveFunctionBase
 
 
 class PositiveWaveFunction(WaveFunctionBase):
-    """Class capable of learning WaveFunctionBases with no phase.
+    """Class capable of learning wavefunctions with no phase.
 
     :param num_visible: The number of visible units, ie. the size of the system being learned.
     :type num_visible: int
@@ -84,7 +84,7 @@ class PositiveWaveFunction(WaveFunctionBase):
     def phase(self, v):
         r"""Compute the phase of a given vector/matrix of visible states.
 
-        In the case of a Positive WaveFunctionBase, the phase is just zero.
+        In the case of a PositiveWaveFunction, the phase is just zero.
 
         :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.Tensor
@@ -176,7 +176,7 @@ class PositiveWaveFunction(WaveFunctionBase):
         optimizer=torch.optim.SGD,
         **kwargs
     ):
-        """Train the WaveFunctionBase.
+        """Train the WaveFunction.
 
         :param data: The training samples
         :type data: np.array
@@ -202,7 +202,7 @@ class PositiveWaveFunction(WaveFunctionBase):
                                from a previous state.
         :type starting_epoch: int
         :param callbacks: Callbacks to run while training.
-        :type callbacks: list[qucumber.callbacks.Callback]
+        :type callbacks: list[qucumber.callbacks.CallbackBase]
         :param optimizer: The constructor of a torch optimizer.
         :type optimizer: torch.optim.Optimizer
         :param kwargs: Keyword arguments to pass to the optimizer

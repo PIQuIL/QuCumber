@@ -16,7 +16,7 @@ Welcome to QuCumber's documentation!
 
    tutorial
    _examples/Tutorial1_TrainPosRealWaveFunction/tutorial_quantum_ising.ipynb
-   _examples//Tutorial2_TrainComplexWaveFunction/tutorial_qubits.ipynb
+   _examples/Tutorial2_TrainComplexWaveFunction/tutorial_qubits.ipynb
    _examples/Tutorial3_DataGeneration_CalculateObservables/tutorial_sampling_observables.ipynb
    _examples/Tutorial4_MonitoringObservables/tutorial_monitor_observables.ipynb
 

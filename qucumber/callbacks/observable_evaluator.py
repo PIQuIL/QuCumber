@@ -63,14 +63,14 @@ class ObservableStatistics:
 class ObservableEvaluator(CallbackBase):
     r"""Evaluate and hold on to the results of the given observable(s).
 
-    This CallbackBase is called at the end of each epoch.
+    This callback is called at the end of each epoch.
 
     .. note::
-        Since CallbackBases are given to :func:`fit<qucumber.nn_states.WaveFunction.fit>`
+        Since callback are given to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`ObservableEvaluator<ObservableEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.nn_states.WaveFunction.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`ObservableEvaluator<ObservableEvaluator>` having been called.
@@ -83,7 +83,7 @@ class ObservableEvaluator(CallbackBase):
                         observables that have the same name will conflict,
                         and precedence will be given to the right-most
                         observable argument.
-    :type observables: list(qucumber.observables.Observable)
+    :type observables: list(qucumber.observables.ObservableBase)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
     :param log: A filepath to log metric values to in CSV format.

@@ -31,7 +31,7 @@ class EarlyStopping(CallbackBase):
     (time :math:`t`), :math:`p` is the "patience" parameter, and
     :math:`\epsilon` is the tolerance.
 
-    This CallbackBase is called at the end of each epoch.
+    This callback is called at the end of each epoch.
 
     :param period: Frequency with which the callback checks whether training
                    has converged (in epochs).

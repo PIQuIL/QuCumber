@@ -22,9 +22,9 @@ from .callback import CallbackBase
 
 
 class Logger(CallbackBase):
-    r"""CallbackBase which logs output at regular intervals.
+    r"""Callback which logs output at regular intervals.
 
-    This CallbackBase is called at the end of each epoch.
+    This callback is called at the end of each epoch.
 
     :param period: Logging frequency (in epochs).
     :type period: int

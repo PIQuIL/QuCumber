@@ -26,7 +26,7 @@ from .wavefunction import WaveFunctionBase
 
 
 class ComplexWaveFunction(WaveFunctionBase):
-    """Class capable of learning WaveFunctionBases with a non-zero phase.
+    """Class capable of learning wavefunctions with a non-zero phase.
 
     :param num_visible: The number of visible units, ie. the size of the system being learned.
     :type num_visible: int

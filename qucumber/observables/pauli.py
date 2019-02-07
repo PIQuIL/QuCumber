@@ -49,7 +49,7 @@ class SigmaX(ObservableBase):
         r"""Computes the magnetization along X of each sample in the given batch of samples.
 
         :param nn_state: The WaveFunction that drew the samples.
-        :type nn_state: qucumber.nn_states.WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param samples: A batch of samples to calculate the observable on.
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
@@ -89,7 +89,7 @@ class SigmaY(ObservableBase):
         r"""Computes the magnetization along Y of each sample in the given batch of samples.
 
         :param nn_state: The WaveFunction that drew the samples.
-        :type nn_state: qucumber.nn_states.WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param samples: A batch of samples to calculate the observable on.
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
@@ -135,7 +135,7 @@ class SigmaZ(ObservableBase):
         r"""Computes the magnetization of each sample given a batch of samples.
 
         :param nn_state: The WaveFunction that drew the samples.
-        :type nn_state: qucumber.nn_states.WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param samples: A batch of samples to calculate the observable on.
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor

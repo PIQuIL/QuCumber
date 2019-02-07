@@ -31,7 +31,7 @@ from qucumber.utils.gradients_utils import vector_to_grads
 
 
 class WaveFunctionBase(abc.ABC):
-    """Abstract Base Class for WaveFunctionBases."""
+    """Abstract Base Class for WaveFunctions."""
 
     _stop_training = False
 
@@ -237,12 +237,12 @@ class WaveFunctionBase(abc.ABC):
         return self.rbm_am.partition(space)
 
     def save(self, location, metadata=None):
-        """Saves the WaveFunctionBase parameters to the given location along with
+        """Saves the WaveFunction parameters to the given location along with
         any given metadata.
 
         :param location: The location to save the data.
         :type location: str or file
-        :param metadata: Any extra metadata to store alongside the WaveFunctionBase
+        :param metadata: Any extra metadata to store alongside the WaveFunction
                          parameters.
         :type metadata: dict
         """
@@ -261,15 +261,15 @@ class WaveFunctionBase(abc.ABC):
         torch.save(data, location)
 
     def load(self, location):
-        """Loads the WaveFunctionBase parameters from the given location ignoring any
-        metadata stored in the file. Overwrites the WaveFunctionBase's parameters.
+        """Loads the WaveFunction parameters from the given location ignoring any
+        metadata stored in the file. Overwrites the WaveFunction's parameters.
 
         .. note::
-            The WaveFunctionBase object on which this function is called must
+            The WaveFunction object on which this function is called must
             have the same parameter shapes as the one who's parameters are being
             loaded.
 
-        :param location: The location to load the WaveFunctionBase parameters from.
+        :param location: The location to load the WaveFunction parameters from.
         :type location: str or file
         """
         state_dict = torch.load(location, map_location=self.device)
@@ -280,7 +280,7 @@ class WaveFunctionBase(abc.ABC):
     @staticmethod
     @abc.abstractmethod
     def autoload(location, gpu=False):
-        """Initializes a WaveFunctionBase from the parameters in the given
+        """Initializes a WaveFunction from the parameters in the given
         location.
 
         :param location: The location to load the model parameters from.
@@ -288,8 +288,8 @@ class WaveFunctionBase(abc.ABC):
         :param gpu: Whether the returned model should be on the GPU.
         :type gpu: bool
 
-        :returns: A new WaveFunctionBase initialized from the given parameters.
-                  The returned WaveFunctionBase will be of whichever type this function
+        :returns: A new WaveFunction initialized from the given parameters.
+                  The returned WaveFunction will be of whichever type this function
                   was called on.
         """
 
@@ -428,7 +428,7 @@ class WaveFunctionBase(abc.ABC):
         optimizer=torch.optim.SGD,
         **kwargs
     ):
-        """Train the WaveFunctionBase.
+        """Train the WaveFunction.
 
         :param data: The training samples
         :type data: np.array

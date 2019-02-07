@@ -31,7 +31,7 @@ class ObservableBase(abc.ABC):
 
     @property
     def name(self):
-        """The name of the ObservableBase."""
+        """The name of the Observable."""
         if self._name is None:
             self._name = self.__class__.__name__
         return self._name
@@ -42,7 +42,7 @@ class ObservableBase(abc.ABC):
 
     @property
     def symbol(self):
-        """The algebraic symbol representing the ObservableBase."""
+        """The algebraic symbol representing the Observable."""
         if self._symbol is None:
             self._symbol = self.__class__.__name__
         return self._symbol
@@ -86,7 +86,7 @@ class ObservableBase(abc.ABC):
         samples. Must be implemented by any subclasses.
 
         :param nn_state: The WaveFunction that drew the samples.
-        :type nn_state: qucumber.nn_states.WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
         """
@@ -96,7 +96,7 @@ class ObservableBase(abc.ABC):
         """Draws samples of the *observable* using the given WaveFunction.
 
         :param nn_state: The WaveFunction to draw samples from.
-        :type nn_state: qucumber.nn_states.WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param k: The number of Gibbs Steps to perform before drawing a sample.
         :type k: int
         :param num_samples: The number of samples to draw.
@@ -123,7 +123,7 @@ class ObservableBase(abc.ABC):
         observable over the distribution defined by the WaveFunction.
 
         :param nn_state: The WaveFunction to draw samples from.
-        :type nn_state: qucumber.nn_states.WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param num_samples: The number of samples to draw. The actual number of
                             samples drawn may be slightly higher if
                             `num_samples % num_chains != 0`.
@@ -185,7 +185,7 @@ class ObservableBase(abc.ABC):
         observable using the given samples.
 
         :param nn_state: The WaveFunction that drew the samples.
-        :type nn_state: qucumber.nn_states.WaveFunction
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
         """
@@ -251,7 +251,7 @@ class ProdObservable(ObservableBase):
             self.left = o2
             self.right = o1
         else:
-            raise ValueError("Exactly one of o1 or o2 must be an ObservableBase!")
+            raise ValueError("Exactly one of o1 or o2 must be an Observable!")
 
         if symbol is None:
             self.symbol = "(" + str(self.left) + " * " + str(self.right) + ")"
