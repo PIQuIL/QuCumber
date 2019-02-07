@@ -131,7 +131,7 @@ class ComplexGradsUtils:
         for i in range(len(bases_data)):
             tmp = ""
             for j in range(len(bases_data[i])):
-                if bases_data[i][j] is not " ":
+                if bases_data[i][j] != " ":
                     tmp += bases_data[i][j]
             bases.append(tmp)
         return bases
@@ -151,7 +151,7 @@ class ComplexGradsUtils:
             num_nontrivial_U = 0
             nontrivial_sites = []
             for j in range(N):
-                if basis[j] is not "Z":
+                if basis[j] != "Z":
                     num_nontrivial_U += 1
                     nontrivial_sites.append(j)
             sub_state = self.nn_state.generate_hilbert_space(num_nontrivial_U)
@@ -159,7 +159,7 @@ class ComplexGradsUtils:
             for xp in range(1 << num_nontrivial_U):
                 cnt = 0
                 for j in range(N):
-                    if basis[j] is not "Z":
+                    if basis[j] != "Z":
                         v[j] = sub_state[xp][cnt]
                         cnt += 1
                     else:

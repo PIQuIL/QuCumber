@@ -58,7 +58,7 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
         for i in range(len(bases_data)):
             tmp = ""
             for j in range(len(bases_data[i])):
-                if bases_data[i][j] is not " ":
+                if bases_data[i][j] != " ":
                     tmp += bases_data[i][j]
             bases.append(tmp)
         data.append(bases)

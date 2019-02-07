@@ -50,7 +50,7 @@ coverage_requires = test_requires + ["pytest-cov>=2.5.1"]
 style_requires = [
     "radon>=2.2.0",
     "black==18.6b4; python_version>='3.6'",
-    "flake8>=3.5.0",
+    "flake8>=3.7.5",
     "flake8-per-file-ignores>=0.6",
     "flake8-bugbear>=18.2.0",
 ]
