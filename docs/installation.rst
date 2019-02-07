@@ -3,11 +3,11 @@ Installation
 ========================
 
 QuCumber only supports Python 3, not Python 2. If you are using Python 2,
-please update! You will also want to install the following packages, if you
-have not already.
+please update! You may also want to install PyTorch v1.0 (https://pytorch.org/),
+if you have not already.
 
-#. Pytorch v0.4.1 (https://pytorch.org/)
-#. tqdm (https://github.com/tqdm/tqdm)
+If you're running a reasonably up-to-date Linux or macOS system, PyTorch should
+get installed automatically when you install QuCumber with `pip`.
 
 -------
 Github
@@ -32,7 +32,7 @@ Navigate to the directory (through command prompt) where pip.exe is installed
     pip.exe install qucumber
 
 -------------
-Linux / MacOS
+Linux / macOS
 -------------
 
 Open up a terminal, then type::
