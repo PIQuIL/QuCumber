@@ -37,7 +37,7 @@ measurement data in additional bases will be required to train the wavefunction.
 
 ## Documentation
 
-Documentation can be found [here](https://piquil.github.io/QuCumber/).
+Documentation can be found [here](https://qucumber.readthedocs.io/en/stable/).
 
 See "QuCumber: wavefunction reconstruction with neural networks" https://arxiv.org/abs/1812.09329
 
