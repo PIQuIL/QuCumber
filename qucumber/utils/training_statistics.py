@@ -131,7 +131,7 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
     unitary_dict = unitaries.create_dict()
     Z = nn_state.compute_normalization(space)
     eps = 0.000001
-
+    samples = torch.tensor(samples)
     if train_bases is None:
         for i in range(len(samples)):
             NLL -= (cplx.norm_sqr(nn_state.psi(samples[i])) + eps).log()
