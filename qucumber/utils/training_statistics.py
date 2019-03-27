@@ -108,6 +108,58 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
     return psi_r
 
 
+def NLL(nn_state, samples, space, train_bases=None, **kwargs):
+    r"""A function for calculating the negative log-likelihood.
+
+    :param nn_state: The neural network state (i.e. complex wavefunction or
+                     positive wavefunction).
+    :type nn_state: WaveFunction
+    :param samples: Samples to compute the NLL on.
+    :type samples: torch.Tensor
+    :param space: The hilbert space of the system.
+    :type space: torch.Tensor
+    :param train_bases: An array of bases where measurements were taken.
+    :type train_bases: np.array(dtype=str)
+    :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
+
+    :returns: The Negative Log-Likelihood.
+    :rtype: torch.Tensor
+    """
+    psi_r = torch.zeros(
+        2, 1 << nn_state.num_visible, dtype=torch.double, device=nn_state.device
+    )
+    NLL = 0.0
+    unitary_dict = unitaries.create_dict()
+    Z = nn_state.compute_normalization(space)
+    eps = 0.000001
+    if train_bases is None:
+        for i in range(len(samples)):
+            NLL -= (cplx.norm_sqr(nn_state.psi(samples[i])) + eps).log()
+            NLL += Z.log()
+    else:
+        for i in range(len(samples)):
+            # Check whether the sample was measured the reference basis
+            is_reference_basis = True
+            # b_ID = 0
+            for j in range(nn_state.num_visible):
+                if train_bases[i][j] != "Z":
+                    is_reference_basis = False
+                    break
+            if is_reference_basis is True:
+                NLL -= (cplx.norm_sqr(nn_state.psi(samples[i])) + eps).log()
+                NLL += Z.log()
+            else:
+                psi_r = rotate_psi(nn_state, train_bases[i], space, unitary_dict)
+                # Get the index value of the sample state
+                ind = 0
+                for j in range(nn_state.num_visible):
+                    if samples[i, nn_state.num_visible - j - 1] == 1:
+                        ind += pow(2, j)
+                NLL -= cplx.norm_sqr(psi_r[:, ind]).log().item()
+                NLL += Z.log()
+    return NLL / float(len(samples))
+
+
 def KL(nn_state, target_psi, space, bases=None, **kwargs):
     r"""A function for calculating the total KL divergence.
 
