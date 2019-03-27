@@ -107,6 +107,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
         psi_r[:, x] = Upsi
     return psi_r
 
+
 def NLL(nn_state, samples, space, train_bases=None, **kwargs):
     r"""A function for calculating the negative log-likelihood.
 
@@ -131,7 +132,6 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
     unitary_dict = unitaries.create_dict()
     Z = nn_state.compute_normalization(space)
     eps = 0.000001
-    samples = torch.tensor(samples)
     if train_bases is None:
         for i in range(len(samples)):
             NLL -= (cplx.norm_sqr(nn_state.psi(samples[i])) + eps).log()
@@ -139,12 +139,13 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
     else:
         for i in range(len(samples)):
             # Check whether the sample was measured the reference basis
-            b_ID = 0
+            is_reference_basis = True
+            # b_ID = 0
             for j in range(nn_state.num_visible):
-                if (train_bases[i][j]!='Z'):
-                    b_ID = 1
+                if train_bases[i][j] != "Z":
+                    is_reference_basis = False
                     break
-            if (b_ID == 0):
+            if is_reference_basis is True:
                 NLL -= (cplx.norm_sqr(nn_state.psi(samples[i])) + eps).log()
                 NLL += Z.log()
             else:
@@ -152,8 +153,8 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
                 # Get the index value of the sample state
                 ind = 0
                 for j in range(nn_state.num_visible):
-                    if(samples[i,nn_state.num_visible-j-1] == 1):
-                        ind += pow(2,j)
+                    if samples[i, nn_state.num_visible - j - 1] == 1:
+                        ind += pow(2, j)
                 NLL -= cplx.norm_sqr(psi_r[:, ind]).log().item()
                 NLL += Z.log()
     return NLL / float(len(samples))
