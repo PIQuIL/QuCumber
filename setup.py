@@ -34,10 +34,14 @@ install_requires = [
     "matplotlib>=2.2",
 ]
 
-# because RTD runs out of memory when using `pip install -e .[rtd]` to install
-# docs dependencies for some reason
-with open(".build_tools/readthedocs/requirements.txt", "r") as reqs:
-    rtd_requires = [line.strip() for line in reqs.readlines()]
+# using a requirements.txt file for RTD dependencies
+# since it runs out of memory when using `pip install -e .[rtd]` to install
+# the dependencies for some reason
+try:
+    with open(".build_tools/readthedocs/requirements.txt", "r") as reqs:
+        rtd_requires = [line.strip() for line in reqs.readlines()]
+except FileNotFoundError:
+    rtd_requires = []
 
 doc_requires = rtd_requires + ["sphinx_rtd_theme>=0.4.1", "sphinx-autobuild>=0.7.1"]
 
