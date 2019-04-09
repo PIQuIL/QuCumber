@@ -466,6 +466,16 @@ approximate the ground-state wavefunction underlying the data.
 
 \subsubsection{Entanglement entropy}\label{sec:swap}
 
+\begin{figure}[htb]
+    \centering
+    \includegraphics[]{ee}
+    \caption{
+        The second R\'enyi entropy for the TFIM chain with
+        $N=10$ spins. The markers indicate values obtained by sampling from a trained RBM.\@
+        The dashed line denotes the results from exact diagonalization.
+    }\label{ee_learn}
+\end{figure}
+
 A quantity of significant interest in quantum many-body systems is the amount of
 entanglement between a subregion $A$ and its complement $\bar{A}$.
 Numerically, measurement of bipartite entanglement entropy is commonly accessed
@@ -517,6 +527,12 @@ psi_ket2 = nn_state.psi(samples2)
 psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
 \end{python}
 
+We apply this measurement procedure to a TFIM chain with results shown in
+Fig.~\ref{ee_learn}. As was the case with the magnetization observables, the trained 
+RBM correctly captures  most of the second R\'enyi entropy for different subregion 
+$A$ sizes. Being a basis-independent observable, this constitutes a good test on
+the ability of QuCumber to capture the full wave-function from the information contained
+in a single-basis dataset for TFIM.
 
 \section{Complex wavefunctions}\label{sec:complex}
 For positive wavefunctions, the probability distribution underlying the outcomes
