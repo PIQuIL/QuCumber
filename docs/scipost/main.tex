@@ -466,28 +466,19 @@ approximate the ground-state wavefunction underlying the data.
 
 \subsubsection{Entanglement entropy}\label{sec:swap}
 
-\begin{figure}[htb]
-    \centering
-    \includegraphics[]{ee}
-    \caption{
-        The second R\'enyi entropy for the TFIM chain with
-        $N=10$ spins. The markers indicate values obtained through the 
-        ``Swap'' operator applied  to the samples from a trained RBM.\@
-        The dashed line denotes the results from exact diagonalization.
-    }\label{ee_learn}
-\end{figure}
-
-A quantity of significant interest in quantum many-body systems is the amount of
+A quantity of significant interest in quantum many-body systems is the degree of
 entanglement between a subregion $A$ and its complement $\bar{A}$.
 Numerically, measurement of bipartite entanglement entropy is commonly accessed
-through the computation of the second R\'enyi entropy~\cite{Swap}.
+through the computation of the second R\'enyi entropy $S_2 = - \ln {\rm Tr}(\rho_A^2)$.
 When one has access to a pure state wavefunction $\psi_{\bm{\lambda}}(\x)$,
-R\'enyi entropies can be estimated through the ``Swap'' operator.  It is a type of
-an off-diagonal observable that acts on an extended product space consisting of
+R\'enyi entropies can be calculated as an expectation value of the ``Swap'' operator~\cite{Swap},
+\begin{equation}
+S_2 = - \ln \left\langle{   \widehat{\textrm{Swap}}_A  }\right\rangle.
+\end{equation}
+It is essentially an off-diagonal observable that acts on an extended product space consisting of
 independent copies of the wavefunction,
 $\psi_{\bm{\lambda}}(\x) \otimes \psi_{\bm{\lambda}}(\x)$, referred to as
 ``replicas''.
-
 As the name suggests, the action of the Swap operator is to swap the spin
 configurations in region $A$ between the replicas,
 \begin{equation}
@@ -534,6 +525,20 @@ RBM correctly captures  most of the second R\'enyi entropy for different subregi
 $A$ sizes. Being a basis-independent observable, this constitutes a good test on
 the ability of QuCumber to capture the full wave-function from the information contained
 in a single-basis dataset for TFIM.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[]{ee}
+    \caption{
+        The second R\'enyi entropy for the TFIM chain with
+        $N=10$ spins. 
+        The number of sites in the entangled bipartition $A$ 
+        is indicated by the horizontal axis.
+        The markers indicate values obtained through the 
+        ``Swap'' operator applied  to the samples from a trained RBM.\@
+        The dashed line denotes the result from exact diagonalization.
+    }\label{ee_learn}
+\end{figure}
 
 \section{Complex wavefunctions}\label{sec:complex}
 For positive wavefunctions, the probability distribution underlying the outcomes
