@@ -18,6 +18,7 @@
 # under the License.
 
 
+import sys
 import pathlib
 from pprint import pformat
 from itertools import chain
@@ -131,8 +132,9 @@ def lint_example_notebooks(c, linter="flake8"):
             failed_files.append(str(path))
 
     if num_fails > 0:
-        raise RuntimeError(
+        print(
             "Notebook code isn't formatted properly.\n"
             + "Number of unformatted files reported: {}\n".format(num_fails)
             + "Files with errors: {}".format(pformat(failed_files))
         )
+        sys.exit(num_fails)
