@@ -177,7 +177,7 @@ between quantum states and classical probabilistic models. QuCumber employs the
 probability distribution $p_{\bm{\lambda}}(\x)$ of an RBM to approximate the
 distribution $P(\x)$ underlying the measurement data. Using contrastive
 divergence (CD)~\cite{hinton_training_2002}, QuCumber trains the RBM to discover
-an optimal set of parameters that minimize the Kullback-Leibler (KL) divergence
+an optimal set of parameters ${\bm \lambda}$ that minimize the Kullback-Leibler (KL) divergence
 between the two distributions. Upon successful training
 ($p_{\bm{\lambda}}(\x)\sim P(\x)$), we obtain a faithful representation of
 the target quantum state,
@@ -185,6 +185,8 @@ the target quantum state,
     \psi_{\bm{\lambda}}(\x) \equiv \sqrt{p_{\bm{\lambda}}(\x)}
     \simeq\Psi(\x)\:.
 \end{equation}
+Note, the precise form of the marginal distribution $p_{\bm{\lambda}}(\x)$, defined in terms of an effective energy
+over the parameters of the RBM, is defined in the Glossary.
 
 In the following, we demonstrate the application of QuCumber for the reconstruction of the
 ground-state wavefunction of the one-dimensional transverse-field Ising model
@@ -277,7 +279,13 @@ callbacks = [
 ]
 \end{python}
 With \verb|verbose=True|, the program will print the epoch number and all
-callbacks every \verb|log_every| epochs. Now that the metrics to monitor during
+callbacks every \verb|log_every| epochs. 
+For the current example, we monitor the fidelity and KL divergence (see Glossary).
+Note that the KL divergence is only tractable for small systems. 
+The \verb|MetricEvaluator| will compute the KL exactly when provided with a list of all states in the Hilbert space. For convenience these can be generated with \\
+\verb|space = state.generate_hilbert_space(10)|.
+
+Now that the metrics to monitor during
 training have been chosen, we can invoke the optimization with the \verb|fit|
 function of \verb|PositiveWavefunction|.
 \begin{python}
@@ -291,12 +299,10 @@ state.fit(
     callbacks=callbacks,
 )
 \end{python}
-
 Figure~\ref{fig:KL} shows the convergence of the fidelity and KL divergence
 during training. The convergence time will, in general, depend on the choice
 of hyperparameters.
-
-The network parameters $\bm{\lambda}$, together with the callbacks, can be
+Finally, the network parameters $\bm{\lambda}$, together with the callbacks, can be
 saved (or loaded) to a file:
 \begin{python}
 state.save(
@@ -313,7 +319,7 @@ state.load("filename.pt")
 With this we have demonstrated to most basic aspects of QuCumber regarding
 training a model and verifying its accuracy. We note that in this example the
 evaluation utilized the knowledge of the exact ground state and the calculation
-of the KL divergence, which is tractable only for small system sizes.  However,
+of the KL divergence, which we reemphasize is tractable only for small system sizes.  However,
 we point out that QuCumber is capable of carrying out the reconstruction of much
 larger systems. In such cases, users must rely on other estimators to evaluate
 the training, such as expectation values of physical observables (magnetization,
