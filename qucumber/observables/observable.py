@@ -72,18 +72,20 @@ class ObservableBase(abc.ABC):
         return ProdObservable(self, other)
 
     def __radd__(self, other):
-        return SumObservable(self, other, right=True)
+        return SumObservable(other, self)
 
     def __rsub__(self, other):
-        return SumObservable(-self, other, right=True)
+        return SumObservable(other, -self)
 
     def __rmul__(self, other):
-        return ProdObservable(self, other)
+        return ProdObservable(other, self)
 
     @abc.abstractmethod
     def apply(self, nn_state, samples):
         """Computes the value of the observable, row-wise, on a batch of
-        samples. Must be implemented by any subclasses.
+        samples.
+
+        Must be implemented by any subclasses.
 
         :param nn_state: The WaveFunction that drew the samples.
         :type nn_state: qucumber.nn_states.WaveFunctionBase
@@ -203,14 +205,14 @@ ObservableBase.__module__ = "qucumber.observables"
 
 
 class SumObservable(ObservableBase):
-    def __init__(self, o1, o2, right=False, name=None, symbol=None):
+    def __init__(self, o1, o2, name=None, symbol=None):
         if not isinstance(o1, (float, int, ObservableBase)):
             raise TypeError("o1 does not have the right type!")
         if not isinstance(o2, (float, int, ObservableBase)):
             raise TypeError("o2 does not have the right type!")
 
-        self.left = o1 if not right else o2
-        self.right = o2 if not right else o1  # swap order if right == True
+        self.left = o1
+        self.right = o2
 
         if symbol is None:
             self.symbol = "(" + str(self.left) + " + " + str(self.right) + ")"
