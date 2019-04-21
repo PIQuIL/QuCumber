@@ -38,7 +38,7 @@ def to_01(samples):
     return samples.add(1.0).div(2.0)
 
 
-def update_statistics(avg_a, var_a, len_a, avg_b, var_b, len_b):
+def _update_statistics(avg_a, var_a, len_a, avg_b, var_b, len_b):
     if len_a == len_b == 0:
         return 0.0, 0.0, 0
 

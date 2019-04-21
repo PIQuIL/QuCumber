@@ -41,6 +41,30 @@ def make_complex(x, y=None):
     return torch.cat((x.unsqueeze(0), y.unsqueeze(0)), dim=0)
 
 
+def real(x):
+    """Returns the real part of a complex tensor.
+
+    :param x: The complex tensor
+    :type x: torch.Tensor
+
+    :returns: The real part of `x`; will have one less dimension than `x`.
+    :rtype: torch.Tensor
+    """
+    return x[0, ...]
+
+
+def imag(x):
+    """Returns the imaginary part of a complex tensor.
+
+    :param x: The complex tensor
+    :type x: torch.Tensor
+
+    :returns: The imaginary part of `x`; will have one less dimension than `x`.
+    :rtype: torch.Tensor
+    """
+    return x[1, ...]
+
+
 def scalar_mult(x, y, out=None):
     """A function that computes the product between complex matrices and scalars,
     complex vectors and scalars or two complex scalars.

@@ -25,7 +25,7 @@ from .utils import to_pm1
 
 
 def flip_spin(i, samples):
-    r"""Flip the i-th spin configuration in samples.
+    r"""Flip the i-th spin configuration in `samples`.
 
     :param i: The i-th spin.
     :type i: int
@@ -47,6 +47,9 @@ class SigmaX(ObservableBase):
 
     def apply(self, nn_state, samples):
         r"""Computes the magnetization along X of each sample in the given batch of samples.
+
+        Assumes that the computational basis that the WaveFunction was trained
+        on was the Z basis.
 
         :param nn_state: The WaveFunction that drew the samples.
         :type nn_state: qucumber.nn_states.WaveFunctionBase
@@ -72,7 +75,7 @@ class SigmaX(ObservableBase):
 
         # take real part (imaginary part should be approximately zero)
         # and divide by number of spins
-        return psi_ratio_sum[0].div_(samples.shape[-1])
+        return cplx.real(psi_ratio_sum).div_(samples.shape[-1])
 
 
 class SigmaY(ObservableBase):
@@ -87,6 +90,9 @@ class SigmaY(ObservableBase):
 
     def apply(self, nn_state, samples):
         r"""Computes the magnetization along Y of each sample in the given batch of samples.
+
+        Assumes that the computational basis that the WaveFunction was trained
+        on was the Z basis.
 
         :param nn_state: The WaveFunction that drew the samples.
         :type nn_state: qucumber.nn_states.WaveFunctionBase
@@ -118,7 +124,7 @@ class SigmaY(ObservableBase):
 
         # take real part (imaginary part should be approximately zero)
         # and divide by number of spins
-        return psi_ratio_sum[0].div_(samples.shape[-1])
+        return cplx.real(psi_ratio_sum).div_(samples.shape[-1])
 
 
 class SigmaZ(ObservableBase):
@@ -132,7 +138,10 @@ class SigmaZ(ObservableBase):
         self.symbol = "Z"
 
     def apply(self, nn_state, samples):
-        r"""Computes the magnetization of each sample given a batch of samples.
+        r"""Computes the magnetization along Z of each sample given a batch of samples.
+
+        Assumes that the computational basis that the WaveFunction was trained
+        on was the Z basis.
 
         :param nn_state: The WaveFunction that drew the samples.
         :type nn_state: qucumber.nn_states.WaveFunctionBase
@@ -140,7 +149,6 @@ class SigmaZ(ObservableBase):
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
         """
-        # convert to +/- 1 convention, after computing the
-        # mean, to reduce total computations; this works
-        # because expectation is linear.
+        # convert to +/- 1 convention, *after* computing the
+        # mean to reduce total computations
         return to_pm1(samples.mean(1))

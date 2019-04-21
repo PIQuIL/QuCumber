@@ -20,7 +20,7 @@
 import abc
 import numpy as np
 
-from .utils import update_statistics
+from .utils import _update_statistics
 
 
 class ObservableBase(abc.ABC):
@@ -65,17 +65,11 @@ class ObservableBase(abc.ABC):
     def __add__(self, other):
         return SumObservable(self, other)
 
-    def __sub__(self, other):
-        return SumObservable(self, -other)
-
     def __mul__(self, other):
         return ProdObservable(self, other)
 
     def __radd__(self, other):
         return SumObservable(other, self)
-
-    def __rsub__(self, other):
-        return SumObservable(other, -self)
 
     def __rmul__(self, other):
         return ProdObservable(other, self)
@@ -84,6 +78,13 @@ class ObservableBase(abc.ABC):
     def apply(self, nn_state, samples):
         """Computes the value of the observable, row-wise, on a batch of
         samples.
+
+        If we think of the samples given as random (computational) basis
+        elements of the Hilbert space of interest, this method must return
+        the expectation of the operator with respect to each basis state in
+        `samples`. It must not perform any averaging, as this will be
+        performed in an efficient manner by the `statistics` and
+        `statistics_from_samples` methods.
 
         Must be implemented by any subclasses.
 
@@ -106,8 +107,8 @@ class ObservableBase(abc.ABC):
         :param initial_state: The initial state of the Markov Chain. If given,
                               `num_samples` will be ignored.
         :type initial_state: torch.Tensor
-        :param overwrite: Whether to overwrite the initial_state tensor, if it
-                          is provided, with the updated state of the Markov chain.
+        :param overwrite: Whether to overwrite the initial_state tensor, if
+                          provided, with the updated state of the Markov chain.
         :type overwrite: bool
         """
         return self.apply(
@@ -131,8 +132,10 @@ class ObservableBase(abc.ABC):
                             `num_samples % num_chains != 0`.
         :type num_samples: int
         :param num_chains: The number of Markov chains to run in parallel;
-                           if 0, will use a number of chains equal to
-                           `num_samples`.
+                           if 0 or greater than `num_samples`, will use a
+                           number of chains equal to `num_samples`. This is not
+                           recommended in the case where a `num_samples` is
+                           large, as this may use up all the available memory.
         :type num_chains: int
         :param burn_in: The number of Gibbs Steps to perform before recording
                         any samples.
@@ -149,7 +152,7 @@ class ObservableBase(abc.ABC):
         running_length = 0
 
         chains = None
-        num_chains = num_chains if num_chains != 0 else num_samples
+        num_chains = min(num_chains, num_samples) if num_chains != 0 else num_samples
         num_time_steps = int(np.ceil(num_samples / num_chains))
         for i in range(num_time_steps):
             num_gibbs_steps = burn_in if i == 0 else steps
@@ -161,16 +164,14 @@ class ObservableBase(abc.ABC):
                 overwrite=True,
             )
 
-            samples = self.apply(nn_state, chains).data
-            current_mean = samples.mean().item()
-            current_variance = samples.var().item()
+            sample_stats = self.statistics_from_samples(nn_state, chains)
 
-            running_mean, running_variance, running_length = update_statistics(
+            running_mean, running_variance, running_length = _update_statistics(
                 running_mean,
                 running_variance,
                 running_length,
-                current_mean,
-                current_variance,
+                sample_stats["mean"],
+                sample_stats["variance"],
                 num_chains,
             )
 
@@ -190,8 +191,12 @@ class ObservableBase(abc.ABC):
         :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
+        :returns: A dictionary containing the (estimated) expected value
+                  (key: "mean"), variance (key: "variance"), and standard error
+                  (key: "std_error") of the observable.
+        :rtype: dict(str, float)
         """
-        obs_samples = self.apply(nn_state, samples)
+        obs_samples = self.apply(nn_state, samples).data
 
         mean = obs_samples.mean().item()
         variance = obs_samples.var().item()

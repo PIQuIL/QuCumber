@@ -20,7 +20,7 @@
 
 import numpy as np
 
-from .utils import update_statistics
+from .utils import _update_statistics
 
 
 class System:
@@ -45,17 +45,22 @@ class System:
                             `num_samples % num_chains != 0`.
         :type num_samples: int
         :param num_chains: The number of Markov chains to run in parallel;
-                           if 0, will use a number of chains equal to
-                           `num_samples`.
+                           if 0 or greater than `num_samples`, will use a
+                           number of chains equal to `num_samples`. This is not
+                           recommended in the case where a `num_samples` is
+                           large, as this may use up all the available memory.
         :type num_chains: int
         :param burn_in: The number of Gibbs Steps to perform before recording
                         any samples.
         :type burn_in: int
         :param steps: The number of Gibbs Steps to take between each sample.
         :type steps: int
-        :returns: A dictionary containing the (estimated) expected value
-                  (key: "mean"), variance (key: "variance"), and standard error
-                  (key: "std_error") of the observable.
+        :returns: A dictionary of dictionaries. At the top level, the keys
+                  will be the names of the observables this object is keeping
+                  track of. The values will be dictionaries containing the
+                  (estimated) expected value (key: "mean"), variance (key:
+                  "variance"), and standard error (key: "std_error") of the
+                  corresponding observable.
         :rtype: dict(str, float)
         """
         means = {name: 0.0 for name in self.observables.keys()}
@@ -63,7 +68,7 @@ class System:
         total_samples = 0.0
 
         chains = None
-        num_chains = num_chains if num_chains != 0 else num_samples
+        num_chains = min(num_chains, num_samples) if num_chains != 0 else num_samples
         num_time_steps = int(np.ceil(num_samples / num_chains))
         for i in range(num_time_steps):
             num_gibbs_steps = burn_in if i == 0 else steps
@@ -78,7 +83,7 @@ class System:
             for obs_name, obs in self.observables.items():
                 obs_stats = obs.statistics_from_samples(nn_state, chains)
 
-                means[obs_name], variances[obs_name], _ = update_statistics(
+                means[obs_name], variances[obs_name], _ = _update_statistics(
                     means[obs_name],
                     variances[obs_name],
                     total_samples,
@@ -108,6 +113,13 @@ class System:
         :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
+        :returns: A dictionary of dictionaries. At the top level, the keys
+                  will be the names of the observables this object is keeping
+                  track of. The values will be dictionaries containing the
+                  (estimated) expected value (key: "mean"), variance (key:
+                  "variance"), and standard error (key: "std_error") of the
+                  corresponding observable.
+        :rtype: dict(str, float)
         """
         statistics = {
             obs_name: obs.statistics_from_samples(nn_state, samples)
