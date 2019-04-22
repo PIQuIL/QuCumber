@@ -72,16 +72,22 @@ def license_check(c, length_cutoff=15, extensions=None, exclude=None):
     exclude = exclude if exclude else []
 
     paths = chain(
-        *[pathlib.Path(".").glob("**/*" + extension) for extension in extensions]
+        *[
+            pathlib.Path(root).glob("**/*" + extension)
+            for extension in extensions
+            for root in ["./docs", "./examples", "./qucumber", "./tests"]
+        ]
     )
 
     for path in paths:
         num_fails += int(is_license_missing(str(path), length_cutoff, exclude))
 
     if num_fails > 0:
-        raise RuntimeError("License Header missing in {} files.".format(num_fails))
+        print("License Header missing in {} files.".format(num_fails))
     else:
         print("License checking completed successfully.")
+
+    sys.exit(num_fails)
 
 
 ##############################################################################
