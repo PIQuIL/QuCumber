@@ -59,6 +59,12 @@ class ObservableStatistics:
                 )
             )
 
+    def __getitem__(self, statistic):
+        """Alias for
+        :func:`__getattr__<qucumber.callbacks.observable_evaluator.ObservableStatistics.__getattr__>`
+        to enable subscripting."""
+        return self.__getattr__(statistic)
+
 
 class ObservableEvaluator(CallbackBase):
     r"""Evaluate and hold on to the results of the given observable(s).
@@ -81,8 +87,8 @@ class ObservableEvaluator(CallbackBase):
     :param observables: A list of Observables. Observable statistics are
                         evaluated by sampling the WaveFunction. Note that
                         observables that have the same name will conflict,
-                        and precedence will be given to the right-most
-                        observable argument.
+                        and precedence will be given to the one which appears
+                        later in the list.
     :type observables: list(qucumber.observables.ObservableBase)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
@@ -138,6 +144,11 @@ class ObservableEvaluator(CallbackBase):
                     observable
                 )
             )
+
+    def __getitem__(self, observable):
+        """Alias for :func:`__getattr__<qucumber.callbacks.ObservableEvaluator.__getattr__>`
+        to enable subscripting."""
+        return self.__getattr__(observable)
 
     @property
     def epochs(self):

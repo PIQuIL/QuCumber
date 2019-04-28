@@ -91,6 +91,11 @@ class MetricEvaluator(CallbackBase):
         except KeyError:
             raise AttributeError
 
+    def __getitem__(self, metric):
+        """Alias for :func:`__getattr__<qucumber.callbacks.MetricEvaluator.__getattr__>`
+        to enable subscripting."""
+        return self.__getattr__(metric)
+
     @property
     def epochs(self):
         """Return a list of all epochs that have been recorded.

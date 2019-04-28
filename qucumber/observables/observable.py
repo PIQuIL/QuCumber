@@ -65,11 +65,17 @@ class ObservableBase(abc.ABC):
     def __add__(self, other):
         return SumObservable(self, other)
 
+    def __sub__(self, other):
+        return SumObservable(self, -other)
+
     def __mul__(self, other):
         return ProdObservable(self, other)
 
     def __radd__(self, other):
         return SumObservable(other, self)
+
+    def __rsub__(self, other):
+        return SumObservable(other, -self)
 
     def __rmul__(self, other):
         return ProdObservable(other, self)
@@ -79,12 +85,12 @@ class ObservableBase(abc.ABC):
         """Computes the value of the observable, row-wise, on a batch of
         samples.
 
-        If we think of the samples given as random (computational) basis
-        elements of the Hilbert space of interest, this method must return
-        the expectation of the operator with respect to each basis state in
-        `samples`. It must not perform any averaging, as this will be
-        performed in an efficient manner by the `statistics` and
-        `statistics_from_samples` methods.
+        If we think of the samples given as a set of projective measurements
+        in a given computational basis, this method must return the expectation
+        of the operator with respect to each basis state in `samples`.
+        It must not perform any averaging for statistical purposes, as the
+        proper analysis is delegated to the specialized
+        `statistics` and `statistics_from_samples` methods.
 
         Must be implemented by any subclasses.
 
@@ -92,6 +98,8 @@ class ObservableBase(abc.ABC):
         :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
+        :returns: The value of the observable of each given basis state.
+        :rtype: torch.Tensor
         """
         raise NotImplementedError
 
@@ -110,15 +118,17 @@ class ObservableBase(abc.ABC):
         :param overwrite: Whether to overwrite the initial_state tensor, if
                           provided, with the updated state of the Markov chain.
         :type overwrite: bool
+        :returns: The samples drawn through this observable.
+        :rtype: torch.Tensor
         """
         return self.apply(
+            nn_state,
             nn_state.sample(
                 k=k,
                 num_samples=num_samples,
                 initial_state=initial_state,
                 overwrite=overwrite,
             ),
-            nn_state,
         )
 
     def statistics(self, nn_state, num_samples, num_chains=0, burn_in=1000, steps=1):
