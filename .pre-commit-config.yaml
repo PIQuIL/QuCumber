@@ -12,14 +12,15 @@ repos:
       language: system
       types: [file, python]
       pass_filenames: false
-    - id: lint-examples
-      name: lint-examples
-      entry: inv lint-examples
+    - id: lint-examples-flake8
+      name: lint-examples-flake8
+      entry: inv lint-examples -l flake8
       language: system
       files: ^examples\/(.+)\/([^\/]+).ipynb
       pass_filenames: false
-    - id: run-notebooks
-      name: run-notebooks
-      entry: jupyter nbconvert --ExecutePreprocessor.timeout=-1 --to notebook --inplace --execute
+    - id: lint-examples-black
+      name: lint-examples-black
+      entry: inv lint-examples -l black
       language: system
       files: ^examples\/(.+)\/([^\/]+).ipynb
+      pass_filenames: false

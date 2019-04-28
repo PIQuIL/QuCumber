@@ -24,6 +24,7 @@ from pprint import pformat
 from itertools import chain
 
 from invoke import task
+from invoke.terminals import pty_size
 
 
 ##############################################################################
@@ -75,7 +76,13 @@ def license_check(c, length_cutoff=15, extensions=None, exclude=None):
         *[
             pathlib.Path(root).glob("**/*" + extension)
             for extension in extensions
-            for root in ["./docs", "./examples", "./qucumber", "./tests"]
+            for root in [
+                "./.build_tools",
+                "./docs",
+                "./examples",
+                "./qucumber",
+                "./tests",
+            ]
         ]
     )
 
@@ -107,14 +114,16 @@ def lint_example_notebooks(c, linter="flake8"):
     """
     to_script_command = (
         "jupyter nbconvert {} --stdout --to python "
-        "--template=.build_tools/invoke/code_cells_only.tpl "
-        "| head -c -1"
+        "--RegexRemovePreprocessor.patterns=\"[r'\\s*\\Z']\" "  # remove empty code cells
+        "--Exporter.preprocessors=\"['strip_magics.StripMagicsProcessor']\" "  # remove ipython magics
+        "--template=code_cells_only.tpl "  # only lint code cells
+        "| head -c -1"  # remove extra new-line at end
     )
     linter_commands = {
         "black": "black --check --diff -",
         # last 3 are to ignore trailing whitespace, rest are from tox.ini
-        # should simplify this once flake8 pushes its --extend-ignore option
-        "flake8": "flake8 - --ignore=E203,E501,W503,W391,W291,E402",
+        # should simplify this once flake8 fixes its --extend-ignore option
+        "flake8": "flake8 - --show-source --ignore=E203,E501,W503,W391,W291,E402",
     }
 
     try:
@@ -123,24 +132,26 @@ def lint_example_notebooks(c, linter="flake8"):
         raise ValueError("Linter, {}, not supported!".format(linter))
 
     nb_paths = pathlib.Path("./examples").glob("**/*[!checkpoint].ipynb")
-
     num_fails = 0
     failed_files = []
 
     for path in nb_paths:
-        run = c.run(
-            to_script_command.format(str(path)) + " | " + linter_command,
-            warn=True,  # don't exit task on first fail
-            echo=True,  # print bash command to stdout
-        )
-        if run.failed:
-            num_fails += 1
-            failed_files.append(str(path))
+        with c.cd("./.build_tools/invoke/"):
+            run = c.run(
+                to_script_command.format("../../" + str(path)) + " | " + linter_command,
+                warn=True,  # don't exit task on first fail
+                echo=True,  # print generated bash command to stdout
+            )
+            if run.failed:
+                num_fails += 1
+                failed_files.append(str(path))
 
     if num_fails > 0:
+        failed_files = sorted(failed_files)
         print(
-            "Notebook code isn't formatted properly.\n"
+            "-" * pty_size()[0]
+            + "\nSome notebook code is improperly formatted.\n"
             + "Number of unformatted files reported: {}\n".format(num_fails)
-            + "Files with errors: {}".format(pformat(failed_files))
+            + "Files with errors:\n{}".format(pformat(failed_files))
         )
         sys.exit(num_fails)

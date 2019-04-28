@@ -88,7 +88,6 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
-        "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",

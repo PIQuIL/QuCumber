@@ -276,8 +276,13 @@ intersphinx_mapping = {
 # -- Options for linkcode extension ------------------------------------------
 
 
-# adapted from scikit-learn's github_link.py
+# The code in this section has been adapted from scikit-learn's github_link.py
 # https://github.com/scikit-learn/scikit-learn/blob/1870d6d/doc/sphinxext/github_link.py
+
+# Copyright (c) 2018-2019 PIQuIL - All rights reserved.
+# Copyright (c) 2007–2019 The scikit-learn developers - All rights reserved.
+
+# The full license is in the file LICENSE.txt, distributed with this software.
 
 
 def _get_git_revision():
@@ -333,14 +338,20 @@ def linkcode_resolve(domain, info):
     )
 
 
+# -- End of code from scikit-learn's repo ------------------------------------
 # -- Options for nbsphinx ----------------------------------------------------
 
 
+# The code in this section has been adapted from nbsphinx's conf.py
+# https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
+
+# Copyright (c) 2018-2019 PIQuIL - All rights reserved.
+# Copyright (c) 2015–2019 Matthias Geier.
+
+# The full license is in the file LICENSE.txt, distributed with this software.
+
 nbsphinx_execute = "auto"
 
-
-# adapted from nbsphinx's conf.py
-# https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
 
 # will only link to binders for tagged releases
 nbsphinx_prolog = r"""
@@ -401,3 +412,5 @@ shutil.copytree(
     os.path.join(conf_location, "..", "docs/_examples"),
     ignore=all_but_ipynb,
 )
+
+# -- End of code from nbsphinx repo ------------------------------------------
