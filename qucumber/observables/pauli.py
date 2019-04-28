@@ -131,11 +131,15 @@ class SigmaZ(ObservableBase):
     r"""The :math:`\sigma_z` observable.
 
     Computes the magnetization in the Z direction of a spin chain.
+
+    :param absolute: Specifies whether to estimate the absolute magnetization.
+    :type absolute: bool
     """
 
-    def __init__(self):
+    def __init__(self, absolute=True):
         self.name = "SigmaZ"
         self.symbol = "Z"
+        self.absolute = absolute
 
     def apply(self, nn_state, samples):
         r"""Computes the magnetization along Z of each sample given a batch of samples.
@@ -151,4 +155,8 @@ class SigmaZ(ObservableBase):
         """
         # convert to +/- 1 convention, *after* computing the
         # mean to reduce total computations
-        return to_pm1(samples.mean(1))
+        res = to_pm1(samples.mean(1))
+        if self.absolute:
+            return res.abs_()
+        else:
+            return res
