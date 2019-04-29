@@ -93,8 +93,9 @@ def test_complex_training_without_bases_fail():
     data = torch.ones(100, 10)
 
     msg = "Training ComplexWaveFunction without providing bases should fail!"
-    with pytest.raises(ValueError, message=msg):
+    with pytest.raises(ValueError):
         nn_state.fit(data, epochs=1, pos_batch_size=10, input_bases=None)
+        pytest.fail(msg)
 
 
 @pytest.mark.parametrize("gpu", devices)

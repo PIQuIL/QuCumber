@@ -70,8 +70,9 @@ def test_model_saving_bad_metadata_key(wvfn_type):
     model_path = os.path.join(__tests_location__, "wavefunction")
 
     msg = "Metadata with invalid key should raise an error."
-    with pytest.raises(ValueError, message=msg):
+    with pytest.raises(ValueError):
         nn_state.save(model_path, metadata={"rbm_am": 1337})
+        pytest.fail(msg)
 
 
 def test_positive_wavefunction_phase():
@@ -130,8 +131,9 @@ def test_bad_stop_training_val():
     nn_state = PositiveWaveFunction(10, gpu=False)
 
     msg = "Setting stop_training to a non-boolean value should have raised an error."
-    with pytest.raises(ValueError, message=msg):
+    with pytest.raises(ValueError):
         nn_state.stop_training = "foobar"
+        pytest.fail(msg)
 
 
 @pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
@@ -158,5 +160,6 @@ def test_large_hilbert_space_fail(wvfn_type):
     msg = "Generating full Hilbert Space for more than {} qubits should fail.".format(
         max_size
     )
-    with pytest.raises(ValueError, message=msg):
+    with pytest.raises(ValueError):
         nn_state.generate_hilbert_space(size=max_size + 1)
+        pytest.fail(msg)
