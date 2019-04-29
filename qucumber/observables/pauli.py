@@ -26,6 +26,7 @@ def flip_spin(i, samples):
     :param i: The i-th spin.
     :type i: int
     :param samples: A batch of samples.
+                    Must be using the :math:`\sigma_i = 0, 1` convention.
     :type samples: torch.Tensor
     """
     samples[:, i].sub_(1).abs_()
@@ -35,11 +36,15 @@ class SigmaX(ObservableBase):
     r"""The :math:`\sigma_x` observable
 
     Computes the magnetization in the X direction of a spin chain.
+
+    :param absolute: Specifies whether to estimate the absolute magnetization.
+    :type absolute: bool
     """
 
-    def __init__(self):
+    def __init__(self, absolute=False):
         self.name = "SigmaX"
         self.symbol = "X"
+        self.absolute = absolute
 
     def apply(self, nn_state, samples):
         r"""Computes the magnetization along X of each sample in the given batch of samples.
@@ -71,18 +76,26 @@ class SigmaX(ObservableBase):
 
         # take real part (imaginary part should be approximately zero)
         # and divide by number of spins
-        return cplx.real(psi_ratio_sum).div_(samples.shape[-1])
+        res = cplx.real(psi_ratio_sum).div_(samples.shape[-1])
+        if self.absolute:
+            return res.abs_()
+        else:
+            return res
 
 
 class SigmaY(ObservableBase):
     r"""The :math:`\sigma_y` observable
 
     Computes the magnetization in the Y direction of a spin chain.
+
+    :param absolute: Specifies whether to estimate the absolute magnetization.
+    :type absolute: bool
     """
 
-    def __init__(self):
+    def __init__(self, absolute=False):
         self.name = "SigmaY"
         self.symbol = "Y"
+        self.absolute = absolute
 
     def apply(self, nn_state, samples):
         r"""Computes the magnetization along Y of each sample in the given batch of samples.
@@ -120,7 +133,11 @@ class SigmaY(ObservableBase):
 
         # take real part (imaginary part should be approximately zero)
         # and divide by number of spins
-        return cplx.real(psi_ratio_sum).div_(samples.shape[-1])
+        res = cplx.real(psi_ratio_sum).div_(samples.shape[-1])
+        if self.absolute:
+            return res.abs_()
+        else:
+            return res
 
 
 class SigmaZ(ObservableBase):
@@ -132,7 +149,7 @@ class SigmaZ(ObservableBase):
     :type absolute: bool
     """
 
-    def __init__(self, absolute=True):
+    def __init__(self, absolute=False):
         self.name = "SigmaZ"
         self.symbol = "Z"
         self.absolute = absolute

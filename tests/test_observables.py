@@ -13,15 +13,16 @@
 # limitations under the License.
 
 
-import unittest
-import torch
 from math import isclose
+
+import pytest
+import torch
+
 import qucumber.observables as observables
 from qucumber.nn_states import WaveFunctionBase
 
 
 class MockWaveFunction(WaveFunctionBase):
-
     _rbm_am = None
     _device = None
 
@@ -80,7 +81,7 @@ class MockWaveFunction(WaveFunctionBase):
             return phase
 
     def amplitude(self, v):
-        return 1 / torch.sqrt(torch.tensor(float(self.nqubits))) * torch.ones(v.size(0))
+        return torch.ones(v.size(0)) / torch.sqrt(torch.tensor(float(self.nqubits)))
 
     def psi(self, v):
         # vector/tensor of shape (len(v),)
@@ -96,34 +97,44 @@ class MockWaveFunction(WaveFunctionBase):
         return psi.squeeze()
 
 
-# TODO: add assertions
+@pytest.fixture(scope="module")
+def mock_wavefunction_samples(request):
+    test_psi = MockWaveFunction(2)
+    test_sample = test_psi.sample(num_samples=100000)
+    return test_psi, test_sample
 
 
-class TestPauli(unittest.TestCase):
-    def test_spinflip(self):
-        test_psi = MockWaveFunction(2)
-        test_sample = test_psi.sample(num_samples=1000)
-        observables.pauli.flip_spin(1, test_sample)
-
-    def test_apply(self):
-        test_psi = MockWaveFunction(2)
-        test_sample = test_psi.sample(num_samples=100000)
-        X = observables.SigmaX()
-
-        measure_X = float(X.apply(test_psi, test_sample).mean())
-        self.assertTrue(1.0 == measure_X, msg="measure Pauli X failed")
-
-        Y = observables.SigmaY()
-        measure_Y = float(Y.apply(test_psi, test_sample).mean())
-        self.assertTrue(0.0 == measure_Y, msg="measure Pauli Y failed")
-
-        Z = observables.SigmaZ()
-
-        measure_Z = float(Z.apply(test_psi, test_sample).mean())
-        self.assertTrue(
-            isclose(0.0, measure_Z, abs_tol=1e-2), msg="measure Pauli Z failed"
-        )
+def test_spinflip(mock_wavefunction_samples):
+    test_psi, test_sample = mock_wavefunction_samples
+    samples = test_sample.clone()
+    observables.pauli.flip_spin(1, samples)  # flip spin
+    observables.pauli.flip_spin(1, samples)  # flip it back
+    assert torch.equal(samples, test_sample)
 
 
-if __name__ == "__main__":
-    unittest.main()
+paulis = [
+    pytest.param((observables.SigmaX, 1.0, 1.0), id="X"),
+    pytest.param((observables.SigmaY, 0.0, 0.0), id="Y"),
+    pytest.param((observables.SigmaZ, 0.0, 0.5), id="Z"),
+]
+
+
+@pytest.mark.parametrize("pauli", paulis)
+@pytest.mark.parametrize(
+    "absolute", [pytest.param(True, id="absolute"), pytest.param(False, id="signed")]
+)
+def test_pauli(mock_wavefunction_samples, pauli, absolute):
+    test_psi, test_sample = mock_wavefunction_samples
+    pauli_op, mag, abs_mag = pauli
+    if absolute:
+        mag = abs_mag
+        prefix = "(absolute) "
+    else:
+        prefix = ""
+
+    obs = pauli_op(absolute=absolute)
+    measure_O = float(obs.apply(test_psi, test_sample).mean())
+
+    assert isclose(
+        mag, measure_O, abs_tol=1e-2
+    ), "measure {}-magnetization failed".format(prefix + obs.symbol)

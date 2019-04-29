@@ -57,15 +57,19 @@ class LambdaCallback(CallbackBase):
 
     @staticmethod
     def _validate_function(fn, num_params, name):
-        if callable(fn) and len(signature(fn).parameters) == num_params:
-            return fn
+        if callable(fn):
+            if len(signature(fn).parameters) == num_params:
+                return fn
+            else:
+                raise ValueError(
+                    "Given function for {} must have {} arguments.".format(
+                        name, num_params
+                    )
+                )
         elif fn is None:
             return lambda *args: None
         else:
-            raise ValueError(
-                "{} must be either None ".format(name)
-                + "or a function with {} arguments.".format(num_params)
-            )
+            raise TypeError("{} must be either None or a function".format(name))
 
     def __init__(
         self,
