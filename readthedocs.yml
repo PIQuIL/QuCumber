@@ -12,4 +12,4 @@ requirements_file: ".build_tools/readthedocs/requirements.txt"
 
 python:
   setup_py_install: true
-  version: 3.5
+  version: 3.6
