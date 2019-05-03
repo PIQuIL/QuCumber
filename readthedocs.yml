@@ -14,9 +14,8 @@ formats:
 python:
   version: 3.6
   install:
-    - method: pip
-      path: .
-      extra_requirements: 
-        - rtd
+  - requirements: ".build_tools/readthedocs/requirements.txt"
+  - method: setuptools
+    path: .
   system_packages: true
 
