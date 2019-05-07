@@ -76,7 +76,7 @@
 {\bf
 As we enter a new era of quantum technology, it is increasingly important to
 develop methods to aid in the accurate preparation of quantum states
-for a variety of materials, matter, and devices. 
+for a variety of materials, matter, and devices.
 Computational techniques can be used to reconstruct a state from data,
 however the growing number of qubits demands ongoing algorithmic advances
 in order to keep pace with experiments.
@@ -205,7 +205,7 @@ sampling the distribution $P(\bm{\sigma}^z)=|\Psi(\bm{\sigma}^z)|^2$, obtaining
 a sequence of $N_S=10^5$ independent spin projections in the reference basis
 $\x = \bm{\sigma}^z$.\footnote{
         The training dataset can be downloaded from
-        \href{https://github.com/PIQuIL/QuCumber/blob/master/examples/Tutorial1_TrainPosRealWaveFunction/tfim1d_data.txt}{\texttt{https://github.com/PIQuIL/QuCumber/blob/master/\\examples/Tutorial1\_TrainPosRealWavefunction/tfim1d\_data}}
+        \href{https://github.com/PIQuIL/QuCumber/blob/master/examples/Tutorial1_TrainPosRealWaveFunction/tfim1d_data.txt}{\texttt{https://github.com/PIQuIL/QuCumber/blob/master/\\examples/Tutorial1\_TrainPosRealWaveFunction/tfim1d\_data}}
     }
 Each data point in $\mathcal{D}$ consists of an array $\bm{\sigma}^z_j=(\sigma^z_1,\dots,\sigma^z_N)$ with shape \verb|(N,)| and should be passed to QuCumber as a numpy array or torch tensor. For example, $\bm{\sigma}^z_j=$ \verb|np.array([1,0,1,1,0,1,0,0,0,1])|, where we use $\sigma_j^z=0,1$ to represent a spin-down and spin-up state respectively. Therefore, the entire input data set is contained in an array with shape \verb|(N_S, N)|.
 
@@ -224,10 +224,10 @@ train_data, true_psi = data.load_data(train_path, psi_path)
 If \verb|psi_path| is not provided, QuCumber will load only the training data.
 
 Next, we initialize an RBM quantum state $\psi_{\bm{\lambda}}(\bf{x})$ with
-random weights and zero biases using the constructor \verb|PositiveWavefunction|:
+random weights and zero biases using the constructor \verb|PositiveWaveFunction|:
 \begin{python}
-from qucumber.nn_states import PositiveWavefunction
-state = PositiveWavefunction(num_visible=10, num_hidden=10)
+from qucumber.nn_states import PositiveWaveFunction
+state = PositiveWaveFunction(num_visible=10, num_hidden=10)
 \end{python}
 The number of visible units (\verb|num_visible|) must be equal to the number
 of physical spins $N$, while the number of hidden units (\verb|num_hidden|) can
@@ -244,7 +244,7 @@ wavefunction should be explored and adjusted by the user.
 
 \subsection{Training}
 Once an appropriate representation of the quantum state has been defined,
-QuCumber trains the RBM through the function \verb|PositiveWavefunction.fit|.
+QuCumber trains the RBM through the function \verb|PositiveWaveFunction.fit|.
 Several input parameters need to be provided aside from the training dataset
 (\verb|train_data|). These include the number of training iterations
 (\verb|epochs|), the number of samples used for the positive/negative phase of
@@ -279,15 +279,15 @@ callbacks = [
 ]
 \end{python}
 With \verb|verbose=True|, the program will print the epoch number and all
-callbacks every \verb|log_every| epochs. 
+callbacks every \verb|log_every| epochs.
 For the current example, we monitor the fidelity and KL divergence (see Glossary).
-Note that the KL divergence is only tractable for small systems. 
+Note that the KL divergence is only tractable for small systems.
 The \verb|MetricEvaluator| will compute the KL exactly when provided with a list of all states in the Hilbert space. For convenience these can be generated with \\
 \verb|space = state.generate_hilbert_space(10)|.
 
 Now that the metrics to monitor during
 training have been chosen, we can invoke the optimization with the \verb|fit|
-function of \verb|PositiveWavefunction|.
+function of \verb|PositiveWaveFunction|.
 \begin{python}
 state.fit(
     train_data,
@@ -371,7 +371,7 @@ the \verb|sample| function of the RBM state object:
 samples = state.sample(num_samples=1000, k=10)
 \end{python}
 which takes the total number of samples (\verb|num_samples|) and the number
-of iterations (\verb|k|) of a block Gibbs step as input. Once these samples are obtained,
+of block Gibbs steps (\verb|k|) as input. Once these samples are obtained,
 the magnetization can be calculated simply as
 \begin{python}
 magnetization = samples.mul(2.0).sub(1.0).mean()
@@ -386,7 +386,7 @@ We turn now to the case of off-diagonal observables, where the expectation
 value assumes the following form
 \begin{equation}
     \ev*{\hat{\mathcal{O}}} = \frac{1}{\sum_{\bm{\sigma}} |\psi_{\bm{\lambda}}(\bm{\sigma})|^2}
-    \sum_{\bm{\sigma\sigma}^\prime} \psi_{\bm{\lambda}}(\bm{\sigma})
+    \sum_{\bm{\sigma\sigma}^\prime} \psi_{\bm{\lambda}}^*(\bm{\sigma})
     \psi_{\bm{\lambda}}(\bm{\sigma}^\prime)\mathcal{O}_{\bm{\sigma\sigma}^\prime}\:.
 \end{equation}
 This expression can once again be approximated with a Monte Carlo estimator
@@ -395,7 +395,7 @@ This expression can once again be approximated with a Monte Carlo estimator
 \end{equation}
 of the so-called \emph{local estimator} of the observable:
 \begin{equation}
-    \mathcal{O}^{[L]}_{\bm{\sigma}_k}=\sum_{\bm{\sigma}^\prime}\frac{\psi_{\bm{\lambda}}(\bm{\sigma}^\prime)}{\psi_{\bm{\lambda}}(\bm{\sigma})} \mathcal{O}_{\bm{\sigma\sigma}^\prime}\:.
+    \mathcal{O}^{[L]}_{\bm{\sigma}_k}=\sum_{\bm{\sigma}^\prime}\frac{\psi_{\bm{\lambda}}(\bm{\sigma}^\prime)}{\psi_{\bm{\lambda}}(\bm{\sigma}_k)} \mathcal{O}_{\bm{\sigma}_k\bm{\sigma}^\prime}\:.
 \end{equation}
 As long as the matrix representation $\mathcal{O}_{\bm{\sigma\sigma}^\prime}$
 is sufficiently sparse in the reference basis, the summation can be evaluated
@@ -431,7 +431,7 @@ distribution $p_{\bm{\lambda}}(\bm{\sigma})$.
 QuCumber provides an interface for sampling off-diagonal observables in the
 \verb|ObservableBase| class. Thorough examples are available in the tutorial
 section in the \href{https://qucumber.readthedocs.io/en/stable/}{documentation}.\!\!
-\footnote{The observables tutorials are available at
+\footnote{The observables tutorial is available at
     \href{https://qucumber.readthedocs.io/en/stable/\_examples/Tutorial3\_DataGeneration\_CalculateObservables/tutorial\_sampling\_observables.html
 }{\texttt{https://qucumber.readthedocs.io/en/stable/\_examples\\/Tutorial3\_DataGeneration\_CalculateObservables/tutorial\_sampling\_observables.html}}
 }
@@ -446,17 +446,17 @@ class SigmaX(ObservableBase):
         for i in range(samples.shape[-1]):  # sum over spin sites
             flip_spin(i, samples)  # flip the spin at site i
             # add ratio psi_(-i) / psi to the running sum
-            psi_ratio = nn_state.psi(samples)
-            psi_ratio = cplx.elementwise_division(psi_ratio, psi)
+            psi_flip = nn_state.psi(samples)
+            psi_ratio = cplx.elementwise_division(psi_flip, psi)
             psi_ratio_sum.add_(psi_ratio)
             flip_spin(i, samples)  # flip it back
 
         # take real part and divide by number of spins
         return psi_ratio_sum[0].div_(samples.shape[-1])
 \end{python}
-The value of the observable is computed with
+The value of the observable can be estimated from a set of samples with:
 \begin{python}
-SigmaX.statistics_from_samples(state, samples)
+SigmaX().statistics_from_samples(state, samples)
 \end{python}
 Similarly, the user can define other observables like the energy.
 
@@ -498,13 +498,13 @@ In QuCumber, the Swap operator is implemented as a routine within the
 \verb|entanglement| observable unit:
 \begin{python}
 def swap(s1, s2, A):
-    for a in A:
-        _s = s1[:, a].clone()
-        s1[:, a] = s2[:, a]
-        s2[:, a] = _s
+    _s = s1[:, A].clone()
+    s1[:, A] = s2[:, A]
+    s2[:, A] = _s
     return s1, s2
 \end{python}
-where \verb|s1| and \verb|s2| are batches of samples produced from each replica.
+where \verb|s1| and \verb|s2| are batches of samples produced from each replica,
+and \verb|A| is a list containing the indices of the sites in subregion $A$.
 While ideally those samples should be entirely independent, in order to save
 computational costs, QuCumber just splits a given batch into two equal parts and
 treats them as if they were independent samples. This is implemented within the
@@ -526,8 +526,8 @@ psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
 \end{python}
 
 We apply this measurement procedure to a TFIM chain with results shown in
-Fig.~\ref{ee_learn}. As was the case with the magnetization observables, the trained 
-RBM correctly captures  most of the second R\'enyi entropy for different subregion 
+Fig.~\ref{ee_learn}. As was the case with the magnetization observables, the trained
+RBM correctly captures  most of the second R\'enyi entropy for different subregion
 $A$ sizes. Being a basis-independent observable, this constitutes a good test on
 the ability of QuCumber to capture the full wave-function from the information contained
 in a single-basis dataset for TFIM.
@@ -537,10 +537,10 @@ in a single-basis dataset for TFIM.
     \includegraphics[]{ee}
     \caption{
         The second R\'enyi entropy for the TFIM chain with
-        $N=10$ spins. 
-        The number of sites in the entangled bipartition $A$ 
+        $N=10$ spins.
+        The number of sites in the entangled bipartition $A$
         is indicated by the horizontal axis.
-        The markers indicate values obtained through the 
+        The markers indicate values obtained through the
         ``Swap'' operator applied  to the samples from a trained RBM.\@
         The dashed line denotes the result from exact diagonalization.
     }\label{ee_learn}
@@ -647,18 +647,18 @@ For simplicity, we restrict ourselves to two qubits and consider the general cas
 of a quantum state with random amplitudes $\Phi_{\sigma_0\sigma_1}$ and random
 phases $\theta_{\sigma_0\sigma_1}$. This example is available in the online tutorial.
 \footnote{The tutorial for complex wavefunctions can be found at
-    \href{https://qucumber.readthedocs.io/en/stable/\_examples/Tutorial2_TrainComplexWavefunction/tutorial_qubits.html
-    }{\texttt{https://qucumber.readthedocs.io/en/\\stable/\_examples/Tutorial2\_TrainComplexWavefunction/tutorial\_qubits.html}}
+    \href{https://qucumber.readthedocs.io/en/stable/\_examples/Tutorial2_TrainComplexWaveFunction/tutorial_qubits.html
+    }{\texttt{https://qucumber.readthedocs.io/en/\\stable/\_examples/Tutorial2\_TrainComplexWaveFunction/tutorial\_qubits.html}}
 }
 We begin by importing the required packages:
 
 \begin{python}
-from qucumber.nn_states import ComplexWavefunction
+from qucumber.nn_states import ComplexWaveFunction
 import qucumber.utils.unitaries as unitaries
 import qucumber.utils.cplx as cplx
 \end{python}
 Since we are dealing with a complex wavefunction, we load the corresponding module
-\verb|ComplexWavefunction| to build the RBM quantum state
+\verb|ComplexWaveFunction| to build the RBM quantum state
 $\psi_{\bm{\lambda\mu}}(\bm{\sigma})$. Furthermore, the following additional
 utility modules are required: the \verb|utils.cplx| backend for complex algebra,
 and the \verb|utils.unitaries| module  which contains a set of elementary local
@@ -709,7 +709,7 @@ specified by the user.
 
 We then initialize the complex RBM object with
 \begin{python}
-state = ComplexWavefunction(
+state = ComplexWaveFunction(
    num_visible=2 num_hidden=2, unitary_dict=unitary_dict
 )
 \end{python}
@@ -749,7 +749,7 @@ callbacks = [
 
 \end{python}
 The training is carried out by calling the \verb|fit| function of
-\verb|ComplexWavefunction|, given the set of hyperparameters
+\verb|ComplexWaveFunction|, given the set of hyperparameters
 \begin{python}
 state.fit(
     train_samples,
