@@ -31,23 +31,24 @@ class Timer(CallbackBase):
 
     def __init__(self, verbose=True):
         self.verbose = verbose
+        self.already_notified = False
 
     def on_train_start(self, nn_state):
         self.start_time = time.time()
 
     def on_batch_end(self, nn_state, epoch, batch):
         if nn_state.stop_training:
-            if self.verbose:
+            if self.verbose and not self.already_notified:
                 print(
                     "Training terminated at epoch: {}, batch: {}".format(epoch, batch)
                 )
-            self.calculate_elapsed_time()
+                self.already_notified = True
 
     def on_epoch_end(self, nn_state, epoch):
         if nn_state.stop_training:
-            if self.verbose:
+            if self.verbose and not self.already_notified:
                 print("Training terminated at epoch: {}".format(epoch))
-            self.calculate_elapsed_time()
+                self.already_notified = True
 
     def on_train_end(self, nn_state):
         self.calculate_elapsed_time()
