@@ -148,11 +148,6 @@ nitpick_ignore = [
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-html_theme = "default"
-
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
@@ -173,6 +168,28 @@ html_static_path = ["_static"]
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+# The remainder of this section was adapted from skorch's conf.py
+# https://github.com/dnouri/skorch/blob/c08d502/docs/conf.py
+
+# Copyright (c) 2018-2019 PIQuIL - All rights reserved.
+# Copyright (c) 2017, Benjamin Bossan, Daniel Nouri, Marian Tietz - All rights reserved.
+
+# The full license is in the file LICENSE.txt, distributed with this software.
+
+# check if docs are being built on RTD
+on_rtd = os.environ.get("READTHEDOCS", None) == "True"
+
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+#
+html_theme = "default"
+
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    import sphinx_rtd_theme
+
+    html_theme = "sphinx_rtd_theme"
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -331,6 +348,7 @@ def linkcode_resolve(domain, info):
 
 
 # -- End of code from scikit-learn's repo ------------------------------------
+
 # -- Options for nbsphinx ----------------------------------------------------
 
 
