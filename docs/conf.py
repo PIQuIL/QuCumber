@@ -145,6 +145,7 @@ nitpick_ignore = [
     ("py:class", "callable"),
 ]
 
+suppress_warnings = ["epub.unknown_project_files"]
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -246,7 +247,7 @@ texinfo_documents = [
         "QuCumber Documentation",
         author,
         "QuCumber",
-        "One line description of project.",
+        "Neural Network Quantum State Tomography.",
         "Miscellaneous",
     )
 ]
