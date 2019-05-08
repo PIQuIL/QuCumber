@@ -56,6 +56,52 @@ class TestCplx(unittest.TestCase):
 
         self.assertTensorsEqual(expect, z, msg="Make Complex Matrix failed!")
 
+    def test_real_part_of_vector(self):
+        x = torch.tensor([1, 2])
+        y = torch.tensor([5, 6])
+        z = cplx.make_complex(x, y)
+
+        self.assertTensorsEqual(x, cplx.real(z), msg="Real part of vector failed!")
+
+    def test_imag_part_of_vector(self):
+        x = torch.tensor([1, 2])
+        y = torch.tensor([5, 6])
+        z = cplx.make_complex(x, y)
+
+        self.assertTensorsEqual(y, cplx.imag(z), msg="Imaginary part of vector failed!")
+
+    def test_real_part_of_matrix(self):
+        x = torch.tensor([[1, 2], [3, 4]])
+        y = torch.tensor([[5, 6], [7, 8]])
+        z = cplx.make_complex(x, y)
+
+        self.assertTensorsEqual(x, cplx.real(z), msg="Real part of matrix failed!")
+
+    def test_imag_part_of_matrix(self):
+        x = torch.tensor([[1, 2], [3, 4]])
+        y = torch.tensor([[5, 6], [7, 8]])
+        z = cplx.make_complex(x, y)
+
+        self.assertTensorsEqual(y, cplx.imag(z), msg="Imaginary part of matrix failed!")
+
+    def test_real_part_of_tensor(self):
+        x = torch.randn(3, 3, 3)
+        y = torch.randn(3, 3, 3)
+        z = cplx.make_complex(x, y)
+
+        self.assertTensorsEqual(
+            x, cplx.real(z), msg="Real part of rank-3 tensor failed!"
+        )
+
+    def test_imag_part_of_tensor(self):
+        x = torch.randn(3, 3, 3)
+        y = torch.randn(3, 3, 3)
+        z = cplx.make_complex(x, y)
+
+        self.assertTensorsEqual(
+            y, cplx.imag(z), msg="Imaginary part of rank-3 tensor failed!"
+        )
+
     def test_bad_complex_matrix(self):
         with self.assertRaises(RuntimeError):
             x = torch.tensor([[1, 2, 3]])
