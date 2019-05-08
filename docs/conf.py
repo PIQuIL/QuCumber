@@ -36,14 +36,15 @@ import shutil
 import subprocess
 import sys
 from operator import attrgetter
+from datetime import date
 
 sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 
 project = "QuCumber"
-copyright = "2018, PIQuIL"
 author = "PIQuIL"
+copyright = "2018-{}, {}".format(date.today().year, author)
 
 
 init_file = {}
@@ -52,8 +53,15 @@ with open("../qucumber/__version__.py", "r") as f:
     exec(f.read(), init_file)
     version = init_file["__version__"]
 
-# adapted from nbsphinx's conf.py
+
+# The remainder of this section was adapted from nbsphinx's conf.py
 # https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
+
+# Copyright (c) 2018-2019 PIQuIL - All rights reserved.
+# Copyright (c) 2015–2019 Matthias Geier.
+
+# The full license is in the file LICENSE.txt, distributed with this software.
+
 try:
     release = (
         subprocess.check_output(["git", "describe", "--tags", "--always"])
@@ -140,21 +148,10 @@ nitpick_ignore = [
 
 # -- Options for HTML output -------------------------------------------------
 
-# adapted from skorch's conf.py
-# https://github.com/dnouri/skorch/blob/c08d502/docs/conf.py
-
-on_rtd = os.environ.get("READTHEDOCS", None) == "True"
-
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
 html_theme = "default"
-
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
-
-    html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
