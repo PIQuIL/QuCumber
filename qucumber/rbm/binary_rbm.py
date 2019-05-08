@@ -187,9 +187,7 @@ class BinaryRBM(nn.Module):
         :rtype: torch.Tensor
         """
         v = self.prob_v_given_h(h, out=out)
-        v = v.copy_(v.bernoulli())  # overwrite v with its sample
-        # TODO: sampling needs to be modified once torch.bernoulli's out kwarg is
-        #       fixed in PyTorch
+        v = torch.bernoulli(v, out=out)  # overwrite v with its sample
         return v
 
     def sample_h_given_v(self, v, out=None):
@@ -204,9 +202,7 @@ class BinaryRBM(nn.Module):
         :rtype: torch.Tensor
         """
         h = self.prob_h_given_v(v, out=out)
-        h = h.copy_(h.bernoulli())  # overwrite h with its sample
-        # TODO: sampling needs to be modified once torch.bernoulli's out kwarg is
-        #       fixed in PyTorch
+        h = torch.bernoulli(h, out=out)  # overwrite h with its sample
         return h
 
     def gibbs_steps(self, k, initial_state, overwrite=False):
