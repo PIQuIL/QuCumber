@@ -83,7 +83,9 @@ to the project, and the process for submitting pull requests to us.
 
 ## License
 
-QuCumber is licensed under the Apache License Version 2.0.
+QuCumber is licensed under the Apache License Version 2.0, this includes almost
+all files in this repo. However, some miscellaneous files may be licensed
+differently. See [LICENSE](LICENSE) for more details.
 
 ## Citation
 
