@@ -23,7 +23,7 @@ with open(os.path.join("qucumber", "__version__.py"), "r") as f:
     exec(f.read(), version_file)
 
 install_requires = [
-    "torch==1.0; sys_platform != 'win32'",
+    "torch>=1.0,<1.2; sys_platform != 'win32'",
     "tqdm>=4.23",
     "numpy>=1.13",
     "matplotlib>=2.2,<3.1; python_version < '3.6'",  # matplotlib 3.1+ requires python 3.6
