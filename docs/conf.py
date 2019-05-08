@@ -196,7 +196,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 
 
 autodoc_member_order = "alphabetical"
-autodoc_mock_imports = ["_tkinter"]
+autodoc_mock_imports = ["torch", "tqdm", "numpy", "matplotlib"]
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "QuCumberdoc"
