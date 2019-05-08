@@ -183,9 +183,8 @@ class BinaryRBM(nn.Module):
         :param out: The output tensor to write to.
         :type out: torch.Tensor
 
-        :returns: Tuple containing prob_v_given_h(h) and the sampled visible
-                  state.
-        :rtype: tuple(torch.Tensor, torch.Tensor)
+        :returns: The sampled visible state.
+        :rtype: torch.Tensor
         """
         v = self.prob_v_given_h(h, out=out)
         v = v.copy_(v.bernoulli())  # overwrite v with its sample
@@ -201,9 +200,8 @@ class BinaryRBM(nn.Module):
         :param out: The output tensor to write to.
         :type out: torch.Tensor
 
-        :returns: Tuple containing prob_h_given_v(v) and the sampled hidden
-                  state.
-        :rtype: tuple(torch.Tensor, torch.Tensor)
+        :returns: The sampled hidden state.
+        :rtype: torch.Tensor
         """
         h = self.prob_h_given_v(v, out=out)
         h = h.copy_(h.bernoulli())  # overwrite h with its sample
