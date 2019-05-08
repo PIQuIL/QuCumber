@@ -10,7 +10,6 @@ formats:
   - epub
   - htmlzip
 
-
 python:
   version: 3.6
   install:
@@ -19,3 +18,6 @@ python:
     path: .
   system_packages: true
 
+sphinx:
+  configuration: docs/conf.py
+  fail_on_warning: true
