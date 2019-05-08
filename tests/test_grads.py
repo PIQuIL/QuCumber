@@ -153,13 +153,6 @@ def complex_wavefunction_data(gpu, num_hidden):
 gpu_availability = pytest.mark.skipif(
     not torch.cuda.is_available(), reason="GPU required"
 )
-
-run_nll_tests = pytest.mark.skipif(
-    not pytest.config.option.nll,
-    reason=("doesn't give consistent results; " "add --nll option to run anyway"),
-)
-
-
 wavefunction_types = ["positive", "complex"]
 devices = [
     pytest.param(False, id="cpu"),
@@ -168,7 +161,7 @@ devices = [
 hidden_layer_sizes = [pytest.param(9, id="9", marks=[pytest.mark.extra]), 10]
 grad_types = [
     "KL",
-    pytest.param("NLL", id="NLL", marks=[run_nll_tests, pytest.mark.slow]),
+    pytest.param("NLL", id="NLL", marks=[pytest.mark.nll, pytest.mark.slow]),
 ]
 
 
