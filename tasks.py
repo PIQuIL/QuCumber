@@ -27,15 +27,15 @@ from invoke.terminals import pty_size
 
 
 def is_license_missing(file_path, length_cutoff, exclude):
+    if any(excl in file_path for excl in exclude):
+        return False
+
     with open(file_path, "r") as f:
         file_contents = f.read().replace("\n", "")
         f.seek(0)  # go back to start of file
         file_len = len(f.readlines())
 
     if file_len < length_cutoff:
-        return False
-
-    if any(excl in file_path for excl in exclude):
         return False
 
     with open("LICENSE_HEADER", "r") as lh:
