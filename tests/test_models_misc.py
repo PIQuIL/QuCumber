@@ -64,6 +64,31 @@ def test_model_saving_and_loading(tmpdir, wvfn_type):
     os.remove(model_path)
 
 
+gpu_availability = pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="GPU required"
+)
+
+devices = [
+    pytest.param(False, id="cpu"),
+    pytest.param(True, id="gpu", marks=[gpu_availability, pytest.mark.gpu]),
+]
+
+
+@pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
+@pytest.mark.parametrize("is_src_gpu", devices)
+@pytest.mark.parametrize("is_dest_gpu", devices)
+def test_autoloading(tmpdir, wvfn_type, is_src_gpu, is_dest_gpu):
+    model_path = str(tmpdir.mkdir("wvfn").join("params.pt").realpath())
+
+    nn_state = wvfn_type(10, gpu=is_src_gpu)
+    nn_state.save(model_path)
+
+    nn_state2 = wvfn_type(10, gpu=is_dest_gpu)
+    nn_state2.load(model_path)
+
+    os.remove(model_path)
+
+
 @pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
 def test_model_saving_bad_metadata_key(tmpdir, wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.

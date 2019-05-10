@@ -356,7 +356,7 @@ class ComplexWaveFunction(WaveFunctionBase):
         super().save(location, metadata=metadata)
 
     @staticmethod
-    def autoload(location, gpu=False):
+    def autoload(location, gpu=True):
         state_dict = torch.load(location)
         wvfn = ComplexWaveFunction(
             unitary_dict=state_dict["unitary_dict"],
