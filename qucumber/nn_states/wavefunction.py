@@ -275,7 +275,7 @@ class WaveFunctionBase(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def autoload(location, gpu=False):
+    def autoload(location, gpu=True):
         """Initializes a WaveFunction from the parameters in the given
         location.
 
