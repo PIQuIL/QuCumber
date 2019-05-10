@@ -1,32 +1,28 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import numpy as np
 import torch
 
 from qucumber.utils import cplx, unitaries
 from qucumber.rbm import BinaryRBM
-from .wavefunction import Wavefunction
+from .wavefunction import WaveFunctionBase
 
 
-class ComplexWavefunction(Wavefunction):
-    """Class capable of learning Wavefunctions with a non-zero phase.
+class ComplexWaveFunction(WaveFunctionBase):
+    """Class capable of learning wavefunctions with a non-zero phase.
 
     :param num_visible: The number of visible units, ie. the size of the system being learned.
     :type num_visible: int
@@ -150,7 +146,7 @@ class ComplexWavefunction(Wavefunction):
     def init_gradient(self, basis, sites):
         Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
         vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
-        Us = np.array(torch.stack([self.unitary_dict[b] for b in basis[sites]]))
+        Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
         rotated_grad = [
             torch.zeros(
                 2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
@@ -161,7 +157,7 @@ class ComplexWavefunction(Wavefunction):
 
     def rotated_gradient(self, basis, sites, sample):
         Upsi, vp, Us, rotated_grad = self.init_gradient(basis, sites)
-        int_sample = np.array(sample[sites].round().int())
+        int_sample = sample[sites].round().int().cpu().numpy()
         vp = sample.round().clone()
 
         grad_size = (
@@ -171,7 +167,7 @@ class ComplexWavefunction(Wavefunction):
         Upsi_v = torch.zeros_like(Upsi, device=self.device)
         Z = torch.zeros(grad_size, dtype=torch.double, device=self.device)
         Z2 = torch.zeros((2, grad_size), dtype=torch.double, device=self.device)
-        U = torch.tensor([1., 1.], dtype=torch.double, device=self.device)
+        U = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
         Ut = np.zeros_like(Us[:, 0], dtype=complex)
         ints_size = np.arange(sites.size)
 
@@ -179,7 +175,7 @@ class ComplexWavefunction(Wavefunction):
             # overwrite rotated elements
             vp = sample.round().clone()
             vp[sites] = self.subspace_vector(x, size=sites.size)
-            int_vp = np.array(vp[sites].int())
+            int_vp = vp[sites].int().cpu().numpy()
             all_Us = Us[ints_size, :, int_sample, int_vp]
 
             # Gradient from the rotation
@@ -263,7 +259,7 @@ class ComplexWavefunction(Wavefunction):
     ):
         if input_bases is None:
             raise ValueError(
-                "input_bases must be provided to train a ComplexWavefunction!"
+                "input_bases must be provided to train a ComplexWaveFunction!"
             )
         else:
             super().fit(
@@ -290,7 +286,7 @@ class ComplexWavefunction(Wavefunction):
     @staticmethod
     def autoload(location, gpu=False):
         state_dict = torch.load(location)
-        wvfn = ComplexWavefunction(
+        wvfn = ComplexWaveFunction(
             unitary_dict=state_dict["unitary_dict"],
             num_visible=len(state_dict["rbm_am"]["visible_bias"]),
             num_hidden=len(state_dict["rbm_am"]["hidden_bias"]),

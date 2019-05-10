@@ -1,28 +1,23 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 
 import csv
 
 import numpy as np
 
-from .callback import Callback
+from .callback import CallbackBase
 from qucumber.observables import System
 
 
@@ -59,18 +54,24 @@ class ObservableStatistics:
                 )
             )
 
+    def __getitem__(self, statistic):
+        """Alias for
+        :func:`__getattr__<qucumber.callbacks.observable_evaluator.ObservableStatistics.__getattr__>`
+        to enable subscripting."""
+        return self.__getattr__(statistic)
 
-class ObservableEvaluator(Callback):
+
+class ObservableEvaluator(CallbackBase):
     r"""Evaluate and hold on to the results of the given observable(s).
 
-    This Callback is called at the end of each epoch.
+    This callback is called at the end of each epoch.
 
     .. note::
-        Since Callbacks are given to :func:`fit<qucumber.nn_states.Wavefunction.fit>`
+        Since callback are given to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`ObservableEvaluator<ObservableEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.nn_states.Wavefunction.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`ObservableEvaluator<ObservableEvaluator>` having been called.
@@ -79,11 +80,11 @@ class ObservableEvaluator(Callback):
                    observables(s).
     :type period: int
     :param observables: A list of Observables. Observable statistics are
-                        evaluated by sampling the Wavefunction. Note that
+                        evaluated by sampling the WaveFunction. Note that
                         observables that have the same name will conflict,
-                        and precedence will be given to the right-most
-                        observable argument.
-    :type observables: list(qucumber.observables.Observable)
+                        and precedence will be given to the one which appears
+                        later in the list.
+    :type observables: list(qucumber.observables.ObservableBase)
     :param verbose: Whether to print metrics to stdout.
     :type verbose: bool
     :param log: A filepath to log metric values to in CSV format.
@@ -138,6 +139,11 @@ class ObservableEvaluator(Callback):
                     observable
                 )
             )
+
+    def __getitem__(self, observable):
+        """Alias for :func:`__getattr__<qucumber.callbacks.ObservableEvaluator.__getattr__>`
+        to enable subscripting."""
+        return self.__getattr__(observable)
 
     @property
     def epochs(self):

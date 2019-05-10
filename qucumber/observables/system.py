@@ -1,26 +1,21 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 
 import numpy as np
 
-from .utils import update_statistics
+from .utils import _update_statistics
 
 
 class System:
@@ -38,24 +33,29 @@ class System:
         """Estimates the expected value, variance, and the standard error of the
         observables over the distribution defined by `nn_state`.
 
-        :param nn_state: The Wavefunction to draw samples from.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction to draw samples from.
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param num_samples: The number of samples to draw. The actual number of
                             samples drawn may be slightly higher if
                             `num_samples % num_chains != 0`.
         :type num_samples: int
         :param num_chains: The number of Markov chains to run in parallel;
-                           if 0, will use a number of chains equal to
-                           `num_samples`.
+                           if 0 or greater than `num_samples`, will use a
+                           number of chains equal to `num_samples`. This is not
+                           recommended in the case where a `num_samples` is
+                           large, as this may use up all the available memory.
         :type num_chains: int
         :param burn_in: The number of Gibbs Steps to perform before recording
                         any samples.
         :type burn_in: int
         :param steps: The number of Gibbs Steps to take between each sample.
         :type steps: int
-        :returns: A dictionary containing the (estimated) expected value
-                  (key: "mean"), variance (key: "variance"), and standard error
-                  (key: "std_error") of the observable.
+        :returns: A dictionary of dictionaries. At the top level, the keys
+                  will be the names of the observables this object is keeping
+                  track of. The values will be dictionaries containing the
+                  (estimated) expected value (key: "mean"), variance (key:
+                  "variance"), and standard error (key: "std_error") of the
+                  corresponding observable.
         :rtype: dict(str, float)
         """
         means = {name: 0.0 for name in self.observables.keys()}
@@ -63,7 +63,7 @@ class System:
         total_samples = 0.0
 
         chains = None
-        num_chains = num_chains if num_chains != 0 else num_samples
+        num_chains = min(num_chains, num_samples) if num_chains != 0 else num_samples
         num_time_steps = int(np.ceil(num_samples / num_chains))
         for i in range(num_time_steps):
             num_gibbs_steps = burn_in if i == 0 else steps
@@ -78,7 +78,7 @@ class System:
             for obs_name, obs in self.observables.items():
                 obs_stats = obs.statistics_from_samples(nn_state, chains)
 
-                means[obs_name], variances[obs_name], _ = update_statistics(
+                means[obs_name], variances[obs_name], _ = _update_statistics(
                     means[obs_name],
                     variances[obs_name],
                     total_samples,
@@ -104,10 +104,17 @@ class System:
         """Estimates the expected value, variance, and the standard error of the
         observables using the given samples.
 
-        :param nn_state: The Wavefunction that drew the samples.
-        :type nn_state: qucumber.nn_states.Wavefunction
+        :param nn_state: The WaveFunction that drew the samples.
+        :type nn_state: qucumber.nn_states.WaveFunctionBase
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
+        :returns: A dictionary of dictionaries. At the top level, the keys
+                  will be the names of the observables this object is keeping
+                  track of. The values will be dictionaries containing the
+                  (estimated) expected value (key: "mean"), variance (key:
+                  "variance"), and standard error (key: "std_error") of the
+                  corresponding observable.
+        :rtype: dict(str, float)
         """
         statistics = {
             obs_name: obs.statistics_from_samples(nn_state, samples)

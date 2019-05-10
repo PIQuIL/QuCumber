@@ -1,21 +1,17 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import numpy as np
 import torch
@@ -117,9 +113,9 @@ class BinaryRBM(nn.Module):
             vb_grad = -v
             hb_grad = -prob
         else:
-            W_grad = -torch.einsum("ij,ik->jk", (prob, v))
-            vb_grad = -torch.einsum("ij->j", (v,))
-            hb_grad = -torch.einsum("ij->j", (prob,))
+            W_grad = -torch.matmul(prob.t(), v)
+            vb_grad = -torch.sum(v, 0)
+            hb_grad = -torch.sum(prob, 0)
 
         return parameters_to_vector([W_grad, vb_grad, hb_grad])
 
@@ -187,14 +183,11 @@ class BinaryRBM(nn.Module):
         :param out: The output tensor to write to.
         :type out: torch.Tensor
 
-        :returns: Tuple containing prob_v_given_h(h) and the sampled visible
-                  state.
-        :rtype: tuple(torch.Tensor, torch.Tensor)
+        :returns: The sampled visible state.
+        :rtype: torch.Tensor
         """
         v = self.prob_v_given_h(h, out=out)
-        v = v.copy_(v.bernoulli())  # overwrite v with its sample
-        # TODO: sampling needs to be modified once torch.bernoulli's out kwarg is
-        #       fixed in PyTorch
+        v = torch.bernoulli(v, out=out)  # overwrite v with its sample
         return v
 
     def sample_h_given_v(self, v, out=None):
@@ -205,14 +198,11 @@ class BinaryRBM(nn.Module):
         :param out: The output tensor to write to.
         :type out: torch.Tensor
 
-        :returns: Tuple containing prob_h_given_v(v) and the sampled hidden
-                  state.
-        :rtype: tuple(torch.Tensor, torch.Tensor)
+        :returns: The sampled hidden state.
+        :rtype: torch.Tensor
         """
         h = self.prob_h_given_v(v, out=out)
-        h = h.copy_(h.bernoulli())  # overwrite h with its sample
-        # TODO: sampling needs to be modified once torch.bernoulli's out kwarg is
-        #       fixed in PyTorch
+        h = torch.bernoulli(h, out=out)  # overwrite h with its sample
         return h
 
     def gibbs_steps(self, k, initial_state, overwrite=False):

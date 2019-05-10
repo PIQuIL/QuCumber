@@ -1,21 +1,16 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 # ----------------------------------------------------------------------------
 
@@ -41,6 +36,7 @@ import shutil
 import subprocess
 import sys
 from operator import attrgetter
+from datetime import date
 
 sys.path.insert(0, os.path.abspath("../"))
 
@@ -48,8 +44,8 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information -----------------------------------------------------
 
 project = "QuCumber"
-copyright = "2018, PIQuIL"
 author = "PIQuIL"
+copyright = "2018-{}, {}".format(date.today().year, author)
 
 
 init_file = {}
@@ -58,8 +54,15 @@ with open("../qucumber/__version__.py", "r") as f:
     exec(f.read(), init_file)
     version = init_file["__version__"]
 
-# adapted from nbsphinx's conf.py
+
+# The remainder of this section was adapted from nbsphinx's conf.py
 # https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
+
+# Copyright (c) 2018-2019 PIQuIL - All rights reserved.
+# Copyright (c) 2015–2019 Matthias Geier.
+
+# The full license is in the file LICENSE.txt, distributed with this software.
+
 try:
     release = (
         subprocess.check_output(["git", "describe", "--tags", "--always"])
@@ -84,7 +87,7 @@ print("Building version: " + version + "; release: " + release)
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '1.0'
+needs_sphinx = "2.0.1"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -151,24 +154,9 @@ nitpick_ignore = [
     ("py:exc", "ValueError"),
 ]
 
+suppress_warnings = ["epub.unknown_project_files"]
 
 # -- Options for HTML output -------------------------------------------------
-
-# adapted from skorch's conf.py
-# https://github.com/dnouri/skorch/blob/c08d502/docs/conf.py
-
-on_rtd = os.environ.get("READTHEDOCS", None) == "True"
-
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-html_theme = "default"
-
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
-
-    html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -191,10 +179,33 @@ html_static_path = ["_static"]
 #
 # html_sidebars = {}
 
+# The remainder of this section was adapted from skorch's conf.py
+# https://github.com/dnouri/skorch/blob/c08d502/docs/conf.py
+
+# Copyright (c) 2018-2019 PIQuIL - All rights reserved.
+# Copyright (c) 2017, Benjamin Bossan, Daniel Nouri, Marian Tietz - All rights reserved.
+
+# The full license is in the file LICENSE.txt, distributed with this software.
+
+# check if docs are being built on RTD
+on_rtd = os.environ.get("READTHEDOCS", None) == "True"
+
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+#
+html_theme = "default"
+
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    import sphinx_rtd_theme
+
+    html_theme = "sphinx_rtd_theme"
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
 autodoc_member_order = "alphabetical"
+autodoc_mock_imports = ["torch", "tqdm", "numpy", "matplotlib"]
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "QuCumberdoc"
@@ -244,7 +255,7 @@ texinfo_documents = [
         "QuCumber Documentation",
         author,
         "QuCumber",
-        "One line description of project.",
+        "Neural Network Quantum State Tomography.",
         "Miscellaneous",
     )
 ]
@@ -289,8 +300,13 @@ intersphinx_mapping = {
 
 # -- Options for linkcode extension ------------------------------------------
 
-# adapted from scikit-learn's github_link.py
+# The code in this section has been adapted from scikit-learn's github_link.py
 # https://github.com/scikit-learn/scikit-learn/blob/1870d6d/doc/sphinxext/github_link.py
+
+# Copyright (c) 2018-2019 PIQuIL - All rights reserved.
+# Copyright (c) 2007–2019 The scikit-learn developers - All rights reserved.
+
+# The full license is in the file LICENSE.txt, distributed with this software.
 
 
 def _get_git_revision():
@@ -346,12 +362,21 @@ def linkcode_resolve(domain, info):
     )
 
 
+# -- End of code from scikit-learn's repo ------------------------------------
+
 # -- Options for nbsphinx ----------------------------------------------------
+
+
+# The code in this section has been adapted from nbsphinx's conf.py
+# https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
+
+# Copyright (c) 2018-2019 PIQuIL - All rights reserved.
+# Copyright (c) 2015–2019 Matthias Geier.
+
+# The full license is in the file LICENSE.txt, distributed with this software.
 
 nbsphinx_execute = "never"
 
-# adapted from nbsphinx's conf.py
-# https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
 
 # will only link to binders for tagged releases
 nbsphinx_prolog = r"""
@@ -412,3 +437,5 @@ shutil.copytree(
     os.path.join(conf_location, "..", "docs/_examples"),
     ignore=all_but_ipynb,
 )
+
+# -- End of code from nbsphinx repo ------------------------------------------

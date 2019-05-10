@@ -1,7 +1,8 @@
-from .callback import Callback
+from .callback import CallbackBase
 from .callback_list import CallbackList
 from .early_stopping import EarlyStopping
 from .lambda_callback import LambdaCallback
+
 from .liveplotting import LivePlotting
 from .logger import Logger
 from .metric_evaluator import MetricEvaluator

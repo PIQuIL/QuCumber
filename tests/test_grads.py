@@ -1,21 +1,17 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import os.path
 import pickle
@@ -25,21 +21,21 @@ import torch
 import pytest
 
 import qucumber
-from qucumber.nn_states import PositiveWavefunction, ComplexWavefunction
+from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction
 from qucumber.utils import unitaries
 from grads_utils import ComplexGradsUtils, PosGradsUtils
 
 
 K = 10
 SEED = 1234
-EPS = 1.e-6
+EPS = 1.0e-6
 
 TOL = torch.tensor(2e-9, dtype=torch.double)
 PDIFF = torch.tensor(100, dtype=torch.double)  # NLL grad tests are a bit too random tbh
 
 
 def percent_diff(a, b):  # for NLL
-    numerator = torch.abs(a - b) * 100.
+    numerator = torch.abs(a - b) * 100.0
     denominator = torch.abs(0.5 * (a + b))
     return numerator / denominator
 
@@ -74,19 +70,19 @@ def positive_wavefunction_data(request, gpu, num_hidden):
 
     num_visible = data.shape[-1]
 
-    nn_state = PositiveWavefunction(num_visible, num_hidden, gpu=gpu)
+    nn_state = PositiveWaveFunction(num_visible, num_hidden, gpu=gpu)
     PGU = PosGradsUtils(nn_state)
 
     data = data.to(device=nn_state.device)
     vis = nn_state.generate_hilbert_space(num_visible)
     target_psi = target_psi.to(device=nn_state.device)
 
-    PositiveWavefunctionFixture = namedtuple(
-        "PositiveWavefunctionFixture",
+    PositiveWaveFunctionFixture = namedtuple(
+        "PositiveWaveFunctionFixture",
         ["data", "target_psi", "grad_utils", "nn_state", "vis"],
     )
 
-    return PositiveWavefunctionFixture(
+    return PositiveWaveFunctionFixture(
         data=data, target_psi=target_psi, grad_utils=PGU, nn_state=nn_state, vis=vis
     )
 
@@ -112,7 +108,7 @@ def complex_wavefunction_data(request, gpu, num_hidden):
     num_visible = data_samples.shape[-1]
 
     unitary_dict = unitaries.create_dict()
-    nn_state = ComplexWavefunction(
+    nn_state = ComplexWaveFunction(
         num_visible, num_hidden, unitary_dict=unitary_dict, gpu=gpu
     )
     CGU = ComplexGradsUtils(nn_state)
@@ -127,8 +123,8 @@ def complex_wavefunction_data(request, gpu, num_hidden):
     unitary_dict = {b: v.to(device=nn_state.device) for b, v in unitary_dict.items()}
     psi_dict = {b: v.to(device=nn_state.device) for b, v in psi_dict.items()}
 
-    ComplexWavefunctionFixture = namedtuple(
-        "ComplexWavefunctionFixture",
+    ComplexWaveFunctionFixture = namedtuple(
+        "ComplexWaveFunctionFixture",
         [
             "data_samples",
             "data_bases",
@@ -141,7 +137,7 @@ def complex_wavefunction_data(request, gpu, num_hidden):
         ],
     )
 
-    return ComplexWavefunctionFixture(
+    return ComplexWaveFunctionFixture(
         data_samples=data_samples,
         data_bases=data_bases,
         grad_utils=CGU,
@@ -156,13 +152,6 @@ def complex_wavefunction_data(request, gpu, num_hidden):
 gpu_availability = pytest.mark.skipif(
     not torch.cuda.is_available(), reason="GPU required"
 )
-
-run_nll_tests = pytest.mark.skipif(
-    not pytest.config.option.nll,
-    reason=("doesn't give consistent results; " "add --nll option to run anyway"),
-)
-
-
 wavefunction_types = ["positive", "complex"]
 devices = [
     pytest.param(False, id="cpu"),
@@ -171,7 +160,7 @@ devices = [
 hidden_layer_sizes = [pytest.param(9, id="9", marks=[pytest.mark.extra]), 10]
 grad_types = [
     "KL",
-    pytest.param("NLL", id="NLL", marks=[run_nll_tests, pytest.mark.slow]),
+    pytest.param("NLL", id="NLL", marks=[pytest.mark.nll, pytest.mark.slow]),
 ]
 
 

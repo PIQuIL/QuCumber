@@ -1,40 +1,36 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import csv
 
 import numpy as np
 
-from .callback import Callback
+from .callback import CallbackBase
 
 
-class MetricEvaluator(Callback):
+class MetricEvaluator(CallbackBase):
     r"""Evaluate and hold on to the results of the given metric(s).
 
-    This Callback is called at the end of each epoch.
+    This callback is called at the end of each epoch.
 
     .. note::
-        Since Callbacks are given to :func:`fit<qucumber.nn_states.Wavefunction.fit>`
+        Since callbacks are given to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`MetricEvaluator<MetricEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.nn_states.Wavefunction.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`MetricEvaluator<MetricEvaluator>` having been called.
@@ -43,7 +39,7 @@ class MetricEvaluator(Callback):
                    metric(s).
     :type period: int
     :param metrics: A dictionary of callables where the keys are the names of
-                    the metrics and the callables take the Wavefunction being trained
+                    the metrics and the callables take the WaveFunction being trained
                     as their positional argument, along with some keyword
                     arguments. The metrics are evaluated and put into an internal
                     dictionary structure resembling the structure of `metrics`.
@@ -90,6 +86,11 @@ class MetricEvaluator(Callback):
             return np.array([values[metric] for _, values in self.past_values])
         except KeyError:
             raise AttributeError
+
+    def __getitem__(self, metric):
+        """Alias for :func:`__getattr__<qucumber.callbacks.MetricEvaluator.__getattr__>`
+        to enable subscripting."""
+        return self.__getattr__(metric)
 
     @property
     def epochs(self):

@@ -6,12 +6,13 @@
 [![Build Status (AppVeyor)](https://ci.appveyor.com/api/projects/status/lqdrc8qp94w4b9kf/branch/master?svg=true)](https://ci.appveyor.com/project/emerali/qucumber/branch/master)
 [![codecov](https://codecov.io/gh/PIQuIL/QuCumber/branch/master/graph/badge.svg)](https://codecov.io/gh/PIQuIL/QuCumber)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![arXiv](https://img.shields.io/badge/arxiv-1812.09329-blue.svg)](https://arxiv.org/abs/1812.09329)
 
 ## A Quantum Calculator Used for Many-body Eigenstate Reconstruction
 
 QuCumber is a program that reconstructs an unknown quantum wavefunction
 from a set of measurements. The measurements should consist of binary counts;
-for example, the occupation of an atomic orbital, or the Sz eigenvalue of
+for example, the occupation of an atomic orbital, or angular momentum eigenvalue of
 a qubit. These measurements form a training set, which is used to train a
 stochastic neural network called a Restricted Boltzmann Machine. Once trained, the
 neural network is a reconstructed representation of the unknown wavefunction
@@ -20,25 +21,25 @@ producing new instances of measurements, and to calculate estimators not
 contained in the original data set.
 
 QuCumber is developed by the Perimeter Institute Quantum Intelligence Lab (PIQuIL).
-The project is currently in beta. So, expect some rough edges, bugs,
-and backward incompatible updates.
 
 ## Features
 
 QuCumber implements unsupervised generative modelling with a two-layer RBM.
 Each layer is a number of binary stochastic variables (with values 0 or 1). The
 size of the visible layer corresponds to the input data, i.e. the number of
-qubits. The size of the hidden layer is varied to systematically control
+qubits. The size of the hidden layer is a hyperparameter, varied to systematically control
 representation error.
 
-Currently the reconstruction can be performed on pure states with either
+Currently, quantum state reconstruction can be performed on pure states with either
 positive-definite or complex wavefunctions. In the case of a positive-definite
 wavefunction, data is only required in one basis. For complex wavefunctions,
-tomographically complete basis sets will be required to train the wavefunction.
+measurement data in additional bases will be required to train the wavefunction.
 
 ## Documentation
 
-Documentation can be found [here](https://piquil.github.io/QuCumber/).
+Documentation can be found [here](https://qucumber.readthedocs.io/en/stable/).
+
+See [QuCumber: wavefunction reconstruction with neural networks](https://arxiv.org/abs/1812.09329)
 
 ## Getting Started
 
@@ -82,11 +83,25 @@ to the project, and the process for submitting pull requests to us.
 
 ## License
 
-QuCumber is licensed under the Apache License Version 2.0.
+QuCumber is licensed under the Apache License Version 2.0, this includes almost
+all files in this repo. However, some miscellaneous files may be licensed
+differently. See [LICENSE](LICENSE) for more details.
+
+## Citation
+
+Matthew J. S. Beach, Isaac De Vlugt, Anna Golubeva, Patrick Huembeli,
+Bohdan Kulchytskyy, Xiuzhe Luo, Roger G. Melko, Ejaaz Merali, Giacomo Torlai,
+"QuCumber: wavefunction reconstruction with neural networks",
+[arXiv:1812.09329](https://arxiv.org/abs/1812.09329), 2018.
 
 ## Acknowledgments
 
-- Lauren Hayward Sierens for many helpful discussions.
-- Nick Mercer for creating our awesome logo. You can check out more of Nick's
-  work by visiting [his portfolio](https://www.behance.net/nickdmercec607) on
-  Behance!
+- We thank M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and
+  L. Hayward Sierens for many helpful discussions.
+
+- We thank the [Perimeter Institute](https://www.perimeterinstitute.ca) for the
+  continuing support of PIQuIL.
+
+- Thanks to Nick Mercer for creating our awesome logo. You can check out more of
+  Nick's work by visiting [his portfolio](https://www.behance.net/nickdmercec607)
+  on Behance!

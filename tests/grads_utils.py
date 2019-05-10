@@ -1,21 +1,17 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import numpy as np
 import torch
@@ -111,14 +107,15 @@ class ComplexGradsUtils:
         psi_dict = {}
         D = int(len(psi_data) / float(len(bases)))
 
+        if isinstance(psi_data, torch.Tensor):
+            psi_data = psi_data.clone().detach().to(dtype=torch.double)
+        else:
+            psi_data = torch.tensor(psi_data, dtype=torch.double)
+
         for b in range(len(bases)):
             psi = torch.zeros(2, D, dtype=torch.double)
-            psi_real = torch.tensor(
-                psi_data[b * D : D * (b + 1), 0], dtype=torch.double
-            )
-            psi_imag = torch.tensor(
-                psi_data[b * D : D * (b + 1), 1], dtype=torch.double
-            )
+            psi_real = psi_data[b * D : (b + 1) * D, 0]
+            psi_imag = psi_data[b * D : (b + 1) * D, 1]
             psi[0] = psi_real
             psi[1] = psi_imag
             psi_dict[bases[b]] = psi
@@ -130,7 +127,7 @@ class ComplexGradsUtils:
         for i in range(len(bases_data)):
             tmp = ""
             for j in range(len(bases_data[i])):
-                if bases_data[i][j] is not " ":
+                if bases_data[i][j] != " ":
                     tmp += bases_data[i][j]
             bases.append(tmp)
         return bases
@@ -150,7 +147,7 @@ class ComplexGradsUtils:
             num_nontrivial_U = 0
             nontrivial_sites = []
             for j in range(N):
-                if basis[j] is not "Z":
+                if basis[j] != "Z":
                     num_nontrivial_U += 1
                     nontrivial_sites.append(j)
             sub_state = self.nn_state.generate_hilbert_space(num_nontrivial_U)
@@ -158,14 +155,14 @@ class ComplexGradsUtils:
             for xp in range(1 << num_nontrivial_U):
                 cnt = 0
                 for j in range(N):
-                    if basis[j] is not "Z":
+                    if basis[j] != "Z":
                         v[j] = sub_state[xp][cnt]
                         cnt += 1
                     else:
                         v[j] = vis[x, j]
 
                 U = torch.tensor(
-                    [1., 0.], dtype=torch.double, device=self.nn_state.device
+                    [1.0, 0.0], dtype=torch.double, device=self.nn_state.device
                 )
                 for ii in range(num_nontrivial_U):
                     tmp = unitary_dict[basis[nontrivial_sites[ii]]]

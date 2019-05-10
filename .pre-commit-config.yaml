@@ -1,6 +1,26 @@
 repos:
 -   repo: https://github.com/ambv/black
-    rev: 18.6b4
+    rev: stable
     hooks:
     - id: black
       language_version: python3.6
+-   repo: local
+    hooks:
+    - id: license-check
+      name: license-check
+      entry: inv license-check
+      language: system
+      types: [file, python]
+      pass_filenames: false
+    - id: lint-examples-flake8
+      name: lint-examples-flake8
+      entry: inv lint-examples -l flake8
+      language: system
+      files: ^examples\/(.+)\/([^\/]+).ipynb
+      pass_filenames: false
+    - id: lint-examples-black
+      name: lint-examples-black
+      entry: inv lint-examples -l black
+      language: system
+      files: ^examples\/(.+)\/([^\/]+).ipynb
+      pass_filenames: false

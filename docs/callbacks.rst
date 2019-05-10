@@ -5,7 +5,7 @@ Callbacks
 
 Base Callback
 -------------
-.. autoclass:: qucumber.callbacks.Callback
+.. autoclass:: qucumber.callbacks.CallbackBase
     :members:
 
 LambdaCallback
@@ -31,12 +31,12 @@ VarianceBasedEarlyStopping
 MetricEvaluator
 ---------------
 .. autoclass:: qucumber.callbacks.MetricEvaluator
-    :members: get_value, __len__, __getattr__, epochs, names, clear_history
+    :members: get_value, __len__, __getattr__, __getitem__, epochs, names, clear_history
 
 ObservableEvaluator
 -------------------
 .. autoclass:: qucumber.callbacks.ObservableEvaluator
-    :members: get_value, __len__, __getattr__, epochs, names, clear_history
+    :members: get_value, __len__, __getattr__, __getitem__, epochs, names, clear_history
 
 LivePlotting
 ------------

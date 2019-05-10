@@ -1,21 +1,16 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 
 import os.path
@@ -30,8 +25,7 @@ import qucumber.utils.data as data
 import qucumber.utils.training_statistics as ts
 import qucumber.utils.unitaries as unitaries
 from qucumber.callbacks import MetricEvaluator, LambdaCallback
-from qucumber.nn_states import ComplexWavefunction, PositiveWavefunction
-
+from qucumber.nn_states import ComplexWaveFunction, PositiveWaveFunction
 
 SEED = 1234
 
@@ -53,7 +47,7 @@ devices = [
 def test_positive_wavefunction(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
 
-    nn_state = PositiveWavefunction(10, gpu=gpu)
+    nn_state = PositiveWaveFunction(10, gpu=gpu)
 
     old_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
@@ -62,7 +56,7 @@ def test_positive_wavefunction(gpu):
 
     new_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
-    msg = "PositiveWavefunction's parameters did not change!"
+    msg = "PositiveWaveFunction's parameters did not change!"
     assert not torch.equal(old_params, new_params), msg
 
 
@@ -71,7 +65,7 @@ def test_complex_wavefunction(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
     np.random.seed(SEED)
 
-    nn_state = ComplexWavefunction(10, gpu=gpu)
+    nn_state = ComplexWaveFunction(10, gpu=gpu)
 
     old_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
@@ -84,7 +78,7 @@ def test_complex_wavefunction(gpu):
 
     new_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
-    msg = "ComplexWavefunction's parameters did not change!"
+    msg = "ComplexWaveFunction's parameters did not change!"
     assert not torch.equal(old_params, new_params), msg
 
 
@@ -92,13 +86,14 @@ def test_complex_training_without_bases_fail():
     qucumber.set_random_seed(SEED, cpu=True, gpu=False, quiet=True)
     np.random.seed(SEED)
 
-    nn_state = ComplexWavefunction(10, gpu=False)
+    nn_state = ComplexWaveFunction(10, gpu=False)
 
     data = torch.ones(100, 10)
 
-    msg = "Training ComplexWavefunction without providing bases should fail!"
-    with pytest.raises(ValueError, message=msg):
+    msg = "Training ComplexWaveFunction without providing bases should fail!"
+    with pytest.raises(ValueError):
         nn_state.fit(data, epochs=1, pos_batch_size=10, input_bases=None)
+        pytest.fail(msg)
 
 
 @pytest.mark.parametrize("gpu", devices)
@@ -106,7 +101,7 @@ def test_stop_training(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
     np.random.seed(SEED)
 
-    nn_state = PositiveWavefunction(10, gpu=gpu)
+    nn_state = PositiveWaveFunction(10, gpu=gpu)
 
     old_params = parameters_to_vector(nn_state.rbm_am.parameters())
     data = torch.ones(100, 10)
@@ -129,7 +124,7 @@ def test_stop_training_in_batch(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
     np.random.seed(SEED)
 
-    nn_state = PositiveWavefunction(10, gpu=gpu)
+    nn_state = PositiveWaveFunction(10, gpu=gpu)
 
     data = torch.ones(100, 10)
 
@@ -148,7 +143,7 @@ def test_stop_training_in_epoch(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
     np.random.seed(SEED)
 
-    nn_state = PositiveWavefunction(10, gpu=gpu)
+    nn_state = PositiveWaveFunction(10, gpu=gpu)
 
     data = torch.ones(100, 10)
 
@@ -171,14 +166,14 @@ def test_trainingpositive(request):
         request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial1_TrainPosRealWavefunction",
+        "Tutorial1_TrainPosRealWaveFunction",
         "tfim1d_data.txt",
     )
     psi_path = os.path.join(
         request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial1_TrainPosRealWavefunction",
+        "Tutorial1_TrainPosRealWaveFunction",
         "tfim1d_psi.txt",
     )
 
@@ -200,7 +195,7 @@ def test_trainingpositive(request):
     for i in range(10):
         print("Iteration: ", i + 1)
 
-        nn_state = PositiveWavefunction(num_visible=nv, num_hidden=nh, gpu=False)
+        nn_state = PositiveWaveFunction(num_visible=nv, num_hidden=nh, gpu=False)
 
         space = nn_state.generate_hilbert_space(nv)
         callbacks = [
@@ -256,28 +251,28 @@ def test_trainingcomplex(request):
         request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial2_TrainComplexWavefunction",
+        "Tutorial2_TrainComplexWaveFunction",
         "qubits_train.txt",
     )
     train_bases_path = os.path.join(
         request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial2_TrainComplexWavefunction",
+        "Tutorial2_TrainComplexWaveFunction",
         "qubits_train_bases.txt",
     )
     bases_path = os.path.join(
         request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial2_TrainComplexWavefunction",
+        "Tutorial2_TrainComplexWaveFunction",
         "qubits_bases.txt",
     )
     psi_path = os.path.join(
         request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial2_TrainComplexWavefunction",
+        "Tutorial2_TrainComplexWaveFunction",
         "qubits_psi.txt",
     )
 
@@ -302,7 +297,7 @@ def test_trainingcomplex(request):
     for i in range(10):
         print("Iteration: ", i + 1)
 
-        nn_state = ComplexWavefunction(
+        nn_state = ComplexWaveFunction(
             unitary_dict=unitary_dict, num_visible=nv, num_hidden=nh, gpu=False
         )
 

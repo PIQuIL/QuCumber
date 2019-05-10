@@ -1,21 +1,17 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import abc
 from itertools import chain
@@ -30,8 +26,8 @@ from qucumber.utils.data import extract_refbasis_samples
 from qucumber.utils.gradients_utils import vector_to_grads
 
 
-class Wavefunction(abc.ABC):
-    """Abstract Base Class for Wavefunctions."""
+class WaveFunctionBase(abc.ABC):
+    """Abstract Base Class for WaveFunctions."""
 
     _stop_training = False
 
@@ -237,12 +233,12 @@ class Wavefunction(abc.ABC):
         return self.rbm_am.partition(space)
 
     def save(self, location, metadata=None):
-        """Saves the Wavefunction parameters to the given location along with
+        """Saves the WaveFunction parameters to the given location along with
         any given metadata.
 
         :param location: The location to save the data.
         :type location: str or file
-        :param metadata: Any extra metadata to store alongside the Wavefunction
+        :param metadata: Any extra metadata to store alongside the WaveFunction
                          parameters.
         :type metadata: dict
         """
@@ -261,15 +257,15 @@ class Wavefunction(abc.ABC):
         torch.save(data, location)
 
     def load(self, location):
-        """Loads the Wavefunction parameters from the given location ignoring any
-        metadata stored in the file. Overwrites the Wavefunction's parameters.
+        """Loads the WaveFunction parameters from the given location ignoring any
+        metadata stored in the file. Overwrites the WaveFunction's parameters.
 
         .. note::
-            The Wavefunction object on which this function is called must
+            The WaveFunction object on which this function is called must
             have the same parameter shapes as the one who's parameters are being
             loaded.
 
-        :param location: The location to load the Wavefunction parameters from.
+        :param location: The location to load the WaveFunction parameters from.
         :type location: str or file
         """
         state_dict = torch.load(location, map_location=self.device)
@@ -280,7 +276,7 @@ class Wavefunction(abc.ABC):
     @staticmethod
     @abc.abstractmethod
     def autoload(location, gpu=False):
-        """Initializes a Wavefunction from the parameters in the given
+        """Initializes a WaveFunction from the parameters in the given
         location.
 
         :param location: The location to load the model parameters from.
@@ -288,8 +284,8 @@ class Wavefunction(abc.ABC):
         :param gpu: Whether the returned model should be on the GPU.
         :type gpu: bool
 
-        :returns: A new Wavefunction initialized from the given parameters.
-                  The returned Wavefunction will be of whichever type this function
+        :returns: A new WaveFunction initialized from the given parameters.
+                  The returned WaveFunction will be of whichever type this function
                   was called on.
         """
 
@@ -428,7 +424,7 @@ class Wavefunction(abc.ABC):
         optimizer=torch.optim.SGD,
         **kwargs
     ):
-        """Train the Wavefunction.
+        """Train the WaveFunction.
 
         :param data: The training samples
         :type data: numpy.ndarray
@@ -447,7 +443,7 @@ class Wavefunction(abc.ABC):
         :param lr: Learning rate
         :type lr: float
         :param input_bases: The measurement bases for each sample. Must be provided
-                            if training a ComplexWavefunction.
+                            if training a ComplexWaveFunction.
         :type input_bases: numpy.ndarray
         :param progbar: Whether or not to display a progress bar. If "notebook"
                         is passed, will use a Jupyter notebook compatible
@@ -457,7 +453,7 @@ class Wavefunction(abc.ABC):
                                from a previous state.
         :type starting_epoch: int
         :param callbacks: Callbacks to run while training.
-        :type callbacks: list[qucumber.callbacks.Callback]
+        :type callbacks: list[qucumber.callbacks.CallbackBase]
         :param optimizer: The constructor of a torch optimizer.
         :type optimizer: torch.optim.Optimizer
         :param kwargs: Keyword arguments to pass to the optimizer
@@ -474,7 +470,12 @@ class Wavefunction(abc.ABC):
 
         neg_batch_size = neg_batch_size if neg_batch_size else pos_batch_size
 
-        train_samples = torch.tensor(data, device=self.device, dtype=torch.double)
+        if isinstance(data, torch.Tensor):
+            train_samples = (
+                data.clone().detach().to(device=self.device, dtype=torch.double)
+            )
+        else:
+            train_samples = torch.tensor(data, device=self.device, dtype=torch.double)
 
         if len(self.networks) > 1:
             all_params = [getattr(self, net).parameters() for net in self.networks]
@@ -532,4 +533,4 @@ class Wavefunction(abc.ABC):
 
 
 # make module path show up properly in sphinx docs
-Wavefunction.__module__ = "qucumber.nn_states"
+WaveFunctionBase.__module__ = "qucumber.nn_states"

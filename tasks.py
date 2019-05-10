@@ -1,22 +1,16 @@
-# Copyright 2018 PIQuIL - All Rights Reserved
+# Copyright 2019 PIQuIL - All Rights Reserved.
 
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-#   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import pathlib
 from pprint import pformat
@@ -24,6 +18,7 @@ from itertools import chain
 
 from invoke import task, call
 from invoke.exceptions import Exit
+from invoke.terminals import pty_size
 
 
 ##############################################################################
@@ -76,7 +71,17 @@ def license_check(c, extensions, exclude, length_cutoff=15):
     exclude = set(exclude) | set([".tox"])
 
     paths = chain(
-        *[pathlib.Path(".").glob("**/*" + extension) for extension in extensions]
+        *[
+            pathlib.Path(root).glob("**/*" + extension)
+            for extension in extensions
+            for root in [
+                "./.build_tools",
+                "./docs",
+                "./examples",
+                "./qucumber",
+                "./tests",
+            ]
+        ]
     )
 
     for path in paths:
@@ -106,13 +111,15 @@ def lint_example_notebooks(c, linter="flake8"):
     """Lint notebooks in the `./examples` directory."""
     to_script_command = (
         "jupyter nbconvert {} --stdout --to python "
-        "--template=.build_tools/invoke/code_cells_only.tpl "
-        "| head -c -1"
+        "--RegexRemovePreprocessor.patterns=\"[r'\\s*\\Z']\" "  # remove empty code cells
+        "--Exporter.preprocessors=\"['strip_magics.StripMagicsProcessor']\" "  # remove ipython magics
+        "--template=code_cells_only.tpl "  # only lint code cells
+        "| head -c -1"  # remove extra new-line at end
     )
     linter_commands = {
         "black": "black --check --diff -",
         # last 3 are to ignore trailing whitespace, rest are from tox.ini
-        # should simplify this once flake8 pushes its --extend-ignore option
+        # should simplify this once flake8 fixes its --extend-ignore option
         "flake8": "flake8 - --show-source --ignore=E203,E501,W503,W391,W291,E402",
     }
 
@@ -122,27 +129,29 @@ def lint_example_notebooks(c, linter="flake8"):
         raise ValueError("Linter, {}, not supported!".format(linter))
 
     nb_paths = pathlib.Path("./examples").glob("**/*[!checkpoint].ipynb")
-
     num_fails = 0
     failed_files = []
 
     for path in nb_paths:
-        run = c.run(
-            to_script_command.format(str(path)) + " | " + linter_command,
-            warn=True,  # don't exit task on first fail
-            echo=True,  # print bash command to stdout
-        )
-        if run.failed:
-            num_fails += 1
-            failed_files.append(str(path))
+        with c.cd("./.build_tools/invoke/"):
+            run = c.run(
+                to_script_command.format("../../" + str(path)) + " | " + linter_command,
+                warn=True,  # don't exit task on first fail
+                echo=True,  # print generated bash command to stdout
+            )
+            if run.failed:
+                num_fails += 1
+                failed_files.append(str(path))
 
     if num_fails > 0:
+        failed_files = sorted(failed_files)
         raise Exit(
             message=(
-                "Notebook code isn't formatted properly "
+                "-" * pty_size()[0]
+                + "\nSome notebook code is improperly formatted "
                 + "(according to {}).\n".format(linter)
                 + "Number of unformatted files reported: {}\n".format(num_fails)
-                + "Files with errors: {}".format(pformat(failed_files))
+                + "Files with errors:\n{}".format(pformat(failed_files))
             ),
             code=num_fails,
         )
