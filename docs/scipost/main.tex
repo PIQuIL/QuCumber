@@ -92,6 +92,7 @@ obtain physical observables not easily accessible from the original data.
 \noindent\rule{\textwidth}{1pt}
 \tableofcontents\thispagestyle{fancy}
 \noindent\rule{\textwidth}{1pt}
+\vspace{-1cm}
 
 \section{Introduction}
 Current advances in fabricating quantum technologies, as well as in reliable
@@ -111,7 +112,7 @@ of quantum many-body systems.
 
 Recently, an alternative path to quantum state reconstruction was put forward,
 based on modern machine learning (ML)
-techniques~\cite{torlai_neural-network_2018,torlai_latent_2018,carrasquilla_reconstructing_2018,lennon_efficiently_2018,kim_mixed_2018}.
+techniques~\cite{torlai_learning_2016,torlai_neural-network_2018,torlai_latent_2018,carrasquilla_reconstructing_2018,lennon_efficiently_2018,kim_mixed_2018}.
 The most common approach relies on a powerful generative model called a
 \textit{restricted Boltzmann machine} (RBM)~\cite{smolensky_information_1986},
 a stochastic neural network with two layers of binary units.
@@ -126,7 +127,7 @@ data into lower-dimensional representations~\cite{hinton_reducing_2006}, and
 more~\cite{lecun_deep_2015}.
 More recently, RBMs have been adopted by the physics community in the context
 of representing both classical and quantum many-body
-states~\cite{torlai_learning_2016,CarleoTroyer2017Science,carleo_constructing_2018}.
+states~\cite{CarleoTroyer2017Science,carleo_constructing_2018}.
 They are currently being investigated for their representational
 power~\cite{gao_efficient_2017,choo_symmetries_2018,glasser_neural-network_2018},
 their relationship with tensor networks and the renormalization
@@ -136,11 +137,12 @@ and in other contexts in quantum many-body physics~\cite{PhysRevB.96.205152,wein
 In this post, we present QuCumber: a \textit{quantum calculator used for
 many-body eigenstate reconstruction}. QuCumber is an open-source Python
 package that implements neural-network quantum state reconstruction of
-many-body wavefunctions from measurement data.
-Some examples include magnetic spin projections, orbital occupation number,
+many-body wavefunctions from projective measurement data.
+Examples of data to which QuCumber could be applied might
+be magnetic spin projections, orbital occupation number,
 polarization of photons, or the logical state of qubits.
-Given a training dataset of measurements, QuCumber discovers the most likely
-quantum state compatible with the measurements by finding the optimal set of
+Given a training set of such measurements, QuCumber discovers the most likely
+compatible quantum state by finding the optimal set of
 parameters $\bm{\lambda}$ of an RBM.\@ A properly trained RBM is an
 approximation of the unknown quantum state underlying the data.
 It can be used to calculate various physical observables of interest, including
@@ -155,7 +157,10 @@ we consider the more general case of a complex-valued wavefunction.
 We illustrate a general strategy to extract the phase structure from data by
 performing appropriate unitary rotations on the state before measurements.
 We then demonstrate a practical reconstruction of an entangled state of two
-qubits. A list of useful terms and equations can be found at the end of the
+qubits. 
+Note, the detailed theory underlying the reconstruction methods used by QuCumber
+can be found in References \cite{torlai_learning_2016} and \cite{torlai_neural-network_2018}.
+A list of useful terms and equations can be found at the end of this
 post in the Glossary.
 
 \section{Positive wavefunctions}\label{sec:positive}
@@ -174,19 +179,20 @@ i.e.~$\Psi(\x)=\sqrt{P(\x)}$.
 
 The positivity of the wavefunction allows a simple and natural connection
 between quantum states and classical probabilistic models. QuCumber employs the
-probability distribution $p_{\bm{\lambda}}(\x)$ of an RBM to approximate the
+probability distribution $p_{\bm{\lambda}}(\x)$ of an RBM (see Eq.~\ref{Eq:marginal_distribution} of the Glossary) 
+to approximate the
 distribution $P(\x)$ underlying the measurement data. Using contrastive
 divergence (CD)~\cite{hinton_training_2002}, QuCumber trains the RBM to discover
 an optimal set of parameters ${\bm \lambda}$ that minimize the Kullback-Leibler (KL) divergence
-between the two distributions. Upon successful training
+between the two distributions (see Eq.~\ref{Eq.KLdiv}). Upon successful training
 ($p_{\bm{\lambda}}(\x)\sim P(\x)$), we obtain a faithful representation of
 the target quantum state,
 \begin{equation}\label{wfpd}
     \psi_{\bm{\lambda}}(\x) \equiv \sqrt{p_{\bm{\lambda}}(\x)}
     \simeq\Psi(\x)\:.
 \end{equation}
-Note, the precise form of the marginal distribution $p_{\bm{\lambda}}(\x)$, defined in terms of an effective energy
-over the parameters of the RBM, is defined in the Glossary.
+The precise mathematical form of the marginal distribution $p_{\bm{\lambda}}(\x)$ defined in terms of an effective energy
+over the parameters of the RBM is defined in the Glossary.
 
 In the following, we demonstrate the application of QuCumber for the reconstruction of the
 ground-state wavefunction of the one-dimensional transverse-field Ising model
@@ -316,7 +322,7 @@ state.load("filename.pt")
 \end{python}
 
 
-With this we have demonstrated to most basic aspects of QuCumber regarding
+With this we have demonstrated the most basic aspects of QuCumber regarding
 training a model and verifying its accuracy. We note that in this example the
 evaluation utilized the knowledge of the exact ground state and the calculation
 of the KL divergence, which we reemphasize is tractable only for small system sizes.  However,
@@ -495,7 +501,7 @@ inside a ket, such as $\sigma_A, \sigma_{\bar A}$, describe the spins
 configurations within the subregion and its complement.
 
 In QuCumber, the Swap operator is implemented as a routine within the
-\verb|entanglement| observable unit:
+\verb|entanglement| observable unit,
 \begin{python}
 def swap(s1, s2, A):
     _s = s1[:, A].clone()
@@ -799,10 +805,12 @@ inaccessible, due to fundamental or technical challenges.
 
 Future versions of QuCumber, as well as the next generation of quantum state
 reconstruction software, may explore different generative models, such as
-variational autoencoders or generative adversarial networks.
+variational autoencoders, generative adversarial networks, or recurrent neural networks.
+The techniques described in this paper can also be extended to reconstruct mixed states, 
+via the purification technique described in Reference \cite{torlai_latent_2018}.
 In addition, future techniques may include hybridization between machine
 learning and other well-established methods in computational quantum many-body
-physics, such as variational Monte Carlo and tensor networks.
+physics, such as variational Monte Carlo and tensor networks \cite{carrasquilla_reconstructing_2018}.
 
 \section*{Acknowledgements}
 We acknowledge M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and
@@ -874,6 +882,9 @@ literature.
 with a training set of 1,000 samples and a batch size of 100, one epoch consists
 of 10 updates of the parameters.
 
+\item \textit{Gibbs sampling}: A Monte Carlo algorithm that samples from the conditional distribution of one variable, given the state of other variables.
+In an RBM, the restricted weight connectivity allows Gibbs sampling between the visible ``block'', conditioned on the hidden ``block'', and vice versa.
+
 \item \textit{Hidden units}: There are $n_h$ units in the hidden layer of the
 RBM, denoted by the vector $\bm{h}=(h_1, \ldots, h_{n_h})$. The number of
 hidden units can be adjusted to increase the representational capacity of
@@ -893,6 +904,7 @@ configuration $(\bm v, \bm h)$ according to the Boltzmann distribution:
 entropy, is a measure of the ``distance'' between two probability distributions
 $P$ and $Q$, defined as:
 \begin{equation}
+\label{Eq.KLdiv}
 \mathrm{KL}(P\:||\:Q)=\sum_{\bm{v}}P(\bm{v})\log\frac{P(\bm{v})}{Q(\bm{v})} .
 \end{equation}
 The KL divergence between two identical distributions is zero.
