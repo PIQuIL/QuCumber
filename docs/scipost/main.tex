@@ -157,7 +157,7 @@ we consider the more general case of a complex-valued wavefunction.
 We illustrate a general strategy to extract the phase structure from data by
 performing appropriate unitary rotations on the state before measurements.
 We then demonstrate a practical reconstruction of an entangled state of two
-qubits. 
+qubits.
 Note, the detailed theory underlying the reconstruction methods used by QuCumber
 can be found in the original references \cite{torlai_learning_2016,torlai_neural-network_2018} and a
 recent review \cite{RBMreview}.
@@ -180,7 +180,7 @@ i.e.~$\Psi(\x)=\sqrt{P(\x)}$.
 
 The positivity of the wavefunction allows a simple and natural connection
 between quantum states and classical probabilistic models. QuCumber employs the
-probability distribution $p_{\bm{\lambda}}(\x)$ of an RBM (see Eq.~\ref{Eq:marginal_distribution} of the Glossary) 
+probability distribution $p_{\bm{\lambda}}(\x)$ of an RBM (see Eq.~\ref{Eq:marginal_distribution} of the Glossary)
 to approximate the
 distribution $P(\x)$ underlying the measurement data. Using contrastive
 divergence (CD)~\cite{hinton_training_2002}, QuCumber trains the RBM to discover
@@ -485,7 +485,7 @@ Numerically, measurement of bipartite entanglement entropy is commonly accessed
 through the computation of the second R\'enyi entropy $S_2 = - \ln {\rm Tr}(\rho_A^2)$.
 When one has access to a pure state wavefunction $\psi_{\bm{\lambda}}(\x)$,
 R\'enyi entropies can be calculated as an expectation value of the ``Swap'' operator~\cite{Swap},
-\begin{equation}
+\begin{equation}\label{Eq:renyi_entropy}
 S_2 = - \ln \left\langle{   \widehat{\textrm{Swap}}_A  }\right\rangle.
 \end{equation}
 It is essentially an off-diagonal observable that acts on an extended product space consisting of
@@ -515,21 +515,44 @@ and \verb|A| is a list containing the indices of the sites in subregion $A$.
 While ideally those samples should be entirely independent, in order to save
 computational costs, QuCumber just splits a given batch into two equal parts and
 treats them as if they were independent samples. This is implemented within the
-\verb|RenyiEntropy| observable,
+\verb|SWAP| observable,
 \begin{python}
-class RenyiEntropy(ObservableBase):
-    def apply(self, nn_state, samples, A):
+class SWAP(ObservableBase):
+    def __init__(self, A):
+        self.A = A
+
+    def apply(self, nn_state, samples):
         _ns = samples.shape[0] // 2
         samples1 = samples[:_ns, :]
         samples2 = samples[_ns : _ns * 2, :]
+
+        psi_ket1 = nn_state.psi(samples1)
+        psi_ket2 = nn_state.psi(samples2)
+
+        psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
+        psi_ket_star = cplx.conjugate(psi_ket)
+
+        samples1_, samples2_ = swap(samples1, samples2, self.A)
+        psi_bra1 = nn_state.psi(samples1_)
+        psi_bra2 = nn_state.psi(samples2_)
+
+        psi_bra = cplx.elementwise_mult(psi_bra1, psi_bra2)
+        psi_bra_star = cplx.conjugate(psi_bra)
+        return cplx.real(
+            cplx.elementwise_division(psi_bra_star, psi_ket_star)
+        )
 \end{python}
-The rest of the implementation is very similar to that for the transverse
+Note the similarity in the implementation to that for the transverse
 magnetization observable from the last section, once the amplitude of a sample
 is substituted with the product of amplitudes drawn from each replica.
+
+Using this observable, we can estimate the Renyi entropy of the region containing
+the first 5 sites in the chain using Eq.~\ref{Eq:renyi_entropy},
 \begin{python}
-psi_ket1 = nn_state.psi(samples1)
-psi_ket2 = nn_state.psi(samples2)
-psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
+A = [0, 1, 2, 3, 4]
+swap_ = SWAP(A)
+swap_stats = swap_.statistics_from_samples(nn_state, new_samples)
+S_2 = -np.log(swap_stats["mean"])
 \end{python}
 
 We apply this measurement procedure to a TFIM chain with results shown in
@@ -807,7 +830,7 @@ inaccessible, due to fundamental or technical challenges.
 Future versions of QuCumber, as well as the next generation of quantum state
 reconstruction software, may explore different generative models, such as
 variational autoencoders, generative adversarial networks, or recurrent neural networks.
-The techniques described in this paper can also be extended to reconstruct mixed states, 
+The techniques described in this paper can also be extended to reconstruct mixed states,
 via the purification technique described in Reference \cite{torlai_latent_2018}.
 In addition, future techniques may include hybridization between machine
 learning and other well-established methods in computational quantum many-body
