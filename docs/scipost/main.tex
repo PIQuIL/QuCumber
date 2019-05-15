@@ -186,13 +186,13 @@ distribution $P(\x)$ underlying the measurement data. Using contrastive
 divergence (CD)~\cite{hinton_training_2002}, QuCumber trains the RBM to discover
 an optimal set of parameters ${\bm \lambda}$ that minimize the Kullback-Leibler (KL) divergence
 between the two distributions (see Eq.~\ref{Eq.KLdiv}). Upon successful training
-($p_{\bm{\lambda}}(\x)\sim P(\x)$), we obtain a faithful representation of
+($p_{\bm{\lambda}}(\x)\sim P(\x)$), we obtain an approximate representation of
 the target quantum state,
 \begin{equation}\label{wfpd}
     \psi_{\bm{\lambda}}(\x) \equiv \sqrt{p_{\bm{\lambda}}(\x)}
     \simeq\Psi(\x)\:.
 \end{equation}
-The precise mathematical form of the marginal distribution $p_{\bm{\lambda}}(\x)$ defined in terms of an effective energy
+Note, the precise mathematical form of the marginal distribution $p_{\bm{\lambda}}(\x)$ defined in terms of an effective energy
 over the parameters of the RBM is defined in the Glossary.
 
 In the following, we demonstrate the application of QuCumber for the reconstruction of the
@@ -489,7 +489,7 @@ R\'enyi entropies can be calculated as an expectation value of the ``Swap'' oper
 S_2 = - \ln \left\langle{   \widehat{\textrm{Swap}}_A  }\right\rangle.
 \end{equation}
 It is essentially an off-diagonal observable that acts on an extended product space consisting of
-independent copies of the wavefunction,
+two independent copies of the wavefunction,
 $\psi_{\bm{\lambda}}(\x) \otimes \psi_{\bm{\lambda}}(\x)$, referred to as
 ``replicas''.
 As the name suggests, the action of the Swap operator is to swap the spin
@@ -498,7 +498,7 @@ configurations in region $A$ between the replicas,
   \widehat{\textrm{Swap}}_A |\bm{\sigma}_A, \bm{\sigma}_{\bar A}\rangle_1 \otimes  |\bm{\sigma}^{\prime}_A, \bm{\sigma}^{\prime}_{\bar A}\rangle_2 = |\bm{\sigma}^{\prime}_A, \bm\sigma_{\bar A}\rangle_1 \otimes  |\bm\sigma_A, \bm\sigma^{\prime}_{\bar A}\rangle_2 .
 \end{equation}
 Here the subcript of the ket indicates the replica index, while the two labels
-inside a ket, such as $\sigma_A, \sigma_{\bar A}$, describe the spins
+inside a ket, such as ${\bm \sigma}_A, {\bm \sigma}_{\bar A}$, describe the spins
 configurations within the subregion and its complement.
 
 In QuCumber, the Swap operator is implemented as a routine within the
@@ -534,9 +534,9 @@ psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
 
 We apply this measurement procedure to a TFIM chain with results shown in
 Fig.~\ref{ee_learn}. As was the case with the magnetization observables, the trained
-RBM correctly captures  most of the second R\'enyi entropy for different subregion
-$A$ sizes. Being a basis-independent observable, this constitutes a good test on
-the ability of QuCumber to capture the full wave-function from the information contained
+RBM gives a good approximation to the second R\'enyi entropy for different subregion
+$A$ sizes. Being a basis-independent observable, this constitutes a useful test on
+the ability of QuCumber to capture the full wavefunction from the information contained
 in a single-basis dataset for TFIM.
 
 \begin{figure}[htb]
