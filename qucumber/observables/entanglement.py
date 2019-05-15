@@ -73,7 +73,7 @@ class SWAP(ObservableBase):
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
         """
-        samples = samples.to(device=nn_state.device).clone()
+        samples = samples.to(device=nn_state.device)
 
         # split the batch of samples into two equal batches
         # if their total number is odd, the last sample is ignored
