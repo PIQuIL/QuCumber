@@ -465,7 +465,8 @@ The value of the observable can be estimated from a set of samples with:
 \begin{python}
 SigmaX().statistics_from_samples(state, samples)
 \end{python}
-Similarly, the user can define other observables like the energy.
+which produces a dictionary containing the mean, variance, and standard error of
+the observable. Similarly, the user can define other observables like the energy.
 
 The reconstruction of two magnetic observables for the TFIM is shown in
 Fig.~\ref{tfim_magn}, where a different RBM was trained for each value of
