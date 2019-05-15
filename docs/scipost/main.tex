@@ -309,8 +309,8 @@ state.fit(
 Figure~\ref{fig:KL} shows the convergence of the fidelity and KL divergence
 during training. The convergence time will, in general, depend on the choice
 of hyperparameters.
-Finally, the network parameters $\bm{\lambda}$, together with the callbacks, can be
-saved (or loaded) to a file:
+Finally, the network parameters $\bm{\lambda}$, together with the \verb|MetricEvaluator|'s data,
+can be saved (or loaded) to a file:
 \begin{python}
 state.save(
     "filename.pt",
