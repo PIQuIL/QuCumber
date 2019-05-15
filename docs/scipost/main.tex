@@ -299,9 +299,9 @@ function of \verb|PositiveWaveFunction|.
 state.fit(
     train_data,
     epochs=500,
-    pos_batch_size=100
+    pos_batch_size=100,
     neg_batch_size=100,
-    lr=0.01
+    lr=0.01,
     k=5,
     callbacks=callbacks,
 )
@@ -444,6 +444,9 @@ section in the \href{https://qucumber.readthedocs.io/en/stable/}{documentation}.
 }
 As an example, $\sigma^x$ can be written as an observable class with
 \begin{python}
+import torch
+from qucumber.utils import cplx
+from qucumber.observables import ObservableBase
 class SigmaX(ObservableBase):
 
     def apply(self, nn_state, samples):
@@ -552,7 +555,7 @@ the first 5 sites in the chain using Eq.~\ref{Eq:renyi_entropy},
 \begin{python}
 A = [0, 1, 2, 3, 4]
 swap_ = SWAP(A)
-swap_stats = swap_.statistics_from_samples(nn_state, new_samples)
+swap_stats = swap_.statistics_from_samples(state, samples)
 S_2 = -np.log(swap_stats["mean"])
 \end{python}
 
@@ -697,7 +700,10 @@ rotations. By default, the set of unitaries include local rotations to the
 $\sigma^x$ and $\sigma^y$ basis, implemented by the $\hat{\mathrm{H}}$ and
 $\hat{\mathrm{K}}$ gates respectively.
 
-We continue by loading the data in QuCumber, which is done using the
+We continue by loading the data\footnote{
+    The training dataset can be downloaded from
+    \href{https://github.com/PIQuIL/QuCumber/blob/master/examples/Tutorial2_TrainComplexWaveFunction/}{\texttt{https://github.com/PIQuIL/QuCumber/blob/master/\\examples/Tutorial2\_TrainComplexWaveFunction/}}
+} into QuCumber, which is done using the
 \verb|load_data| function of the data utility:
 \begin{python}
 train_path = "qubits_train.txt"
@@ -741,7 +747,7 @@ specified by the user.
 We then initialize the complex RBM object with
 \begin{python}
 state = ComplexWaveFunction(
-   num_visible=2 num_hidden=2, unitary_dict=unitary_dict
+   num_visible=2, num_hidden=2, unitary_dict=unitary_dict
 )
 \end{python}
 The key difference between positive and complex wavefunction reconstruction is
@@ -766,7 +772,7 @@ For example, if a given training sample is measured in the basis
 Similar to the case of positive wavefunction, we generate the Hilbert space (to
 compute fidelity and KL divergence) and initialize the callbacks
 \begin{python}
-state.space = nn_state.generate_hilbert_space(nv)
+state.space = nn_state.generate_hilbert_space(2)
 callbacks = [
   MetricEvaluator(
     log_every,
