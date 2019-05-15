@@ -1,0 +1,41 @@
+Response to report 1 "Requested Changes"
+
+> 1- Add a small snippet on Gibbs sampling (in Glossary)
+
+This has been added.
+
+> 2- Typo on page 5: we have demonstrated to -> the
+
+Done.
+
+----------------------------------------
+
+Response to report 2 "Physics questions":
+
+As pointed out by the referee, the point of quantum computers is that they are exponentially difficult to simulate classically.  However, given a quantum computer which produces a state of some "structure" (phase or entanglement structure, say) it is not immediately obvious whether the difficulty of numerical reconstruction from projective measurement data also necessarily scales exponential.  In many cases this does imply that the state has some simple structure, such as positive-real coefficients, or short-range entanglement.
+
+Second: yes, actual qubits will generally produce statistical mixtures of states.  Generalizations of these RBM procedures, like the purification described in Torlai and Melko, "Latent space purification via neural density operators", Phys. Rev. Lett. 120, 240503 (2018), can be used in this case on real experimental data.  This point has now been added to the last paragraph of the Conclusions.
+
+Response to report 2 "Requested Changes"
+
+> 1. Define precisely (with equations not words) the mathematical problem solved by QuCumber.
+> What is the RBM trial wavefuntion? What is the cost function which is optimized?
+
+The mathematical definitions are described in a precise and self-contained way, largely in the Glossary.  The trial wavefunction (the marginal distribution) and the cost function (KL divergence) are defined in equation (24) and (23) respectively.  We have now referred to these equations in the main text for increased clarity and readability.
+
+> 2. Add a short discussion of the applications of QuCumber (see the physics questions above).
+
+We have added to the introduction and conclusion in this regard.
+
+> 3. Define the entanglement entropy. Define its relation to the SWAP operator. 
+> It is also a bit strange that no actual data is shown for this quantity.
+
+We have defined the relative quantities and included a new plot in section 2.3.3
+
+> 4. In the introduction, clearly list the articles that explain QuCumber theory as well as those where QuCumber 
+> has been used to solve a physics problem.
+
+QuCumber theory is almost completely self contained in References 5 and 6, now clearly cited in the last paragraph of the introduction. In addition, we have cited the new review [28] in the introduction which contains an extensive review of RBM theory and applications quantum physics problems.
+
+
+
