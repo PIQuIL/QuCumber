@@ -212,7 +212,7 @@ sampling the distribution $P(\bm{\sigma}^z)=|\Psi(\bm{\sigma}^z)|^2$, obtaining
 a sequence of $N_S=10^5$ independent spin projections in the reference basis
 $\x = \bm{\sigma}^z$.\footnote{
         The training dataset can be downloaded from
-        \href{https://github.com/PIQuIL/QuCumber/blob/master/examples/Tutorial1_TrainPosRealWaveFunction/tfim1d_data.txt}{\texttt{https://github.com/PIQuIL/QuCumber/blob/master/\\examples/Tutorial1\_TrainPosRealWaveFunction/tfim1d\_data}}
+        \href{https://github.com/PIQuIL/QuCumber/blob/master/examples/Tutorial1_TrainPosRealWaveFunction/tfim1d_data.txt}{\texttt{https://github.com/PIQuIL/QuCumber/blob/master/\\examples/Tutorial1\_TrainPosRealWaveFunction/tfim1d\_data.txt}}
     }
 Each data point in $\mathcal{D}$ consists of an array $\bm{\sigma}^z_j=(\sigma^z_1,\dots,\sigma^z_N)$ with shape \verb|(N,)| and should be passed to QuCumber as a numpy array or torch tensor. For example, $\bm{\sigma}^z_j=$ \verb|np.array([1,0,1,1,0,1,0,0,0,1])|, where we use $\sigma_j^z=0,1$ to represent a spin-down and spin-up state respectively. Therefore, the entire input data set is contained in an array with shape \verb|(N_S, N)|.
 
