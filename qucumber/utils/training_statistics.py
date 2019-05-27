@@ -36,13 +36,10 @@ def fidelity(nn_state, target_psi, space, **kwargs):
     :rtype: torch.Tensor
     """
     Z = nn_state.compute_normalization(space)
-    F = torch.tensor([0.0, 0.0], dtype=torch.double, device=nn_state.device)
     target_psi = target_psi.to(nn_state.device)
-    for i in range(len(space)):
-        psi = nn_state.psi(space[i]) / Z.sqrt()
-        F[0] += target_psi[0, i] * psi[0] + target_psi[1, i] * psi[1]
-        F[1] += target_psi[0, i] * psi[1] - target_psi[1, i] * psi[0]
-    return cplx.norm_sqr(F)
+    psi = nn_state.psi(space) / Z.sqrt()
+    F = cplx.inner_prod(target_psi, psi)
+    return cplx.absolute_value(F).pow_(2).item()
 
 
 def rotate_psi(nn_state, basis, space, unitaries, psi=None):
@@ -94,7 +91,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
                 ].to(nn_state.device)
                 U = cplx.scalar_mult(U, tmp)
             if psi is None:
-                Upsi += cplx.scalar_mult(U, nn_state.psi(v))
+                Upsi += cplx.scalar_mult(U, nn_state.psi(v).squeeze())
             else:
                 index = 0
                 for k in range(len(v)):
