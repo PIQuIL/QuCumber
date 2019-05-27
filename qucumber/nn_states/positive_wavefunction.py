@@ -124,9 +124,7 @@ class PositiveWaveFunction(WaveFunctionBase):
             dtype=torch.double, device=self.device
         )
         psi[0] = amplitude
-
-        # squeeze down to complex scalar if there was only one visible state
-        return psi.squeeze()
+        return psi
 
     def gradient(self, v):
         r"""Compute the gradient of the effective energy for a batch of states.

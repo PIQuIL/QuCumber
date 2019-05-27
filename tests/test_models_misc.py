@@ -98,7 +98,7 @@ def test_positive_wavefunction_psi():
 
     vis_state = torch.ones(10).to(dtype=torch.double)
     actual_psi = nn_state.psi(vis_state)[1].to(vis_state)
-    expected_psi = torch.zeros(1).to(vis_state).squeeze()
+    expected_psi = torch.zeros(1).to(vis_state)
 
     msg = "PositiveWaveFunction is giving a non-zero imaginary part!"
     assert torch.equal(actual_psi, expected_psi), msg

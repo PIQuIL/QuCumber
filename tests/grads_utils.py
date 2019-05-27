@@ -173,7 +173,7 @@ class ComplexGradsUtils:
                     ]
                     U = cplx.scalar_mult(U, tmp)
 
-                Upsi += cplx.scalar_mult(U, self.nn_state.psi(v))
+                Upsi += cplx.scalar_mult(U, self.nn_state.psi(v).squeeze())
 
             psi_r[:, x] = Upsi
         return psi_r

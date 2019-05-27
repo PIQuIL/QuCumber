@@ -139,9 +139,7 @@ class ComplexWaveFunction(WaveFunctionBase):
         # elementwise products
         psi[0] = amplitude * phase.cos()  # real part
         psi[1] = amplitude * phase.sin()  # imaginary part
-
-        # squeeze down to complex scalar if there was only one visible state
-        return psi.squeeze()
+        return psi
 
     def init_gradient(self, basis, sites):
         Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
