@@ -153,10 +153,12 @@ class TestCplx(unittest.TestCase):
         )
 
     def test_scalar_matrix_mult(self):
-        scalar = torch.tensor([2, 3])
-        matrix = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+        scalar = torch.tensor([2, 3], dtype=torch.double)
+        matrix = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
 
-        expect = torch.tensor([[[-13, -14], [-15, -16]], [[13, 18], [23, 28]]])
+        expect = torch.tensor(
+            [[[-13, -14], [-15, -16]], [[13, 18], [23, 28]]], dtype=torch.double
+        )
 
         self.assertTensorsEqual(
             cplx.scalar_mult(scalar, matrix),
