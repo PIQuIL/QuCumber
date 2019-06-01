@@ -95,27 +95,38 @@ class BinaryRBM(nn.Module):
 
         return -(visible_bias_term + hid_bias_term)
 
-    def effective_energy_gradient(self, v):
+    def effective_energy_gradient(self, v, reduce=True):
         """The gradients of the effective energies for the given visible states.
 
         :param v: The visible states.
         :type v: torch.Tensor
+        :param reduce: If `True`, will sum over the gradients resulting from
+                       each visible state. Otherwise will return a batch of
+                       gradient vectors.
 
-        :returns: 1d vector containing the gradients for all parameters
-                  (computed on the given visible states v).
+        :returns: Will return a vector (or matrix if `reduce=False` and multiple
+                  visible states were given as a matrix) containing the gradients
+                  for all parameters (computed on the given visible states v).
         :rtype: torch.Tensor
         """
         v = v.to(self.weights)
         prob = self.prob_h_given_v(v)
 
         if v.dim() < 2:
-            W_grad = -torch.einsum("j,k->jk", (prob, v))
+            W_grad = -torch.ger(prob, v)
             vb_grad = -v
             hb_grad = -prob
         else:
-            W_grad = -torch.matmul(prob.t(), v)
-            vb_grad = -torch.sum(v, 0)
-            hb_grad = -torch.sum(prob, 0)
+            if reduce:
+                W_grad = -torch.matmul(prob.t(), v)
+                vb_grad = -torch.sum(v, 0)
+                hb_grad = -torch.sum(prob, 0)
+            else:
+                W_grad = -torch.einsum("ij,ik->ijk", prob, v)
+                vb_grad = -v
+                hb_grad = -prob
+                vec = [W_grad.view(v.size()[0], -1), vb_grad, hb_grad]
+                return torch.cat(vec, dim=1)
 
         return parameters_to_vector([W_grad, vb_grad, hb_grad])
 
@@ -214,8 +225,7 @@ class BinaryRBM(nn.Module):
 
         :param k: Number of Block Gibbs steps.
         :type k: int
-        :param initial_state: The initial state of the Markov Chain. If given,
-                              `num_samples` will be ignored.
+        :param initial_state: The initial state of the Markov Chains.
         :type initial_state: torch.Tensor
         :param overwrite: Whether to overwrite the initial_state tensor, if it is provided.
         :type overwrite: bool

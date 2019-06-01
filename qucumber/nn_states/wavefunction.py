@@ -157,7 +157,7 @@ class WaveFunctionBase(abc.ABC):
         :type k: int
         :param num_samples: The number of samples to generate.
         :type num_samples: int
-        :param initial_state: The initial state of the Markov Chain. If given,
+        :param initial_state: The initial state of the Markov Chains. If given,
                               `num_samples` will be ignored.
         :type initial_state: torch.Tensor
         :param overwrite: Whether to overwrite the initial_state tensor, if it is provided.
