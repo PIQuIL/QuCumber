@@ -225,8 +225,8 @@ class TestExamples(unittest.TestCase):
                 callbacks=callbacks,
             )
 
-            fidelities.append(ts.fidelity(nn_state, target_psi, space).item())
-            KLs.append(ts.KL(nn_state, target_psi, space).item())
+            fidelities.append(ts.fidelity(nn_state, target_psi, space))
+            KLs.append(ts.KL(nn_state, target_psi, space))
 
         print("\nStatistics")
         print("----------")
@@ -330,8 +330,8 @@ class TestExamples(unittest.TestCase):
                 callbacks=callbacks,
             )
 
-            fidelities.append(ts.fidelity(nn_state, target_psi, space).item())
-            KLs.append(ts.KL(nn_state, target_psi, space, bases=bases).item())
+            fidelities.append(ts.fidelity(nn_state, target_psi, space))
+            KLs.append(ts.KL(nn_state, target_psi, space, bases=bases))
 
         print("\nStatistics")
         print("----------")
