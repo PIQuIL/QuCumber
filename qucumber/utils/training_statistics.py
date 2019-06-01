@@ -33,7 +33,7 @@ def fidelity(nn_state, target_psi, space, **kwargs):
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
     :returns: The fidelity.
-    :rtype: torch.Tensor
+    :rtype: float
     """
     Z = nn_state.compute_normalization(space)
     target_psi = target_psi.to(nn_state.device)
@@ -116,7 +116,7 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
     :returns: The Negative Log-Likelihood.
-    :rtype: torch.Tensor
+    :rtype: float
     """
     psi_r = torch.zeros(
         2, 1 << nn_state.num_visible, dtype=torch.double, device=nn_state.device
@@ -150,7 +150,7 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
                         ind += pow(2, j)
                 NLL -= cplx.norm_sqr(psi_r[:, ind]).log().item()
                 NLL += Z.log()
-    return NLL / float(len(samples))
+    return (NLL / float(len(samples))).item()
 
 
 def KL(nn_state, target_psi, space, bases=None, **kwargs):
@@ -168,7 +168,7 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
     :returns: The KL divergence.
-    :rtype: torch.Tensor
+    :rtype: float
     """
     psi_r = torch.zeros(
         2, 1 << nn_state.num_visible, dtype=torch.double, device=nn_state.device
@@ -208,4 +208,4 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
                     * cplx.norm_sqr(psi_r[:, ii]).log().item()
                 )
                 KL += cplx.norm_sqr(target_psi_r[:, ii]) * Z.log()
-    return KL / float(num_bases)
+    return (KL / float(num_bases)).item()
