@@ -69,16 +69,15 @@ def scalar_mult(x, y, out=None):
     :type x: torch.Tensor
     :param y: A complex scalar, vector or matrix.
     :type y: torch.Tensor
-    :param z: The complex tensor to write the output to.
-    :type z: torch.Tensor
 
-    :param z: A complex scalar, vector or matrix. Can be None, in which case, a new tensor is created and returned. Otherwise, the method overwrites z.
-
-    :returns: The product between x and y. Either overwrites z, or returns a new tensor.
+    :returns: The product between `x` and `y`.
+              Either overwrites `out`, or returns a new tensor.
     :rtype: torch.Tensor
     """
     if out is None:
-        out = torch.zeros_like(y)
+        out = torch.zeros(
+            2, *((x[0] * y[0]).size()), dtype=torch.double, device=x.device
+        )
     else:
         if out is x or out is y:
             raise RuntimeError("Can't overwrite an argument!")
@@ -137,11 +136,11 @@ def inner_prod(x, y):
     z = torch.zeros(2, dtype=torch.double, device=x.device)
 
     if len(list(x.size())) == 2 and len(list(y.size())) == 2:
-        z[0] = torch.dot(x[0], y[0]) - torch.dot(-x[1], y[1])
+        z[0] = torch.dot(x[0], y[0]) + torch.dot(x[1], y[1])
         z[1] = torch.dot(x[0], y[1]) + torch.dot(-x[1], y[0])
 
     if len(list(x.size())) == 1 and len(list(y.size())) == 1:
-        z[0] = (x[0] * y[0]) - (-x[1] * y[1])
+        z[0] = (x[0] * y[0]) + (x[1] * y[1])
         z[1] = (x[0] * y[1]) + (-x[1] * y[0])
 
     return z
@@ -157,7 +156,7 @@ def outer_prod(x, y):
     :type y: torch.Tensor
 
     :raises ValueError:	If x and y are not complex vectors with their first
-                        dimensions being 2, then the function will not execute.
+                        dimensions being 2, then an error will be raised.
 
     :returns: The outer product between x and y,
         :math:`\\vert x \\rangle\\langle y\\vert`.
@@ -182,12 +181,12 @@ def conjugate(x):
     :returns: The conjugate of x.
     :rtype: torch.Tensor
     """
-    if len(list(x.size())) == 2:
-        z = torch.zeros(2, x.size()[1], dtype=torch.double, device=x.device)
+    if x.dim() == 1 or x.dim() == 2:
+        z = torch.zeros_like(x, dtype=torch.double, device=x.device)
         z[0] = x[0]
         z[1] = -x[1]
 
-    if len(list(x.size())) == 3:
+    if x.dim() == 3:
         z = torch.zeros(
             2, x.size()[2], x.size()[1], dtype=torch.double, device=x.device
         )
@@ -295,21 +294,9 @@ def scalar_divide(x, y):
     :returns: x / y
     :rtype: torch.Tensor
     """
-    if len(list(x.size())) == 2 or len(list(x.size())) == 1:
-        y_star = torch.zeros_like(y)
-        y_star[0] = y[0]
-        y_star[1] = -y[1]
-
-        numerator = scalar_mult(y_star, x)
-        denominator = scalar_mult(y, y_star)[0]
-
-    if len(list(x.size())) == 3:
-        y_star = torch.zeros_like(y)
-        y_star[0] = y[0]
-        y_star[1] = -y[1]
-
-        numerator = scalar_mult(y_star, x)
-        denominator = scalar_mult(y, y_star)[0]
+    y_star = conjugate(y)
+    numerator = scalar_mult(x, y_star)
+    denominator = real(scalar_mult(y, y_star))
 
     return numerator / denominator
 
@@ -323,7 +310,7 @@ def norm_sqr(x):
     :returns: :math:`|x|^2`.
     :rtype: torch.Tensor
     """
-    return inner_prod(x, x)[0]
+    return real(inner_prod(x, x))
 
 
 def norm(x):
@@ -335,4 +322,4 @@ def norm(x):
     :returns: :math:`|x|`.
     :rtype: torch.Tensor
     """
-    return inner_prod(x, x)[0].sqrt_()
+    return norm_sqr(x).sqrt_()
