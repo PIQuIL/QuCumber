@@ -163,7 +163,7 @@ class ComplexWaveFunction(WaveFunctionBase):
         # if the number of rotated sites is too large, fallback to loop
         #  since memory may be unable to store the entire expanded set of
         #  visible states
-        if sites.size > (self.max_size - np.log2(len(sample))):
+        if sites.size > self.max_size:
             grad_size = (
                 self.num_visible * self.num_hidden + self.num_hidden + self.num_visible
             )
