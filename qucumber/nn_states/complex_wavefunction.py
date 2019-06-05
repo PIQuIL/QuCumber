@@ -163,7 +163,9 @@ class ComplexWaveFunction(WaveFunctionBase):
         # if the number of rotated sites is too large, fallback to loop
         #  since memory may be unable to store the entire expanded set of
         #  visible states
-        if sites.size > self.max_size:
+        if sites.size > self.max_size or (
+            hasattr(self, "debug_gradient_rotation") and self.debug_gradient_rotation
+        ):
             grad_size = (
                 self.num_visible * self.num_hidden + self.num_hidden + self.num_visible
             )
