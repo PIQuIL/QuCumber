@@ -14,7 +14,6 @@
 
 
 import os.path
-import unittest
 import pytest
 
 import numpy as np
@@ -159,226 +158,226 @@ def test_stop_training_in_epoch(gpu):
     assert nn_state.stop_training, msg
 
 
-class TestExamples(unittest.TestCase):
-    @pytest.mark.slow
-    def test_trainingpositive(self):
-        print("Positive WaveFunction")
-        print("---------------------")
+@pytest.mark.slow
+def test_trainingpositive():
+    print("Positive WaveFunction")
+    print("---------------------")
 
-        train_samples_path = os.path.join(
-            __tests_location__,
-            "..",
-            "examples",
-            "Tutorial1_TrainPosRealWaveFunction",
-            "tfim1d_data.txt",
+    train_samples_path = os.path.join(
+        __tests_location__,
+        "..",
+        "examples",
+        "Tutorial1_TrainPosRealWaveFunction",
+        "tfim1d_data.txt",
+    )
+    psi_path = os.path.join(
+        __tests_location__,
+        "..",
+        "examples",
+        "Tutorial1_TrainPosRealWaveFunction",
+        "tfim1d_psi.txt",
+    )
+
+    train_samples, target_psi = data.load_data(train_samples_path, psi_path)
+
+    nv = nh = train_samples.shape[-1]
+
+    fidelities = []
+    KLs = []
+
+    epochs = 5
+    batch_size = 100
+    num_chains = 200
+    CD = 10
+    lr = 0.1
+    log_every = 5
+
+    print("Training 10 times and checking fidelity and KL at 5 epochs...\n")
+    for i in range(10):
+        print("Iteration: ", i + 1)
+
+        nn_state = PositiveWaveFunction(num_visible=nv, num_hidden=nh, gpu=False)
+
+        space = nn_state.generate_hilbert_space(nv)
+        callbacks = [
+            MetricEvaluator(
+                log_every,
+                {"Fidelity": ts.fidelity, "KL": ts.KL},
+                target_psi=target_psi,
+                space=space,
+                verbose=True,
+            )
+        ]
+
+        initialize_posreal_params(nn_state)
+
+        nn_state.fit(
+            data=train_samples,
+            epochs=epochs,
+            pos_batch_size=batch_size,
+            neg_batch_size=num_chains,
+            k=CD,
+            lr=lr,
+            time=True,
+            progbar=False,
+            callbacks=callbacks,
         )
-        psi_path = os.path.join(
-            __tests_location__,
-            "..",
-            "examples",
-            "Tutorial1_TrainPosRealWaveFunction",
-            "tfim1d_psi.txt",
+
+        fidelities.append(ts.fidelity(nn_state, target_psi, space))
+        KLs.append(ts.KL(nn_state, target_psi, space))
+
+    print("\nStatistics")
+    print("----------")
+    print(
+        "Fidelity: ",
+        np.average(fidelities),
+        "+/-",
+        np.std(fidelities) / np.sqrt(len(fidelities)),
+        "\n",
+    )
+    print("KL: ", np.average(KLs), "+/-", np.std(KLs) / np.sqrt(len(KLs)), "\n")
+
+    assert abs(np.average(fidelities) - 0.85) < 0.02
+    assert abs(np.average(KLs) - 0.29) < 0.05
+    assert (np.std(fidelities) / np.sqrt(len(fidelities))) < 0.01
+    assert (np.std(KLs) / np.sqrt(len(KLs))) < 0.01
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("vectorized", [True, False])
+def test_trainingcomplex(vectorized):
+    print("Complex WaveFunction")
+    print("--------------------")
+
+    train_samples_path = os.path.join(
+        __tests_location__,
+        "..",
+        "examples",
+        "Tutorial2_TrainComplexWaveFunction",
+        "qubits_train.txt",
+    )
+    train_bases_path = os.path.join(
+        __tests_location__,
+        "..",
+        "examples",
+        "Tutorial2_TrainComplexWaveFunction",
+        "qubits_train_bases.txt",
+    )
+    bases_path = os.path.join(
+        __tests_location__,
+        "..",
+        "examples",
+        "Tutorial2_TrainComplexWaveFunction",
+        "qubits_bases.txt",
+    )
+    psi_path = os.path.join(
+        __tests_location__,
+        "..",
+        "examples",
+        "Tutorial2_TrainComplexWaveFunction",
+        "qubits_psi.txt",
+    )
+
+    train_samples, target_psi, train_bases, bases = data.load_data(
+        train_samples_path, psi_path, train_bases_path, bases_path
+    )
+
+    unitary_dict = unitaries.create_dict()
+    nv = nh = train_samples.shape[-1]
+
+    fidelities = []
+    KLs = []
+
+    epochs = 5
+    batch_size = 50
+    num_chains = 10
+    CD = 10
+    lr = 0.1
+    log_every = 5
+
+    print("Training 10 times and checking fidelity and KL at 5 epochs...\n")
+    for i in range(10):
+        print("Iteration: ", i + 1)
+
+        nn_state = ComplexWaveFunction(
+            unitary_dict=unitary_dict, num_visible=nv, num_hidden=nh, gpu=False
         )
 
-        train_samples, target_psi = data.load_data(train_samples_path, psi_path)
+        if not vectorized:
+            nn_state.debug_gradient_rotation = True
 
-        nv = nh = train_samples.shape[-1]
+        space = nn_state.generate_hilbert_space(nv)
+        callbacks = [
+            MetricEvaluator(
+                log_every,
+                {"Fidelity": ts.fidelity, "KL": ts.KL},
+                target_psi=target_psi,
+                bases=bases,
+                space=space,
+                verbose=True,
+            )
+        ]
 
-        fidelities = []
-        KLs = []
+        initialize_complex_params(nn_state)
 
-        epochs = 5
-        batch_size = 100
-        num_chains = 200
-        CD = 10
-        lr = 0.1
-        log_every = 5
+        nn_state.fit(
+            data=train_samples,
+            epochs=epochs,
+            pos_batch_size=batch_size,
+            neg_batch_size=num_chains,
+            k=CD,
+            lr=lr,
+            time=True,
+            input_bases=train_bases,
+            progbar=False,
+            callbacks=callbacks,
+        )
 
-        print("Training 10 times and checking fidelity and KL at 5 epochs...\n")
-        for i in range(10):
-            print("Iteration: ", i + 1)
+        fidelities.append(ts.fidelity(nn_state, target_psi, space))
+        KLs.append(ts.KL(nn_state, target_psi, space, bases=bases))
 
-            nn_state = PositiveWaveFunction(num_visible=nv, num_hidden=nh, gpu=False)
+    print("\nStatistics")
+    print("----------")
+    print(
+        "Fidelity: ",
+        np.average(fidelities),
+        "+/-",
+        np.std(fidelities) / np.sqrt(len(fidelities)),
+        "\n",
+    )
+    print("KL: ", np.average(KLs), "+/-", np.std(KLs) / np.sqrt(len(KLs)), "\n")
 
-            space = nn_state.generate_hilbert_space(nv)
-            callbacks = [
-                MetricEvaluator(
-                    log_every,
-                    {"Fidelity": ts.fidelity, "KL": ts.KL},
-                    target_psi=target_psi,
-                    space=space,
-                    verbose=True,
-                )
-            ]
+    assert abs(np.average(fidelities) - 0.38) < 0.05
+    assert abs(np.average(KLs) - 0.33) < 0.05
+    assert (np.std(fidelities) / np.sqrt(len(fidelities))) < 0.01
+    assert (np.std(KLs) / np.sqrt(len(KLs))) < 0.01
 
-            self.initialize_posreal_params(nn_state)
 
-            nn_state.fit(
-                data=train_samples,
-                epochs=epochs,
-                pos_batch_size=batch_size,
-                neg_batch_size=num_chains,
-                k=CD,
-                lr=lr,
-                time=True,
-                progbar=False,
-                callbacks=callbacks,
+def initialize_posreal_params(nn_state):
+    with open(
+        os.path.join(__tests_location__, "data", "test_training_init_pos_params.npz"),
+        "rb",
+    ) as f:
+        x = np.load(f)
+        for p in x.files:
+            getattr(nn_state.rbm_am, p).data = torch.tensor(x[p]).to(
+                getattr(nn_state.rbm_am, p)
             )
 
-            fidelities.append(ts.fidelity(nn_state, target_psi, space))
-            KLs.append(ts.KL(nn_state, target_psi, space))
 
-        print("\nStatistics")
-        print("----------")
-        print(
-            "Fidelity: ",
-            np.average(fidelities),
-            "+/-",
-            np.std(fidelities) / np.sqrt(len(fidelities)),
-            "\n",
-        )
-        print("KL: ", np.average(KLs), "+/-", np.std(KLs) / np.sqrt(len(KLs)), "\n")
+def initialize_complex_params(nn_state):
+    with open(
+        os.path.join(
+            __tests_location__, "data", "test_training_init_complex_params.npz"
+        ),
+        "rb",
+    ) as f:
+        x = np.load(f)
+        for p in x.files:
+            if p.startswith("am"):
+                rbm = nn_state.rbm_am
+            elif p.startswith("ph"):
+                rbm = nn_state.rbm_ph
 
-        self.assertTrue(abs(np.average(fidelities) - 0.85) < 0.02)
-        self.assertTrue(abs(np.average(KLs) - 0.29) < 0.05)
-        self.assertTrue((np.std(fidelities) / np.sqrt(len(fidelities))) < 0.01)
-        self.assertTrue((np.std(KLs) / np.sqrt(len(KLs))) < 0.01)
-
-    @pytest.mark.slow
-    def test_trainingcomplex(self):
-        print("Complex WaveFunction")
-        print("--------------------")
-
-        train_samples_path = os.path.join(
-            __tests_location__,
-            "..",
-            "examples",
-            "Tutorial2_TrainComplexWaveFunction",
-            "qubits_train.txt",
-        )
-        train_bases_path = os.path.join(
-            __tests_location__,
-            "..",
-            "examples",
-            "Tutorial2_TrainComplexWaveFunction",
-            "qubits_train_bases.txt",
-        )
-        bases_path = os.path.join(
-            __tests_location__,
-            "..",
-            "examples",
-            "Tutorial2_TrainComplexWaveFunction",
-            "qubits_bases.txt",
-        )
-        psi_path = os.path.join(
-            __tests_location__,
-            "..",
-            "examples",
-            "Tutorial2_TrainComplexWaveFunction",
-            "qubits_psi.txt",
-        )
-
-        train_samples, target_psi, train_bases, bases = data.load_data(
-            train_samples_path, psi_path, train_bases_path, bases_path
-        )
-
-        unitary_dict = unitaries.create_dict()
-        nv = nh = train_samples.shape[-1]
-
-        fidelities = []
-        KLs = []
-
-        epochs = 5
-        batch_size = 50
-        num_chains = 10
-        CD = 10
-        lr = 0.1
-        log_every = 5
-
-        print("Training 10 times and checking fidelity and KL at 5 epochs...\n")
-        for i in range(10):
-            print("Iteration: ", i + 1)
-
-            nn_state = ComplexWaveFunction(
-                unitary_dict=unitary_dict, num_visible=nv, num_hidden=nh, gpu=False
-            )
-
-            space = nn_state.generate_hilbert_space(nv)
-            callbacks = [
-                MetricEvaluator(
-                    log_every,
-                    {"Fidelity": ts.fidelity, "KL": ts.KL},
-                    target_psi=target_psi,
-                    bases=bases,
-                    space=space,
-                    verbose=True,
-                )
-            ]
-
-            self.initialize_complex_params(nn_state)
-
-            nn_state.fit(
-                data=train_samples,
-                epochs=epochs,
-                pos_batch_size=batch_size,
-                neg_batch_size=num_chains,
-                k=CD,
-                lr=lr,
-                time=True,
-                input_bases=train_bases,
-                progbar=False,
-                callbacks=callbacks,
-            )
-
-            fidelities.append(ts.fidelity(nn_state, target_psi, space))
-            KLs.append(ts.KL(nn_state, target_psi, space, bases=bases))
-
-        print("\nStatistics")
-        print("----------")
-        print(
-            "Fidelity: ",
-            np.average(fidelities),
-            "+/-",
-            np.std(fidelities) / np.sqrt(len(fidelities)),
-            "\n",
-        )
-        print("KL: ", np.average(KLs), "+/-", np.std(KLs) / np.sqrt(len(KLs)), "\n")
-
-        self.assertTrue(abs(np.average(fidelities) - 0.38) < 0.05)
-        self.assertTrue(abs(np.average(KLs) - 0.33) < 0.05)
-        self.assertTrue((np.std(fidelities) / np.sqrt(len(fidelities))) < 0.01)
-        self.assertTrue((np.std(KLs) / np.sqrt(len(KLs))) < 0.01)
-
-    def initialize_posreal_params(self, nn_state):
-        with open(
-            os.path.join(
-                __tests_location__, "data", "test_training_init_pos_params.npz"
-            ),
-            "rb",
-        ) as f:
-            x = np.load(f)
-            for p in x.files:
-                getattr(nn_state.rbm_am, p).data = torch.tensor(x[p]).to(
-                    getattr(nn_state.rbm_am, p)
-                )
-
-    def initialize_complex_params(self, nn_state):
-        with open(
-            os.path.join(
-                __tests_location__, "data", "test_training_init_complex_params.npz"
-            ),
-            "rb",
-        ) as f:
-            x = np.load(f)
-            for p in x.files:
-                if p.startswith("am"):
-                    rbm = nn_state.rbm_am
-                elif p.startswith("ph"):
-                    rbm = nn_state.rbm_ph
-
-                q = p.split("_", maxsplit=1)[-1]
-                getattr(rbm, q).data = torch.tensor(x[p]).to(getattr(rbm, q))
-
-
-if __name__ == "__main__":
-    unittest.main()
+            q = p.split("_", maxsplit=1)[-1]
+            getattr(rbm, q).data = torch.tensor(x[p]).to(getattr(rbm, q))
