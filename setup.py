@@ -85,7 +85,6 @@ setuptools.setup(
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: Implementation :: CPython",
@@ -95,7 +94,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Physics",
     ],
-    python_requires=">=3.5,<4",
+    python_requires=">=3.6.2,<4",
     install_requires=install_requires,
     extras_require=extras_require,
     include_package_data=True,
