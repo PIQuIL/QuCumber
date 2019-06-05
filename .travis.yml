@@ -16,11 +16,6 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      python: 3.5
-      sudo: false
-      env: PY_TAG='cp35'
-    - os: linux
-      dist: trusty
       python: 3.6
       sudo: false
       env: PY_TAG='cp36'
