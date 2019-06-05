@@ -22,13 +22,6 @@ environment:
     secure: RiEtWWbwT/PhNWGFmBJZQvuOalat5UgYWSQAhBvgEJY=
 
   matrix:
-    - PYTHON: "C:\\Python35-x64"
-      PYTHON_VERSION: "3.5.x"
-      PY_SHORT_VER: "3.5"
-      PY_TAG: "cp35"
-      PYTHON_ARCH: "64"
-      PLAT_NAME: "win-amd64"
-
     - PYTHON: "C:\\Python36-x64"
       PYTHON_VERSION: "3.6.x"
       PY_SHORT_VER: "3.6"

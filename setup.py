@@ -26,8 +26,7 @@ install_requires = [
     "torch>=1.0,<1.2; sys_platform != 'win32'",
     "tqdm>=4.23",
     "numpy>=1.13",
-    "matplotlib>=2.2,<3.1; python_version < '3.6'",  # matplotlib 3.1+ requires python 3.6
-    "matplotlib>=2.2; python_version >= '3.6'",
+    "matplotlib>=2.2",
 ]
 
 # using a requirements.txt file for RTD dependencies
@@ -94,7 +93,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Physics",
     ],
-    python_requires=">=3.6.2,<4",
+    python_requires=">=3.6.1,<4",
     install_requires=install_requires,
     extras_require=extras_require,
     include_package_data=True,
