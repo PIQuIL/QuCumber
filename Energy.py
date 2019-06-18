@@ -1,7 +1,7 @@
 import os.path
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
+import time
 
 from qucumber.nn_states import PositiveWavefunction
 from qucumber.callbacks import MetricEvaluator
@@ -90,7 +90,7 @@ def trainEnergy(numQubits,
                 storeFidelities = False,
                 plotError = False,
                 model = "Heisenberg1DFM",
-                earlyStoppingParams = [0.0005,50,0.0005],
+                earlyStoppingParams = [0.0005,50,0.10],
                 seeds = [777,888,999],
                 study = "Nh"):
     '''
@@ -219,9 +219,12 @@ def trainEnergy(numQubits,
             minError = []
             maxError = []
             fidelities = []
+            elapsedTimes = []
 
             # Run over several epochs until passed or converged
             for i in range(10000):
+
+                startTime = time.time()
 
                 nn_state.fit(
                     train_data,
@@ -233,9 +236,11 @@ def trainEnergy(numQubits,
                     callbacks=callbacks,
                 )
 
+                runTime = time.time() - startTime
+                elapsedTimes.append(runTime)
+
                 if storeFidelities:
-                    fidelity = callbacks[1].Fidelity
-                    fidelities.append(fidelity[0])
+                    fidelities = callbacks[1].Fidelity
 
                 if model == "Heisenberg1D":
                     energies = callbacks[0].Heisenberg1DEnergy.mean
@@ -316,9 +321,13 @@ def trainEnergy(numQubits,
 
             for i in range(len(epochs)):
                 rfile.write("Epoch {0}:   ".format(epochs[i]))
+                if storeFidelities:
+                    fidelity = fidelities[i] * 100
+                    rfile.write("Fidelity: {0:.2f}   ".format(fidelity))
                 rfile.write("ROE: {0:.8f}   ".format(roes[i]))
                 rfile.write("ROE Upper Bound: {0:.8f}   ".format(maxError[i]))
                 rfile.write("MM Ratio: {0:.4f}   ".format(mmRatio[i]))
+                rfile.write("Elapsed Time: {0:.2f} s".format(elapsedTimes[i]))
                 rfile.write("\n")
 
             rfile.close()
