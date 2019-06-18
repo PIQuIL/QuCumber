@@ -90,7 +90,7 @@ def trainEnergy(numQubits,
                 storeFidelities = False,
                 plotError = False,
                 model = "Heisenberg1DFM",
-                earlyStoppingParams = [0.0005,50,0.10],
+                earlyStoppingParams = [0.0005,50,0.0005],
                 seeds = [777,888,999],
                 study = "Nh"):
     '''
@@ -154,7 +154,7 @@ def trainEnergy(numQubits,
         nbs = 100
         lr = 0.01
         k = 1
-        log_every = 20
+        log_every = 10
 
     if model == "Heisenberg1D":
         modelEnergy = Heisenberg1DEnergy()
