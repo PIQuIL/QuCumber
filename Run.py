@@ -19,7 +19,7 @@ else:
     sf = False
 
 energy.trainEnergy(numQubits = N,
-                   nh = 10,
+                   nh = 1,
                    numSamples1 = 100000,
                    numSamples2 = 5000,
                    burn_in = 500,
