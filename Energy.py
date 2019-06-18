@@ -86,7 +86,6 @@ def trainEnergy(numQubits,
                 burn_in = 500,
                 steps = 100,
                 mT = 500,
-                trial = 1,
                 storeFidelities = False,
                 plotError = False,
                 model = "Heisenberg1DFM",
@@ -114,8 +113,6 @@ def trainEnergy(numQubits,
     :type steps: int
     :param mT: Maximum time elapsed during training.
     :type mT: int or float
-    :param trial: Trial number. Default is 1.
-    :type trial: int
     :param storeFidelities: Store fidelities.
     :type storeFidelities: bool
     :param plotError: Plot error.
@@ -397,6 +394,3 @@ def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1,model = 
     print("ROE: {0}".format(ROE))
     print("Min Error for 99% CI: {0}".format(minError))
     print("Max Error for 99% CI: {0}".format(maxError))
-
-trainEnergy(10,10,numSamples1 = 10000,numSamples2 = 5000,burn_in = 500,steps = 100,mT = 30,trial = 1,storeFidelities = True,model = "TFIM1D")
-# confidence(10,10000,1000,100,trial = 1,model = "TFIM1D")
