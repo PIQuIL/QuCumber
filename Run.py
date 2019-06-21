@@ -1,11 +1,12 @@
 import sys
 import itertools
+import random
 import Energy as energy
 
 TASK_ID = int(sys.argv[1]) # 0 refers to the script name
 
 Ns = list(range(10, 101, 10))
-seeds = [777,888,999]
+seeds = random.sample(range(100),5)
 
 # Number of jobs is len(tasks)
 tasks = list(itertools.product(Ns, seeds))
