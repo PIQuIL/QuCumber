@@ -34,7 +34,7 @@ def readROEs(resultsfile,nQ):
 
     return roes
 
-def plotScaling(listQ,study,tol,pat,reqs):
+def plotScaling(listQ,study,tol,pat,reqs,fit = False):
     '''
     Plot scaling of number of hidden units or number of samples
     versus system size for various thresholds on the ROE upper bound.
@@ -53,7 +53,7 @@ def plotScaling(listQ,study,tol,pat,reqs):
     :returns: None
     '''
 
-    for req in reqs:
+    for i in range(len(reqs)):
 
         vals = []
         counter = 0
@@ -68,7 +68,7 @@ def plotScaling(listQ,study,tol,pat,reqs):
                 for trial in sorted(trials):
                     rp = folder + "/" + trial + "/" + "Results.txt"
                     roes = readROEs(rp,nQ)
-                    result = energy.earlyStopping(roes,tol,pat,req)
+                    result = energy.earlyStopping(roes,tol,pat,reqs[i])
                     if result != False:
                         if result[-2] == "!":
                             vals[counter].append(int(trial[len(study):]))
@@ -81,7 +81,14 @@ def plotScaling(listQ,study,tol,pat,reqs):
 
         vals = np.array(vals)
         valsMin = np.min(vals,axis = 1)
-        plt.plot(listQ,valsMin,"-o",label = req)
+        colours = ["b","g","r","c","m"]
+        if fit:
+            slope,intercept = np.polyfit(listQ,valsMin,1)
+            lineValues = [slope * k + intercept for k in listQ]
+            plt.plot(listQ,valsMin,"o",label = reqs[i],color = colours[i])
+            plt.plot(listQ,lineValues,color = colours[i])
+        else:
+            plt.plot(listQ,valsMin,"-o",label = req)
 
     plt.xlabel("Number of Qubits")
     if study == "Nh":
@@ -100,7 +107,8 @@ plotScaling(listQ = list(range(10,81,10)),
             study = "Nh",
             tol = 0.0005,
             pat = 50,
-            reqs = [0.002,0.003,0.004,0.005])
+            reqs = [0.002,0.003,0.004,0.005],
+            fit = True)
 
 # numQubits = [10,20,30,40,50,60,70,80,90,100]
 # nh = [5,10,16,22,28,33,39,45,50,57]
