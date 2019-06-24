@@ -101,9 +101,9 @@ def plotScaling(listQ,study,tol,pat,reqs,fit = False):
         title += " with 99% CI (Across {0} Trials)".format(len(seeds))
     plt.title(title)
     plt.legend()
-    plt.show()
+    plt.savefig("Scaling",dpi = 200)
 
-plotScaling(listQ = list(range(10,81,10)),
+plotScaling(listQ = list(range(10,101,10)),
             study = "Nh",
             tol = 0.0005,
             pat = 50,
