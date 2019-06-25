@@ -130,13 +130,13 @@ def trainEnergy(numQubits,
     if storeFidelities:
         psi_path = r"Samples/{0}/{1}Q/Amplitudes.txt".format(model,numQubits)
         train_path = r"Samples/{0}/{1}Q/Samples.txt".format(model,numQubits)
-        train_data, true_psi = data.load_data(train_path, psi_path,
-                                              numSamples=numSamples1)
+        samples, true_psi = data.load_data(train_path, psi_path,
+                                          numSamples = numSamples1)
     else:
         train_path = r"Samples/{0}/{1}Q/Samples.txt".format(model,numQubits)
-        train_data = data.load_data(train_path, numSamples=numSamples1)[0]
+        samples = data.load_data(train_path, numSamples = numSamples1)[0]
 
-    nv = train_data.shape[-1]
+    nv = samples.shape[-1]
 
     if model == "Heisenberg1D":
         epochs = 10000
@@ -175,6 +175,14 @@ def trainEnergy(numQubits,
 
         # Each iteration will correspond to an increment in Nh or M
         while not passed:
+
+            # Update number of samples if running M study
+            if study == "M":
+                if storeFidelities:
+                    samples, true_psi = data.load_data(train_path, psi_path,
+                                                       numSamples=currentM)
+                else:
+                    samples = data.load_data(train_path,numSamples=currentM)[0]
 
             if storeFidelities:
                 callbacks = [
@@ -224,7 +232,7 @@ def trainEnergy(numQubits,
                 startTime = time.time()
 
                 nn_state.fit(
-                    train_data,
+                    samples,
                     epochs=log_every,
                     pos_batch_size=pbs,
                     neg_batch_size=nbs,
@@ -286,7 +294,7 @@ def trainEnergy(numQubits,
                         if study == "Nh":
                             currentNh += 1
                         elif study == "M":
-                            currentM += 1000
+                            currentM += 2500
                     break
 
             path1 = "Data/{0}Study".format(study)
