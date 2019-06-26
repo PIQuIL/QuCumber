@@ -57,16 +57,16 @@ class BinaryRBM(nn.Module):
                 )
                 / np.sqrt(self.num_visible)
             ),
-            requires_grad=True,
+            requires_grad=False,
         )
 
         self.visible_bias = nn.Parameter(
             torch.zeros(self.num_visible, device=self.device, dtype=torch.double),
-            requires_grad=True,
+            requires_grad=False,
         )
         self.hidden_bias = nn.Parameter(
             torch.zeros(self.num_hidden, device=self.device, dtype=torch.double),
-            requires_grad=True,
+            requires_grad=False,
         )
 
     def effective_energy(self, v):
