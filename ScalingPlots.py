@@ -65,8 +65,18 @@ def plotScaling(listQ,study,tol,pat,reqs,fit = False):
             for seed in seeds:
                 folder = "Data/{0}Study/Q{1}/{2}".format(study,nQ,seed)
                 trials = [name for name in os.listdir(folder)]
-                for trial in sorted(trials):
-                    rp = folder + "/" + trial + "/" + "Results.txt"
+                trialsAlphaNum = {}
+                for j in range(len(trials)):
+                    if study == "Nh" and len(trials[j]) == 3:
+                        trialsAlphaNum["Nh0" + trials[j][-1]] = j
+                    elif study == "M" and len(trials[j]) == 5:
+                        trialsAlphaNum["M0" + trials[j][1:]] = j
+                    else:
+                        trialsAlphaNum[trials[j]] = j
+
+                for trial in sorted(trialsAlphaNum):
+                    tfile = trials[trialsAlphaNum[trial]]
+                    rp = folder + "/" + tfile + "/" + "Results.txt"
                     roes = readROEs(rp,nQ)
                     result = energy.earlyStopping(roes,tol,pat,reqs[i])
                     if result != False:
@@ -74,6 +84,7 @@ def plotScaling(listQ,study,tol,pat,reqs,fit = False):
                             vals[counter].append(int(trial[len(study):]))
                             passed = True
                             break
+
                 if not passed:
                     vals[counter].append(100000)
                 passed = False
