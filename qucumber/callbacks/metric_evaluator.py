@@ -137,10 +137,8 @@ class MetricEvaluator(CallbackBase):
             self.past_values.append((epoch, metric_vals_for_epoch))
 
             if self.verbose is True:
-                print("Epoch: {}\t".format(epoch), end="", flush=True)
-                print(
-                    "\t".join("{} = {:.6f}".format(k, v) for k, v in self.last.items())
-                )
+                print(f"Epoch: {epoch}\t", end="", flush=True)
+                print("\t".join(f"{k} = {v:.6f}" for k, v in self.last.items()))
 
             if self.log is not None:
                 with open(self.log, "a") as log_file:

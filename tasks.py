@@ -84,7 +84,7 @@ def license_check(c, length_cutoff=15, extensions=None, exclude=None):
         num_fails += int(is_license_missing(str(path), length_cutoff, exclude))
 
     if num_fails > 0:
-        print("License Header missing in {} files.".format(num_fails))
+        print(f"License Header missing in {num_fails} files.")
     else:
         print("License checking completed successfully.")
 
@@ -123,7 +123,7 @@ def lint_example_notebooks(c, linter="flake8"):
     try:
         linter_command = linter_commands[linter]
     except KeyError:
-        raise ValueError("Linter, {}, not supported!".format(linter))
+        raise ValueError(f"Linter, {linter}, not supported!")
 
     nb_paths = pathlib.Path("./examples").glob("**/*[!checkpoint].ipynb")
     num_fails = 0
@@ -145,7 +145,7 @@ def lint_example_notebooks(c, linter="flake8"):
         print(
             "-" * pty_size()[0]
             + "\nSome notebook code is improperly formatted.\n"
-            + "Number of unformatted files reported: {}\n".format(num_fails)
+            + f"Number of unformatted files reported: {num_fails}\n"
             + "Files with errors:\n{}".format(pformat(failed_files))
         )
         sys.exit(num_fails)

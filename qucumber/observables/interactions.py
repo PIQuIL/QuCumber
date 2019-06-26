@@ -37,7 +37,7 @@ class NeighbourInteraction(ObservableBase):
         self.name = "NeighbourInteraction(periodic_bcs={}, c={})".format(
             self.periodic_bcs, self.c
         )
-        self.symbol = "(Z_i * Z_(i+{}))".format(self.c)
+        self.symbol = f"(Z_i * Z_(i+{self.c}))"
 
     def apply(self, nn_state, samples):
         r"""Computes the energy of this neighbour interaction for each sample

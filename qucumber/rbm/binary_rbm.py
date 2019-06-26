@@ -24,7 +24,7 @@ from qucumber import _warn_on_missing_gpu
 
 class BinaryRBM(nn.Module):
     def __init__(self, num_visible, num_hidden, zero_weights=False, gpu=True):
-        super(BinaryRBM, self).__init__()
+        super().__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
         self.num_pars = (

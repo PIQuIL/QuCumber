@@ -22,7 +22,7 @@ def test_default_unitary_dict():
     unitary_dict = unitaries.create_dict()
 
     msg = "Default Unitary dictionary has the wrong keys!"
-    assert set(["X", "Y", "Z"]) == set(unitary_dict.keys()), msg
+    assert {"X", "Y", "Z"} == set(unitary_dict.keys()), msg
 
 
 def test_adding_unitaries():
@@ -34,4 +34,4 @@ def test_adding_unitaries():
     )
 
     msg = "Unitary dictionary has the wrong keys!"
-    assert set(["X", "Y", "Z", "A"]) == set(unitary_dict.keys()), msg
+    assert {"X", "Y", "Z", "A"} == set(unitary_dict.keys()), msg

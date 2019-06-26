@@ -69,7 +69,7 @@ class LambdaCallback(CallbackBase):
         elif fn is None:
             return lambda *args: None
         else:
-            raise TypeError("{} must be either None or a function".format(name))
+            raise TypeError(f"{name} must be either None or a function")
 
     def __init__(
         self,
@@ -80,7 +80,7 @@ class LambdaCallback(CallbackBase):
         on_batch_start=None,
         on_batch_end=None,
     ):
-        super(LambdaCallback, self).__init__()
+        super().__init__()
         self.on_train_start = self._validate_function(
             on_train_start, 1, "on_train_start"
         )

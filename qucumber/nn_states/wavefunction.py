@@ -191,7 +191,7 @@ class WaveFunctionBase(abc.ABC):
         """
         device = device if device is not None else self.device
         size = size if size else self.num_visible
-        space = (((num & (1 << np.arange(size)))) > 0)[::-1]
+        space = ((num & (1 << np.arange(size))) > 0)[::-1]
         space = space.astype(int)
         return torch.tensor(space, dtype=torch.double, device=device)
 
@@ -213,7 +213,7 @@ class WaveFunctionBase(abc.ABC):
             raise ValueError("Size of the Hilbert space is too large!")
         else:
             dim = np.arange(2 ** size)
-            space = (((dim[:, None] & (1 << np.arange(size)))) > 0)[:, ::-1]
+            space = ((dim[:, None] & (1 << np.arange(size))) > 0)[:, ::-1]
             space = space.astype(int)
             return torch.tensor(space, dtype=torch.double, device=device)
 
@@ -248,9 +248,7 @@ class WaveFunctionBase(abc.ABC):
         # validate metadata
         for net in self.networks:
             if net in metadata.keys():
-                raise ValueError(
-                    "Invalid key in metadata; '{}' cannot be a key!".format(net)
-                )
+                raise ValueError(f"Invalid key in metadata; '{net}' cannot be a key!")
 
         data = {net: getattr(self, net).state_dict() for net in self.networks}
         data.update(**metadata)
@@ -422,7 +420,7 @@ class WaveFunctionBase(abc.ABC):
         time=False,
         callbacks=None,
         optimizer=torch.optim.SGD,
-        **kwargs
+        **kwargs,
     ):
         """Train the WaveFunction.
 

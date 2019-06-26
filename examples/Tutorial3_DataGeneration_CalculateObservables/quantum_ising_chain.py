@@ -35,7 +35,7 @@ class TFIMChainEnergy(ObservableBase):
     """
 
     def __init__(self, h):
-        super(TFIMChainEnergy, self).__init__()
+        super().__init__()
         self.h = h
 
     @staticmethod

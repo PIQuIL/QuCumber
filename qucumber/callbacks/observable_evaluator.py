@@ -187,14 +187,14 @@ class ObservableEvaluator(CallbackBase):
             self.past_values.append((epoch, obs_vals))
 
             if self.verbose is True:
-                print("Epoch: {}\n".format(epoch), end="", flush=True)
+                print(f"Epoch: {epoch}\n", end="", flush=True)
                 partially_formatted = {
-                    k: "\t".join("{}: {:.6f}".format(s, sv) for s, sv in stats.items())
+                    k: "\t".join(f"{s}: {sv:.6f}" for s, sv in stats.items())
                     for k, stats in self.last.items()
                 }
                 print(
                     "\n".join(
-                        "  {}:\n    {}".format(k, stats)
+                        f"  {k}:\n    {stats}"
                         for k, stats in partially_formatted.items()
                     )
                 )

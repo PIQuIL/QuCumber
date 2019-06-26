@@ -20,7 +20,7 @@ from .callback import CallbackBase
 
 class CallbackList(CallbackBase, MutableSequence):
     def __init__(self, callbacks):
-        super(CallbackList, self).__init__()
+        super().__init__()
         self.callbacks = list(callbacks)
 
     def __len__(self):

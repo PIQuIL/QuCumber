@@ -174,7 +174,7 @@ def wavefunction_constructor(request):
         return complex_wavefunction_data
     else:
         raise ValueError(
-            "invalid test config: {} is not a valid wavefunction type".format(wvfn_type)
+            f"invalid test config: {wvfn_type} is not a valid wavefunction type"
         )
 
 
@@ -254,8 +254,8 @@ def test_grads(wavefunction_graddata):
         for i, grad in enumerate(num_grads[n]):
             p_name, at_start = get_param_status(i, param_ranges)
             if at_start:
-                print("\nTesting {}...".format(p_name))
-                print("Numerical {}\tAlg {}".format(grad_type, grad_type))
+                print(f"\nTesting {p_name}...")
+                print(f"Numerical {grad_type}\tAlg {grad_type}")
 
             print("{: 10.8f}\t{: 10.8f}\t\t".format(grad, alg_grads[n][i].item()))
 
@@ -263,5 +263,5 @@ def test_grads(wavefunction_graddata):
             num_grads[n],
             alg_grads[n],
             test_tol,
-            msg="{} grads are not close enough for {}!".format(grad_type, net),
+            msg=f"{grad_type} grads are not close enough for {net}!",
         )

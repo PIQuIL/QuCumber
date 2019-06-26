@@ -30,7 +30,7 @@ callback_stages = (
 
 @pytest.mark.parametrize("stage", callback_stages)
 def test_lambda_callback_value_error_num_args(stage):
-    msg = "LambdaCallback should fail if {} gets wrong # of arguments.".format(stage)
+    msg = f"LambdaCallback should fail if {stage} gets wrong # of arguments."
 
     with pytest.raises(ValueError):
         kwargs = {stage: lambda nn_state, epoch, batch, extra: "foobar"}
@@ -40,7 +40,7 @@ def test_lambda_callback_value_error_num_args(stage):
 
 @pytest.mark.parametrize("stage", callback_stages)
 def test_lambda_callback_type_error(stage):
-    msg = "LambdaCallback should fail if {} isn't a function or None.".format(stage)
+    msg = f"LambdaCallback should fail if {stage} isn't a function or None."
 
     with pytest.raises(TypeError):
         LambdaCallback(**{stage: "foobar"})
