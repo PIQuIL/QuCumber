@@ -249,8 +249,14 @@ def test_trainingpositive():
     assert (np.std(KLs) / np.sqrt(len(KLs))) < 0.01
 
 
+vectorization = [
+    pytest.param(True, id="vectorized"),
+    pytest.param(False, id="not-vectorized"),
+]
+
+
 @pytest.mark.slow
-@pytest.mark.parametrize("vectorized", [True, False])
+@pytest.mark.parametrize("vectorized", vectorization)
 def test_trainingcomplex(vectorized):
     print("Complex WaveFunction")
     print("--------------------")
