@@ -44,6 +44,12 @@ devices = [
 ]
 
 
+@pytest.mark.gpu
+def test_complex_warn_on_gpu():
+    with pytest.warns(ResourceWarning):
+        ComplexWaveFunction(10, gpu=True)
+
+
 @pytest.mark.parametrize("gpu", devices)
 def test_positive_wavefunction(gpu):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)

@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+import warnings
+
 import numpy as np
 import torch
 
@@ -40,6 +42,16 @@ class ComplexWaveFunction(WaveFunctionBase):
     _device = None
 
     def __init__(self, num_visible, num_hidden=None, unitary_dict=None, gpu=True):
+        if gpu and torch.cuda.is_available():
+            warnings.warn(
+                (
+                    "Using ComplexWaveFunction on GPU is not recommended due to poor "
+                    "performance compared to CPU. In the future, ComplexWaveFunction "
+                    "will default to using CPU, even if a GPU is available."
+                ),
+                ResourceWarning,
+            )
+
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
         self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
