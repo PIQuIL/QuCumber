@@ -17,6 +17,7 @@ import numpy as np
 import torch
 
 from qucumber.utils import cplx
+from qucumber.utils import training_statistics as ts
 
 
 class PosGradsUtils:
@@ -138,45 +139,7 @@ class ComplexGradsUtils:
         return Upsi
 
     def rotate_psi(self, basis, unitary_dict, vis):
-        N = self.nn_state.num_visible
-        v = torch.zeros(N, dtype=torch.double, device=self.nn_state.device)
-        psi_r = torch.zeros(2, 1 << N, dtype=torch.double, device=self.nn_state.device)
-
-        for x in range(1 << N):
-            Upsi = torch.zeros(2, dtype=torch.double, device=self.nn_state.device)
-            num_nontrivial_U = 0
-            nontrivial_sites = []
-            for j in range(N):
-                if basis[j] != "Z":
-                    num_nontrivial_U += 1
-                    nontrivial_sites.append(j)
-            sub_state = self.nn_state.generate_hilbert_space(num_nontrivial_U)
-
-            for xp in range(1 << num_nontrivial_U):
-                cnt = 0
-                for j in range(N):
-                    if basis[j] != "Z":
-                        v[j] = sub_state[xp][cnt]
-                        cnt += 1
-                    else:
-                        v[j] = vis[x, j]
-
-                U = torch.tensor(
-                    [1.0, 0.0], dtype=torch.double, device=self.nn_state.device
-                )
-                for ii in range(num_nontrivial_U):
-                    tmp = unitary_dict[basis[nontrivial_sites[ii]]]
-                    tmp = tmp[
-                        :,
-                        int(vis[x][nontrivial_sites[ii]]),
-                        int(v[nontrivial_sites[ii]]),
-                    ]
-                    U = cplx.scalar_mult(U, tmp)
-
-                Upsi += cplx.scalar_mult(U, self.nn_state.psi(v).squeeze())
-
-            psi_r[:, x] = Upsi
-        return psi_r
+        return ts.rotate_psi(self.nn_state, basis, vis, unitary_dict)
 
     def compute_numerical_NLL(self, data_samples, data_bases, Z, unitary_dict, vis):
         NLL = 0

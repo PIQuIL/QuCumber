@@ -63,41 +63,24 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
     :rtype: torch.Tensor
     """
     N = nn_state.num_visible
-    v = torch.zeros(N, dtype=torch.double, device=nn_state.device)
-    psi_r = torch.zeros(2, 1 << N, dtype=torch.double, device=nn_state.device)
-    for x in range(1 << N):
-        Upsi = torch.zeros(2, dtype=torch.double, device=nn_state.device)
-        num_nontrivial_U = 0
-        nontrivial_sites = []
-        for jj in range(N):
-            if basis[jj] != "Z":
-                num_nontrivial_U += 1
-                nontrivial_sites.append(jj)
-        sub_state = nn_state.generate_hilbert_space(num_nontrivial_U)
+    psi = (
+        nn_state.psi(space)
+        if psi is None
+        else psi.to(dtype=torch.double, device=nn_state.device)
+    )
 
-        for xp in range(1 << num_nontrivial_U):
-            cnt = 0
-            for j in range(N):
-                if basis[j] != "Z":
-                    v[j] = sub_state[xp][cnt]
-                    cnt += 1
-                else:
-                    v[j] = space[x, j]
-            U = torch.tensor([1.0, 0.0], dtype=torch.double, device=nn_state.device)
-            for ii in range(num_nontrivial_U):
-                tmp = unitaries[basis[nontrivial_sites[ii]]]
-                tmp = tmp[
-                    :, int(space[x][nontrivial_sites[ii]]), int(v[nontrivial_sites[ii]])
-                ].to(nn_state.device)
-                U = cplx.scalar_mult(U, tmp)
-            if psi is None:
-                Upsi += cplx.scalar_mult(U, nn_state.psi(v).squeeze())
-            else:
-                index = 0
-                for k in range(len(v)):
-                    index = (index << 1) | int(v[k].item())
-                Upsi += cplx.scalar_mult(U, psi[:, index])
-        psi_r[:, x] = Upsi
+    l, r = psi.shape[-1], 1
+    psi_r = psi.clone()
+    for s in range(N)[::-1]:
+        l //= N  # noqa: E741
+        m = unitaries[basis[s]]
+        for k in range(l):
+            for i in range(r):
+                slc = slice(k * N * r + i, (k + 1) * N * r + i, r)
+                U = psi_r[:, slc]
+                psi_r[:, slc] = cplx.matmul(m, U)
+        r *= N
+
     return psi_r
 
 
