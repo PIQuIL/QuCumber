@@ -145,7 +145,7 @@ def trainEnergy(numQubits,
         lr = 0.001
         k = 1
         log_every = 1
-    elif model == "TFIM1D":
+    elif model == "TFIM1D" or model == "TFIM1D0p5" or model == "TFIM1D5p0":
         epochs = 10000
         pbs = 100
         nbs = 100
@@ -157,6 +157,10 @@ def trainEnergy(numQubits,
         modelEnergy = Heisenberg1DEnergy()
     elif model == "TFIM1D":
         modelEnergy = TFIMChainEnergy(1)
+    elif model == "TFIM1D0p5":
+        modelEnergy = TFIMChainEnergy(0.5)
+    elif model == "TFIM1D5p0":
+        modelEnergy = TFIMChainEnergy(5.0)
 
     if storeFidelities:
         nn_state = PositiveWavefunction(num_visible=nv, num_hidden=nh)
@@ -252,16 +256,17 @@ def trainEnergy(numQubits,
                     errors = callbacks[0].Heisenberg1DEnergy.std_error
                     variance = callbacks[0].Heisenberg1DEnergy.variance
                     median = callbacks[0].Heisenberg1DEnergy.median
-                elif model == "TFIM1D":
+                else:
                     energies = callbacks[0].TFIMChainEnergy.mean
                     errors = callbacks[0].TFIMChainEnergy.std_error
                     variance = callbacks[0].TFIMChainEnergy.variance
                     median = callbacks[0].TFIMChainEnergy.median
 
                 obsFile = open("Samples/{0}/{1}Q/Observables.txt".format(model,numQubits))
-                obsFile.readline()
+                if model == "TFIM1D":
+                    obsFile.readline()
                 line = obsFile.readline()
-                H = round(float(line.strip("\n").split(" ")[1]),2)
+                H = float(line.strip("\n").split(" ")[1])
 
                 C = 2.576
                 mean = energies[i]
@@ -297,25 +302,27 @@ def trainEnergy(numQubits,
                             currentM += 2500
                     break
 
-            path1 = "Data/{0}Study".format(study)
-            path2 = path1 + "/Q{0}".format(numQubits)
-            path3 = path2 + "/{0}".format(seed)
+            path1 = "Data/{0}".format(model)
+            path2 = path1 + "/{0}Study".format(study)
+            path3 = path2 + "/Q{0}".format(numQubits)
+            path4 = path3 + "/{0}".format(seed)
             if study == "Nh":
-                path4 = path3 + "/{0}{1}".format(study,currentNh)
+                path5 = path4 + "/{0}{1}".format(study,currentNh)
             else:
-                path4 = path3 + "/{0}{1}".format(study,currentM)
+                path5 = path4 + "/{0}{1}".format(study,currentM)
 
             makeDir(path1)
             makeDir(path2)
             makeDir(path3)
             makeDir(path4)
+            makeDir(path5)
 
-            nn_state.save(path4 + "/model.pt")
+            nn_state.save(path5 + "/model.pt")
             epochs = np.arange(log_every, len(energies) * log_every + 1, log_every)
             epochs.astype(int)
 
             numParams = numQubits * currentNh + numQubits + currentNh
-            rfile = open(path4 + "/Results.txt","w")
+            rfile = open(path5 + "/Results.txt","w")
             rfile.write("Number of Qubits: " + str(numQubits) + "\n")
             rfile.write("Number of Samples: " + str(currentM) + "\n")
             rfile.write("Hidden Units: " + str(currentNh) + "\n")
