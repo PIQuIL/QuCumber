@@ -293,13 +293,6 @@ def trainEnergy(numQubits,
                     print("#" * 52)
                     print(esStatus)
                     print("#" * 52)
-                    if esStatus[-2] == "!":
-                        passed = True
-                    else:
-                        if study == "Nh":
-                            currentNh += 1
-                        elif study == "M":
-                            currentM += 2500
                     break
 
             path1 = "Data/{0}".format(model)
@@ -343,6 +336,14 @@ def trainEnergy(numQubits,
                 rfile.write("\n")
 
             rfile.close()
+
+            if esStatus[-2] == "!":
+                passed = True
+            else:
+                if study == "Nh":
+                    currentNh += 1
+                elif study == "M":
+                    currentM += 2500
 
 def confidence(numQubits,numSamples,burn_in = 500,steps = 100,trial = 1,model = "Heisenberg1DFM"):
     '''
