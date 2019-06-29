@@ -56,7 +56,7 @@ class System:
                   (estimated) expected value (key: "mean"), variance (key:
                   "variance"), and standard error (key: "std_error") of the
                   corresponding observable.
-        :rtype: dict(str, float)
+        :rtype: dict(str, dict(str, float))
         """
         means = {name: 0.0 for name in self.observables.keys()}
         variances = {name: 0.0 for name in self.observables.keys()}
@@ -114,7 +114,7 @@ class System:
                   (estimated) expected value (key: "mean"), variance (key:
                   "variance"), and standard error (key: "std_error") of the
                   corresponding observable.
-        :rtype: dict(str, float)
+        :rtype: dict(str, dict(str, float))
         """
         statistics = {
             obs_name: obs.statistics_from_samples(nn_state, samples)
