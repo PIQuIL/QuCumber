@@ -18,6 +18,7 @@ import warnings
 import numpy as np
 import torch
 
+from qucumber import _warn_on_missing_gpu
 from qucumber.utils import cplx, unitaries
 from qucumber.rbm import BinaryRBM
 from .wavefunction import WaveFunctionBase
@@ -33,15 +34,25 @@ class ComplexWaveFunction(WaveFunctionBase):
     :type num_hidden: int
     :param unitary_dict: A dictionary mapping unitary names to their matrix representations.
     :type unitary_dict: dict[str, torch.Tensor]
-    :param gpu: Whether to perform computations on the default gpu.
+    :param gpu: Whether to perform computations on the default GPU.
     :type gpu: bool
+    :param module: An instance of a BinaryRBM module to use for density estimation;
+                   The given RBM object will be used to estimate the amplitude of
+                   the wavefunction, while a copy will be used to estimate
+                   the phase of the wavefunction.
+                   Will be copied to the default GPU if `gpu=True` (if it
+                   isn't already there). If `None`, will initialize the BinaryRBMs
+                   from scratch.
+    :type module: qucumber.rbm.BinaryRBM
     """
 
     _rbm_am = None
     _rbm_ph = None
     _device = None
 
-    def __init__(self, num_visible, num_hidden=None, unitary_dict=None, gpu=True):
+    def __init__(
+        self, num_visible, num_hidden=None, unitary_dict=None, gpu=True, module=None
+    ):
         if gpu and torch.cuda.is_available():
             warnings.warn(
                 (
@@ -51,13 +62,30 @@ class ComplexWaveFunction(WaveFunctionBase):
                 ),
                 ResourceWarning,
             )
+            self.device = torch.device("cuda")
+        else:
+            self.device = torch.device("cpu")
+
+        if module is None:
+            self.rbm_am = BinaryRBM(
+                int(num_visible),
+                int(num_hidden) if num_hidden else int(num_visible),
+                gpu=gpu,
+            )
+            self.rbm_ph = BinaryRBM(
+                int(num_visible),
+                int(num_hidden) if num_hidden else int(num_visible),
+                gpu=gpu,
+            )
+        else:
+            _warn_on_missing_gpu(gpu)
+            self.rbm_am = module.to(self.device)
+            self.rbm_am.device = self.device
+            self.rbm_ph = module.to(self.device).clone()
+            self.rbm_ph.device = self.device
 
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
-        self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
-        self.rbm_ph = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
-
-        self.device = self.rbm_am.device
 
         self.unitary_dict = unitary_dict if unitary_dict else unitaries.create_dict()
         self.unitary_dict = {

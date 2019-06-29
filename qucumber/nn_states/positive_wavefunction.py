@@ -15,6 +15,7 @@
 
 import torch
 
+from qucumber import _warn_on_missing_gpu
 from qucumber.rbm import BinaryRBM
 from .wavefunction import WaveFunctionBase
 
@@ -27,18 +28,35 @@ class PositiveWaveFunction(WaveFunctionBase):
     :param num_hidden: The number of hidden units in the internal RBM. Defaults to
                        the number of visible units.
     :type num_hidden: int
-    :param gpu: Whether to perform computations on the default gpu.
+    :param gpu: Whether to perform computations on the default GPU.
     :type gpu: bool
+    :param module: An instance of a BinaryRBM module to use for density estimation.
+                   Will be copied to the default GPU if `gpu=True` (if it
+                   isn't already there). If `None`, will initialize a BinaryRBM
+                   from scratch.
+    :type module: qucumber.rbm.BinaryRBM
     """
 
     _rbm_am = None
     _device = None
 
-    def __init__(self, num_visible, num_hidden=None, gpu=True):
-        self.num_visible = int(num_visible)
-        self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
+    def __init__(self, num_visible, num_hidden=None, gpu=True, module=None):
+        if module is None:
+            self.rbm_am = BinaryRBM(
+                int(num_visible),
+                int(num_hidden) if num_hidden else int(num_visible),
+                gpu=gpu,
+            )
+        else:
+            _warn_on_missing_gpu(gpu)
+            gpu = gpu and torch.cuda.is_available()
+            device = torch.device("cuda") if gpu else torch.device("cpu")
+            self.rbm_am = module.to(device)
+            self.rbm_am.device = device
 
-        self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
+        self.num_visible = self.rbm_am.num_visible
+        self.num_hidden = self.rbm_am.num_hidden
+
         self.device = self.rbm_am.device
 
     @property
