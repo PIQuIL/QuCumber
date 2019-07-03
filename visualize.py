@@ -55,7 +55,8 @@ def plotWeights(model,threshold,plot = True):
                         labelbottom = False,  # labels on bottom edge are off
                         labeltop = True)      # labels on top edge are off
         fig.colorbar(img,cax = axins)
-        plt.show()
+        plt.savefig("Histogram",dpi = 200)
+        plt.clf()
 
     numLW = np.sum(sortedW > threshold)
     numLVB = np.sum(visibleBias > threshold)
