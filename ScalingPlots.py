@@ -34,7 +34,7 @@ def readROEs(resultsfile,nQ):
 
     return roes
 
-def plotScaling(listQ,study,tol,pat,reqs,fit = False):
+def plotScaling(listQ,models,study,tol,pat,reqs,labels,fit = False):
     '''
     Plot scaling of number of hidden units or number of samples
     versus system size for various thresholds on the ROE upper bound.
@@ -54,69 +54,84 @@ def plotScaling(listQ,study,tol,pat,reqs,fit = False):
     '''
 
     for i in range(len(reqs)):
+        for m in range(len(models)):
 
-        vals = []
-        counter = 0
-        passed = True
-        for nQ in listQ:
-            vals.append([])
-            Nfolder = "Data/{0}Study/Q{1}".format(study,nQ)
-            seeds = [name for name in os.listdir(Nfolder)]
-            for seed in seeds:
-                folder = "Data/{0}Study/Q{1}/{2}".format(study,nQ,seed)
-                trials = [name for name in os.listdir(folder)]
-                trialsAlphaNum = {}
-                for j in range(len(trials)):
-                    if study == "Nh" and len(trials[j]) == 3:
-                        trialsAlphaNum["Nh0" + trials[j][-1]] = j
-                    elif study == "M" and len(trials[j]) == 5:
-                        trialsAlphaNum["M0" + trials[j][1:]] = j
-                    else:
-                        trialsAlphaNum[trials[j]] = j
+            vals = []
+            counter = 0
+            passed = False
+            for nQ in listQ:
+                vals.append([])
+                Nfolder = "Data/{0}/{1}Study/Q{2}".format(models[m],study,nQ)
+                seeds = [name for name in os.listdir(Nfolder)]
+                for seed in seeds:
+                    folder = Nfolder + "/{0}".format(seed)
+                    trials = [name for name in os.listdir(folder)]
+                    trialsAlphaNum = {}
+                    for j in range(len(trials)):
+                        if study == "Nh" and len(trials[j]) == 3:
+                            trialsAlphaNum["Nh0" + trials[j][-1]] = j
+                        elif study == "M" and len(trials[j]) == 5:
+                            trialsAlphaNum["M0" + trials[j][1:]] = j
+                        else:
+                            trialsAlphaNum[trials[j]] = j
 
-                for trial in sorted(trialsAlphaNum):
-                    tfile = trials[trialsAlphaNum[trial]]
-                    rp = folder + "/" + tfile + "/" + "Results.txt"
-                    roes = readROEs(rp,nQ)
-                    result = energy.earlyStopping(roes,tol,pat,reqs[i])
-                    if result != False:
-                        if result[-2] == "!":
-                            vals[counter].append(int(trial[len(study):]))
-                            passed = True
-                            break
+                    for trial in sorted(trialsAlphaNum):
+                        tfile = trials[trialsAlphaNum[trial]]
+                        rp = folder + "/" + tfile + "/" + "Results.txt"
+                        roes = readROEs(rp,nQ)
+                        result = energy.earlyStopping(roes,tol,pat,reqs[i])
+                        if result != False:
+                            if result[-2] == "!":
+                                vals[counter].append(int(trial[len(study):]))
+                                passed = True
+                                break
 
-                if not passed:
-                    vals[counter].append(100000)
-                passed = False
-            counter += 1
+                    if not passed:
+                        vals[counter].append(100000)
+                    passed = False
+                counter += 1
 
-        vals = np.array(vals)
-        valsMin = np.min(vals,axis = 1)
-        colours = ["b","g","r","c","m"]
-        if fit:
-            slope,intercept = np.polyfit(listQ,valsMin,1)
-            lineValues = [slope * k + intercept for k in listQ]
-            plt.plot(listQ,valsMin,"o",label = reqs[i],color = colours[i])
-            plt.plot(listQ,lineValues,color = colours[i])
-        else:
-            plt.plot(listQ,valsMin,"-o",label = req)
+            vals = np.array(vals)
+            valsM = np.min(vals,axis = 1)
+            colours = ["b","g","r","c","m"]
+            if fit:
+                slope,intercept = np.polyfit(listQ,valsM,1)
+                lineValues = [slope * k + intercept for k in listQ]
+                plt.plot(listQ,valsM,"o",label = labels[m],color = colours[m])
+                plt.plot(listQ,lineValues,color = colours[m])
+            else:
+                plt.plot(listQ,valsM,"-o",label = req)
 
-    plt.xlabel("Number of Qubits")
+    plt.xlabel("$N$")
     if study == "Nh":
-        plt.ylabel("Number of Hidden Units")
+        plt.ylabel("$N_{h}$")
         title = r"Min $N_{h}$ for various ROE Bounds"
         title += " with 99% CI (Across {0} Trials)".format(len(seeds))
     elif study == "M":
-        plt.ylabel("Number of Samples")
+        plt.ylabel("$M$")
         title = r"Min $M$ for various ROE Bounds"
         title += " with 99% CI (Across {0} Trials)".format(len(seeds))
-    plt.title(title)
+    
+    # plt.title(title)
     plt.legend()
     plt.savefig("Scaling",dpi = 200)
 
+def illustrateScaling():
+
+    nh = list(range(5,11))
+    roes = [0.02965658,0.02172137,0.01319593,0.00765384,0.00602224,0.00195432]
+
+    plt.plot(nh,roes,"bo")
+    plt.axhline(0.002,linestyle = "--",color = "r")
+    plt.xlabel(r"$N_{h}$")
+    plt.ylabel(r"$\epsilon_{ub}$")
+    plt.show()
+
 plotScaling(listQ = list(range(10,101,10)),
+            models = ["TFIM1D","TFIM1D5p0"],
             study = "Nh",
             tol = 0.0005,
             pat = 50,
-            reqs = [0.002,0.003,0.004,0.005],
+            reqs = [0.002],
+            labels = ["h/J = 1","h/J = 5"],
             fit = True)
