@@ -61,6 +61,7 @@ class ComplexWaveFunction(WaveFunctionBase):
                     "will default to using CPU, even if a GPU is available."
                 ),
                 ResourceWarning,
+                2,
             )
             self.device = torch.device("cuda")
         else:

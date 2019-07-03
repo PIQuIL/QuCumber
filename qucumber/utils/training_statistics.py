@@ -69,6 +69,8 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
         else psi.to(dtype=torch.double, device=nn_state.device)
     )
 
+    unitaries = {k: v.to(device=nn_state.device) for k, v in unitaries.items()}
+
     l, r = psi.shape[-1], 1
     psi_r = psi.clone()
     for s in range(N)[::-1]:
