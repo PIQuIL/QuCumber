@@ -98,7 +98,8 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,fit = False):
                 slope,intercept = np.polyfit(listQ,valsM,1)
                 lineValues = [slope * k + intercept for k in listQ]
                 plt.plot(listQ,valsM,"o",label = labels[m],color = colours[m])
-                plt.plot(listQ,lineValues,color = colours[m])
+                if m < 2:
+                    plt.plot(listQ,lineValues,color = colours[m])
             else:
                 plt.plot(listQ,valsM,"-o",label = req)
 
@@ -111,10 +112,11 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,fit = False):
         plt.ylabel("$M$")
         title = r"Min $M$ for various ROE Bounds"
         title += " with 99% CI (Across {0} Trials)".format(len(seeds))
-    
+
     # plt.title(title)
     plt.legend()
     plt.savefig("Scaling",dpi = 200)
+    plt.clf()
 
 def illustrateScaling():
 
@@ -125,13 +127,16 @@ def illustrateScaling():
     plt.axhline(0.002,linestyle = "--",color = "r")
     plt.xlabel(r"$N_{h}$")
     plt.ylabel(r"$\epsilon_{ub}$")
-    plt.show()
+    plt.savefig("ScalingProcedure",dpi = 200)
+    plt.clf()
 
 plotScaling(listQ = list(range(10,101,10)),
-            models = ["TFIM1D","TFIM1D5p0"],
+            models = ["TFIM1D","TFIM1D5p0","TFIM1D0p5"],
             study = "Nh",
             tol = 0.0005,
             pat = 50,
             reqs = [0.002],
-            labels = ["h/J = 1","h/J = 5"],
+            labels = ["h/J = 1","h/J = 5","h/J = 0.5"],
             fit = True)
+
+illustrateScaling()
