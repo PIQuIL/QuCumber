@@ -175,6 +175,8 @@ class ObservableEvaluator(CallbackBase):
                       Negative indices are supported. If None, will just get
                       the most recent value.
         :type index: int or None
+
+        :rtype: dict(str, float)
         """
         index = index if index is not None else -1
         return self.past_values[index][-1][name]

@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 
-import numpy as np
-
-from .callback import CallbackBase
+from .early_stopping import EarlyStopping
 
 
-class VarianceBasedEarlyStopping(CallbackBase):
+class VarianceBasedEarlyStopping(EarlyStopping):
     r"""Stop training once the model stops improving. This is a variation
     on the :class:`EarlyStopping<EarlyStopping>` class which takes the variance
     of the metric into account.
@@ -28,7 +27,7 @@ class VarianceBasedEarlyStopping(CallbackBase):
 
     where :math:`M_t` is the metric value at the current evaluation
     (time :math:`t`), :math:`p` is the "patience" parameter,
-    :math:`\sigma_t` is the variance of the metric, and
+    :math:`\sigma_t` is the standard deviation of the metric, and
     :math:`\kappa` is the tolerance.
 
     This callback is called at the end of each epoch.
@@ -51,6 +50,7 @@ class VarianceBasedEarlyStopping(CallbackBase):
     :param quantity_name: The name of the metric/obserable stored in `evaluator_callback`.
     :type quantity_name: str
     :param variance_name: The name of the variance stored in `evaluator_callback`.
+                          Ignored, exists for backward compatibility.
     :type variance_name: str
     """
 
@@ -61,26 +61,19 @@ class VarianceBasedEarlyStopping(CallbackBase):
         patience,
         evaluator_callback,
         quantity_name,
-        variance_name,
+        variance_name=None,
     ):
-        self.period = period
-        self.tolerance = tolerance
-        self.patience = int(patience)
-        self.evaluator_callback = evaluator_callback
-        self.value_getter = self.evaluator_callback.get_value
-        self.quantity_name = quantity_name
-        self.variance_name = variance_name
-        self.last_epoch = None
-
-    def on_epoch_end(self, nn_state, epoch):
-        if epoch % self.period == 0:
-            if len(self.evaluator_callback) >= self.patience:
-                change_in_metric = self.value_getter(
-                    self.quantity_name, -self.patience
-                ) - self.value_getter(self.quantity_name)
-
-                std_dev = np.sqrt(self.value_getter(self.variance_name, -self.patience))
-
-                if abs(change_in_metric) < (std_dev * self.tolerance):
-                    nn_state.stop_training = True
-                    self.last_epoch = epoch
+        warnings.warn(
+            "VarianceBasedEarlyStopping has been deprecated, and "
+            "relevant functionality moved to EarlyStopping.",
+            DeprecationWarning,
+            2,
+        )
+        super().__init__(
+            period,
+            tolerance,
+            patience,
+            evaluator_callback,
+            quantity_name,
+            criterion="variance",
+        )
