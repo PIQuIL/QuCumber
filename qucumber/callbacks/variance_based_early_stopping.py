@@ -18,9 +18,14 @@ from .early_stopping import EarlyStopping
 
 
 class VarianceBasedEarlyStopping(EarlyStopping):
-    r"""Stop training once the model stops improving. This is a variation
+    r"""
+    .. deprecated:: 1.2
+       Use :class:`EarlyStopping<EarlyStopping>` instead.
+
+    Stop training once the model stops improving. This is a variation
     on the :class:`EarlyStopping<EarlyStopping>` class which takes the variance
     of the metric into account.
+
     The specific criterion for stopping is:
 
     .. math:: \left\vert\frac{M_{t-p} - M_t}{\sigma_{t-p}}\right\vert < \kappa
