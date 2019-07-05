@@ -69,5 +69,5 @@ artifacts:
 notifications:
   - provider: Slack
     incoming_webhook:
-      secure: dRx8zMz2tXX6Ba5mKakDpe1PijnGa31UAD6Weezn76Q0vutaDM9lAl2LN6YqH7U+r7e0Ah6rc/d//O/+X0G31ReU6kL3TuOn+EZPlJ9LsCE=
+      secure: dRx8zMz2tXX6Ba5mKakDpe1PijnGa31UAD6Weezn76R2wYX5+IVe6u/7t3yfBrIOCEo1ZqE7ZBv/V7SMn2xqdOoYAWEKCXfAy3uKXwuDYHg=
     channel: '#builds'
