@@ -145,7 +145,7 @@ def trainEnergy(numQubits,
         lr = 0.001
         k = 1
         log_every = 1
-    elif model == "TFIM1D" or model == "TFIM1D0p5" or model == "TFIM1D5p0":
+    else:
         epochs = 10000
         pbs = 100
         nbs = 100
@@ -161,6 +161,10 @@ def trainEnergy(numQubits,
         modelEnergy = TFIMChainEnergy(0.5)
     elif model == "TFIM1D5p0":
         modelEnergy = TFIMChainEnergy(5.0)
+    elif model == "TFIM1D0p2":
+        modelEnergy = TFIMChainEnergy(0.2)
+    elif model == "TFIM1D2p0":
+        modelEnergy = TFIMChainEnergy(2.0)
 
     if storeFidelities:
         nn_state = PositiveWavefunction(num_visible=nv, num_hidden=nh)
