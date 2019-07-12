@@ -14,7 +14,6 @@
 
 
 import torch
-from torch.nn import functional as F
 from torch.distributions.utils import probs_to_logits
 
 import qucumber.utils.cplx as cplx
