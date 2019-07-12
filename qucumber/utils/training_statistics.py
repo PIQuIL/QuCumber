@@ -14,6 +14,8 @@
 
 
 import torch
+from torch.nn import functional as F
+from torch.distributions.utils import probs_to_logits
 
 import qucumber.utils.cplx as cplx
 import qucumber.utils.unitaries as unitaries
@@ -166,38 +168,25 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
         2, 1 << nn_state.num_visible, dtype=torch.double, device=nn_state.device
     )
     KL = 0.0
-    unitary_dict = unitaries.create_dict()
     target_psi = target_psi.to(nn_state.device)
     Z = nn_state.compute_normalization(space)
-    eps = 0.000001
     if bases is None:
-        num_bases = 1
-        for i in range(len(space)):
-            KL += (
-                cplx.norm_sqr(target_psi[:, i])
-                * (cplx.norm_sqr(target_psi[:, i]) + eps).log()
-            )
-            KL -= (
-                cplx.norm_sqr(target_psi[:, i])
-                * (cplx.norm_sqr(nn_state.psi(space[i])) + eps).log()
-            )
-            KL += cplx.norm_sqr(target_psi[:, i]) * Z.log()
+        target_probs = cplx.absolute_value(target_psi) ** 2
+        nn_probs = nn_state.probability(space, Z)
+
+        KL += torch.sum(target_probs * probs_to_logits(target_probs))
+        KL -= torch.sum(target_probs * probs_to_logits(nn_probs))
     else:
-        num_bases = len(bases)
-        for b in range(1, len(bases)):
-            psi_r = rotate_psi(nn_state, bases[b], space, unitary_dict)
-            target_psi_r = rotate_psi(
-                nn_state, bases[b], space, unitary_dict, target_psi
-            )
-            for ii in range(len(space)):
-                if cplx.norm_sqr(target_psi_r[:, ii]) > 0.0:
-                    KL += (
-                        cplx.norm_sqr(target_psi_r[:, ii])
-                        * cplx.norm_sqr(target_psi_r[:, ii]).log()
-                    )
-                KL -= (
-                    cplx.norm_sqr(target_psi_r[:, ii])
-                    * cplx.norm_sqr(psi_r[:, ii]).log().item()
-                )
-                KL += cplx.norm_sqr(target_psi_r[:, ii]) * Z.log()
-    return (KL / float(num_bases)).item()
+        unitary_dict = nn_state.unitary_dict
+        for basis in bases:
+            psi_r = rotate_psi(nn_state, basis, space, unitary_dict)
+            target_psi_r = rotate_psi(nn_state, basis, space, unitary_dict, target_psi)
+
+            probs_r = (cplx.absolute_value(psi_r) ** 2) / Z
+            target_probs_r = cplx.absolute_value(target_psi_r) ** 2
+
+            KL += torch.sum(target_probs_r * probs_to_logits(target_probs_r))
+            KL -= torch.sum(target_probs_r * probs_to_logits(probs_r))
+        KL /= float(len(bases))
+
+    return KL.item()
