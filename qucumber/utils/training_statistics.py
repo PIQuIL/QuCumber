@@ -62,7 +62,6 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
     :returns: A wavefunction in a new basis.
     :rtype: torch.Tensor
     """
-    N = nn_state.num_visible
     psi = (
         nn_state.psi(space)
         if psi is None
@@ -70,18 +69,26 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
     )
 
     unitaries = {k: v.to(device=nn_state.device) for k, v in unitaries.items()}
+    us = [unitaries[b] for b in basis]
+    n_u = [u.size()[0] for u in us]
 
-    l, r = psi.shape[-1], 1
+    l = 1  # noqa: E741
+    for n in n_u:
+        l *= n  # noqa: E741
+
+    r = 1
+
     psi_r = psi.clone()
-    for s in range(N)[::-1]:
-        l //= N  # noqa: E741
-        m = unitaries[basis[s]]
+    for s in range(len(n_u))[::-1]:
+        l //= n_u[s]  # noqa: E741
+        m = us[s]
+
         for k in range(l):
             for i in range(r):
-                slc = slice(k * N * r + i, (k + 1) * N * r + i, r)
+                slc = slice(k * n_u[s] * r + i, (k + 1) * n_u[s] * r + i, r)
                 U = psi_r[:, slc]
                 psi_r[:, slc] = cplx.matmul(m, U)
-        r *= N
+        r *= n_u[s]
 
     return psi_r
 

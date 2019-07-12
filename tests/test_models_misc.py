@@ -21,6 +21,8 @@ import pytest
 
 import qucumber
 from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction
+from qucumber.utils.unitaries import create_dict
+from qucumber.utils.training_statistics import rotate_psi
 from . import __tests_location__
 
 INIT_SEED = 1234  # seed to initialize model params with
@@ -163,3 +165,12 @@ def test_large_hilbert_space_fail(wvfn_type):
     with pytest.raises(ValueError):
         nn_state.generate_hilbert_space(size=max_size + 1)
         pytest.fail(msg)
+
+
+@pytest.mark.parametrize("num_visible", [1, 2, 10])
+@pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
+def test_rotate_psi(num_visible, wvfn_type):
+    nn_state = wvfn_type(num_visible, gpu=False)
+    basis = "X" * num_visible
+    unitary_dict = create_dict()
+    rotate_psi(nn_state, basis, nn_state.generate_hilbert_space(), unitary_dict)
