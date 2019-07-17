@@ -1,5 +1,4 @@
 # ![QuCumber](https://raw.githubusercontent.com/PIQuIL/QuCumber/master/docs/_static/img/QuCumber_full.png)
-
 [![PyPI version](https://badge.fury.io/py/qucumber.svg)](https://badge.fury.io/py/qucumber)
 [![Documentation Status](https://readthedocs.org/projects/qucumber/badge/?version=stable)](https://qucumber.readthedocs.io/en/stable/?badge=stable)
 [![Build Status (Travis)](https://travis-ci.com/PIQuIL/QuCumber.svg?branch=master)](https://travis-ci.com/PIQuIL/QuCumber)
@@ -7,6 +6,7 @@
 [![codecov](https://codecov.io/gh/PIQuIL/QuCumber/branch/master/graph/badge.svg)](https://codecov.io/gh/PIQuIL/QuCumber)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![arXiv](https://img.shields.io/badge/arxiv-1812.09329-blue.svg)](https://arxiv.org/abs/1812.09329)
+[![scipost](https://img.shields.io/badge/SciPost-7.1.009-blue.svg)](https://scipost.org/SciPostPhys.7.1.009)
 
 ## A Quantum Calculator Used for Many-body Eigenstate Reconstruction
 
@@ -39,7 +39,7 @@ measurement data in additional bases will be required to train the wavefunction.
 
 Documentation can be found [here](https://qucumber.readthedocs.io/en/stable/).
 
-See "QuCumber: wavefunction reconstruction with neural networks" https://arxiv.org/abs/1812.09329
+See "QuCumber: wavefunction reconstruction with neural networks" https://scipost.org/SciPostPhys.7.1.009
 
 ## Getting Started
 
@@ -88,9 +88,20 @@ all files in this repo. However, some miscellaneous files may be licensed
 differently. See [LICENSE](LICENSE) for more details.
 
 ## Citation
-
-Matthew J. S. Beach, Isaac De Vlugt, Anna Golubeva, Patrick Huembeli, Bohdan Kulchytskyy, Xiuzhe Luo, Roger G. Melko, Ejaaz Merali, Giacomo Torlai, "QuCumber: wavefunction reconstruction with neural networks", [arXiv:1812.09329](https://arxiv.org/abs/1812.09329), 2018.
-
+```
+@Article{10.21468/SciPostPhys.7.1.009,
+	title={{QuCumber: wavefunction reconstruction with neural networks}},
+	author={Matthew J. S. Beach and Isaac De Vlugt and Anna Golubeva and Patrick Huembeli and Bohdan Kulchytskyy and Xiuzhe Luo and Roger G. Melko and Ejaaz Merali and Giacomo Torlai},
+	journal={SciPost Phys.},
+	volume={7},
+	issue={1},
+	pages={9},
+	year={2019},
+	publisher={SciPost},
+	doi={10.21468/SciPostPhys.7.1.009},
+	url={https://scipost.org/10.21468/SciPostPhys.7.1.009},
+}
+```
 ## Acknowledgments
 
 - We thank M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for many helpful discussions.
