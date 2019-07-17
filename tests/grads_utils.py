@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-import numpy as np
 import torch
 
 from qucumber.utils import cplx
@@ -24,25 +23,11 @@ class PosGradsUtils:
     def __init__(self, nn_state):
         self.nn_state = nn_state
 
-    def compute_numerical_kl(self, target_psi, vis, Z):
-        KL = 0.0
-        for i in range(len(vis)):
-            KL += ((target_psi[i, 0]) ** 2) * ((target_psi[i, 0]) ** 2).log()
-            KL -= ((target_psi[i, 0]) ** 2) * (
-                self.nn_state.probability(vis[i], Z)
-            ).log().item()
-        return KL
+    def compute_numerical_kl(self, target_psi, vis):
+        return ts.KL(self.nn_state, target_psi, vis)
 
-    def compute_numerical_NLL(self, data, Z):
-        NLL = 0
-        batch_size = len(data)
-
-        for i in range(batch_size):
-            NLL -= self.nn_state.probability(data[i], Z).log().item() / float(
-                batch_size
-            )
-
-        return NLL
+    def compute_numerical_NLL(self, data, vis):
+        return ts.NLL(self.nn_state, data, vis)
 
     def algorithmic_gradKL(self, target_psi, vis, **kwargs):
         Z = self.nn_state.compute_normalization(vis)
@@ -52,7 +37,7 @@ class PosGradsUtils:
             device=self.nn_state.device,
         )
         for i in range(len(vis)):
-            grad_KL += ((target_psi[i, 0]) ** 2) * self.nn_state.gradient(vis[i])
+            grad_KL += ((target_psi[0, i]) ** 2) * self.nn_state.gradient(vis[i])
             grad_KL -= self.nn_state.probability(vis[i], Z) * self.nn_state.gradient(
                 vis[i]
             )
@@ -65,39 +50,29 @@ class PosGradsUtils:
         num_gradKL = []
         for i in range(len(param)):
             param[i] += eps
-
-            Z = self.nn_state.compute_normalization(vis)
-            KL_p = self.compute_numerical_kl(target_psi, vis, Z)
+            KL_p = self.compute_numerical_kl(target_psi, vis)
 
             param[i] -= 2 * eps
-
-            Z = self.nn_state.compute_normalization(vis)
-            KL_m = self.compute_numerical_kl(target_psi, vis, Z)
+            KL_m = self.compute_numerical_kl(target_psi, vis)
 
             param[i] += eps
-
             num_gradKL.append((KL_p - KL_m) / (2 * eps))
 
-        return torch.stack(num_gradKL).to(param)
+        return torch.tensor(num_gradKL, dtype=torch.double).to(param)
 
     def numeric_gradNLL(self, param, data, vis, eps, **kwargs):
         num_gradNLL = []
         for i in range(len(param)):
             param[i] += eps
-
-            Z = self.nn_state.compute_normalization(vis)
-            NLL_p = self.compute_numerical_NLL(data, Z)
+            NLL_p = self.compute_numerical_NLL(data, vis)
 
             param[i] -= 2 * eps
-
-            Z = self.nn_state.compute_normalization(vis)
-            NLL_m = self.compute_numerical_NLL(data, Z)
+            NLL_m = self.compute_numerical_NLL(data, vis)
 
             param[i] += eps
-
             num_gradNLL.append((NLL_p - NLL_m) / (2 * eps))
 
-        return torch.tensor(np.array(num_gradNLL), dtype=torch.double).to(param)
+        return torch.tensor(num_gradNLL, dtype=torch.double).to(param)
 
 
 class ComplexGradsUtils:
@@ -105,20 +80,18 @@ class ComplexGradsUtils:
         self.nn_state = nn_state
 
     def load_target_psi(self, bases, psi_data):
-        psi_dict = {}
-        D = int(len(psi_data) / float(len(bases)))
-
         if isinstance(psi_data, torch.Tensor):
             psi_data = psi_data.clone().detach().to(dtype=torch.double)
         else:
             psi_data = torch.tensor(psi_data, dtype=torch.double)
 
+        psi_dict = {}
+        D = int(psi_data.shape[1] / float(len(bases)))
+
         for b in range(len(bases)):
             psi = torch.zeros(2, D, dtype=torch.double)
-            psi_real = psi_data[b * D : (b + 1) * D, 0]
-            psi_imag = psi_data[b * D : (b + 1) * D, 1]
-            psi[0] = psi_real
-            psi[1] = psi_imag
+            psi[0, ...] = psi_data[0, b * D : (b + 1) * D]
+            psi[1, ...] = psi_data[1, b * D : (b + 1) * D]
             psi_dict[bases[b]] = psi
 
         return psi_dict
@@ -133,122 +106,47 @@ class ComplexGradsUtils:
             bases.append(tmp)
         return bases
 
-    def rotate_psi_full(self, basis, full_unitary_dict, psi):
-        U = full_unitary_dict[basis]
-        Upsi = cplx.matmul(U, psi)
-        return Upsi
-
     def rotate_psi(self, basis, unitary_dict, vis):
         return ts.rotate_psi(self.nn_state, basis, vis, unitary_dict)
 
-    def compute_numerical_NLL(self, data_samples, data_bases, Z, unitary_dict, vis):
-        NLL = 0
-        batch_size = len(data_samples)
-        b_flag = 0
-        for i in range(batch_size):
-            bitstate = []
-            for j in range(self.nn_state.num_visible):
-                ind = 0
-                if data_bases[i][j] != "Z":
-                    b_flag = 1
-                bitstate.append(int(data_samples[i, j].item()))
-            ind = int("".join(str(i) for i in bitstate), 2)
-            if b_flag == 0:
-                NLL -= (
-                    self.nn_state.probability(data_samples[i], Z)
-                ).log().item() / batch_size
-            else:
-                psi_r = self.rotate_psi(data_bases[i], unitary_dict, vis)
-                NLL -= (
-                    cplx.norm_sqr(psi_r[:, ind]).log() - Z.log()
-                ).item() / batch_size
-        return NLL
+    def compute_numerical_NLL(self, data_samples, data_bases, vis):
+        return ts.NLL(self.nn_state, data_samples, vis, train_bases=data_bases)
 
-    def compute_numerical_kl(self, psi_dict, vis, Z, unitary_dict, bases):
-        N = self.nn_state.num_visible
-        psi_r = torch.zeros(2, 1 << N, dtype=torch.double, device=self.nn_state.device)
-        KL = 0.0
-        for i in range(len(vis)):
-            KL += (
-                cplx.norm_sqr(psi_dict[bases[0]][:, i])
-                * cplx.norm_sqr(psi_dict[bases[0]][:, i]).log()
-                / float(len(bases))
-            )
-            KL -= (
-                cplx.norm_sqr(psi_dict[bases[0]][:, i])
-                * self.nn_state.probability(vis[i], Z).log().item()
-                / float(len(bases))
-            )
-
-        for b in range(1, len(bases)):
-            psi_r = self.rotate_psi(bases[b], unitary_dict, vis)
-            for ii in range(len(vis)):
-                if cplx.norm_sqr(psi_dict[bases[b]][:, ii]) > 0.0:
-                    KL += (
-                        cplx.norm_sqr(psi_dict[bases[b]][:, ii])
-                        * cplx.norm_sqr(psi_dict[bases[b]][:, ii]).log()
-                        / float(len(bases))
-                    )
-
-                KL -= (
-                    cplx.norm_sqr(psi_dict[bases[b]][:, ii])
-                    * cplx.norm_sqr(psi_r[:, ii]).log()
-                    / float(len(bases))
-                )
-                KL += (
-                    cplx.norm_sqr(psi_dict[bases[b]][:, ii])
-                    * Z.log()
-                    / float(len(bases))
-                )
-
-        return KL
+    def compute_numerical_kl(self, psi_dict, vis, bases):
+        return ts.KL(self.nn_state, psi_dict, vis, bases=bases)
 
     def algorithmic_gradNLL(self, data_samples, data_bases, k, **kwargs):
         return self.nn_state.compute_batch_gradients(
             k, data_samples, data_samples, data_bases
         )
 
-    def numeric_gradNLL(
-        self, data_samples, data_bases, unitary_dict, param, vis, eps, **kwargs
-    ):
+    def numeric_gradNLL(self, data_samples, data_bases, param, vis, eps, **kwargs):
         num_gradNLL = []
         for i in range(len(param)):
             param[i] += eps
+            NLL_p = self.compute_numerical_NLL(data_samples, data_bases, vis)
 
-            Z = self.nn_state.compute_normalization(vis)
-            NLL_p = self.compute_numerical_NLL(
-                data_samples, data_bases, Z, unitary_dict, vis
-            )
             param[i] -= 2 * eps
-
-            Z = self.nn_state.compute_normalization(vis)
-            NLL_m = self.compute_numerical_NLL(
-                data_samples, data_bases, Z, unitary_dict, vis
-            )
+            NLL_m = self.compute_numerical_NLL(data_samples, data_bases, vis)
 
             param[i] += eps
-
             num_gradNLL.append((NLL_p - NLL_m) / (2 * eps))
 
-        return torch.tensor(np.array(num_gradNLL), dtype=torch.double).to(param)
+        return torch.tensor(num_gradNLL, dtype=torch.double).to(param)
 
-    def numeric_gradKL(self, param, psi_dict, vis, unitary_dict, bases, eps, **kwargs):
+    def numeric_gradKL(self, param, psi_dict, vis, bases, eps, **kwargs):
         num_gradKL = []
         for i in range(len(param)):
             param[i] += eps
-
-            Z = self.nn_state.compute_normalization(vis)
-            KL_p = self.compute_numerical_kl(psi_dict, vis, Z, unitary_dict, bases)
+            KL_p = self.compute_numerical_kl(psi_dict, vis, bases)
 
             param[i] -= 2 * eps
+            KL_m = self.compute_numerical_kl(psi_dict, vis, bases)
 
-            Z = self.nn_state.compute_normalization(vis)
-            KL_m = self.compute_numerical_kl(psi_dict, vis, Z, unitary_dict, bases)
             param[i] += eps
-
             num_gradKL.append((KL_p - KL_m) / (2 * eps))
 
-        return torch.stack(num_gradKL).to(param)
+        return torch.tensor(num_gradKL).to(param)
 
     def algorithmic_gradKL(self, psi_dict, vis, unitary_dict, bases, **kwargs):
         grad_KL = [

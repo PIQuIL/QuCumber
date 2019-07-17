@@ -29,9 +29,9 @@ from . import __tests_location__
 
 K = 10
 SEED = 1234
-EPS = 1.0e-6
+EPS = 1e-6
 
-TOL = torch.tensor(2e-9, dtype=torch.double)
+TOL = torch.tensor(2e-8, dtype=torch.double)
 PDIFF = torch.tensor(100, dtype=torch.double)  # NLL grad tests are a bit too random tbh
 
 
@@ -67,7 +67,7 @@ def positive_wavefunction_data(gpu, num_hidden):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
 
     data = torch.tensor(test_data["tfim1d"]["train_samples"], dtype=torch.double)
-    target_psi = torch.tensor(test_data["tfim1d"]["target_psi"], dtype=torch.double)
+    target_psi = torch.tensor(test_data["tfim1d"]["target_psi"], dtype=torch.double).t()
 
     num_visible = data.shape[-1]
 
@@ -104,7 +104,7 @@ def complex_wavefunction_data(gpu, num_hidden):
     bases_data = test_data["2qubits"]["bases"]
     target_psi_tmp = torch.tensor(
         test_data["2qubits"]["target_psi"], dtype=torch.double
-    )
+    ).t()
 
     num_visible = data_samples.shape[-1]
 

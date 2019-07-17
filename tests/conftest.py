@@ -14,6 +14,9 @@
 
 
 import pytest
+import torch
+
+torch.set_printoptions(precision=10)
 
 
 def pytest_addoption(parser):
