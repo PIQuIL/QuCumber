@@ -169,6 +169,8 @@ def trainEnergy(numQubits,
         modelEnergy = TFIMChainEnergy(8.0)
     elif model == "TFIM1D10p0":
         modelEnergy = TFIMChainEnergy(10.0)
+    elif model == "TFIM1D12p0":
+        modelEnergy = TFIMChainEnergy(12.0)
 
     if storeFidelities:
         nn_state = PositiveWavefunction(num_visible=nv, num_hidden=nh)
