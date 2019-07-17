@@ -73,7 +73,7 @@ def extract_refbasis_samples(train_samples, train_bases):
     :rtype: torch.Tensor
     """
     idx = (
-        torch.tensor(train_bases == "Z", dtype=torch.uint8)
+        torch.tensor((train_bases == "Z").astype(np.uint8), dtype=torch.uint8)
         .all(dim=1)
         .to(train_samples.device)
     )
