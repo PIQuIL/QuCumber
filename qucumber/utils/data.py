@@ -65,25 +65,17 @@ def extract_refbasis_samples(train_samples, train_bases):
     r"""Extract the reference basis samples from the data.
 
     :param train_samples: The training samples.
-    :type train_samples: numpy.array
+    :type train_samples: torch.Tensor
     :param train_bases: The bases of the training samples.
-    :type train_bases: numpy.array
+    :type train_bases: np.array(dtype=str)
 
     :returns: The samples in the data that are only in the reference basis.
     :rtype: torch.Tensor
     """
-    tmp = []
-    num_visible = train_samples.shape[-1]
-    for i in range(train_samples.shape[0]):
-        flag = 0
-        for j in range(num_visible):
-            if train_bases[i][j] != "Z":
-                flag = 1
-                break
-        if flag == 0:
-            tmp.append(train_samples[i])
-    z_samples = torch.zeros(len(tmp), num_visible, dtype=torch.double)
-    for i in range(len(tmp)):
-        for j in range(num_visible):
-            z_samples[i][j] = tmp[i][j]
+    idx = (
+        torch.tensor(train_bases == "Z", dtype=torch.uint8)
+        .all(dim=1)
+        .to(train_samples.device)
+    )
+    z_samples = train_samples[idx]
     return z_samples
