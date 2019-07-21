@@ -21,23 +21,29 @@ def plotWeights(model):
     rowSums = np.sum(weights,axis = 1)
     colSums = np.sum(weights,axis = 0)
 
+    label1 = "$\sum_{j}{W_{ij}}$"
+    label2 = "$h_{i}$"
+    label3 = "{0}/{1}".format(label1,label2)
     xpoints = list(range(len(rowSums)))
     ax = plt.figure().gca()
     ax.xaxis.set_major_locator(MaxNLocator(integer = True))
-    ax.plot(xpoints,rowSums,label = "$\sum_{j}{W_{ij}}$")
-    ax.plot(xpoints,hiddenBias,label = "$h_{i}$")
-    ax.plot(xpoints,rowSums/hiddenBias,"r--",label = "$\sum_{j}{W_{ij}}/h_{i}$")
+    ax.plot(xpoints,rowSums,label = label1)
+    ax.plot(xpoints,hiddenBias,label = label2)
+    ax.plot(xpoints,rowSums/hiddenBias,"r--",label = label3)
     ax.axhline(0,color = "k")
     plt.legend()
     plt.xlabel("Row")
     plt.show()
 
+    label1 = "$\sum_{i}{W_{ij}}$"
+    label2 = "$v_{j}$"
+    label3 = "{0}/{1}".format(label1,label2)
     xpoints = list(range(len(colSums)))
     ax = plt.figure().gca()
     ax.xaxis.set_major_locator(MaxNLocator(integer = True))
-    ax.plot(xpoints,colSums,label = "$\sum_{i}{W_{ij}}$")
-    ax.plot(xpoints,visibleBias,label = "$v_{j}$")
-    ax.plot(xpoints,colSums/visibleBias,"r--",label = "$\sum_{i}{W_{ij}}/v_{j}$")
+    ax.plot(xpoints,colSums,label = label1)
+    ax.plot(xpoints,visibleBias,label = label2)
+    ax.plot(xpoints,colSums/visibleBias,"r--",label = label3)
     ax.axhline(0,color = "k")
     plt.legend()
     plt.xlabel("Column")
