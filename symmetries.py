@@ -22,7 +22,7 @@ def plotWeights(model):
     colSums = np.sum(weights,axis = 0)
 
     label1 = "$\sum_{j}{W_{ij}}$"
-    label2 = "$h_{i}$"
+    label2 = "$c_{i}$"
     label3 = "{0}/{1}".format(label1,label2)
     xpoints = list(range(len(rowSums)))
     ax = plt.figure().gca()
@@ -36,7 +36,7 @@ def plotWeights(model):
     plt.show()
 
     label1 = "$\sum_{i}{W_{ij}}$"
-    label2 = "$v_{j}$"
+    label2 = "$b_{j}$"
     label3 = "{0}/{1}".format(label1,label2)
     xpoints = list(range(len(colSums)))
     ax = plt.figure().gca()
@@ -60,8 +60,8 @@ def plotWeights(model):
     vbiases = np.array(vbiases)
     hbiases = np.array(hbiases)
 
-    label1 = "$v_{j}^{Strong}$"
-    label2 = "$h_{i}$"
+    label1 = "$b_{j}^{Strong}$"
+    label2 = "$c_{i}$"
     label3 = "{0}/{1}".format(label1,label2)
     xpoints = list(range(len(vbiases)))
     ax = plt.figure().gca()
