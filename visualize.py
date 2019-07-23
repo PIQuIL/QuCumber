@@ -2,8 +2,8 @@ from qucumber.nn_states import PositiveWavefunction
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.axes_grid.inset_locator import (inset_axes, InsetPosition,
-                                                  mark_inset)
+from mpl_toolkits.axes_grid.inset_locator import inset_axes
+from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 
 def plotWeights(model,threshold,plot = True,label = "Yo"):
 
