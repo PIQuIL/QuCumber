@@ -2,7 +2,24 @@ from qucumber.nn_states import PositiveWavefunction
 import matplotlib.pyplot as plt
 import numpy as np
 
-def correlation(model):
+def loaddata(datafile):
+    data = open(datafile)
+    line = data.readline()
+    samples = []
+    while line != "":
+        samples.append(list(map(int,line.strip("\n").split(" ")[0:-1])))
+        line = data.readline()
+
+    samples = np.array(samples)
+    return samples
+
+def correlation(model,datafile):
+
+    datasamples = loaddata(datafile)
+    covData = np.corrcoef(datasamples,rowvar = False)
+    plt.matshow(covData)
+    plt.show()
+
     nn_state = PositiveWavefunction.autoload(model)
     new_samples = nn_state.sample(k = 100,num_samples = 10000)
 
@@ -24,4 +41,5 @@ def correlation(model):
     plt.show()
 
 model = "Data/TFIM1D/NhStudy/Q50/16/Nh25/model.pt"
-correlation(model)
+datafile = "Samples/TFIM1D/50Q/Samples.txt"
+correlation(model,datafile)
