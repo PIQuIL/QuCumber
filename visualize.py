@@ -5,7 +5,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 
-def plotWeights(model,threshold,plot = True,label = "Yo"):
+def plotWeights(model,label,plot = False,threshold = 0):
 
     # Load model
     nn_state = PositiveWavefunction.autoload(model)
@@ -90,11 +90,11 @@ models = ["Data/TFIM1D/NhStudy/Q10/39/Nh5/model.pt",
           "Data/TFIM1D/NhStudy/Q100/66/Nh50/model.pt"]
 
 # Plot weight decay and histogram for paper
-plotWeights("Data/TFIM1D/NhStudy/Q60/47/Nh30/model.pt",0,plot = False,label = "h/J = 1")
-plotWeights("Data/TFIM1D2p0/NhStudy/Q60/13/Nh29/model.pt",0,plot = False,label = "h/J = 2")
-plotWeights("Data/TFIM1D5p0/NhStudy/Q60/15/Nh25/model.pt",0,plot = False,label = "h/J = 5")
-plotWeights("Data/TFIM1D8p0/NhStudy/Q60/78/Nh14/model.pt",0,plot = False,label = "h/J = 8")
-plotWeights("Data/TFIM1D10p0/NhStudy/Q60/15/Nh6/model.pt",0,plot = False,label = "h/J = 10")
+plotWeights("Data/TFIM1D/NhStudy/Q60/47/Nh30/model.pt",label = "h/J = 1")
+plotWeights("Data/TFIM1D2p0/NhStudy/Q60/13/Nh29/model.pt",label = "h/J = 2")
+plotWeights("Data/TFIM1D5p0/NhStudy/Q60/15/Nh25/model.pt",label = "h/J = 5")
+plotWeights("Data/TFIM1D8p0/NhStudy/Q60/78/Nh14/model.pt",label = "h/J = 8")
+plotWeights("Data/TFIM1D10p0/NhStudy/Q60/15/Nh6/model.pt",label = "h/J = 10")
 
 # # Plot total number of parameters for multiple thresholds
 # thresholds = list(range(1,5))
