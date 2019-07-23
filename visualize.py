@@ -39,6 +39,10 @@ def plotWeights(model,threshold,plot = True,label = "Yo"):
     sortedW = abs(weights.flatten())
     sortedW[::-1].sort()
     plt.plot(np.log(sortedW),"o",label = label)
+    if label == "h/J = 10":
+        plt.ylabel(r"$\log(\left | W_{ij} \right |)$")
+        plt.legend()
+        plt.savefig("WeightDecay",dpi = 300)
 
     if plot:
         fig, ax1 = plt.subplots()
@@ -91,10 +95,6 @@ plotWeights("Data/TFIM1D2p0/NhStudy/Q60/13/Nh29/model.pt",0,plot = False,label =
 plotWeights("Data/TFIM1D5p0/NhStudy/Q60/15/Nh25/model.pt",0,plot = False,label = "h/J = 5")
 plotWeights("Data/TFIM1D8p0/NhStudy/Q60/78/Nh14/model.pt",0,plot = False,label = "h/J = 8")
 plotWeights("Data/TFIM1D10p0/NhStudy/Q60/15/Nh6/model.pt",0,plot = False,label = "h/J = 10")
-
-plt.ylabel(r"$\log(\left | W_{ij} \right |)$")
-plt.legend()
-plt.savefig("WeightDecay",dpi = 300)
 
 # # Plot total number of parameters for multiple thresholds
 # thresholds = list(range(1,5))
