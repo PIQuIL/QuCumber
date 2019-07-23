@@ -96,26 +96,27 @@ plotWeights("Data/TFIM1D5p0/NhStudy/Q60/15/Nh25/model.pt",label = "h/J = 5")
 plotWeights("Data/TFIM1D8p0/NhStudy/Q60/78/Nh14/model.pt",label = "h/J = 8")
 plotWeights("Data/TFIM1D10p0/NhStudy/Q60/15/Nh6/model.pt",label = "h/J = 10")
 
-# # Plot total number of parameters for multiple thresholds
-# thresholds = list(range(1,5))
-# nQs = list(range(10,101,10))
-#
-# colours = ["b","g","r","c","m"]
-# for i in range(len(thresholds)):
-#     numLPs = []
-#     for j in range(len(models)):
-#         numLP = plotWeights(models[j],thresholds[i],plot = False)
-#         numLPs.append(numLP)
-#
-#     slope,intercept = np.polyfit(nQs,numLPs,1)
-#     lineValues = [slope * k + intercept for k in nQs]
-#
-#     label = r"$\tau = {0}$".format(thresholds[i])
-#     plt.plot(nQs,numLPs,"o",label = label,color = colours[i])
-#     plt.plot(nQs,lineValues,color = colours[i])
-#
-# plt.legend()
-# plt.xlabel("Number of Qubits")
-# plt.ylabel("Number of Parameters")
-# plt.title(r"Number of Parameters for Various Thresholds $\tau$")
-# plt.show()
+def thresholdScaling():
+    # Plot total number of parameters for multiple thresholds
+    thresholds = list(range(1,5))
+    nQs = list(range(10,101,10))
+
+    colours = ["b","g","r","c","m"]
+    for i in range(len(thresholds)):
+        numLPs = []
+        for j in range(len(models)):
+            numLP = plotWeights(models[j],thresholds[i],plot = False)
+            numLPs.append(numLP)
+
+        slope,intercept = np.polyfit(nQs,numLPs,1)
+        lineValues = [slope * k + intercept for k in nQs]
+
+        label = r"$\tau = {0}$".format(thresholds[i])
+        plt.plot(nQs,numLPs,"o",label = label,color = colours[i])
+        plt.plot(nQs,lineValues,color = colours[i])
+
+    plt.legend()
+    plt.xlabel("Number of Qubits")
+    plt.ylabel("Number of Parameters")
+    plt.title(r"Number of Parameters for Various Thresholds $\tau$")
+    plt.show()
