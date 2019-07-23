@@ -19,7 +19,9 @@ def correlation(model,datafile):
     covData = np.corrcoef(datasamples,rowvar = False)
     plt.matshow(covData)
     plt.colorbar()
-    plt.show()
+    plt.savefig("Covariance1",dpi = 200)
+    plt.clf()
+    plt.close()
 
     nn_state = PositiveWavefunction.autoload(model)
     new_samples = nn_state.sample(k = 100,num_samples = 10000)
@@ -28,22 +30,30 @@ def correlation(model,datafile):
     cov = np.corrcoef(data,rowvar = False)
     plt.matshow(cov)
     plt.colorbar()
-    plt.show()
+    plt.savefig("Covariance2",dpi = 200)
+    plt.clf()
+    plt.close()
 
     row = int(len(cov)/2)
     curve = cov[row,row:]
     curveData = covData[row,row:]
     plt.plot(curve,"bo",label = "RBM")
     plt.plot(curveData,"ro",label = "DMRG")
-    plt.show()
+    plt.legend()
+    plt.savefig("TPCorrelator",dpi = 200)
+    plt.clf()
+    plt.close()
 
     ax = plt.subplot(111)
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.plot(curve,"bo",label = "RBM")
-    ax.plot(curve,"ro",label = "DMRG")
-    plt.show()
+    ax.plot(curveData,"ro",label = "DMRG")
+    plt.legend()
+    plt.savefig("TPCorrelatorLog",dpi = 200)
+    plt.clf()
+    plt.close()
 
-model = "Data/TFIM1D/NhStudy/Q50/16/Nh25/model.pt"
-datafile = "Samples/TFIM1D/50Q/Samples.txt"
+model = "Data/TFIM1D/NhStudy/Q100/66/Nh50/model.pt"
+datafile = "Samples/TFIM1D/100Q/Samples.txt"
 correlation(model,datafile)
