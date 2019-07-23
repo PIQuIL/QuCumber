@@ -18,6 +18,7 @@ def correlation(model,datafile):
     datasamples = loaddata(datafile)
     covData = np.corrcoef(datasamples,rowvar = False)
     plt.matshow(covData)
+    plt.colorbar()
     plt.show()
 
     nn_state = PositiveWavefunction.autoload(model)
@@ -31,13 +32,16 @@ def correlation(model,datafile):
 
     row = int(len(cov)/2)
     curve = cov[row,row:]
-    plt.plot(curve,"bo")
+    curveData = covData[row,row:]
+    plt.plot(curve,"bo",label = "RBM")
+    plt.plot(curveData,"ro",label = "DMRG")
     plt.show()
 
     ax = plt.subplot(111)
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.plot(curve,"bo")
+    ax.plot(curve,"bo",label = "RBM")
+    ax.plot(curve,"ro",label = "DMRG")
     plt.show()
 
 model = "Data/TFIM1D/NhStudy/Q50/16/Nh25/model.pt"
