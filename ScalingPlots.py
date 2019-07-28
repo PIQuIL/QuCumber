@@ -117,16 +117,18 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio 
                 valsM = np.min(vals,axis = 1)
             elif study == "M":
                 valsM = np.average(vals,axis = 1)
-            markers = ["o","s","P" ,"X" ,"D",">"]
+                valsErr = np.std(vals,axis = 1)
+                valsErr /= np.sqrt(len(vals[0]))
+            markers = ["o","s","D" ,"P" ,"X",">"]
             if study == "M":
                 lbs = []
                 ubs = []
-                for qubits in listQ:
-                    lbs.append(2500)
-                    ubs.append(0)
-                yerr = [lbs,ubs]
+                # for qubits in listQ:
+                #     lbs.append(2500)
+                #     ubs.append(0)
+                # yerr = [lbs,ubs]
                 plt.errorbar(listQ,valsM,
-                             yerr = yerr,
+                             yerr = valsErr,
                              fmt = "o",
                              capsize = 2,
                              marker = markers[c],
@@ -211,6 +213,7 @@ plotScaling(listQ = list(range(10,101,10)),
 # plt.xlabel("$N$")
 # plt.ylabel("$M$")
 # plt.legend()
+# plt.subplots_adjust(left = 0.17)
 # plt.savefig("Scaling",dpi = 200)
 # plt.clf()
 
