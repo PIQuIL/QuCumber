@@ -1,7 +1,24 @@
+import matplotlib as mpl
+mpl.use('pdf')
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import Energy as energy
+
+# Some parameters to make the plots look nice
+params = {
+    "text.usetex": True,
+    "font.family": "serif",
+    "legend.fontsize": 14,
+    "axes.labelsize": 16,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
+    "lines.linewidth": 2,
+    "lines.markeredgewidth": 0.8,
+    "lines.markersize": 5,
+    "patch.edgecolor": "black",
+}
+plt.rcParams.update(params)
 
 def readROEs(resultsfile,nQ):
     '''
@@ -34,7 +51,7 @@ def readROEs(resultsfile,nQ):
 
     return roes
 
-def plotScaling(listQ,models,study,tol,pat,reqs,labels,fit = False):
+def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio = 0,c = 0):
     '''
     Plot scaling of number of hidden units or number of samples
     versus system size for various thresholds on the ROE upper bound.
@@ -53,6 +70,7 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,fit = False):
     :returns: None
     '''
 
+    slopes = []
     for i in range(len(reqs)):
         for m in range(len(models)):
 
@@ -61,7 +79,10 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,fit = False):
             passed = False
             for nQ in listQ:
                 vals.append([])
-                Nfolder = "Data/{0}/{1}Study/Q{2}".format(models[m],study,nQ)
+                if ratio == 0:
+                    Nfolder = "Data/{0}/{1}Study/Q{2}".format(models[m],study,nQ)
+                else:
+                    Nfolder = "Data/{0}/{1}Study{2}/Q{3}".format(models[m],study,ratio,nQ)
                 seeds = [name for name in os.listdir(Nfolder)]
                 for seed in seeds:
                     folder = Nfolder + "/{0}".format(seed)
@@ -92,31 +113,62 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,fit = False):
                 counter += 1
 
             vals = np.array(vals)
-            valsM = np.min(vals,axis = 1)
-            colours = ["b","g","r","c","m"]
-            if fit:
+            if study == "Nh":
+                valsM = np.min(vals,axis = 1)
+            elif study == "M":
+                valsM = np.average(vals,axis = 1)
+            markers = ["o","s","P" ,"X" ,"D",">"]
+            if study == "M":
+                lbs = []
+                ubs = []
+                for qubits in listQ:
+                    lbs.append(2500)
+                    ubs.append(0)
+                yerr = [lbs,ubs]
+                plt.errorbar(listQ,valsM,
+                             yerr = yerr,
+                             fmt = "o",
+                             capsize = 2,
+                             marker = markers[c],
+                             color = "C{0}".format(c),
+                             label = labels[0])
+                a,b = np.polyfit(listQ,valsM,1)
+                lineValues = [a * k + b for k in listQ]
+                plt.plot(listQ,lineValues,color = "C{0}".format(c))
+            elif fit:
                 slope,intercept = np.polyfit(listQ,valsM,1)
+                slopes.append(slope)
                 lineValues = [slope * k + intercept for k in listQ]
-                plt.plot(listQ,valsM,"o",label = labels[m],color = colours[m])
-                if m < 2:
-                    plt.plot(listQ,lineValues,color = colours[m])
+                plt.plot(listQ,valsM,"o",
+                         label = labels[m],
+                         marker = markers[m],
+                         color = "C{0}".format(m))
+                plt.plot(listQ,lineValues,color = "C{0}".format(m))
             else:
                 plt.plot(listQ,valsM,"-o",label = req)
 
-    plt.xlabel("$N$")
     if study == "Nh":
+        plt.xlabel("$N$")
         plt.ylabel("$N_{h}$")
         title = r"Min $N_{h}$ for various ROE Bounds"
         title += " with 99% CI (Across {0} Trials)".format(len(seeds))
     elif study == "M":
-        plt.ylabel("$M$")
         title = r"Min $M$ for various ROE Bounds"
         title += " with 99% CI (Across {0} Trials)".format(len(seeds))
 
-    # plt.title(title)
-    plt.legend()
-    plt.savefig("Scaling",dpi = 200)
-    plt.clf()
+    if study == "Nh":
+        plt.legend()
+        plt.savefig("Scaling",dpi = 300)
+        plt.clf()
+
+    # Plot slope vs h/J
+    # if study == "Nh":
+    #     for h in range(len(ratios)):
+    #         plt.plot(ratios[h],slopes[h],"bo")
+    #
+    #     plt.xlabel("h/J")
+    #     plt.ylabel("Slope")
+    #     plt.savefig("SlopeScaling",dpi = 300)
 
 def illustrateScaling():
 
@@ -127,16 +179,39 @@ def illustrateScaling():
     plt.axhline(0.002,linestyle = "--",color = "r")
     plt.xlabel(r"$N_{h}$")
     plt.ylabel(r"$\epsilon_{ub}$")
-    plt.savefig("ScalingProcedure",dpi = 200)
+    plt.savefig("ScalingProcedure",dpi = 300)
     plt.clf()
 
 plotScaling(listQ = list(range(10,101,10)),
-            models = ["TFIM1D","TFIM1D5p0","TFIM1D0p5"],
+            models = ["TFIM1D","TFIM1D2p0","TFIM1D5p0",
+                      "TFIM1D8p0","TFIM1D10p0","TFIM1D12p0"],
             study = "Nh",
             tol = 0.0005,
             pat = 50,
             reqs = [0.002],
-            labels = ["h/J = 1","h/J = 5","h/J = 0.5"],
+            labels = ["$h/J = 1$","$h/J = 2$","$h/J = 5$",
+                      "$h/J = 8$","$h/J = 10$","$h/J = 12$"],
+            ratios = [1,2,5,8,10,12],
             fit = True)
 
-illustrateScaling()
+# alphas = [["0p5","0p6","0p7"],[0.5,0.6,0.7]]
+# for i in range(len(alphas[0])):
+#     plotScaling(listQ = list(range(10,101,10)),
+#                 models = ["TFIM1D"],
+#                 study = "M",
+#                 tol = 0.0005,
+#                 pat = 50,
+#                 reqs = [0.002],
+#                 ratios = [1],
+#                 labels = [r"$\alpha = {0}$".format(alphas[1][i])],
+#                 fit = True,
+#                 ratio = alphas[0][i],
+#                 c = i)
+#
+# plt.xlabel("$N$")
+# plt.ylabel("$M$")
+# plt.legend()
+# plt.savefig("Scaling",dpi = 200)
+# plt.clf()
+
+# illustrateScaling()
