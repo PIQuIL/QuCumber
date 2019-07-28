@@ -1,9 +1,26 @@
+import matplotlib as mpl
+mpl.use('pdf')
 from qucumber.nn_states import PositiveWavefunction
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 from mpl_toolkits.axes_grid.inset_locator import InsetPosition
+
+# Some parameters to make the plots look nice
+params = {
+    "text.usetex": True,
+    "font.family": "serif",
+    "legend.fontsize": 14,
+    "axes.labelsize": 16,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
+    "lines.linewidth": 2,
+    "lines.markeredgewidth": 0.8,
+    "lines.markersize": 5,
+    "patch.edgecolor": "black",
+}
+plt.rcParams.update(params)
 
 def plotWeights(model,label,plot = False,threshold = 0):
 
@@ -36,11 +53,15 @@ def plotWeights(model,label,plot = False,threshold = 0):
         plt.clf()
         plt.close()
 
+        ax = plt.subplot(111)
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+
     sortedW = abs(weights.flatten())
     sortedW[::-1].sort()
-    plt.plot(np.log(sortedW),"o",label = label)
+    plt.plot(sortedW,"o",label = "${0}$".format(label))
     if label == "h/J = 10":
-        plt.ylabel(r"$\log(\left | W_{ij} \right |)$")
+        plt.ylabel(r"$\left | W_{ij} \right |$")
         plt.legend()
         plt.savefig("WeightDecay",dpi = 300)
 
