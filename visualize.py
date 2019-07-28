@@ -57,9 +57,20 @@ def plotWeights(model,label,plot = False,threshold = 0):
         ax.set_xscale("log")
         ax.set_yscale("log")
 
+    markers = ["o","s","D" ,"P" ,"X",">"]
+    if label == "h/J = 1":
+        marker = markers[0]
+    elif label == "h/J = 2":
+        marker = markers[1]
+    elif label == "h/J = 5":
+        marker = markers[2]
+    elif label == "h/J = 8":
+        marker = markers[3]
+    elif label == "h/J = 10":
+        marker = markers[4]
     sortedW = abs(weights.flatten())
     sortedW[::-1].sort()
-    plt.plot(sortedW,"o",label = "${0}$".format(label))
+    plt.plot(sortedW,"o",label = "${0}$".format(label),marker = marker)
     if label == "h/J = 10":
         plt.ylabel(r"$\left | W_{ij} \right |$")
         plt.legend()
