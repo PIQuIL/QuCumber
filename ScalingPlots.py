@@ -180,7 +180,7 @@ def illustrateScaling():
     plt.plot(nh,roes,"bo")
     plt.axhline(0.002,linestyle = "--",color = "r")
     plt.xlabel(r"$N_{h}$")
-    plt.ylabel(r"$\epsilon_{ub}$")
+    plt.ylabel(r"uROE")
     plt.savefig("ScalingProcedure",dpi = 300)
     plt.clf()
 
