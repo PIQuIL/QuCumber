@@ -5,20 +5,22 @@ import numpy as np
 import os
 import Energy as energy
 
-# Some parameters to make the plots look nice
-params = {
-    "text.usetex": True,
-    "font.family": "serif",
-    "legend.fontsize": 14,
-    "axes.labelsize": 16,
-    "xtick.labelsize": 14,
-    "ytick.labelsize": 14,
-    "lines.linewidth": 2,
-    "lines.markeredgewidth": 0.8,
-    "lines.markersize": 5,
-    "patch.edgecolor": "black",
-}
-plt.rcParams.update(params)
+# # Some parameters to make the plots look nice
+# params = {
+#     "text.usetex": True,
+#     "font.family": "serif",
+#     "legend.fontsize": 14,
+#     "axes.labelsize": 16,
+#     "xtick.labelsize": 14,
+#     "ytick.labelsize": 14,
+#     "lines.linewidth": 2,
+#     "lines.markeredgewidth": 0.8,
+#     "lines.markersize": 5,
+#     "patch.edgecolor": "black",
+# }
+# plt.rcParams.update(params)
+
+plt.style.use("aps.mplstyle")
 
 def readROEs(resultsfile,nQ):
     '''
@@ -127,6 +129,9 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio 
                 #     lbs.append(2500)
                 #     ubs.append(0)
                 # yerr = [lbs,ubs]
+                a,b = np.polyfit(listQ,valsM,1)
+                lineValues = [a * k + b for k in listQ]
+                plt.plot(listQ,lineValues,color = "C{0}".format(c))
                 plt.errorbar(listQ,valsM,
                              yerr = valsErr,
                              fmt = "o",
@@ -134,18 +139,15 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio 
                              marker = markers[c],
                              color = "C{0}".format(c),
                              label = labels[0])
-                a,b = np.polyfit(listQ,valsM,1)
-                lineValues = [a * k + b for k in listQ]
-                plt.plot(listQ,lineValues,color = "C{0}".format(c))
             elif fit:
                 slope,intercept = np.polyfit(listQ,valsM,1)
                 slopes.append(slope)
                 lineValues = [slope * k + intercept for k in listQ]
+                plt.plot(listQ,lineValues,color = "C{0}".format(m))
                 plt.plot(listQ,valsM,"o",
                          label = labels[m],
                          marker = markers[m],
                          color = "C{0}".format(m))
-                plt.plot(listQ,lineValues,color = "C{0}".format(m))
             else:
                 plt.plot(listQ,valsM,"-o",label = req)
 
