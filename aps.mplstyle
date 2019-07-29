@@ -1,0 +1,60 @@
+####################################################################################
+#
+# APS Style
+#
+# Del Mastro Group Publication Style Sheet
+#
+# Last Updated: May 5th, 2015
+#
+####################################################################################
+
+### FONT
+font.size           : 10.0
+font.serif          : CMU Serif Roman
+
+### LaTeX customizations. See http://www.scipy.org/Wiki/Cookbook/Matplotlib/UsingTex
+text.usetex         : True  # use latex for all text handling. The following fonts
+                              # are supported through the usual rc parameter settings:
+                              # new century schoolbook, bookman, times, palatino,
+                              # zapf chancery, charter, serif, sans-serif, helvetica,
+                              # avant garde, courier, monospace, computer modern roman,
+                              # computer modern sans serif, computer modern typewriter
+                              # If another font is desired which can loaded using the
+                              # LaTeX \usepackage command, please inquire at the
+                              # matplotlib mailing list
+### PLOT STYLES
+lines.markersize  : 5         # markersize, in points
+lines.linewidth   : 1.0       # line width in points
+lines.linestyle   : -         # solid line
+lines.markeredgewidth : 0.5   # the line width around the marker symbol
+lines.markeredgecolor: black
+
+### AXES
+axes.labelsize      : 10      # fontsize of the x any y labels
+
+### TICKS
+# see http://matplotlib.org/api/axis_api.html#matplotlib.axis.Tick
+xtick.major.size     : 4      # major tick size in points
+xtick.minor.size     : 2      # minor tick size in points
+xtick.major.pad      : 4      # distance to major tick label in points
+xtick.minor.pad      : 4      # distance to the minor tick label in points
+xtick.labelsize      : 8 # fontsize of the tick labels
+
+ytick.major.size     : 4      # major tick size in points
+ytick.minor.size     : 2      # minor tick size in points
+ytick.major.pad      : 4      # distance to major tick label in points
+ytick.minor.pad      : 4      # distance to the minor tick label in points
+ytick.labelsize      : 8 # fontsize of the tick labels
+
+### Legend
+legend.fontsize      : 8
+legend.frameon       : False   # whether or not to draw a frame around legend
+
+### FIGURE
+# See http://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure
+figure.figsize   : 3.4039, 2.10373    # figure size in inches
+
+savefig.transparent :  True     # transparent figures
+savefig.dpi         : 72.27     # figure dots per inch
+savefig.bbox        : tight     # 'tight' or 'standard'.
+savefig.pad_inches  : 0.05       # Padding to be used when bbox is set to 'tight'
