@@ -157,14 +157,22 @@ def trainEnergy(numQubits,
         modelEnergy = Heisenberg1DEnergy()
     elif model == "TFIM1D":
         modelEnergy = TFIMChainEnergy(1)
-    elif model == "TFIM1D0p5":
-        modelEnergy = TFIMChainEnergy(0.5)
-    elif model == "TFIM1D5p0":
-        modelEnergy = TFIMChainEnergy(5.0)
     elif model == "TFIM1D0p2":
         modelEnergy = TFIMChainEnergy(0.2)
+    elif model == "TFIM1D0p5":
+        modelEnergy = TFIMChainEnergy(0.5)
+    elif model == "TFIM1D0p6":
+        modelEnergy = TFIMChainEnergy(0.6)
+    elif model == "TFIM1D0p7":
+        modelEnergy = TFIMChainEnergy(0.7)
+    elif model == "TFIM1D0p8":
+        modelEnergy = TFIMChainEnergy(0.8)
+    elif model == "TFIM1D0p9":
+        modelEnergy = TFIMChainEnergy(0.9)
     elif model == "TFIM1D2p0":
         modelEnergy = TFIMChainEnergy(2.0)
+    elif model == "TFIM1D5p0":
+        modelEnergy = TFIMChainEnergy(5.0)
     elif model == "TFIM1D8p0":
         modelEnergy = TFIMChainEnergy(8.0)
     elif model == "TFIM1D10p0":
