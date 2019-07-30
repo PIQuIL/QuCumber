@@ -120,7 +120,6 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio 
             elif study == "M":
                 valsM = np.average(vals,axis = 1)
                 valsErr = np.std(vals,axis = 1)
-                valsErr /= np.sqrt(len(vals[0]))
             markers = ["o","s","D" ,"P" ,"X",">"]
             if study == "M":
                 lbs = []
@@ -198,7 +197,17 @@ plotScaling(listQ = list(range(10,101,10)),
             ratios = [1,2,5,8,10,12],
             fit = True)
 
-# alphas = [["0p5","0p6","0p7"],[0.5,0.6,0.7]]
+# plotScaling(listQ = list(range(10,91,10)),
+#             models = ["TFIM1D","TFIM1D0p6","TFIM1D0p2"],
+#             study = "Nh",
+#             tol = 0.0005,
+#             pat = 50,
+#             reqs = [0.002],
+#             labels = ["$h/J = 1$","$h/J = 0.6$","$h/J = $0.2$"],
+#             ratios = [1,0.6,0.2],
+#             fit = True)
+
+# alphas = [["0p5","0p6","0p7","0p8"],[0.5,0.6,0.7,0.8]]
 # for i in range(len(alphas[0])):
 #     plotScaling(listQ = list(range(10,101,10)),
 #                 models = ["TFIM1D"],
