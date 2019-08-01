@@ -8,19 +8,20 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 
 # Some parameters to make the plots look nice
-params = {
-    "text.usetex": True,
-    "font.family": "serif",
-    "legend.fontsize": 14,
-    "axes.labelsize": 16,
-    "xtick.labelsize": 14,
-    "ytick.labelsize": 14,
-    "lines.linewidth": 2,
-    "lines.markeredgewidth": 0.8,
-    "lines.markersize": 5,
-    "patch.edgecolor": "black",
-}
-plt.rcParams.update(params)
+# params = {
+#     "text.usetex": True,
+#     "font.family": "serif",
+#     "legend.fontsize": 14,
+#     "axes.labelsize": 16,
+#     "xtick.labelsize": 14,
+#     "ytick.labelsize": 14,
+#     "lines.linewidth": 2,
+#     "lines.markeredgewidth": 0.8,
+#     "lines.markersize": 5,
+#     "patch.edgecolor": "black",
+# }
+# plt.rcParams.update(params)
+plt.style.use("apsWD.mplstyle")
 
 def plotWeights(model,label,plot = False,threshold = 0):
 
@@ -54,7 +55,6 @@ def plotWeights(model,label,plot = False,threshold = 0):
         plt.close()
 
         ax = plt.subplot(111)
-        ax.set_xscale("log")
         ax.set_yscale("log")
 
     markers = ["o","s","D" ,"P" ,"X",">"]
@@ -70,8 +70,12 @@ def plotWeights(model,label,plot = False,threshold = 0):
         marker = markers[4]
     sortedW = abs(weights.flatten())
     sortedW[::-1].sort()
-    plt.plot(sortedW,"o",label = "${0}$".format(label),marker = marker)
+    plt.plot(sortedW,"o",
+             label = "${0}$".format(label),
+             marker = marker,
+             markerfacecolor = "none")
     if label == "h/J = 10":
+        plt.ylim(bottom = 1e-3)
         plt.ylabel(r"$\left | W_{ij} \right |$")
         plt.legend()
         plt.savefig("WeightDecay",dpi = 300)
