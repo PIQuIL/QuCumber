@@ -159,6 +159,8 @@ def trainEnergy(numQubits,
         modelEnergy = TFIMChainEnergy(1)
     elif model == "TFIM1D0p2":
         modelEnergy = TFIMChainEnergy(0.2)
+    elif model == "TFIM1D0p4":
+        modelEnergy = TFIMChainEnergy(0.4)
     elif model == "TFIM1D0p5":
         modelEnergy = TFIMChainEnergy(0.5)
     elif model == "TFIM1D0p6":
