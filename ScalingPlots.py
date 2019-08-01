@@ -53,7 +53,7 @@ def readROEs(resultsfile,nQ):
 
     return roes
 
-def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio = 0,c = 0):
+def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio = 0,c = 0,ax = None):
     '''
     Plot scaling of number of hidden units or number of samples
     versus system size for various thresholds on the ROE upper bound.
@@ -142,15 +142,22 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio 
                 slope,intercept = np.polyfit(listQ,valsM,1)
                 slopes.append(slope)
                 lineValues = [slope * k + intercept for k in listQ]
-                plt.plot(listQ,lineValues,color = "C{0}".format(m))
-                plt.plot(listQ,valsM,"o",
-                         label = labels[m],
-                         marker = markers[m],
-                         color = "C{0}".format(m))
+                if ax == None:
+                    plt.plot(listQ,lineValues,color = "C{0}".format(m))
+                    plt.plot(listQ,valsM,"o",
+                             label = labels[m],
+                             marker = markers[m],
+                             color = "C{0}".format(m))
+                else:
+                    ax.plot(listQ,lineValues,color = "C{0}".format(m))
+                    ax.plot(listQ,valsM,"o",
+                            label = labels[m],
+                            marker = markers[m],
+                            color = "C{0}".format(m))
             else:
                 plt.plot(listQ,valsM,"-o",label = req)
 
-    if study == "Nh":
+    if study == "Nh" and ax == None:
         plt.xlabel("$N$")
         plt.ylabel("$N_{h}$")
         title = r"Min $N_{h}$ for various ROE Bounds"
@@ -159,10 +166,12 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio 
         title = r"Min $M$ for various ROE Bounds"
         title += " with 99% CI (Across {0} Trials)".format(len(seeds))
 
-    if study == "Nh":
+    if study == "Nh" and ax == None:
         plt.legend()
         plt.savefig("Scaling",dpi = 300)
         plt.clf()
+    else:
+        ax.legend()
 
     # Plot slope vs h/J
     # if study == "Nh":
@@ -181,11 +190,14 @@ def illustrateScaling():
     plt.plot(nh,roes,"bo")
     plt.axhline(0.002,linestyle = "--",color = "r")
     plt.xlabel(r"$N_{h}$")
-    plt.ylabel(r"uROE")
+    plt.ylabel(r"$\epsilon$")
     plt.savefig("ScalingProcedure",dpi = 300)
     plt.clf()
 
-plotScaling(listQ = list(range(10,101,10)),
+# Three subplots sharing both x/y axes
+f, (ax1, ax2) = plt.subplots(2,sharex = True,sharey = True)
+
+plotScaling(listQ = list(range(10,91,10)),
             models = ["TFIM1D","TFIM1D2p0","TFIM1D5p0",
                       "TFIM1D8p0","TFIM1D10p0","TFIM1D12p0"],
             study = "Nh",
@@ -195,17 +207,27 @@ plotScaling(listQ = list(range(10,101,10)),
             labels = ["$h/J = 1$","$h/J = 2$","$h/J = 5$",
                       "$h/J = 8$","$h/J = 10$","$h/J = 12$"],
             ratios = [1,2,5,8,10,12],
-            fit = True)
+            fit = True,
+            ax = ax1)
 
-# plotScaling(listQ = list(range(10,91,10)),
-#             models = ["TFIM1D","TFIM1D0p6","TFIM1D0p2"],
-#             study = "Nh",
-#             tol = 0.0005,
-#             pat = 50,
-#             reqs = [0.002],
-#             labels = ["$h/J = 1$","$h/J = 0.6$","$h/J = $0.2$"],
-#             ratios = [1,0.6,0.2],
-#             fit = True)
+plotScaling(listQ = list(range(10,91,10)),
+            models = ["TFIM1D","TFIM1D0p7","TFIM1D0p6","TFIM1D0p2"],
+            study = "Nh",
+            tol = 0.0005,
+            pat = 50,
+            reqs = [0.002],
+            labels = ["$h/J = 1$","$h/J = 0.7$","$h/J = 0.6$","$h/J = 0.2$"],
+            ratios = [1,0.7,0.6,0.2],
+            fit = True,
+            ax = ax2)
+
+f.text(0.5, 0.04, '$N$', ha='center')
+f.text(0.04, 0.5, '$N_{h}$', va='center', rotation='vertical')
+f.subplots_adjust(hspace=0)
+plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
+plt.savefig("Scaling")
+plt.clf()
+plt.close()
 
 # alphas = [["0p5","0p6","0p7","0p8"],[0.5,0.6,0.7,0.8]]
 # for i in range(len(alphas[0])):
