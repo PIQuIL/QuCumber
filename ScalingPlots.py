@@ -205,10 +205,13 @@ def illustrateScaling():
                   ratios = [1,0.95,0.9,0.8,0.75,0.7,0.65,0.6],
                   ax = ax2)
 
-    nh = list(range(5,11))
-    roes = [0.02965658,0.02172137,0.01319593,0.00765384,0.00602224,0.00195432]
+    nhs = list(range(20,26))
+    roes = []
+    for nh in nhs:
+        path = "Data/TFIM1D/NhStudy/Q50/29/Nh{0}/Results.txt".format(nh)
+        roes.append(readROEs(path,50)[-1])
 
-    ax1.plot(nh,roes,"bo")
+    ax1.plot(nhs,roes,"bo")
     ax1.axhline(0.002,linestyle = "--",color = "r")
     ax1.set_xlabel(r"$N_{h}$")
     ax1.set_ylabel(r"$\epsilon$")
