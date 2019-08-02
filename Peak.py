@@ -38,7 +38,7 @@ def readROEs(resultsfile,nQ):
 
     return roes
 
-def plotPeak(listQ,models,tol,pat,req,labels,ratios):
+def plotPeak(listQ,models,tol,pat,req,labels,ratios,ax = "None"):
     '''
     Plot number of required hidden units for various h/Js for
     fixed number of qubits.
@@ -92,20 +92,28 @@ def plotPeak(listQ,models,tol,pat,req,labels,ratios):
 
         vals = np.array(vals)
         valsM = np.min(vals,axis = 1)
-        plt.plot(ratios[m],valsM[0],"bo",label = labels[m])
+        if ax == "None":
+            plt.plot(ratios[m],valsM[0],"bo",label = labels[m])
+        else:
+            ax.plot(ratios[m],valsM[0],"bo",label = labels[m])
 
-    plt.xlabel("$h/J$")
-    plt.ylabel("$N_{h}$")
-    plt.savefig("Peak")
+    if ax == "None":
+        plt.xlabel("$h/J$")
+        plt.ylabel("$N_{h}$")
+        plt.savefig("Peak")
+    else:
+        ax.set_xlabel("$h/J$")
+        ax.set_ylabel("$N_{h}$")
 
-plotPeak(listQ = [50],
-         models = ["TFIM1D","TFIM1D0p95","TFIM1D0p9",
-                   "TFIM1D0p8","TFIM1D0p75","TFIM1D0p7","TFIM1D0p65",
-                   "TFIM1D0p6"],
-        tol = 0.0005,
-        pat = 50,
-        req = 0.002,
-        labels = ["$h/J = 1$","$h/J = 0.95$","$h/J = 0.9$",
-                  "$h/J = 8$","$h/J = 0.75$","$h/J = 0.7$",
-                  "$h/J = 0.65$","$h/J = 0.6$"],
-        ratios = [1,0.95,0.9,0.8,0.75,0.7,0.65,0.6])
+def plot():
+    plotPeak(listQ = [50],
+             models = ["TFIM1D","TFIM1D0p95","TFIM1D0p9",
+                       "TFIM1D0p8","TFIM1D0p75","TFIM1D0p7","TFIM1D0p65",
+                       "TFIM1D0p6"],
+            tol = 0.0005,
+            pat = 50,
+            req = 0.002,
+            labels = ["$h/J = 1$","$h/J = 0.95$","$h/J = 0.9$",
+                      "$h/J = 8$","$h/J = 0.75$","$h/J = 0.7$",
+                      "$h/J = 0.65$","$h/J = 0.6$"],
+            ratios = [1,0.95,0.9,0.8,0.75,0.7,0.65,0.6])
