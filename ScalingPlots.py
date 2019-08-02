@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import Energy as energy
+import Peak as peak
 
 # # Some parameters to make the plots look nice
 # params = {
@@ -20,7 +21,7 @@ import Energy as energy
 # }
 # plt.rcParams.update(params)
 
-plt.style.use("aps.mplstyle")
+plt.style.use("apsPeak.mplstyle")
 
 def readROEs(resultsfile,nQ):
     '''
@@ -184,50 +185,70 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio 
 
 def illustrateScaling():
 
+    fig, ax1 = plt.subplots()
+
+    # These are in unitless percentages of the figure size.
+    # 00 is bottom left
+    left, bottom, width, height = [0.55, 0.55, 0.3, 0.3]
+    ax2 = fig.add_axes([left, bottom, width, height])
+
+    peak.plotPeak(listQ = [50],
+                  models = ["TFIM1D","TFIM1D0p95","TFIM1D0p9",
+                            "TFIM1D0p8","TFIM1D0p75","TFIM1D0p7","TFIM1D0p65",
+                            "TFIM1D0p6"],
+                  tol = 0.0005,
+                  pat = 50,
+                  req = 0.002,
+                  labels = ["$h/J = 1$","$h/J = 0.95$","$h/J = 0.9$",
+                            "$h/J = 8$","$h/J = 0.75$","$h/J = 0.7$",
+                            "$h/J = 0.65$","$h/J = 0.6$"],
+                  ratios = [1,0.95,0.9,0.8,0.75,0.7,0.65,0.6],
+                  ax = ax2)
+
     nh = list(range(5,11))
     roes = [0.02965658,0.02172137,0.01319593,0.00765384,0.00602224,0.00195432]
 
-    plt.plot(nh,roes,"bo")
-    plt.axhline(0.002,linestyle = "--",color = "r")
-    plt.xlabel(r"$N_{h}$")
-    plt.ylabel(r"$\epsilon$")
+    ax1.plot(nh,roes,"bo")
+    ax1.axhline(0.002,linestyle = "--",color = "r")
+    ax1.set_xlabel(r"$N_{h}$")
+    ax1.set_ylabel(r"$\epsilon$")
     plt.savefig("ScalingProcedure",dpi = 300)
     plt.clf()
 
-# Three subplots sharing both x/y axes
-f, (ax1, ax2) = plt.subplots(2,sharex = True,sharey = True)
-
-plotScaling(listQ = list(range(10,91,10)),
-            models = ["TFIM1D","TFIM1D2p0","TFIM1D5p0",
-                      "TFIM1D8p0","TFIM1D10p0","TFIM1D12p0"],
-            study = "Nh",
-            tol = 0.0005,
-            pat = 50,
-            reqs = [0.002],
-            labels = ["$h/J = 1$","$h/J = 2$","$h/J = 5$",
-                      "$h/J = 8$","$h/J = 10$","$h/J = 12$"],
-            ratios = [1,2,5,8,10,12],
-            fit = True,
-            ax = ax1)
-
-plotScaling(listQ = list(range(10,91,10)),
-            models = ["TFIM1D","TFIM1D0p7","TFIM1D0p6","TFIM1D0p2"],
-            study = "Nh",
-            tol = 0.0005,
-            pat = 50,
-            reqs = [0.002],
-            labels = ["$h/J = 1$","$h/J = 0.7$","$h/J = 0.6$","$h/J = 0.2$"],
-            ratios = [1,0.7,0.6,0.2],
-            fit = True,
-            ax = ax2)
-
-f.text(0.5, 0.04, '$N$', ha='center')
-f.text(0.04, 0.5, '$N_{h}$', va='center', rotation='vertical')
-f.subplots_adjust(hspace=0)
-plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
-plt.savefig("Scaling")
-plt.clf()
-plt.close()
+# # Three subplots sharing both x/y axes
+# f, (ax1, ax2) = plt.subplots(2,sharex = True,sharey = True)
+#
+# plotScaling(listQ = list(range(10,91,10)),
+#             models = ["TFIM1D","TFIM1D2p0","TFIM1D5p0",
+#                       "TFIM1D8p0","TFIM1D10p0","TFIM1D12p0"],
+#             study = "Nh",
+#             tol = 0.0005,
+#             pat = 50,
+#             reqs = [0.002],
+#             labels = ["$h/J = 1$","$h/J = 2$","$h/J = 5$",
+#                       "$h/J = 8$","$h/J = 10$","$h/J = 12$"],
+#             ratios = [1,2,5,8,10,12],
+#             fit = True,
+#             ax = ax1)
+#
+# plotScaling(listQ = list(range(10,91,10)),
+#             models = ["TFIM1D","TFIM1D0p7","TFIM1D0p6","TFIM1D0p2"],
+#             study = "Nh",
+#             tol = 0.0005,
+#             pat = 50,
+#             reqs = [0.002],
+#             labels = ["$h/J = 1$","$h/J = 0.7$","$h/J = 0.6$","$h/J = 0.2$"],
+#             ratios = [1,0.7,0.6,0.2],
+#             fit = True,
+#             ax = ax2)
+#
+# f.text(0.5, 0.04, '$N$', ha='center')
+# f.text(0.04, 0.5, '$N_{h}$', va='center', rotation='vertical')
+# f.subplots_adjust(hspace=0)
+# plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
+# plt.savefig("Scaling")
+# plt.clf()
+# plt.close()
 
 # alphas = [["0p5","0p6","0p7","0p8"],[0.5,0.6,0.7,0.8]]
 # for i in range(len(alphas[0])):
@@ -250,4 +271,4 @@ plt.close()
 # plt.savefig("Scaling",dpi = 200)
 # plt.clf()
 
-# illustrateScaling()
+illustrateScaling()
