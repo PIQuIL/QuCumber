@@ -102,8 +102,8 @@ def plotPeak(listQ,models,tol,pat,req,labels,ratios,ax = "None"):
         plt.ylabel("$N_{h}$")
         plt.savefig("Peak")
     else:
-        ax.set_xlabel("$h/J$")
-        ax.set_ylabel("$N_{h}$")
+        ax.set_xlabel("$h/J$",fontsize = 6)
+        ax.set_ylabel("$N_{h}$",fontsize = 6)
 
 def plot():
     plotPeak(listQ = [50],
