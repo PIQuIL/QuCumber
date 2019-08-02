@@ -38,10 +38,10 @@ def readROEs(resultsfile,nQ):
 
     return roes
 
-def plotScaling(listQ,models,tol,pat,req,labels,ratios):
+def plotPeak(listQ,models,tol,pat,req,labels,ratios):
     '''
-    Plot scaling of number of hidden units or number of samples
-    versus system size for various thresholds on the ROE upper bound.
+    Plot number of required hidden units for various h/Js for
+    fixed number of qubits.
 
     :param listQ: List of system sizes to check.
     :type listQ: listof int
@@ -98,12 +98,14 @@ def plotScaling(listQ,models,tol,pat,req,labels,ratios):
     plt.ylabel("$N_{h}$")
     plt.savefig("Peak")
 
-plotScaling(listQ = [50],
-            models = ["TFIM1D","TFIM1D0p9","TFIM1D0p8",
-                      "TFIM1D0p7","TFIM1D0p6"],
-            tol = 0.0005,
-            pat = 50,
-            req = 0.002,
-            labels = ["$h/J = 1$","$h/J = 0.9$","$h/J = 0.8$",
-                      "$h/J = 0.7$","$h/J = 0.6$"],
-            ratios = [1,0.9,0.8,0.7,0.6])
+plotPeak(listQ = [50],
+         models = ["TFIM1D","TFIM1D0p95","TFIM1D0p9",
+                   "TFIM1D0p8","TFIM1D0p75","TFIM1D0p7","TFIM1D0p65",
+                   "TFIM1D0p6"],
+        tol = 0.0005,
+        pat = 50,
+        req = 0.002,
+        labels = ["$h/J = 1$","$h/J = 0.95$","$h/J = 0.9$",
+                  "$h/J = 8$","$h/J = 0.75$","$h/J = 0.7$",
+                  "$h/J = 0.65$","$h/J = 0.6$"],
+        ratios = [1,0.95,0.9,0.8,0.75,0.7,0.65,0.6])
