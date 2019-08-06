@@ -1,7 +1,11 @@
+import matplotlib as mpl
+mpl.use('pdf')
 from qucumber.nn_states import PositiveWavefunction
 from matplotlib.ticker import MaxNLocator
 import matplotlib.pyplot as plt
 import numpy as np
+
+plt.style.use("apsSymmetry.mplstyle")
 
 def plotWeights(model):
 
@@ -21,33 +25,37 @@ def plotWeights(model):
     rowSums = np.sum(weights,axis = 1)
     colSums = np.sum(weights,axis = 0)
 
+    fig,axes = plt.subplots(1,2)
     label1 = "$\sum_{j}{W_{ij}}$"
     label2 = "$c_{i}$"
     label3 = "{0}/{1}".format(label1,label2)
     xpoints = list(range(len(rowSums)))
-    ax = plt.figure().gca()
-    ax.xaxis.set_major_locator(MaxNLocator(integer = True))
-    ax.plot(xpoints,rowSums,label = label1)
-    ax.plot(xpoints,hiddenBias,label = label2)
-    ax.plot(xpoints,rowSums/hiddenBias,"r--",label = label3)
-    ax.axhline(0,color = "k")
-    plt.legend()
-    plt.xlabel("Row")
-    plt.show()
+    # ax = plt.figure().gca()
+    # ax.xaxis.set_major_locator(MaxNLocator(integer = True))
+    axes[0].plot(xpoints,rowSums,label = label1)
+    axes[0].plot(xpoints,hiddenBias,label = label2)
+    axes[0].plot(xpoints,rowSums/hiddenBias,"r--",label = label3)
+    axes[0].axhline(0,color = "k")
+    axes[0].set_ylim(-14,14)
+    axes[0].legend()
+    axes[0].set_xlabel("$i$")
 
     label1 = "$\sum_{i}{W_{ij}}$"
     label2 = "$b_{j}$"
     label3 = "{0}/{1}".format(label1,label2)
     xpoints = list(range(len(colSums)))
-    ax = plt.figure().gca()
-    ax.xaxis.set_major_locator(MaxNLocator(integer = True))
-    ax.plot(xpoints,colSums,label = label1)
-    ax.plot(xpoints,visibleBias,label = label2)
-    ax.plot(xpoints,colSums/visibleBias,"r--",label = label3)
-    ax.axhline(0,color = "k")
-    plt.legend()
-    plt.xlabel("Column")
-    plt.show()
+    # ax = plt.figure().gca()
+    # ax.xaxis.set_major_locator(MaxNLocator(integer = True))
+    axes[1].plot(xpoints,colSums,label = label1)
+    axes[1].plot(xpoints,visibleBias,label = label2)
+    axes[1].plot(xpoints,colSums/visibleBias,"r--",label = label3)
+    axes[1].axhline(0,color = "k")
+    axes[1].set_ylim(-8,8)
+    axes[1].legend()
+    axes[1].set_xlabel("$j$")
+    plt.savefig("Symmetries")
+    plt.clf()
+    plt.close()
 
     vbiases = []
     hbiases = []
@@ -72,7 +80,9 @@ def plotWeights(model):
     ax.axhline(0,color = "k")
     plt.legend()
     plt.xlabel("Row")
-    plt.show()
+    plt.savefig("SymmetryVH")
+    plt.clf()
+    plt.close()
 
 models = ["Data/TFIM1D/NhStudy/Q10/39/Nh5/model.pt",
           "Data/TFIM1D/NhStudy/Q20/22/Nh10/model.pt",
@@ -85,4 +95,4 @@ models = ["Data/TFIM1D/NhStudy/Q10/39/Nh5/model.pt",
           "Data/TFIM1D/NhStudy/Q90/55/Nh45/model.pt",
           "Data/TFIM1D/NhStudy/Q100/66/Nh50/model.pt"]
 
-plotWeights(models[0])
+plotWeights(models[3])
