@@ -58,16 +58,18 @@ def plotWeights(model,label,plot = False,threshold = 0):
         ax.set_yscale("log")
 
     markers = ["o","s","D" ,"P" ,"X",">"]
-    if label == "h/J = 1":
+    if label == "h/J = 0.6":
         marker = markers[0]
-    elif label == "h/J = 2":
+    elif label == "h/J = 0.9":
         marker = markers[1]
-    elif label == "h/J = 5":
+    elif label == "h/J = 1":
         marker = markers[2]
-    elif label == "h/J = 8":
+    elif label == "h/J = 5":
         marker = markers[3]
-    elif label == "h/J = 10":
+    elif label == "h/J = 8":
         marker = markers[4]
+    elif label == "h/J = 10":
+        marker = markers[5]
     sortedW = abs(weights.flatten())
     sortedW[::-1].sort()
     plt.plot(sortedW,"o",
@@ -126,10 +128,13 @@ models = ["Data/TFIM1D/NhStudy/Q10/39/Nh5/model.pt",
           "Data/TFIM1D/NhStudy/Q100/66/Nh50/model.pt"]
 
 # Plot weight decay and histogram for paper
+# plotWeights("Data/TFIM1D0p8/NhStudy/Q60/42/Nh43/model.pt",label = "h/J = 0.8")
+# plotWeights("Data/TFIM1D2p0/NhStudy/Q60/13/Nh29/model.pt",label = "h/J = 2")
+# plotWeights("Data/TFIM1D8p0/NhStudy/Q60/78/Nh14/model.pt",label = "h/J = 8")
+plotWeights("Data/TFIM1D0p6/NhStudy/Q60/3/Nh16/model.pt",label = "h/J = 0.6")
+plotWeights("Data/TFIM1D0p9/NhStudy/Q60/42/Nh33/model.pt",label = "h/J = 0.9")
 plotWeights("Data/TFIM1D/NhStudy/Q60/47/Nh30/model.pt",label = "h/J = 1")
-plotWeights("Data/TFIM1D2p0/NhStudy/Q60/13/Nh29/model.pt",label = "h/J = 2")
 plotWeights("Data/TFIM1D5p0/NhStudy/Q60/15/Nh25/model.pt",label = "h/J = 5")
-plotWeights("Data/TFIM1D8p0/NhStudy/Q60/78/Nh14/model.pt",label = "h/J = 8")
 plotWeights("Data/TFIM1D10p0/NhStudy/Q60/15/Nh6/model.pt",label = "h/J = 10")
 
 def thresholdScaling():
