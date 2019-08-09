@@ -21,7 +21,7 @@ import Peak as peak
 # }
 # plt.rcParams.update(params)
 
-plt.style.use("apsPeak.mplstyle")
+plt.style.use("aps.mplstyle")
 
 def readROEs(resultsfile,nQ):
     '''
@@ -54,7 +54,19 @@ def readROEs(resultsfile,nQ):
 
     return roes
 
-def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio = 0,c = 0,ax = None):
+def plotScaling(listQ,
+                models,
+                study,
+                tol,
+                pat,
+                reqs,
+                labels,
+                ratios,
+                fit = False,
+                ratio = 0,
+                cmap = 0,
+                c = 0,
+                ax = None):
     '''
     Plot scaling of number of hidden units or number of samples
     versus system size for various thresholds on the ROE upper bound.
@@ -150,11 +162,19 @@ def plotScaling(listQ,models,study,tol,pat,reqs,labels,ratios,fit = False,ratio 
                              marker = markers[m],
                              color = "C{0}".format(m))
                 else:
-                    ax.plot(listQ,lineValues,color = "C{0}".format(m))
-                    ax.plot(listQ,valsM,"o",
-                            label = labels[m],
-                            marker = markers[m],
-                            color = "C{0}".format(m))
+                    if labels[m] == "$h/J = 1$":
+                        ax.plot(listQ,lineValues,color = "black")
+                        ax.plot(listQ,valsM,"o",
+                                label = labels[m],
+                                marker = markers[m],
+                                color = "black")
+                    else:
+                        color = cmap(float(m)/len(labels))
+                        ax.plot(listQ,lineValues,color = color)
+                        ax.plot(listQ,valsM,"o",
+                                label = labels[m],
+                                marker = markers[m],
+                                color = color)
             else:
                 plt.plot(listQ,valsM,"-o",label = req)
 
@@ -218,40 +238,48 @@ def illustrateScaling():
     plt.savefig("ScalingProcedure",dpi = 300)
     plt.clf()
 
-# # Three subplots sharing both x/y axes
-# f, (ax1, ax2) = plt.subplots(2,sharex = True,sharey = True)
-#
-# plotScaling(listQ = list(range(10,91,10)),
-#             models = ["TFIM1D","TFIM1D2p0","TFIM1D5p0",
-#                       "TFIM1D8p0","TFIM1D10p0","TFIM1D12p0"],
-#             study = "Nh",
-#             tol = 0.0005,
-#             pat = 50,
-#             reqs = [0.002],
-#             labels = ["$h/J = 1$","$h/J = 2$","$h/J = 5$",
-#                       "$h/J = 8$","$h/J = 10$","$h/J = 12$"],
-#             ratios = [1,2,5,8,10,12],
-#             fit = True,
-#             ax = ax1)
-#
-# plotScaling(listQ = list(range(10,91,10)),
-#             models = ["TFIM1D","TFIM1D0p7","TFIM1D0p6","TFIM1D0p2"],
-#             study = "Nh",
-#             tol = 0.0005,
-#             pat = 50,
-#             reqs = [0.002],
-#             labels = ["$h/J = 1$","$h/J = 0.7$","$h/J = 0.6$","$h/J = 0.2$"],
-#             ratios = [1,0.7,0.6,0.2],
-#             fit = True,
-#             ax = ax2)
-#
-# f.text(0.5, 0.04, '$N$', ha='center')
-# f.text(0.04, 0.5, '$N_{h}$', va='center', rotation='vertical')
-# f.subplots_adjust(hspace=0)
-# plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
-# plt.savefig("Scaling")
-# plt.clf()
-# plt.close()
+# Three subplots sharing both x/y axes
+f, (ax1, ax2) = plt.subplots(2,sharex = True,sharey = True)
+
+# Define warm and cool color maps
+cmap1 = plt.get_cmap('Blues')
+cmap2 = plt.get_cmap('Reds')
+
+plotScaling(listQ = list(range(10,91,10)),
+            models = ["TFIM1D","TFIM1D2p0","TFIM1D5p0",
+                      "TFIM1D8p0","TFIM1D10p0","TFIM1D12p0"],
+            study = "Nh",
+            tol = 0.0005,
+            pat = 50,
+            reqs = [0.002],
+            labels = ["$h/J = 1$","$h/J = 2$","$h/J = 5$",
+                      "$h/J = 8$","$h/J = 10$","$h/J = 12$"],
+            ratios = [1,2,5,8,10,12],
+            fit = True,
+            ax = ax1,
+            cmap = cmap1)
+
+plotScaling(listQ = list(range(10,91,10)),
+            models = ["TFIM1D","TFIM1D0p8",
+                      "TFIM1D0p7","TFIM1D0p6","TFIM1D0p2"],
+            study = "Nh",
+            tol = 0.0005,
+            pat = 50,
+            reqs = [0.002],
+            labels = ["$h/J = 1$","$h/J = 0.8$",
+                      "$h/J = 0.7$","$h/J = 0.6$","$h/J = 0.2$"],
+            ratios = [1,0.8,0.7,0.6,0.2],
+            fit = True,
+            ax = ax2,
+            cmap = cmap2)
+
+f.text(0.5,0.04,"$N$",ha = "center")
+f.text(0.04,0.5,"$N_{h}$",va = "center",rotation = "vertical")
+f.subplots_adjust(hspace = 0)
+plt.setp([a.get_xticklabels() for a in f.axes[:-1]],visible = False)
+plt.savefig("Scaling")
+plt.clf()
+plt.close()
 
 # alphas = [["0p5","0p6","0p7","0p8"],[0.5,0.6,0.7,0.8]]
 # for i in range(len(alphas[0])):
@@ -274,4 +302,4 @@ def illustrateScaling():
 # plt.savefig("Scaling",dpi = 200)
 # plt.clf()
 
-illustrateScaling()
+# illustrateScaling()
