@@ -47,12 +47,12 @@ ytick.minor.pad      : 4      # distance to the minor tick label in points
 ytick.labelsize      : 8 # fontsize of the tick labels
 
 ### Legend
-legend.fontsize      : 8
+legend.fontsize      : 6
 legend.frameon       : False   # whether or not to draw a frame around legend
 
 ### FIGURE
 # See http://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure
-figure.figsize   : 3.4039, 2.10373    # figure size in inches
+figure.figsize   : 3.4039, 4.0    # figure size in inches
 
 savefig.transparent :  True     # transparent figures
 savefig.dpi         : 72.27     # figure dots per inch
