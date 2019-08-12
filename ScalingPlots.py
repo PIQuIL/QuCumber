@@ -231,7 +231,7 @@ def illustrateScaling():
         path = "Data/TFIM1D/NhStudy/Q50/29/Nh{0}/Results.txt".format(nh)
         roes.append(readROEs(path,50)[-1])
 
-    ax1.plot(nhs,roes,"bo")
+    ax1.plot(nhs,roes,"o")
     ax1.axhline(0.002,linestyle = "--",color = "r")
     ax1.set_xlabel(r"$N_{h}$")
     ax1.set_ylabel(r"$\epsilon$")

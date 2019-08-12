@@ -93,9 +93,15 @@ def plotPeak(listQ,models,tol,pat,req,labels,ratios,ax = "None"):
         vals = np.array(vals)
         valsM = np.min(vals,axis = 1)
         if ax == "None":
-            plt.plot(ratios[m],valsM[0],"bo",label = labels[m])
+            plt.plot(ratios[m],valsM[0],
+                     color = "C0",
+                     marker = "o",
+                     label = labels[m])
         else:
-            ax.plot(ratios[m],valsM[0],"bo",label = labels[m])
+            ax.plot(ratios[m],valsM[0],
+                    color = "C0",
+                    marker = "o",
+                    label = labels[m])
 
     if ax == "None":
         plt.xlabel("$h/J$")
