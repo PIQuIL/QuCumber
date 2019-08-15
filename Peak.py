@@ -94,12 +94,12 @@ def plotPeak(listQ,models,tol,pat,req,labels,ratios,ax = "None"):
         valsM = np.min(vals,axis = 1)
         if ax == "None":
             plt.plot(ratios[m],valsM[0],
-                     color = "C0",
+                     color = "C1",
                      marker = "o",
                      label = labels[m])
         else:
             ax.plot(ratios[m],valsM[0],
-                    color = "C0",
+                    color = "C1",
                     marker = "o",
                     label = labels[m])
 
