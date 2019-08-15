@@ -27,30 +27,30 @@ def plotWeights(model):
 
     fig,axes = plt.subplots(1,2)
     label1 = "$\sum_{j}{W_{ij}}$"
-    label2 = "$c_{i}$"
-    label3 = "{0}/{1}".format(label1,label2)
-    xpoints = list(range(len(rowSums)))
-    # ax = plt.figure().gca()
-    # ax.xaxis.set_major_locator(MaxNLocator(integer = True))
-    axes[0].plot(xpoints,rowSums,label = label1)
-    axes[0].plot(xpoints,hiddenBias,label = label2)
-    axes[0].plot(xpoints,rowSums/hiddenBias,"r--",label = label3)
-    axes[0].axhline(0,color = "k")
-    axes[0].set_ylim(-14,14)
-    axes[0].legend()
-    axes[0].set_xlabel("$i$")
-
-    label1 = "$\sum_{i}{W_{ij}}$"
-    label2 = "$b_{j}$"
+    label2 = "$b_{i}$"
     label3 = "{0}/{1}".format(label1,label2)
     xpoints = list(range(len(colSums)))
     # ax = plt.figure().gca()
     # ax.xaxis.set_major_locator(MaxNLocator(integer = True))
-    axes[1].plot(xpoints,colSums,label = label1)
-    axes[1].plot(xpoints,visibleBias,label = label2)
-    axes[1].plot(xpoints,colSums/visibleBias,"r--",label = label3)
+    axes[0].plot(xpoints,colSums,label = label1)
+    axes[0].plot(xpoints,visibleBias,label = label2)
+    axes[0].plot(xpoints,colSums/visibleBias,"r--",label = label3)
+    axes[0].axhline(0,color = "k")
+    axes[0].set_ylim(-8,8)
+    axes[0].legend()
+    axes[0].set_xlabel("$i$")
+
+    label1 = "$\sum_{i}{W_{ij}}$"
+    label2 = "$c_{j}$"
+    label3 = "{0}/{1}".format(label1,label2)
+    xpoints = list(range(len(rowSums)))
+    # ax = plt.figure().gca()
+    # ax.xaxis.set_major_locator(MaxNLocator(integer = True))
+    axes[1].plot(xpoints,rowSums,label = label1)
+    axes[1].plot(xpoints,hiddenBias,label = label2)
+    axes[1].plot(xpoints,rowSums/hiddenBias,"r--",label = label3)
     axes[1].axhline(0,color = "k")
-    axes[1].set_ylim(-8,8)
+    axes[1].set_ylim(-14,14)
     axes[1].legend()
     axes[1].set_xlabel("$j$")
     plt.savefig("Symmetries")
