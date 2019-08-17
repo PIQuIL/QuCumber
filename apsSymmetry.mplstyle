@@ -30,7 +30,7 @@ lines.markeredgewidth : 0.5   # the line width around the marker symbol
 lines.markeredgecolor: black
 
 ### AXES
-axes.labelsize      : 10      # fontsize of the x any y labels
+axes.labelsize      : 20      # fontsize of the x any y labels
 
 ### TICKS
 # see http://matplotlib.org/api/axis_api.html#matplotlib.axis.Tick
