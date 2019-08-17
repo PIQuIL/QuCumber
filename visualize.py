@@ -7,20 +7,6 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 
-# Some parameters to make the plots look nice
-# params = {
-#     "text.usetex": True,
-#     "font.family": "serif",
-#     "legend.fontsize": 14,
-#     "axes.labelsize": 16,
-#     "xtick.labelsize": 14,
-#     "ytick.labelsize": 14,
-#     "lines.linewidth": 2,
-#     "lines.markeredgewidth": 0.8,
-#     "lines.markersize": 5,
-#     "patch.edgecolor": "black",
-# }
-# plt.rcParams.update(params)
 plt.style.use("apsWD.mplstyle")
 
 def plotWeights(model,label,plot = False,threshold = 0):
@@ -58,23 +44,37 @@ def plotWeights(model,label,plot = False,threshold = 0):
         ax.set_yscale("log")
 
     markers = ["o","s","D" ,"P" ,"X",">"]
+    colors = []
+
+    cmap1 = plt.get_cmap('Blues')
+    cmap2 = plt.get_cmap('Reds')
+    colors.append(cmap2(float(2)/4))
+    colors.append(cmap2(float(1)/6))
+    colors.append("black")
+    colors.append(cmap1(float(2)/6))
+    colors.append(cmap1(float(4)/6))
+
     if label == "h/J = 0.6":
         marker = markers[0]
+        color = colors[0]
     elif label == "h/J = 0.9":
         marker = markers[1]
+        color = colors[1]
     elif label == "h/J = 1":
         marker = markers[2]
+        color = colors[2]
     elif label == "h/J = 5":
         marker = markers[3]
-    elif label == "h/J = 8":
-        marker = markers[4]
+        color = colors[3]
     elif label == "h/J = 10":
-        marker = markers[5]
+        marker = markers[4]
+        color = colors[4]
     sortedW = abs(weights.flatten())
     sortedW[::-1].sort()
     plt.plot(sortedW,"o",
              label = "${0}$".format(label),
              marker = marker,
+             color = color,
              markerfacecolor = "none")
     if label == "h/J = 10":
         plt.ylim(bottom = 1e-3)
