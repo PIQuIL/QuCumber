@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from contextlib import contextmanager
 
 import pytest
 
-from qucumber.callbacks import LambdaCallback
+from qucumber.callbacks import (
+    LambdaCallback,
+    MetricEvaluator,
+    ObservableEvaluator,
+    EarlyStopping,
+)
 
 
 callback_stages = (
@@ -45,3 +51,28 @@ def test_lambda_callback_type_error(stage):
     with pytest.raises(TypeError):
         LambdaCallback(**{stage: "foobar"})
         pytest.fail(msg)
+
+
+@contextmanager
+def no_exception():
+    yield
+
+
+es_params = [
+    ("relative", no_exception()),
+    ("absolute", no_exception()),
+    ("variance", pytest.raises(TypeError)),
+]
+
+
+@pytest.mark.parametrize("criterion, exception", es_params)
+def test_early_stopping_construction_metric(criterion, exception):
+    ev = MetricEvaluator(1, {})
+    with exception:
+        EarlyStopping(1, 1, 1, ev, "", criterion=criterion)
+
+
+@pytest.mark.parametrize("criterion", [crit for crit, exc in es_params])
+def test_early_stopping_construction_observable(criterion):
+    ev = ObservableEvaluator(1, [])
+    EarlyStopping(1, 1, 1, ev, "", criterion=criterion)

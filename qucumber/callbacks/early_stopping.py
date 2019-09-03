@@ -88,7 +88,7 @@ class EarlyStopping(CallbackBase):
             self.evaluator_callback = evaluator_callback
             self.value_getter = self.evaluator_callback.get_value
 
-            if criterion == self._convergence_criteria[2]:
+            if criterion.strip().lower() == "variance":
                 raise TypeError(
                     "Can't use a variance based convergence criterion "
                     "with MetricEvaluator!"
@@ -115,12 +115,12 @@ class EarlyStopping(CallbackBase):
 
         try:
             self.criterion = criterion.strip().lower()
+            self.deviation = convergence_criteria[self.criterion]
         except KeyError:
             raise ValueError(
                 "criterion must be one of " + ", ".join(convergence_criteria.keys())
             )
 
-        self.deviation = convergence_criteria[self.criterion]
         self.last_epoch = None
 
     def _change_in_metric(self):
