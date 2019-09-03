@@ -230,14 +230,12 @@ class BinaryRBM(nn.Module):
         :param overwrite: Whether to overwrite the initial_state tensor, if it is provided.
         :type overwrite: bool
         """
-        v = initial_state.to(device=self.device, dtype=torch.double)
+        v = initial_state.to(self.weights)
 
         if overwrite is False:
             v = v.clone()
 
-        h = torch.zeros(
-            v.shape[0], self.num_hidden, device=self.device, dtype=torch.double
-        )
+        h = torch.zeros(v.shape[0], self.num_hidden).to(self.weights)
 
         for _ in range(k):
             self.sample_h_given_v(v, out=h)

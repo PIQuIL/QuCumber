@@ -117,7 +117,6 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
         NLL = torch.sum(probs_to_logits(nn_probs))
     else:
         unitary_dict = nn_state.unitary_dict
-        # print(train_bases)
         for i in range(len(samples)):
             # Check whether the sample was measured the reference basis
             is_reference_basis = True
