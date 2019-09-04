@@ -110,7 +110,7 @@ class ComplexGradsUtils:
         return ts.rotate_psi(self.nn_state, basis, vis, unitary_dict)
 
     def compute_numerical_NLL(self, data_samples, data_bases, vis):
-        return ts.NLL(self.nn_state, data_samples, vis, train_bases=data_bases)
+        return ts.NLL(self.nn_state, data_samples, vis, bases=data_bases)
 
     def compute_numerical_kl(self, psi_dict, vis, bases):
         return ts.KL(self.nn_state, psi_dict, vis, bases=bases)

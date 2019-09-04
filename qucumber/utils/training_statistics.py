@@ -24,12 +24,16 @@ def fidelity(nn_state, target_psi, space, **kwargs):
     r"""Calculates the square of the overlap (fidelity) between the reconstructed
     wavefunction and the true wavefunction (both in the computational basis).
 
+    .. math:: F = \vert \langle \psi_{RBM} \vert \psi_{target} \rangle \vert ^2
+
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: WaveFunction
+    :type nn_state: qucumber.nn_states.WaveFunctionBase
     :param target_psi: The true wavefunction of the system.
     :type target_psi: torch.Tensor
-    :param space: The hilbert space of the system.
+    :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
+                  The ordering of the basis elements must match with the ordering of the
+                  coefficients given in `target_psi`.
     :type space: torch.Tensor
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
@@ -49,13 +53,13 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: WaveFunction
+    :type nn_state: qucumber.nn_states.WaveFunctionBase
     :param basis: The basis to rotate the wavefunction to.
     :type basis: str
-    :param space: The hilbert space of the system.
+    :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
     :type space: torch.Tensor
     :param unitaries: A dictionary of (2x2) unitary operators.
-    :type unitaries: dict
+    :type unitaries: dict(str, torch.Tensor)
     :param psi: A wavefunction that the user can input to override the neural
                 network state's wavefunction.
     :type psi: torch.Tensor
@@ -90,18 +94,18 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
     return psi_r
 
 
-def NLL(nn_state, samples, space, train_bases=None, **kwargs):
-    r"""A function for calculating the negative log-likelihood.
+def NLL(nn_state, samples, space, bases=None, **kwargs):
+    r"""A function for calculating the negative log-likelihood (NLL).
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: WaveFunction
+    :type nn_state: qucumber.nn_states.WaveFunctionBase
     :param samples: Samples to compute the NLL on.
     :type samples: torch.Tensor
-    :param space: The hilbert space of the system.
+    :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
     :type space: torch.Tensor
-    :param train_bases: An array of bases where measurements were taken.
-    :type train_bases: np.array(dtype=str)
+    :param bases: An array of bases where measurements were taken.
+    :type bases: np.array(dtype=str)
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
     :returns: The Negative Log-Likelihood.
@@ -112,7 +116,7 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
     )
     NLL = 0.0
     Z = nn_state.compute_normalization(space)
-    if train_bases is None:
+    if bases is None:
         nn_probs = nn_state.probability(samples, Z)
         NLL = torch.sum(probs_to_logits(nn_probs))
     else:
@@ -121,14 +125,14 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
             # Check whether the sample was measured the reference basis
             is_reference_basis = True
             for j in range(nn_state.num_visible):
-                if train_bases[i][j] != "Z":
+                if bases[i][j] != "Z":
                     is_reference_basis = False
                     break
             if is_reference_basis is True:
                 nn_probs = nn_state.probability(samples[i], Z)
                 NLL += torch.sum(probs_to_logits(nn_probs))
             else:
-                psi_r = rotate_psi(nn_state, train_bases[i], space, unitary_dict)
+                psi_r = rotate_psi(nn_state, bases[i], space, unitary_dict)
                 # Get the index value of the sample state
                 ind = 0
                 for j in range(nn_state.num_visible):
@@ -142,16 +146,21 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
 def KL(nn_state, target_psi, space, bases=None, **kwargs):
     r"""A function for calculating the total KL divergence.
 
+    .. math:: KL(P_{target} \vert P_{RBM}) = \sum_{x \in \mathcal{H}} P_{target}(x)\log(\frac{P_{RBM}(x)}{P_{target}(x)})
+
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
-    :type nn_state: WaveFunction
+    :type nn_state: qucumber.nn_states.WaveFunctionBase
     :param target_psi: The true wavefunction of the system. Can be a dictionary
                        with each value being the wavefunction represented in a
-                       different basis.
+                       different basis, and the key identifying the basis.
     :type target_psi: torch.Tensor or dict(str, torch.Tensor)
-    :param space: The hilbert space of the system.
+    :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
+                  The ordering of the basis elements must match with the ordering of the
+                  coefficients given in `target_psi`.
     :type space: torch.Tensor
-    :param bases: An array of unique bases.
+    :param bases: An array of unique bases. If given, the KL divergence will be
+                  computed for each basis and the average will be returned.
     :type bases: np.array(dtype=str)
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
