@@ -29,6 +29,7 @@ Welcome to QuCumber's documentation!
    quantum_states
    callbacks
    observables
+   training_statistics
    cplx
    data
 
