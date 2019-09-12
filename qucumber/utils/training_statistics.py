@@ -118,7 +118,7 @@ def NLL(nn_state, samples, space, bases=None, **kwargs):
     Z = nn_state.compute_normalization(space)
     if bases is None:
         nn_probs = nn_state.probability(samples, Z)
-        NLL = torch.sum(probs_to_logits(nn_probs))
+        NLL = -torch.sum(probs_to_logits(nn_probs))
     else:
         unitary_dict = nn_state.unitary_dict
         for i in range(len(samples)):
@@ -130,7 +130,7 @@ def NLL(nn_state, samples, space, bases=None, **kwargs):
                     break
             if is_reference_basis is True:
                 nn_probs = nn_state.probability(samples[i], Z)
-                NLL += torch.sum(probs_to_logits(nn_probs))
+                NLL -= torch.sum(probs_to_logits(nn_probs))
             else:
                 psi_r = rotate_psi(nn_state, bases[i], space, unitary_dict)
                 # Get the index value of the sample state
