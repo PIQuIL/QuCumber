@@ -234,7 +234,7 @@ class SumObservable(ObservableBase):
         else:
             self.name = name
 
-    def apply(self, samples, rbm):
+    def apply(self, nn_state, samples):
         result = 0.0
         if isinstance(self.left, (float, int)):
             result += self.left
@@ -242,9 +242,9 @@ class SumObservable(ObservableBase):
             result += self.right
 
         if isinstance(self.left, ObservableBase):
-            result = result + self.left.apply(samples, rbm)
+            result = result + self.left.apply(nn_state, samples)
         if isinstance(self.right, ObservableBase):
-            result = result + self.right.apply(samples, rbm)
+            result = result + self.right.apply(nn_state, samples)
 
         return result
 
@@ -275,5 +275,5 @@ class ProdObservable(ObservableBase):
         else:
             self.name = name
 
-    def apply(self, samples, rbm):
-        return self.left * self.right.apply(samples, rbm)
+    def apply(self, nn_state, samples):
+        return self.left * self.right.apply(nn_state, samples)
