@@ -20,12 +20,13 @@ import numpy as np
 def create_dict(**kwargs):
     r"""A function that creates a dictionary of unitary operators.
 
-    By default, the dictionary contains the 3 Pauli matrices in the Z-basis,
-    under the keys 'X', 'Y', and 'Z'.
+    By default, the dictionary contains the unitaries which perform a change of
+    basis from the computational basis (Pauli-Z) to one of the other Pauli
+    bases. The default keys (`X`, `Y`, and `Z`) denote the target basis.
 
     :param \**kwargs: Keyword arguments of any unitary operators to add to the
                       resulting dictionary. The given operators will overwrite
-                      the Pauli matrices if they share the same key.
+                      the default matrices if they share the same key.
 
     :returns: A dictionary of unitaries.
     :rtype: dict
