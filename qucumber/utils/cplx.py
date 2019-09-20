@@ -75,9 +75,7 @@ def scalar_mult(x, y, out=None):
     :rtype: torch.Tensor
     """
     if out is None:
-        out = torch.zeros(
-            2, *((x[0] * y[0]).size()), dtype=torch.double, device=x.device
-        )
+        out = torch.zeros(2, *((x[0] * y[0]).size()), dtype=x.dtype, device=x.device)
     else:
         if out is x or out is y:
             raise RuntimeError("Can't overwrite an argument!")
@@ -104,14 +102,12 @@ def matmul(x, y):
     """
     if len(list(y.size())) == 2:
         # if one of them is a vector (i.e. wanting to do MV mult)
-        z = torch.zeros(2, x.size()[1], dtype=torch.double, device=x.device)
+        z = torch.zeros(2, x.size()[1], dtype=x.dtype, device=x.device)
         z[0] = torch.mv(x[0], y[0]) - torch.mv(x[1], y[1])
         z[1] = torch.mv(x[0], y[1]) + torch.mv(x[1], y[0])
 
     if len(list(y.size())) == 3:
-        z = torch.zeros(
-            2, x.size()[1], y.size()[2], dtype=torch.double, device=x.device
-        )
+        z = torch.zeros(2, x.size()[1], y.size()[2], dtype=x.dtype, device=x.device)
         z[0] = torch.matmul(x[0], y[0]) - torch.matmul(x[1], y[1])
         z[1] = torch.matmul(x[0], y[1]) + torch.matmul(x[1], y[0])
 
@@ -133,7 +129,7 @@ def inner_prod(x, y):
     :returns: The inner product, :math:`\\langle x\\vert y\\rangle`.
     :rtype: torch.Tensor
     """
-    z = torch.zeros(2, dtype=torch.double, device=x.device)
+    z = torch.zeros(2, dtype=x.dtype, device=x.device)
 
     if len(list(x.size())) == 2 and len(list(y.size())) == 2:
         z[0] = torch.dot(x[0], y[0]) + torch.dot(x[1], y[1])
@@ -165,7 +161,7 @@ def outer_prod(x, y):
     if len(list(x.size())) != 2 or len(list(y.size())) != 2:
         raise ValueError("An input is not of the right dimension.")
 
-    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=torch.double, device=x.device)
+    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=x.dtype, device=x.device)
     z[0] = torch.ger(x[0], y[0]) - torch.ger(x[1], -y[1])
     z[1] = torch.ger(x[0], -y[1]) + torch.ger(x[1], y[0])
 
@@ -182,14 +178,12 @@ def conjugate(x):
     :rtype: torch.Tensor
     """
     if x.dim() == 1 or x.dim() == 2:
-        z = torch.zeros_like(x, dtype=torch.double, device=x.device)
+        z = torch.zeros_like(x)
         z[0] = x[0]
         z[1] = -x[1]
 
     if x.dim() == 3:
-        z = torch.zeros(
-            2, x.size()[2], x.size()[1], dtype=torch.double, device=x.device
-        )
+        z = torch.zeros(2, x.size()[2], x.size()[1], dtype=x.dtype, device=x.device)
         z[0] = torch.transpose(x[0], 0, 1)
         z[1] = -torch.transpose(x[1], 0, 1)
 
@@ -237,7 +231,7 @@ def absolute_value(x):
 
 
 def kronecker_prod(x, y):
-    """A function that returns the tensor / kronecker product of 2 complex
+    """A function that returns the tensor / Kronecker product of 2 complex
     tensors, x and y.
 
     :param x: A complex matrix.
@@ -248,7 +242,7 @@ def kronecker_prod(x, y):
     :raises ValueError: If x and y do not have 3 dimensions or their first
                         dimension is not 2, the function cannot execute.
 
-    :returns: The tensorproduct of x and y, :math:`x \\otimes y`.
+    :returns: The Kronecker product of x and y, :math:`x \\otimes y`.
     :rtype: torch.Tensor
     """
     if len(list(x.size())) != 3 or len(list(y.size())) != 3:
@@ -258,7 +252,7 @@ def kronecker_prod(x, y):
         2,
         x.size()[1] * y.size()[1],
         x.size()[2] * y.size()[2],
-        dtype=torch.double,
+        dtype=x.dtype,
         device=x.device,
     )
 
