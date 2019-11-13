@@ -21,9 +21,10 @@ import torch
 import pytest
 
 import qucumber
-from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction
+from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction, DensityMatrix
 from qucumber.utils import unitaries
-from grads_utils import ComplexGradsUtils, PosGradsUtils
+
+from .grads_utils import ComplexGradsUtils, PosGradsUtils, DensityGradsUtils
 
 
 K = 10
@@ -31,6 +32,7 @@ SEED = 1234
 EPS = 1e-6
 
 TOL = torch.tensor(2e-8, dtype=torch.double)
+NDO_TOL = torch.tensor(1.00, dtype=torch.double)
 PDIFF = torch.tensor(100, dtype=torch.double)  # NLL grad tests are a bit too random tbh
 
 
@@ -147,10 +149,74 @@ def complex_wavefunction_data(request, gpu, num_hidden):
     )
 
 
+def density_matrix_data(request, gpu, num_hidden):
+    with open(
+        os.path.join(request.fspath.dirname, "data", "test_grad_data.pkl"), "rb"
+    ) as f:
+        test_data = pickle.load(f)
+
+    qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
+
+    data_bases = test_data["density_matrix"]["train_bases"]
+    data_samples = torch.tensor(
+        test_data["density_matrix"]["train_samples"], dtype=torch.double
+    )
+
+    bases_data = test_data["density_matrix"]["bases"]
+    target_matrix = torch.tensor(
+        test_data["density_matrix"]["density_matrix"], dtype=torch.double
+    )
+
+    num_visible = data_samples.shape[-1]
+    num_aux = num_hidden + 1  # this is not a rule, will change with data
+
+    unitary_dict = unitaries.create_dict()
+    nn_state = DensityMatrix(
+        num_visible, num_hidden, num_aux, unitary_dict=unitary_dict, gpu=gpu
+    )
+    DGU = DensityGradsUtils(nn_state)
+
+    bases = DGU.transform_bases(bases_data)
+
+    v_space = nn_state.generate_hilbert_space(num_visible)
+    a_space = nn_state.generate_hilbert_space(num_aux)
+
+    data_samples = data_samples.to(device=nn_state.device)
+
+    unitary_dict = {b: v.to(device=nn_state.device) for b, v in unitary_dict.items()}
+
+    DensityMatrixFixture = namedtuple(
+        "DensityMatrixFixture",
+        [
+            "data_samples",
+            "data_bases",
+            "grad_utils",
+            "bases",
+            "target",
+            "v_space",
+            "a_space",
+            "nn_state",
+            "unitary_dict",
+        ],
+    )
+
+    return DensityMatrixFixture(
+        data_samples=data_samples,
+        data_bases=data_bases,
+        grad_utils=DGU,
+        bases=bases,
+        target=target_matrix,
+        v_space=v_space,
+        a_space=a_space,
+        nn_state=nn_state,
+        unitary_dict=unitary_dict,
+    )
+
+
 gpu_availability = pytest.mark.skipif(
     not torch.cuda.is_available(), reason="GPU required"
 )
-wavefunction_types = ["positive", "complex"]
+wavefunction_types = ["positive", "complex", "density_matrix"]
 devices = [
     pytest.param(False, id="cpu"),
     pytest.param(True, id="gpu", marks=[gpu_availability, pytest.mark.gpu]),
@@ -169,6 +235,8 @@ def wavefunction_constructor(request):
         return positive_wavefunction_data
     elif wvfn_type == "complex":
         return complex_wavefunction_data
+    elif wvfn_type == "density_matrix":
+        return density_matrix_data
     else:
         raise ValueError(
             f"invalid test config: {wvfn_type} is not a valid wavefunction type"
@@ -193,7 +261,12 @@ def wavefunction_graddata(request, wavefunction_data):
     if grad_type == "KL":
         alg_grad_fn = grad_utils.algorithmic_gradKL
         num_grad_fn = grad_utils.numeric_gradKL
-        test_tol = TOL
+
+        # density matrix gradients are a bit noisier than pure state grads
+        if isinstance(nn_state, DensityMatrix):
+            test_tol = NDO_TOL
+        else:
+            test_tol = TOL
     else:
         alg_grad_fn = grad_utils.algorithmic_gradNLL
         num_grad_fn = grad_utils.numeric_gradNLL
