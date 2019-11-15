@@ -45,16 +45,14 @@ def assertAlmostEqual(a, b, tol, msg=None):
     a = a.to(device=torch.device("cpu"))
     b = b.to(device=torch.device("cpu"))
     result = torch.ge(tol * torch.ones_like(torch.abs(a - b)), torch.abs(a - b))
-    expect = torch.ones_like(torch.abs(a - b), dtype=torch.uint8)
-    assert torch.equal(result, expect), msg
+    assert torch.all(result).item(), msg
 
 
 def assertPercentDiff(a, b, pdiff, msg=None):
     a = a.to(device=torch.device("cpu"))
     b = b.to(device=torch.device("cpu"))
     result = torch.ge(pdiff * torch.ones_like(percent_diff(a, b)), percent_diff(a, b))
-    expect = torch.ones_like(result, dtype=torch.uint8)
-    assert torch.equal(result, expect), msg
+    assert torch.all(result).item(), msg
 
 
 def positive_wavefunction_data(request, gpu, num_hidden):
