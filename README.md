@@ -106,10 +106,12 @@ differently. See [LICENSE](LICENSE) for more details.
 
 ## Acknowledgments
 
-- We thank M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for many helpful discussions.
+- We thank M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and
+  L. Hayward Sierens for many helpful discussions.
 
-- We thank the [Perimeter Institute](https://www.perimeterinstitute.ca) for the continuing support of PIQuIL.
+- We thank the [Perimeter Institute](https://www.perimeterinstitute.ca) for the
+  continuing support of PIQuIL.
 
-- Thanks to Nick Mercer for creating our awesome logo. You can check out more of Nick's
-work by visiting [his portfolio](https://www.behance.net/nickdmercec607) on
-Behance!
+- Thanks to Nick Mercer for creating our awesome logo. You can check out more of
+  Nick's work by visiting [his portfolio](https://www.behance.net/nickdmercec607)
+  on Behance!

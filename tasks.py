@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import pathlib
 from pprint import pformat
 from itertools import chain
@@ -67,8 +66,8 @@ def license_check(c, extensions, exclude, length_cutoff=15):
     """Make sure all python files with more than 15 lines of code contain the license header."""
     num_fails = 0
 
-    extensions = set(extensions) | set([".py"])
-    exclude = set(exclude) | set([".tox"])
+    extensions = set(extensions) | {".py"}
+    exclude = set(exclude) | {".tox"}
 
     paths = chain(
         *[
@@ -89,13 +88,10 @@ def license_check(c, extensions, exclude, length_cutoff=15):
 
     if num_fails > 0:
         raise Exit(
-            message="License Header missing in {} files.".format(num_fails),
-            code=num_fails,
+            message=f"License Header missing in {num_fails} files.", code=num_fails
         )
     else:
         print("License checking completed successfully.")
-
-    sys.exit(num_fails)
 
 
 ##############################################################################
@@ -150,13 +146,12 @@ def lint_example_notebooks(c, linter="flake8"):
         raise Exit(
             message=(
                 "Notebook code isn't formatted properly "
-                + "(according to {}).\n".format(linter)
-                + "Number of unformatted files reported: {}\n".format(num_fails)
+                + f"(according to {linter}).\n"
+                + f"Number of unformatted files reported: {num_fails}\n"
                 + "Files with errors: {}".format(pformat(failed_files))
             ),
             code=num_fails,
         )
-        sys.exit(num_fails)
 
 
 ##############################################################################

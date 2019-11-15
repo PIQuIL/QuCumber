@@ -442,7 +442,7 @@ class WaveFunctionBase(abc.ABC):
         :type lr: float
         :param input_bases: The measurement bases for each sample. Must be provided
                             if training a ComplexWaveFunction.
-        :type input_bases: np.array
+        :type input_bases: numpy.ndarray
         :param progbar: Whether or not to display a progress bar. If "notebook"
                         is passed, will use a Jupyter notebook compatible
                         progress bar.

@@ -172,14 +172,14 @@ def test_trainingpositive(request):
         request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial1_TrainPosRealWavefunction",
+        "Tutorial1_TrainPosRealWaveFunction",
         "tfim1d_data.txt",
     )
     psi_path = os.path.join(
         request.fspath.dirname,
         "..",
         "examples",
-        "Tutorial1_TrainPosRealWavefunction",
+        "Tutorial1_TrainPosRealWaveFunction",
         "tfim1d_psi.txt",
     )
 
