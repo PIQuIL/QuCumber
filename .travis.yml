@@ -59,6 +59,7 @@ jobs:
       after_success: codecov
 
     - os: linux  # try running QuCumber against nightly build of PyTorch
+      name: "Torch Nightly"
       dist: trusty
       python: 3.6
       env: ALLOW_FAIL=1

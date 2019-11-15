@@ -1,0 +1,50 @@
+---
+
+image: restyled/restyler-black:v19.3b0
+command:
+- black
+arguments: []
+include:
+- "**/*.py"
+interpreters:
+- python
+
+---
+
+image: restyled/restyler-reorder-python-imports:v1.6.0
+command:
+- reorder-python-imports
+- "--exit-zero-even-if-changed"
+arguments: []
+include:
+- "**/*.py"
+interpreters:
+- python
+
+---
+
+image: restyled/restyler-prettier:v1.18.2
+command:
+- prettier
+- "--write"
+arguments:
+- "--print-width"
+- '80'
+- "--prose-wrap"
+- always
+include:
+- "**/*.md"
+- "**/*.markdown"
+interpreters: []
+
+---
+
+image: restyled/restyler-prettier:v1.18.2
+command:
+- prettier
+- "--write"
+arguments: []
+include:
+- "**/*.yml"
+- "**/*.yaml"
+interpreters: []

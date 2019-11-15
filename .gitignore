@@ -450,7 +450,8 @@ dmypy.json
 *.DS_Store
 *.x
 
-examples/Tutorial1_TrainPosRealWavefunction/fid_KL.pdf
-examples/Tutorial3_DataGeneration_CalculateObservables/saved_params_and_new_data.pt
+*.pt
+*.pdf
+!docs/_static/RBM_tutorial.pdf
 
-docs/scipost/main.pdf
+.pytype/
