@@ -67,7 +67,7 @@ def extract_refbasis_samples(train_samples, train_bases):
     :param train_samples: The training samples.
     :type train_samples: torch.Tensor
     :param train_bases: The bases of the training samples.
-    :type train_bases: np.array(dtype=str)
+    :type train_bases: numpy.ndarray
 
     :returns: The samples in the data that are only in the reference basis.
     :rtype: torch.Tensor
