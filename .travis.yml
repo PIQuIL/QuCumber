@@ -41,8 +41,6 @@ jobs:
         - travis_retry pip install -e .[coverage]
         - travis_retry pip install codecov docutils pytest-xdist
       script: &test-script
-        - python setup.py check -rms  # check package metadata
-
         - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
         - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
         - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail -n auto; fi
