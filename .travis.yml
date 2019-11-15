@@ -36,7 +36,6 @@ jobs:
       sudo: false
       env:
         - PY_TAG='cp36'
-        - PLAT_NAME='none'
       install: &test-install
         - travis_retry pip install -e .[coverage]
         - travis_retry pip install codecov docutils pytest-xdist
@@ -53,7 +52,6 @@ jobs:
       sudo: true
       env:
         - PY_TAG='cp37'
-        - PLAT_NAME='none'
       install: *test-install
       script: *test-script
       after_success: codecov
@@ -75,17 +73,16 @@ jobs:
       env:
         - PYENV_VERSION=3.6.6
         - PY_TAG='cp36'
-        - PLAT_NAME='macosx'
       before_install: &mac-install
-        - mkdir -p $HOME/.matplotlib/
-        - "echo backend : TkAgg > $HOME/.matplotlib/matplotlibrc"
-        - brew install libomp
-        - brew update && brew upgrade pyenv
-        - eval "$(pyenv init -)"
-        - pyenv install --list
-        - travis_retry pyenv install -s $PYENV_VERSION
-        - pyenv global $PYENV_VERSION
-        - pyenv rehash
+        # - mkdir -p $HOME/.matplotlib/
+        # - "echo backend : TkAgg > $HOME/.matplotlib/matplotlibrc"
+        # - brew install libomp
+        # - brew update && brew upgrade pyenv
+        # - eval "$(pyenv init -)"
+        # - pyenv install --list
+        # - travis_retry pyenv install -s $PYENV_VERSION
+        # - pyenv global $PYENV_VERSION
+        # - pyenv rehash
         - pip -V
       install: *test-install
       script: *test-script
@@ -96,7 +93,6 @@ jobs:
       env:
         - PYENV_VERSION=3.7.0
         - PY_TAG='cp37'
-        - PLAT_NAME='macosx'
       before_install: *mac-install
       install: *test-install
       script: *test-script
@@ -127,7 +123,6 @@ jobs:
       name: "Test Package Locally"
       os: linux
       python:
-        - 3.5
         - 3.6
         - 3.7
       script:
