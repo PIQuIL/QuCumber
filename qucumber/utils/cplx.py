@@ -166,7 +166,8 @@ def outer_prod(x, y):
     if len(list(x.size())) != 2 or len(list(y.size())) != 2:
         raise ValueError("An input is not of the right dimension.")
 
-    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=torch.double, device=x.device)
+    z = torch.zeros(2, x.size()[1], y.size()[1],
+                    dtype=torch.double, device=x.device)
     z[0] = torch.ger(x[0], y[0]) - torch.ger(x[1], -y[1])
     z[1] = torch.ger(x[0], -y[1]) + torch.ger(x[1], y[0])
 

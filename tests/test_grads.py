@@ -33,7 +33,8 @@ SEED = 1234
 EPS = 1.0e-6
 
 TOL = torch.tensor(1.00, dtype=torch.double)
-PDIFF = torch.tensor(100, dtype=torch.double)  # NLL grad tests are a bit too random tbh
+# NLL grad tests are a bit too random tbh
+PDIFF = torch.tensor(100, dtype=torch.double)
 
 
 def percent_diff(a, b):  # for NLL
@@ -54,7 +55,8 @@ def assertAlmostEqual(a, b, tol, msg=None):
 def assertPercentDiff(a, b, pdiff, msg=None):
     a = a.to(device=torch.device("cpu"))
     b = b.to(device=torch.device("cpu"))
-    result = torch.ge(pdiff * torch.ones_like(percent_diff(a, b)), percent_diff(a, b))
+    result = torch.ge(
+        pdiff * torch.ones_like(percent_diff(a, b)), percent_diff(a, b))
     expect = torch.ones_like(result, dtype=torch.uint8)
     assert torch.equal(result, expect), msg
 
@@ -67,8 +69,10 @@ def positive_wavefunction_data(gpu, num_hidden):
 
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
 
-    data = torch.tensor(test_data["tfim1d"]["train_samples"], dtype=torch.double)
-    target_psi = torch.tensor(test_data["tfim1d"]["target_psi"], dtype=torch.double)
+    data = torch.tensor(test_data["tfim1d"]
+                        ["train_samples"], dtype=torch.double)
+    target_psi = torch.tensor(
+        test_data["tfim1d"]["target_psi"], dtype=torch.double)
 
     num_visible = data.shape[-1]
 
@@ -122,7 +126,8 @@ def complex_wavefunction_data(gpu, num_hidden):
 
     data_samples = data_samples.to(device=nn_state.device)
 
-    unitary_dict = {b: v.to(device=nn_state.device) for b, v in unitary_dict.items()}
+    unitary_dict = {b: v.to(device=nn_state.device)
+                    for b, v in unitary_dict.items()}
     psi_dict = {b: v.to(device=nn_state.device) for b, v in psi_dict.items()}
 
     ComplexWaveFunctionFixture = namedtuple(
@@ -185,7 +190,8 @@ def density_matrix_data(gpu, num_hidden):
 
     data_samples = data_samples.to(device=nn_state.device)
 
-    unitary_dict = {b: v.to(device=nn_state.device) for b, v in unitary_dict.items()}
+    unitary_dict = {b: v.to(device=nn_state.device)
+                    for b, v in unitary_dict.items()}
 
     DensityMatrixFixture = namedtuple(
         "DensityMatrixFixture",
@@ -241,7 +247,8 @@ def wavefunction_constructor(request):
         return density_matrix_data
     else:
         raise ValueError(
-            "invalid test config: {} is not a valid wavefunction type".format(wvfn_type)
+            "invalid test config: {} is not a valid wavefunction type".format(
+                wvfn_type)
         )
 
 
@@ -324,7 +331,8 @@ def test_grads(wavefunction_graddata):
                 print("\nTesting {}...".format(p_name))
                 print("Numerical {}\tAlg {}".format(grad_type, grad_type))
 
-            print("{: 10.8f}\t{: 10.8f}\t\t".format(grad, alg_grads[n][i].item()))
+            print("{: 10.8f}\t{: 10.8f}\t\t".format(
+                grad, alg_grads[n][i].item()))
 
         assertAlmostEqual(
             num_grads[n],

@@ -37,7 +37,8 @@ devices = [
         True,
         id="gpu",
         marks=[
-            pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU required"),
+            pytest.mark.skipif(not torch.cuda.is_available(),
+                               reason="GPU required"),
             pytest.mark.gpu,
         ],
     ),
@@ -162,7 +163,8 @@ def test_stop_training_in_batch(gpu):
     data = torch.ones(100, 10)
 
     callbacks = [
-        LambdaCallback(on_batch_end=lambda nn_state, ep, b: set_stop_training(nn_state))
+        LambdaCallback(on_batch_end=lambda nn_state, ep,
+                       b: set_stop_training(nn_state))
     ]
 
     nn_state.fit(data, callbacks=callbacks)
@@ -181,7 +183,8 @@ def test_stop_training_in_epoch(gpu):
     data = torch.ones(100, 10)
 
     callbacks = [
-        LambdaCallback(on_epoch_end=lambda nn_state, ep: set_stop_training(nn_state))
+        LambdaCallback(on_epoch_end=lambda nn_state,
+                       ep: set_stop_training(nn_state))
     ]
 
     nn_state.fit(data, callbacks=callbacks)
@@ -228,7 +231,8 @@ def test_trainingpositive():
     for i in range(10):
         print("Iteration: ", i + 1)
 
-        nn_state = PositiveWaveFunction(num_visible=nv, num_hidden=nh, gpu=False)
+        nn_state = PositiveWaveFunction(
+            num_visible=nv, num_hidden=nh, gpu=False)
 
         space = nn_state.generate_hilbert_space(nv)
         callbacks = [
@@ -387,7 +391,8 @@ def test_trainingcomplex(vectorized):
 
 def initialize_posreal_params(nn_state):
     with open(
-        os.path.join(__tests_location__, "data", "test_training_init_pos_params.npz"),
+        os.path.join(__tests_location__, "data",
+                     "test_training_init_pos_params.npz"),
         "rb",
     ) as f:
         x = np.load(f)
