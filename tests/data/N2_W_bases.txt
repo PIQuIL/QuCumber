@@ -1,9 +1,0 @@
-ZZ
-ZX
-ZY
-XZ
-XX
-XY
-YZ
-YX
-YY

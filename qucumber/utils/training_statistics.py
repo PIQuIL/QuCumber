@@ -214,6 +214,7 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
 def density_matrix_fidelity(nn_state, target, v_space, **kwargs):
     r"""Calculate the fidelity of the reconstructed density matrix
     given the exact target density matrix
+
     :param nn_state: The neural network state (i.e. current density matrix)
     :type nn_state: qucumber.nn_states.DensityMatrix
     :param target: The true density matrix of the system
@@ -245,6 +246,7 @@ def density_matrix_fidelity(nn_state, target, v_space, **kwargs):
 
 def density_matrix_KL(nn_state, target, bases, v_space, a_space):
     """Computes the KL divergence between the current and target density matrix
+
     :param target: The target density matrix
     :type target: torch.Tensor
     :param bases: The bases in which measurement is made

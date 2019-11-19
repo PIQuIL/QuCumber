@@ -33,7 +33,7 @@ from qucumber.rbm import PurificationRBM
 
 
 class DensityMatrix:
-    """
+    r"""
     :param num_visible: The number of visible units, i.e. the size of the system
     :type num_visible: int
     :param num_hidden: The number of units in the hidden layer
@@ -89,21 +89,24 @@ class DensityMatrix:
     def rbm_ph(self, new_val):
         self._rbm_ph = new_val
 
-    def generate_hilbert_space(self, n):
-        r"""Generates Hilbert space of dimension :math:`2^{n}`.
+    def generate_hilbert_space(self, n, device=None):
+        r"""Generates Hilbert space of dimension :math:`2^n`.
+
         :param n: The size of each element in the Hilbert space
         :type n: int
         :returns: A tensor with the basis states of the Hilbert space
         :rtype: torch.Tensor
         """
+        device = device if device is not None else self.device
         dim = np.arange(2 ** n)
         space = ((dim[:, None] & (1 << np.arange(n))) > 0)[:, ::-1]
         space = space.astype(int)
-        return torch.tensor(space, dtype=torch.double)
+        return torch.tensor(space, dtype=torch.double, device=device)
 
-    def subspace_vector(self, num, size):
+    def subspace_vector(self, num, size, device=None):
         r"""Generates a single vector from Hilbert space of
             dimension :math:`2^{n}`
+
         :param num: The decimal representation of the desired
                     vector of the Hilbert space
         :type num: int
@@ -112,44 +115,14 @@ class DensityMatrix:
         :returns: A single vector from the Hilbert space
         :rtype: torch.Tensor
         """
+        device = device if device is not None else self.device
         space = ((num & (1 << np.arange(size))) > 0)[::-1]
         space = space.astype(int)
-        return torch.tensor(space, dtype=torch.double)
-
-    def cplx_sigmoid(self, x, y):
-        """Computes the sigmoid function of a complex number
-        :param x: The real part of the complex number
-        :type x: torch.Tensor
-        :param y: The imaginary part of the complex number
-        :type y: torch.Tensor
-        :returns: The complex sigmoid of :math:`x + iy`
-        :rtype: torch.Tensor
-        """
-        x = x.numpy()
-        y = y.numpy()
-        z = x + 1j * y
-
-        out = np.exp(z) / (1 + np.exp(z))
-        out = torch.tensor([np.real(out), np.imag(out)], dtype=torch.double)
-
-        return out
-
-    def cplx_transpose(self, x):
-        """Takes the transpose of a complex matrix
-        :param x: The complex tensor
-        :type x: torch.Tensor
-        :returns: The transpose of x
-        :rtype: torch.Tensor
-        """
-        # This is NOT the conjugate transpose! Just plain transpose
-        z = torch.zeros(2, x.size()[2], x.size()[1], dtype=x.dtype, device=x.device)
-        z[0] = torch.transpose(x[0], 0, 1)
-        z[1] = torch.transpose(x[1], 0, 1)
-
-        return z
+        return torch.tensor(space, dtype=torch.double, device=device)
 
     def am_grads(self, v, vp):
         r"""Computes the gradients of the amplitude RBM for given input states
+
         :param v: The first input state, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The second input state, :math:`\sigma'`
@@ -161,6 +134,7 @@ class DensityMatrix:
 
     def ph_grads(self, v, vp):
         r"""Computes the gradients of the phase RBM for given input states
+
         :param v: The first input state, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The second input state, :math:`\sigma'`
@@ -174,12 +148,12 @@ class DensityMatrix:
 
     def Pi(self, v, vp):
         r"""Calculates an element of the :math:`\Pi` matrix
+
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
         :type vp: torch.Tensor
-        :returns: The matrix element given by
-                  :math:`\langle\sigma|\Pi|\sigma'\rangle`
+        :returns: The matrix element given by :math:`\langle\sigma|\Pi|\sigma'\rangle`
         :rtype: torch.Tensor
         """
         if len(v.shape) < 2 and len(vp.shape) < 2:
@@ -199,7 +173,11 @@ class DensityMatrix:
 
         else:
             out = torch.zeros(
-                2, 2 ** self.num_visible, 2 ** self.num_visible, dtype=torch.double
+                2,
+                2 ** self.num_visible,
+                2 ** self.num_visible,
+                dtype=torch.double,
+                device=self.device,
             )
             for i in range(2 ** self.num_visible):
                 for j in range(2 ** self.num_visible):
@@ -225,6 +203,7 @@ class DensityMatrix:
     def Pi_grad_am(self, v, vp, reduce=False):
         r"""Calculates the gradient of the :math:`\Pi` matrix with
             respect to the amplitude RBM parameters for two input states
+
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
@@ -235,8 +214,8 @@ class DensityMatrix:
         """
         argReal = self.rbm_am.mixing_term(v + vp)
         argIm = self.rbm_ph.mixing_term(v - vp)
-        sigReal = self.cplx_sigmoid(argReal, argIm)[0]
-        sigIm = self.cplx_sigmoid(argReal, argIm)[1]
+        sigReal = cplx.sigmoid(argReal, argIm)[0]
+        sigIm = cplx.sigmoid(argReal, argIm)[1]
 
         if v.dim() < 2:
             W_grad_real = torch.zeros_like(self.rbm_am.weights_W)
@@ -301,6 +280,7 @@ class DensityMatrix:
     def Pi_grad_ph(self, v, vp, reduce=False):
         r"""Calculates the gradient of the :math:`\Pi` matrix with
             respect to the phase RBM parameters for two input states
+
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
@@ -311,7 +291,7 @@ class DensityMatrix:
         """
         argReal = self.rbm_am.mixing_term(v + vp)
         argIm = self.rbm_ph.mixing_term(v - vp)
-        sigmoid_term = self.cplx_sigmoid(argReal, argIm)
+        sigmoid_term = cplx.sigmoid(argReal, argIm)
         sigReal = sigmoid_term[0]
         sigIm = sigmoid_term[1]
 
@@ -380,6 +360,7 @@ class DensityMatrix:
     def rhoRBM_tilde(self, v, vp):
         r"""Computes the matrix elements of the current density matrix
         excluding the partition function
+
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
@@ -405,6 +386,7 @@ class DensityMatrix:
 
     def rhoRBM(self, v, vp):
         r"""Computes the matrix elements of the current density matrix
+
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
@@ -416,7 +398,8 @@ class DensityMatrix:
         return self.rhoRBM_tilde(v, vp) / torch.trace(self.rhoRBM_tilde(v, vp)[0])
 
     def init_gradient(self, basis, sites):
-        """Initalizes all required variables for gradient computation
+        r"""Initalizes all required variables for gradient computation
+
         :param basis: The bases of the measurements
         :type basis: np.array
         :param sites: The sites where the measurements are not
@@ -438,7 +421,8 @@ class DensityMatrix:
         return UrhoU, v, vp, Us, Us_dag, rotated_grad
 
     def rotated_gradient(self, basis, sites, sample):
-        """Computes the gradients rotated into the measurement basis
+        r"""Computes the gradients rotated into the measurement basis
+
         :param basis: The bases in which the measurement is made
         :type basis: np.array
         :param sites: The sites where the measurements are not made
@@ -504,7 +488,8 @@ class DensityMatrix:
         return grad
 
     def gradient(self, basis, sample):
-        """Computes the gradient of the amplitude and phase RBM parameters
+        r"""Computes the gradient of the amplitude and phase RBM parameters
+
         :param basis: The bases in which the measurements are made
         :type basis: np.array
         :param sample: The measurements
@@ -525,8 +510,9 @@ class DensityMatrix:
         return grad
 
     def compute_exact_grads(self, train_samples, train_bases, Z):
-        """Computes the gradients of the parameters, usign exact sampling
+        r"""Computes the gradients of the parameters, usign exact sampling
         for the negative phase update instead of Gibbs sampling
+
         :param train_samples: The measurements
         :type train_samples: torch.Tensor
         :param train_bases: The bases in which the measurements are made
@@ -568,7 +554,8 @@ class DensityMatrix:
         return grad
 
     def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch):
-        """Compute the gradients of a batch of training data
+        r"""Compute the gradients of a batch of training data
+
         :param k: The number of contrastive divergence steps
         :type k: int
         :param samples_batch: Batch of input samples
@@ -609,7 +596,8 @@ class DensityMatrix:
                 return p, i == rng[0]
 
     def rotate_rho(self, basis, space, Z, unitaries, rho=None):
-        """Computes the density matrix rotated into some basis
+        r"""Computes the density matrix rotated into some basis
+
         :param basis: The basis into which to rotate the density matrix
         :type basis: np.array
         :param space: The Hilbert space of the system
@@ -706,12 +694,16 @@ class DensityMatrix:
         callbacks=None,
         time=False,
         optimizer=torch.optim.Adadelta,
+        scheduler=torch.optim.lr_scheduler.MultiStepLR,
+        lr_drop_epoch=50,
+        lr_drop_factor=1.0,
         bases=None,
         train_to_fid=False,
         track_fid=False,
         **kwargs,
     ):
-        """Trains the density matrix
+        r"""Trains the density matrix
+
         :param data: The training samples
         :type data: np.array
         :param input_bases: The measurement bases for each sample
@@ -737,6 +729,14 @@ class DensityMatrix:
         :type callbacks: list[qucumber.callbacks.CallbackBase]
         :param optimizer: The constructor of a torch optimizer
         :type optimizer: torch.optim.Optimizer
+        :param scheduler: The constructor of a torch scheduler
+        :type scheduler: torch.optim.LRScheduler
+        :param lr_drop_epoch: The epoch, or list of epochs, at which the
+                              base learning rate is dropped
+        :type lr_drop_epoch: int or list[int]
+        :param lr_drop_factor: The factor by which the scheduler will decrease the
+                               learning after the prescribed number of steps
+        :type lr_drop_factor: float
         :param bases: All bases in which a measurement is made. Used to check gradients
         :type bases: np.array
         :param train_to_fid: Instructs the RBM to end training prematurely if the
@@ -749,6 +749,9 @@ class DensityMatrix:
         """
         disable_progbar = progbar is False
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
+        lr_drop_epoch = (
+            [lr_drop_epoch] if isinstance(lr_drop_epoch, int) else lr_drop_epoch
+        )
 
         callbacks = CallbackList(callbacks if callbacks else [])
         if time:
@@ -762,6 +765,7 @@ class DensityMatrix:
         all_params = list(chain(*all_params))
 
         optimizer = optimizer(all_params, lr=lr, **kwargs)
+        scheduler = scheduler(optimizer, lr_drop_epoch, gamma=lr_drop_factor)
 
         z_samples = extract_refbasis_samples(train_samples, input_bases)
 
@@ -800,6 +804,8 @@ class DensityMatrix:
                 callbacks.on_batch_end(self, ep, b)
 
             callbacks.on_epoch_end(self, ep)
+
+            scheduler.step()
 
             if train_to_fid or track_fid:
                 v_space = self.generate_hilbert_space(self.num_visible)
