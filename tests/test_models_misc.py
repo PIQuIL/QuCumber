@@ -1,27 +1,24 @@
 # Copyright 2019 PIQuIL - All Rights Reserved.
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
 #     http://www.apache.org/licenses/LICENSE-2.0
-
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 import os.path
 
+import pytest
 import torch
 from torch.nn.utils import parameters_to_vector
-import pytest
 
 import qucumber
-from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction, DensityMatrix
 from . import __tests_location__
+from qucumber.nn_states import ComplexWaveFunction
+from qucumber.nn_states import DensityMatrix
+from qucumber.nn_states import PositiveWaveFunction
 
 INIT_SEED = 1234  # seed to initialize model params with
 SAMPLING_SEED = 1337  # seed to draw samples from the model with
