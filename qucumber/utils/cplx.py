@@ -71,9 +71,10 @@ def scalar_mult(x, y, out=None):
     :rtype: torch.Tensor
     """
     if out is None:
-        out = torch.zeros(
-            2, *((x[0] * y[0]).size()), dtype=torch.double, device=x.device
-        )
+        out = torch.zeros(2,
+                          *((x[0] * y[0]).size()),
+                          dtype=torch.double,
+                          device=x.device)
     else:
         if out is x or out is y:
             raise RuntimeError("Can't overwrite an argument!")
@@ -105,9 +106,11 @@ def matmul(x, y):
         z[1] = torch.mv(x[0], y[1]) + torch.mv(x[1], y[0])
 
     if len(list(y.size())) == 3:
-        z = torch.zeros(
-            2, x.size()[1], y.size()[2], dtype=torch.double, device=x.device
-        )
+        z = torch.zeros(2,
+                        x.size()[1],
+                        y.size()[2],
+                        dtype=torch.double,
+                        device=x.device)
         z[0] = torch.matmul(x[0], y[0]) - torch.matmul(x[1], y[1])
         z[1] = torch.matmul(x[0], y[1]) + torch.matmul(x[1], y[0])
 
@@ -161,7 +164,11 @@ def outer_prod(x, y):
     if len(list(x.size())) != 2 or len(list(y.size())) != 2:
         raise ValueError("An input is not of the right dimension.")
 
-    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=torch.double, device=x.device)
+    z = torch.zeros(2,
+                    x.size()[1],
+                    y.size()[1],
+                    dtype=torch.double,
+                    device=x.device)
     z[0] = torch.ger(x[0], y[0]) - torch.ger(x[1], -y[1])
     z[1] = torch.ger(x[0], -y[1]) + torch.ger(x[1], y[0])
 
@@ -183,9 +190,11 @@ def conjugate(x):
         z[1] = -x[1]
 
     if x.dim() == 3:
-        z = torch.zeros(
-            2, x.size()[2], x.size()[1], dtype=torch.double, device=x.device
-        )
+        z = torch.zeros(2,
+                        x.size()[2],
+                        x.size()[1],
+                        dtype=torch.double,
+                        device=x.device)
         z[0] = torch.transpose(x[0], 0, 1)
         z[1] = -torch.transpose(x[1], 0, 1)
 
@@ -266,12 +275,10 @@ def kronecker_prod(x, y):
             for j in range(x.size()[2]):
                 for l in range(y.size()[2]):
 
-                    z[0][row_count][column_count] = (x[0][i][j] * y[0][k][l]) - (
-                        x[1][i][j] * y[1][k][l]
-                    )
-                    z[1][row_count][column_count] = (x[0][i][j] * y[1][k][l]) + (
-                        x[1][i][j] * y[0][k][l]
-                    )
+                    z[0][row_count][column_count] = (
+                        x[0][i][j] * y[0][k][l]) - (x[1][i][j] * y[1][k][l])
+                    z[1][row_count][column_count] = (
+                        x[0][i][j] * y[1][k][l]) + (x[1][i][j] * y[0][k][l])
 
                     column_count += 1
             row_count += 1

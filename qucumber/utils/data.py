@@ -14,7 +14,10 @@ import torch
 import qucumber.utils.cplx as cplx
 
 
-def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=None):
+def load_data(tr_samples_path,
+              tr_psi_path=None,
+              tr_bases_path=None,
+              bases_path=None):
     r"""Load the data required for training.
 
     :param tr_samples_path: The path to the training data.
@@ -32,8 +35,8 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
     """
     data = []
     data.append(
-        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"), dtype=torch.double)
-    )
+        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"),
+                     dtype=torch.double))
 
     if tr_psi_path is not None:
         target_psi_data = np.loadtxt(tr_psi_path, dtype="float32")
@@ -59,11 +62,11 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
 
 
 def load_data_DM(
-    tr_samples_path,
-    tr_mtx_real_path=None,
-    tr_mtx_imag_path=None,
-    tr_bases_path=None,
-    bases_path=None,
+        tr_samples_path,
+        tr_mtx_real_path=None,
+        tr_mtx_imag_path=None,
+        tr_bases_path=None,
+        bases_path=None,
 ):
     r"""Load the data required for training.
 
@@ -85,22 +88,21 @@ def load_data_DM(
     """
     data = []
     data.append(
-        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"), dtype=torch.double)
-    )
+        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"),
+                     dtype=torch.double))
 
     if tr_mtx_real_path is not None:
-        mtx_real = torch.tensor(
-            np.loadtxt(tr_mtx_real_path, dtype="float32"), dtype=torch.double
-        )
+        mtx_real = torch.tensor(np.loadtxt(tr_mtx_real_path, dtype="float32"),
+                                dtype=torch.double)
 
     if tr_mtx_imag_path is not None:
-        mtx_imag = torch.tensor(
-            np.loadtxt(tr_mtx_imag_path, dtype="float32"), dtype=torch.double
-        )
+        mtx_imag = torch.tensor(np.loadtxt(tr_mtx_imag_path, dtype="float32"),
+                                dtype=torch.double)
 
     if tr_mtx_real_path is not None or tr_mtx_imag_path is not None:
         if tr_mtx_real_path is None or tr_mtx_imag_path is None:
-            raise ValueError("Must provide a real and imaginary part of target matrix!")
+            raise ValueError(
+                "Must provide a real and imaginary part of target matrix!")
         else:
             data.append(cplx.make_complex(mtx_real, mtx_imag))
 

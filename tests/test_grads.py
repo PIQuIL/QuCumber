@@ -25,7 +25,6 @@ from qucumber.nn_states import DensityMatrix
 from qucumber.nn_states import PositiveWaveFunction
 from qucumber.utils import unitaries
 
-
 K = 10
 SEED = 1234
 EPS = 1.0e-6
@@ -45,7 +44,8 @@ def percent_diff(a, b):  # for NLL
 def assertAlmostEqual(a, b, tol, msg=None):
     a = a.to(device=torch.device("cpu"))
     b = b.to(device=torch.device("cpu"))
-    result = torch.ge(tol * torch.ones_like(torch.abs(a - b)), torch.abs(a - b))
+    result = torch.ge(tol * torch.ones_like(torch.abs(a - b)),
+                      torch.abs(a - b))
     expect = torch.ones_like(torch.abs(a - b), dtype=torch.uint8)
     assert torch.equal(result, expect), msg
 
@@ -53,21 +53,23 @@ def assertAlmostEqual(a, b, tol, msg=None):
 def assertPercentDiff(a, b, pdiff, msg=None):
     a = a.to(device=torch.device("cpu"))
     b = b.to(device=torch.device("cpu"))
-    result = torch.ge(pdiff * torch.ones_like(percent_diff(a, b)), percent_diff(a, b))
+    result = torch.ge(pdiff * torch.ones_like(percent_diff(a, b)),
+                      percent_diff(a, b))
     expect = torch.ones_like(result, dtype=torch.uint8)
     assert torch.equal(result, expect), msg
 
 
 def positive_wavefunction_data(gpu, num_hidden):
-    with open(
-        os.path.join(__tests_location__, "data", "test_grad_data.pkl"), "rb"
-    ) as f:
+    with open(os.path.join(__tests_location__, "data", "test_grad_data.pkl"),
+              "rb") as f:
         test_data = pickle.load(f)
 
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
 
-    data = torch.tensor(test_data["tfim1d"]["train_samples"], dtype=torch.double)
-    target_psi = torch.tensor(test_data["tfim1d"]["target_psi"], dtype=torch.double)
+    data = torch.tensor(test_data["tfim1d"]["train_samples"],
+                        dtype=torch.double)
+    target_psi = torch.tensor(test_data["tfim1d"]["target_psi"],
+                              dtype=torch.double)
 
     num_visible = data.shape[-1]
 
@@ -83,35 +85,35 @@ def positive_wavefunction_data(gpu, num_hidden):
         ["data", "target_psi", "grad_utils", "nn_state", "vis"],
     )
 
-    return PositiveWaveFunctionFixture(
-        data=data, target_psi=target_psi, grad_utils=PGU, nn_state=nn_state, vis=vis
-    )
+    return PositiveWaveFunctionFixture(data=data,
+                                       target_psi=target_psi,
+                                       grad_utils=PGU,
+                                       nn_state=nn_state,
+                                       vis=vis)
 
 
 def complex_wavefunction_data(gpu, num_hidden):
-    with open(
-        os.path.join(__tests_location__, "data", "test_grad_data.pkl"), "rb"
-    ) as f:
+    with open(os.path.join(__tests_location__, "data", "test_grad_data.pkl"),
+              "rb") as f:
         test_data = pickle.load(f)
 
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
 
     data_bases = test_data["2qubits"]["train_bases"]
-    data_samples = torch.tensor(
-        test_data["2qubits"]["train_samples"], dtype=torch.double
-    )
+    data_samples = torch.tensor(test_data["2qubits"]["train_samples"],
+                                dtype=torch.double)
 
     bases_data = test_data["2qubits"]["bases"]
-    target_psi_tmp = torch.tensor(
-        test_data["2qubits"]["target_psi"], dtype=torch.double
-    )
+    target_psi_tmp = torch.tensor(test_data["2qubits"]["target_psi"],
+                                  dtype=torch.double)
 
     num_visible = data_samples.shape[-1]
 
     unitary_dict = unitaries.create_dict()
-    nn_state = ComplexWaveFunction(
-        num_visible, num_hidden, unitary_dict=unitary_dict, gpu=gpu
-    )
+    nn_state = ComplexWaveFunction(num_visible,
+                                   num_hidden,
+                                   unitary_dict=unitary_dict,
+                                   gpu=gpu)
     CGU = ComplexGradsUtils(nn_state)
 
     bases = CGU.transform_bases(bases_data)
@@ -121,7 +123,10 @@ def complex_wavefunction_data(gpu, num_hidden):
 
     data_samples = data_samples.to(device=nn_state.device)
 
-    unitary_dict = {b: v.to(device=nn_state.device) for b, v in unitary_dict.items()}
+    unitary_dict = {
+        b: v.to(device=nn_state.device)
+        for b, v in unitary_dict.items()
+    }
     psi_dict = {b: v.to(device=nn_state.device) for b, v in psi_dict.items()}
 
     ComplexWaveFunctionFixture = namedtuple(
@@ -151,30 +156,29 @@ def complex_wavefunction_data(gpu, num_hidden):
 
 
 def density_matrix_data(gpu, num_hidden):
-    with open(
-        os.path.join(__tests_location__, "data", "test_grad_data.pkl"), "rb"
-    ) as f:
+    with open(os.path.join(__tests_location__, "data", "test_grad_data.pkl"),
+              "rb") as f:
         test_data = pickle.load(f)
 
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
 
     data_bases = test_data["density_matrix"]["train_bases"]
-    data_samples = torch.tensor(
-        test_data["density_matrix"]["train_samples"], dtype=torch.double
-    )
+    data_samples = torch.tensor(test_data["density_matrix"]["train_samples"],
+                                dtype=torch.double)
 
     bases_data = test_data["density_matrix"]["bases"]
-    target_matrix = torch.tensor(
-        test_data["density_matrix"]["density_matrix"], dtype=torch.double
-    )
+    target_matrix = torch.tensor(test_data["density_matrix"]["density_matrix"],
+                                 dtype=torch.double)
 
     num_visible = data_samples.shape[-1]
     num_aux = num_hidden + 1  # this is not a rule, will change with data
 
     unitary_dict = unitaries.create_dict()
-    nn_state = DensityMatrix(
-        num_visible, num_hidden, num_aux, unitary_dict=unitary_dict, gpu=gpu
-    )
+    nn_state = DensityMatrix(num_visible,
+                             num_hidden,
+                             num_aux,
+                             unitary_dict=unitary_dict,
+                             gpu=gpu)
     DGU = DensityGradsUtils(nn_state)
 
     bases = DGU.transform_bases(bases_data)
@@ -184,7 +188,10 @@ def density_matrix_data(gpu, num_hidden):
 
     data_samples = data_samples.to(device=nn_state.device)
 
-    unitary_dict = {b: v.to(device=nn_state.device) for b, v in unitary_dict.items()}
+    unitary_dict = {
+        b: v.to(device=nn_state.device)
+        for b, v in unitary_dict.items()
+    }
 
     DensityMatrixFixture = namedtuple(
         "DensityMatrixFixture",
@@ -214,9 +221,8 @@ def density_matrix_data(gpu, num_hidden):
     )
 
 
-gpu_availability = pytest.mark.skipif(
-    not torch.cuda.is_available(), reason="GPU required"
-)
+gpu_availability = pytest.mark.skipif(not torch.cuda.is_available(),
+                                      reason="GPU required")
 wavefunction_types = ["positive", "complex", "density_matrix"]
 devices = [
     pytest.param(False, id="cpu"),
@@ -240,8 +246,8 @@ def wavefunction_constructor(request):
         return density_matrix_data
     else:
         raise ValueError(
-            "invalid test config: {} is not a valid wavefunction type".format(wvfn_type)
-        )
+            "invalid test config: {} is not a valid wavefunction type".format(
+                wvfn_type))
 
 
 @pytest.fixture(scope="module", params=devices)
@@ -275,14 +281,12 @@ def wavefunction_graddata(request, wavefunction_data):
         rbm = getattr(nn_state, net)
         num_grad = torch.tensor([]).to(device=rbm.device, dtype=torch.double)
         for param in rbm.parameters():
-            num_grad = torch.cat(
-                (
-                    num_grad,
-                    num_grad_fn(
-                        param=param.view(-1), eps=EPS, **wavefunction_data._asdict()
-                    ).to(num_grad),
-                )
-            )
+            num_grad = torch.cat((
+                num_grad,
+                num_grad_fn(param=param.view(-1),
+                            eps=EPS,
+                            **wavefunction_data._asdict()).to(num_grad),
+            ))
         num_grads[n] = num_grad
 
     return nn_state, alg_grads, num_grads, grad_type, test_tol
@@ -301,11 +305,8 @@ def get_param_status(i, param_ranges):
 def test_grads(wavefunction_graddata):
     nn_state, alg_grads, num_grads, grad_type, test_tol = wavefunction_graddata
 
-    print(
-        "\nTesting {} gradients for {} on {}.".format(
-            grad_type, nn_state.__class__.__name__, nn_state.device
-        )
-    )
+    print("\nTesting {} gradients for {} on {}.".format(
+        grad_type, nn_state.__class__.__name__, nn_state.device))
 
     for n, net in enumerate(nn_state.networks):
         print("\nRBM: %s" % net)
@@ -323,7 +324,8 @@ def test_grads(wavefunction_graddata):
                 print("\nTesting {}...".format(p_name))
                 print("Numerical {}\tAlg {}".format(grad_type, grad_type))
 
-            print("{: 10.8f}\t{: 10.8f}\t\t".format(grad, alg_grads[n][i].item()))
+            print("{: 10.8f}\t{: 10.8f}\t\t".format(grad,
+                                                    alg_grads[n][i].item()))
 
         assertAlmostEqual(
             num_grads[n],

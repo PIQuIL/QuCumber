@@ -29,12 +29,14 @@ TOL = 1e-6
 def assertAlmostEqual(a, b, tol, msg=None):
     a = a.to(device=torch.device("cpu"))
     b = b.to(device=torch.device("cpu"))
-    result = torch.ge(tol * torch.ones_like(torch.abs(a - b)), torch.abs(a - b))
+    result = torch.ge(tol * torch.ones_like(torch.abs(a - b)),
+                      torch.abs(a - b))
     expect = torch.ones_like(torch.abs(a - b), dtype=torch.uint8)
     assert torch.equal(result, expect), msg
 
 
-@pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
+@pytest.mark.parametrize("wvfn_type",
+                         [PositiveWaveFunction, ComplexWaveFunction])
 def test_model_saving_and_loading(wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
@@ -68,7 +70,8 @@ def test_model_saving_and_loading(wvfn_type):
     os.remove(model_path)
 
 
-@pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
+@pytest.mark.parametrize("wvfn_type",
+                         [PositiveWaveFunction, ComplexWaveFunction])
 def test_model_saving_bad_metadata_key(wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
@@ -118,7 +121,7 @@ def test_density_matrix_hermiticity():
     matrix = nn_state.rhoRBM(v_space, v_space)
 
     # Pick 10 random elements to sample, row and column index
-    elements = torch.randint(0, 2 ** 5, (2, 10))
+    elements = torch.randint(0, 2**5, (2, 10))
 
     real_reg_elements = torch.zeros(10)
     real_dag_elements = torch.zeros(10)
@@ -164,8 +167,10 @@ def test_sampling_with_overwrite():
 
     sample = nn_state.sample(k=10, initial_state=initial_state, overwrite=True)
 
-    assert torch.equal(sample, initial_state), "initial_state did not get overwritten!"
-    assert not torch.equal(sample, old_state), "Markov Chain did not get updated!"
+    assert torch.equal(sample,
+                       initial_state), "initial_state did not get overwritten!"
+    assert not torch.equal(sample,
+                           old_state), "Markov Chain did not get updated!"
 
 
 def test_bad_stop_training_val():
@@ -177,7 +182,8 @@ def test_bad_stop_training_val():
         pytest.fail(msg)
 
 
-@pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
+@pytest.mark.parametrize("wvfn_type",
+                         [PositiveWaveFunction, ComplexWaveFunction])
 def test_parameter_reinitialization(wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
@@ -191,7 +197,8 @@ def test_parameter_reinitialization(wvfn_type):
     assert not torch.equal(old_params, new_params), msg
 
 
-@pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
+@pytest.mark.parametrize("wvfn_type",
+                         [PositiveWaveFunction, ComplexWaveFunction])
 def test_large_hilbert_space_fail(wvfn_type):
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
 
@@ -199,8 +206,7 @@ def test_large_hilbert_space_fail(wvfn_type):
     max_size = nn_state.max_size
 
     msg = "Generating full Hilbert Space for more than {} qubits should fail.".format(
-        max_size
-    )
+        max_size)
     with pytest.raises(ValueError):
         nn_state.generate_hilbert_space(size=max_size + 1)
         pytest.fail(msg)

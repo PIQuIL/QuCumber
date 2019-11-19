@@ -45,14 +45,21 @@ class DensityMatrix:
     _rbm_ph = None
     _device = None
 
-    def __init__(self, num_visible, num_hidden, num_aux, unitary_dict=None, gpu=False):
-        self.rbm_am = PurificationRBM(
-            int(num_visible), int(num_hidden), int(num_aux), gpu=gpu
-        )
+    def __init__(self,
+                 num_visible,
+                 num_hidden,
+                 num_aux,
+                 unitary_dict=None,
+                 gpu=False):
+        self.rbm_am = PurificationRBM(int(num_visible),
+                                      int(num_hidden),
+                                      int(num_aux),
+                                      gpu=gpu)
 
-        self.rbm_ph = PurificationRBM(
-            int(num_visible), int(num_hidden), int(num_aux), gpu=gpu
-        )
+        self.rbm_ph = PurificationRBM(int(num_visible),
+                                      int(num_hidden),
+                                      int(num_aux),
+                                      gpu=gpu)
 
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
@@ -60,7 +67,8 @@ class DensityMatrix:
 
         self.device = self.rbm_am.device
 
-        self.unitary_dict = unitary_dict if unitary_dict else unitaries.create_dict()
+        self.unitary_dict = unitary_dict if unitary_dict else unitaries.create_dict(
+        )
         self.unitary_dict = {k: v for k, v in self.unitary_dict.items()}
 
     @property
@@ -93,7 +101,7 @@ class DensityMatrix:
         :rtype: torch.Tensor
         """
         device = device if device is not None else self.device
-        dim = np.arange(2 ** n)
+        dim = np.arange(2**n)
         space = ((dim[:, None] & (1 << np.arange(n))) > 0)[:, ::-1]
         space = space.astype(int)
         return torch.tensor(space, dtype=torch.double, device=device)
@@ -138,8 +146,8 @@ class DensityMatrix:
         :rtype: torch.Tensor
         """
         return cplx.scalar_mult(  # need to multiply Gamma- by i
-            self.rbm_ph.GammaM_grad(v, vp), torch.Tensor([0, 1])
-        ) + self.Pi_grad_ph(v, vp)
+            self.rbm_ph.GammaM_grad(v, vp), torch.Tensor(
+                [0, 1])) + self.Pi_grad_ph(v, vp)
 
     def Pi(self, v, vp):
         r"""Calculates an element of the :math:`\Pi` matrix
@@ -156,39 +164,32 @@ class DensityMatrix:
             exp_arg = self.rbm_am.mixing_term(v + vp)
             phase = self.rbm_ph.mixing_term(v - vp)
 
-            log_term = (
-                (1 + 2 * exp_arg.exp() * phase.cos() + (2 * exp_arg).exp()).sqrt().log()
-            )
+            log_term = ((1 + 2 * exp_arg.exp() * phase.cos() +
+                         (2 * exp_arg).exp()).sqrt().log())
 
-            phase_term = (
-                (exp_arg.exp() * phase.sin()) / (1 + exp_arg.exp() * phase.cos())
-            ).atan()
+            phase_term = ((exp_arg.exp() * phase.sin()) /
+                          (1 + exp_arg.exp() * phase.cos())).atan()
 
             return cplx.make_complex(log_term.sum(), phase_term.sum())
 
         else:
             out = torch.zeros(
                 2,
-                2 ** self.num_visible,
-                2 ** self.num_visible,
+                2**self.num_visible,
+                2**self.num_visible,
                 dtype=torch.double,
                 device=self.device,
             )
-            for i in range(2 ** self.num_visible):
-                for j in range(2 ** self.num_visible):
+            for i in range(2**self.num_visible):
+                for j in range(2**self.num_visible):
                     exp_arg = self.rbm_am.mixing_term(v[i] + vp[j])
                     phase = self.rbm_ph.mixing_term(v[i] - vp[j])
 
-                    log_term = (
-                        (1 + 2 * exp_arg.exp() * phase.cos() + (2 * exp_arg).exp())
-                        .sqrt()
-                        .log()
-                    )
+                    log_term = ((1 + 2 * exp_arg.exp() * phase.cos() +
+                                 (2 * exp_arg).exp()).sqrt().log())
 
-                    phase_term = (
-                        (exp_arg.exp() * phase.sin())
-                        / (1 + exp_arg.exp() * phase.cos())
-                    ).atan()
+                    phase_term = ((exp_arg.exp() * phase.sin()) /
+                                  (1 + exp_arg.exp() * phase.cos())).atan()
 
                     out[0][i][j] = log_term.sum()
                     out[1][i][j] = phase_term.sum()
@@ -225,12 +226,14 @@ class DensityMatrix:
             ab_grad_imag = sigIm
 
             return cplx.make_complex(
-                parameters_to_vector(
-                    [W_grad_real, U_grad_real, vb_grad_real, hb_grad_real, ab_grad_real]
-                ),
-                parameters_to_vector(
-                    [W_grad_imag, U_grad_imag, vb_grad_imag, hb_grad_imag, ab_grad_imag]
-                ),
+                parameters_to_vector([
+                    W_grad_real, U_grad_real, vb_grad_real, hb_grad_real,
+                    ab_grad_real
+                ]),
+                parameters_to_vector([
+                    W_grad_imag, U_grad_imag, vb_grad_imag, hb_grad_imag,
+                    ab_grad_imag
+                ]),
             )
 
         else:
@@ -241,13 +244,13 @@ class DensityMatrix:
                 dtype=torch.double,
             )
             W_grad_imag = W_grad_real.clone()
-            vb_grad_real = torch.zeros(
-                v.shape[0], self.rbm_am.num_visible, dtype=torch.double
-            )
+            vb_grad_real = torch.zeros(v.shape[0],
+                                       self.rbm_am.num_visible,
+                                       dtype=torch.double)
             vb_grad_imag = vb_grad_real.clone()
-            hb_grad_real = torch.zeros(
-                v.shape[0], self.rbm_am.num_hidden, dtype=torch.double
-            )
+            hb_grad_real = torch.zeros(v.shape[0],
+                                       self.rbm_am.num_hidden,
+                                       dtype=torch.double)
             hb_grad_imag = hb_grad_real.clone()
             U_grad_real = 0.5 * (torch.einsum("ij,ik->ijk", sigReal, (v + vp)))
             U_grad_imag = 0.5 * (torch.einsum("ij,ik->ijk", sigIm, (v + vp)))
@@ -268,9 +271,8 @@ class DensityMatrix:
                 hb_grad_imag,
                 ab_grad_imag,
             ]
-            return cplx.make_complex(
-                torch.cat(vec_real, dim=1), torch.cat(vec_imag, dim=1)
-            )
+            return cplx.make_complex(torch.cat(vec_real, dim=1),
+                                     torch.cat(vec_imag, dim=1))
 
     def Pi_grad_ph(self, v, vp, reduce=False):
         r"""Calculates the gradient of the :math:`\Pi` matrix with
@@ -303,12 +305,14 @@ class DensityMatrix:
             U_grad_imag = 0.5 * torch.ger(sigReal, (v - vp))
 
             return cplx.make_complex(
-                parameters_to_vector(
-                    [W_grad_real, U_grad_real, vb_grad_real, hb_grad_real, ab_grad_real]
-                ),
-                parameters_to_vector(
-                    [W_grad_imag, U_grad_imag, vb_grad_imag, hb_grad_imag, ab_grad_imag]
-                ),
+                parameters_to_vector([
+                    W_grad_real, U_grad_real, vb_grad_real, hb_grad_real,
+                    ab_grad_real
+                ]),
+                parameters_to_vector([
+                    W_grad_imag, U_grad_imag, vb_grad_imag, hb_grad_imag,
+                    ab_grad_imag
+                ]),
             )
 
         else:
@@ -319,17 +323,17 @@ class DensityMatrix:
                 dtype=torch.double,
             )
             W_grad_imag = W_grad_real.clone()
-            vb_grad_real = torch.zeros(
-                v.shape[0], self.rbm_ph.num_visible, dtype=torch.double
-            )
+            vb_grad_real = torch.zeros(v.shape[0],
+                                       self.rbm_ph.num_visible,
+                                       dtype=torch.double)
             vb_grad_imag = vb_grad_real.clone()
-            hb_grad_real = torch.zeros(
-                v.shape[0], self.rbm_ph.num_hidden, dtype=torch.double
-            )
+            hb_grad_real = torch.zeros(v.shape[0],
+                                       self.rbm_ph.num_hidden,
+                                       dtype=torch.double)
             hb_grad_imag = hb_grad_real.clone()
-            ab_grad_real = torch.zeros(
-                v.shape[0], self.rbm_ph.num_aux, dtype=torch.double
-            )
+            ab_grad_real = torch.zeros(v.shape[0],
+                                       self.rbm_ph.num_aux,
+                                       dtype=torch.double)
             ab_grad_imag = ab_grad_real.clone()
             U_grad_real = -0.5 * (torch.einsum("ij,ik->ijk", sigIm, (v - vp)))
             U_grad_imag = 0.5 * (torch.einsum("ij,ik->ijk", sigReal, (v - vp)))
@@ -348,9 +352,8 @@ class DensityMatrix:
                 hb_grad_imag,
                 ab_grad_imag,
             ]
-            return cplx.make_complex(
-                torch.cat(vec_real, dim=1), torch.cat(vec_imag, dim=1)
-            )
+            return cplx.make_complex(torch.cat(vec_real, dim=1),
+                                     torch.cat(vec_imag, dim=1))
 
     def rhoRBM_tilde(self, v, vp):
         r"""Computes the matrix elements of the current density matrix
@@ -367,9 +370,10 @@ class DensityMatrix:
         if len(v.shape) < 2 and len(vp.shape) < 2:
             out = torch.zeros(2, dtype=torch.double)
         else:
-            out = torch.zeros(
-                2, 2 ** self.num_visible, 2 ** self.num_visible, dtype=torch.double
-            )
+            out = torch.zeros(2,
+                              2**self.num_visible,
+                              2**self.num_visible,
+                              dtype=torch.double)
         pi_ = self.Pi(v, vp)
         amp = (self.rbm_am.GammaP(v, vp) + pi_[0]).exp()
         phase = self.rbm_ph.GammaM(v, vp) + pi_[1]
@@ -390,7 +394,8 @@ class DensityMatrix:
                   :math:`\langle\sigma|\rho|\sigma'\rangle`
         :rtype: torch.Tensor
         """
-        return self.rhoRBM_tilde(v, vp) / torch.trace(self.rhoRBM_tilde(v, vp)[0])
+        return self.rhoRBM_tilde(v, vp) / torch.trace(
+            self.rhoRBM_tilde(v, vp)[0])
 
     def init_gradient(self, basis, sites):
         r"""Initalizes all required variables for gradient computation
@@ -404,9 +409,9 @@ class DensityMatrix:
         v = torch.zeros(self.num_visible, dtype=torch.double)
         vp = torch.zeros(self.num_visible, dtype=torch.double)
         Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).numpy()
-        Us_dag = torch.stack(
-            [cplx.conjugate(self.unitary_dict[b]) for b in basis[sites]]
-        ).numpy()
+        Us_dag = torch.stack([
+            cplx.conjugate(self.unitary_dict[b]) for b in basis[sites]
+        ]).numpy()
 
         rotated_grad = [
             torch.zeros(2, getattr(self, net).num_pars, dtype=torch.double)
@@ -429,7 +434,8 @@ class DensityMatrix:
                   of the amplitude and phase RBMS
         :rtype: list[torch.Tensor, torch.Tensor]
         """
-        UrhoU, v, vp, Us, Us_dag, rotated_grad = self.init_gradient(basis, sites)
+        UrhoU, v, vp, Us, Us_dag, rotated_grad = self.init_gradient(
+            basis, sites)
         int_sample = sample[sites].round().int().numpy()
         ints_size = np.arange(sites.size)
 
@@ -437,32 +443,29 @@ class DensityMatrix:
         UrhoU = torch.zeros(2, dtype=torch.double)
         UrhoU_ = torch.zeros_like(UrhoU)
 
-        grad_size = (
-            self.num_visible * self.num_hidden
-            + self.num_visible * self.num_aux
-            + self.num_visible
-            + self.num_hidden
-            + self.num_aux
-        )
+        grad_size = (self.num_visible * self.num_hidden +
+                     self.num_visible * self.num_aux + self.num_visible +
+                     self.num_hidden + self.num_aux)
         Z2 = torch.zeros((2, grad_size), dtype=torch.double)
 
         v = sample.round().clone()
         vp = sample.round().clone()
 
-        for x in range(2 ** sites.size):
+        for x in range(2**sites.size):
             v = sample.round().clone()
             v[sites] = self.subspace_vector(x, sites.size)
             int_v = v[sites].int().numpy()
             all_Us = Us[ints_size, :, int_sample, int_v]
 
-            for y in range(2 ** sites.size):
+            for y in range(2**sites.size):
                 vp = sample.round().clone()
                 vp[sites] = self.subspace_vector(y, sites.size)
                 int_vp = vp[sites].int().numpy()
                 all_Us_dag = Us[ints_size, :, int_sample, int_vp]
 
                 Ut = np.prod(all_Us[:, 0] + (1j * all_Us[:, 1]))
-                Ut *= np.prod(np.conj(all_Us_dag[:, 0] + (1j * all_Us_dag[:, 1])))
+                Ut *= np.prod(
+                    np.conj(all_Us_dag[:, 0] + (1j * all_Us_dag[:, 1])))
                 U_[0] = Ut.real
                 U_[1] = Ut.imag
 
@@ -539,16 +542,16 @@ class DensityMatrix:
         grad[0] = -cplx.real(grad_data[0]) / float(train_samples.shape[0])
         grad[1] = -cplx.real(grad_data[1]) / float(train_samples.shape[0])
 
-        for i in range(2 ** self.num_visible):
+        for i in range(2**self.num_visible):
             grad_model[0] += rho_rbm[0][i][i] * cplx.real(
-                self.am_grads(v_space[i], v_space[i])
-            )
+                self.am_grads(v_space[i], v_space[i]))
 
         grad[0] += grad_model[0]
 
         return grad
 
-    def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch):
+    def compute_batch_gradients(self, k, samples_batch, neg_batch,
+                                bases_batch):
         r"""Compute the gradients of a batch of training data
 
         :param k: The number of contrastive divergence steps
@@ -624,13 +627,13 @@ class DensityMatrix:
         return rot_rho_
 
     def _shuffle_data(
-        self,
-        pos_batch_size,
-        neg_batch_size,
-        num_batches,
-        train_samples,
-        input_bases,
-        z_samples,
+            self,
+            pos_batch_size,
+            neg_batch_size,
+            num_batches,
+            train_samples,
+            input_bases,
+            z_samples,
     ):
         pos_batch_perm = torch.randperm(train_samples.shape[0])
 
@@ -641,33 +644,35 @@ class DensityMatrix:
             else:
                 neg_batch_perm = torch.randint(
                     train_samples.shape[0],
-                    size=(num_batches * neg_batch_size,),
+                    size=(num_batches * neg_batch_size, ),
                     dtype=torch.long,
                 )
             shuffled_neg_samples = train_samples[neg_batch_perm]
         else:
             neg_batch_perm = torch.randint(
                 z_samples.shape[0],
-                size=(num_batches * neg_batch_size,),
+                size=(num_batches * neg_batch_size, ),
                 dtype=torch.long,
             )
             shuffled_neg_samples = z_samples[neg_batch_perm]
 
         # List of all the batches for positive phase.
         pos_batches = [
-            shuffled_pos_samples[batch_start : (batch_start + pos_batch_size)]
-            for batch_start in range(0, len(shuffled_pos_samples), pos_batch_size)
+            shuffled_pos_samples[batch_start:(batch_start + pos_batch_size)]
+            for batch_start in range(0, len(shuffled_pos_samples),
+                                     pos_batch_size)
         ]
 
         neg_batches = [
-            shuffled_neg_samples[batch_start : (batch_start + neg_batch_size)]
-            for batch_start in range(0, len(shuffled_neg_samples), neg_batch_size)
+            shuffled_neg_samples[batch_start:(batch_start + neg_batch_size)]
+            for batch_start in range(0, len(shuffled_neg_samples),
+                                     neg_batch_size)
         ]
 
         if input_bases is not None:
             shuffled_pos_bases = input_bases[pos_batch_perm]
             pos_batches_bases = [
-                shuffled_pos_bases[batch_start : (batch_start + pos_batch_size)]
+                shuffled_pos_bases[batch_start:(batch_start + pos_batch_size)]
                 for batch_start in range(0, len(train_samples), pos_batch_size)
             ]
             return zip(pos_batches, neg_batches, pos_batches_bases)
@@ -675,27 +680,27 @@ class DensityMatrix:
             return zip(pos_batches, neg_batches)
 
     def fit(
-        self,
-        data,
-        input_bases,
-        target=None,
-        epochs=100,
-        pos_batch_size=100,
-        neg_batch_size=None,
-        k=1,
-        lr=1,
-        progbar=False,
-        starting_epoch=1,
-        callbacks=None,
-        time=False,
-        optimizer=torch.optim.Adadelta,
-        scheduler=torch.optim.lr_scheduler.MultiStepLR,
-        lr_drop_epoch=50,
-        lr_drop_factor=1.0,
-        bases=None,
-        train_to_fid=False,
-        track_fid=False,
-        **kwargs,
+            self,
+            data,
+            input_bases,
+            target=None,
+            epochs=100,
+            pos_batch_size=100,
+            neg_batch_size=None,
+            k=1,
+            lr=1,
+            progbar=False,
+            starting_epoch=1,
+            callbacks=None,
+            time=False,
+            optimizer=torch.optim.Adadelta,
+            scheduler=torch.optim.lr_scheduler.MultiStepLR,
+            lr_drop_epoch=50,
+            lr_drop_factor=1.0,
+            bases=None,
+            train_to_fid=False,
+            track_fid=False,
+            **kwargs,
     ):
         r"""Trains the density matrix
 
@@ -744,9 +749,8 @@ class DensityMatrix:
         """
         disable_progbar = progbar is False
         progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
-        lr_drop_epoch = (
-            [lr_drop_epoch] if isinstance(lr_drop_epoch, int) else lr_drop_epoch
-        )
+        lr_drop_epoch = ([lr_drop_epoch]
+                         if isinstance(lr_drop_epoch, int) else lr_drop_epoch)
 
         callbacks = CallbackList(callbacks if callbacks else [])
         if time:
@@ -770,9 +774,9 @@ class DensityMatrix:
 
         callbacks.on_train_start(self)
 
-        for ep in progress_bar(
-            range(starting_epoch, epochs + 1), desc="Epochs ", disable=disable_progbar
-        ):
+        for ep in progress_bar(range(starting_epoch, epochs + 1),
+                               desc="Epochs ",
+                               disable=disable_progbar):
 
             data_iterator = self._shuffle_data(
                 pos_batch_size,
@@ -813,9 +817,8 @@ class DensityMatrix:
 
             if train_to_fid:
                 if fidel >= train_to_fid:
-                    print(
-                        "\n\nTarget fidelity of", train_to_fid, "reached or exceeded!"
-                    )
+                    print("\n\nTarget fidelity of", train_to_fid,
+                          "reached or exceeded!")
                     break
 
         callbacks.on_train_end(self)
@@ -838,8 +841,8 @@ class DensityMatrix:
         for net in self.networks:
             if net in metadata.keys():
                 raise ValueError(
-                    "Invalid key in metadata; '{}' cannot be a key!".format(net)
-                )
+                    "Invalid key in metadata; '{}' cannot be a key!".format(
+                        net))
 
         data = {net: getattr(self, net).state_dict() for net in self.networks}
         data.update(**metadata)

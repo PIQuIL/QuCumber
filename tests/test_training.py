@@ -28,14 +28,14 @@ from qucumber.nn_states import PositiveWaveFunction
 
 SEED = 1234
 
-
 devices = [
     pytest.param(False, id="cpu"),
     pytest.param(
         True,
         id="gpu",
         marks=[
-            pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU required"),
+            pytest.mark.skipif(not torch.cuda.is_available(),
+                               reason="GPU required"),
             pytest.mark.gpu,
         ],
     ),
@@ -88,12 +88,10 @@ def test_density_matrix(gpu):
 
     nn_state = DensityMatrix(2, 1, 1, gpu=gpu)
 
-    old_params = torch.cat(
-        (
-            parameters_to_vector(nn_state.rbm_am.parameters()),
-            parameters_to_vector(nn_state.rbm_ph.parameters()),
-        )
-    )
+    old_params = torch.cat((
+        parameters_to_vector(nn_state.rbm_am.parameters()),
+        parameters_to_vector(nn_state.rbm_ph.parameters()),
+    ))
 
     data = torch.ones(100, 2)
 
@@ -102,12 +100,10 @@ def test_density_matrix(gpu):
 
     nn_state.fit(data, epochs=1, pos_batch_size=10, input_bases=bases)
 
-    new_params = torch.cat(
-        (
-            parameters_to_vector(nn_state.rbm_am.parameters()),
-            parameters_to_vector(nn_state.rbm_ph.parameters()),
-        )
-    )
+    new_params = torch.cat((
+        parameters_to_vector(nn_state.rbm_am.parameters()),
+        parameters_to_vector(nn_state.rbm_ph.parameters()),
+    ))
 
     msg = "DensityMatrix's parameters did not change!"
     assert not torch.equal(old_params, new_params), msg
@@ -160,7 +156,8 @@ def test_stop_training_in_batch(gpu):
     data = torch.ones(100, 10)
 
     callbacks = [
-        LambdaCallback(on_batch_end=lambda nn_state, ep, b: set_stop_training(nn_state))
+        LambdaCallback(
+            on_batch_end=lambda nn_state, ep, b: set_stop_training(nn_state))
     ]
 
     nn_state.fit(data, callbacks=callbacks)
@@ -179,7 +176,8 @@ def test_stop_training_in_epoch(gpu):
     data = torch.ones(100, 10)
 
     callbacks = [
-        LambdaCallback(on_epoch_end=lambda nn_state, ep: set_stop_training(nn_state))
+        LambdaCallback(
+            on_epoch_end=lambda nn_state, ep: set_stop_training(nn_state))
     ]
 
     nn_state.fit(data, callbacks=callbacks)
@@ -226,13 +224,18 @@ def test_trainingpositive():
     for i in range(10):
         print("Iteration: ", i + 1)
 
-        nn_state = PositiveWaveFunction(num_visible=nv, num_hidden=nh, gpu=False)
+        nn_state = PositiveWaveFunction(num_visible=nv,
+                                        num_hidden=nh,
+                                        gpu=False)
 
         space = nn_state.generate_hilbert_space(nv)
         callbacks = [
             MetricEvaluator(
                 log_every,
-                {"Fidelity": ts.fidelity, "KL": ts.KL},
+                {
+                    "Fidelity": ts.fidelity,
+                    "KL": ts.KL
+                },
                 target_psi=target_psi,
                 space=space,
                 verbose=True,
@@ -265,7 +268,8 @@ def test_trainingpositive():
         np.std(fidelities) / np.sqrt(len(fidelities)),
         "\n",
     )
-    print("KL: ", np.average(KLs), "+/-", np.std(KLs) / np.sqrt(len(KLs)), "\n")
+    print("KL: ", np.average(KLs), "+/-",
+          np.std(KLs) / np.sqrt(len(KLs)), "\n")
 
     assert abs(np.average(fidelities) - 0.85) < 0.02
     assert abs(np.average(KLs) - 0.29) < 0.05
@@ -309,8 +313,7 @@ def test_trainingcomplex(vectorized):
     )
 
     train_samples, target_psi, train_bases, bases = data.load_data(
-        train_samples_path, psi_path, train_bases_path, bases_path
-    )
+        train_samples_path, psi_path, train_bases_path, bases_path)
 
     unitary_dict = unitaries.create_dict()
     nv = nh = train_samples.shape[-1]
@@ -329,9 +332,10 @@ def test_trainingcomplex(vectorized):
     for i in range(10):
         print("Iteration: ", i + 1)
 
-        nn_state = ComplexWaveFunction(
-            unitary_dict=unitary_dict, num_visible=nv, num_hidden=nh, gpu=False
-        )
+        nn_state = ComplexWaveFunction(unitary_dict=unitary_dict,
+                                       num_visible=nv,
+                                       num_hidden=nh,
+                                       gpu=False)
 
         if not vectorized:
             nn_state.debug_gradient_rotation = True
@@ -340,7 +344,10 @@ def test_trainingcomplex(vectorized):
         callbacks = [
             MetricEvaluator(
                 log_every,
-                {"Fidelity": ts.fidelity, "KL": ts.KL},
+                {
+                    "Fidelity": ts.fidelity,
+                    "KL": ts.KL
+                },
                 target_psi=target_psi,
                 bases=bases,
                 space=space,
@@ -375,7 +382,8 @@ def test_trainingcomplex(vectorized):
         np.std(fidelities) / np.sqrt(len(fidelities)),
         "\n",
     )
-    print("KL: ", np.average(KLs), "+/-", np.std(KLs) / np.sqrt(len(KLs)), "\n")
+    print("KL: ", np.average(KLs), "+/-",
+          np.std(KLs) / np.sqrt(len(KLs)), "\n")
 
     assert abs(np.average(fidelities) - 0.38) < 0.05
     assert abs(np.average(KLs) - 0.33) < 0.05
@@ -385,22 +393,21 @@ def test_trainingcomplex(vectorized):
 
 def initialize_posreal_params(nn_state):
     with open(
-        os.path.join(__tests_location__, "data", "test_training_init_pos_params.npz"),
-        "rb",
+            os.path.join(__tests_location__, "data",
+                         "test_training_init_pos_params.npz"),
+            "rb",
     ) as f:
         x = np.load(f)
         for p in x.files:
             getattr(nn_state.rbm_am, p).data = torch.tensor(x[p]).to(
-                getattr(nn_state.rbm_am, p)
-            )
+                getattr(nn_state.rbm_am, p))
 
 
 def initialize_complex_params(nn_state):
     with open(
-        os.path.join(
-            __tests_location__, "data", "test_training_init_complex_params.npz"
-        ),
-        "rb",
+            os.path.join(__tests_location__, "data",
+                         "test_training_init_complex_params.npz"),
+            "rb",
     ) as f:
         x = np.load(f)
         for p in x.files:
