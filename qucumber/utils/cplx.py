@@ -14,6 +14,7 @@
 
 
 import torch
+import numpy as np
 
 
 def make_complex(x, y=None):
@@ -172,31 +173,6 @@ def outer_prod(x, y):
     return z
 
 
-def prod(x):
-    """A function which returns the product of the complex numbers in a vector
-
-    :param x: A complex vector
-    :type x: torch.Tensor
-
-    :raises ValueError:	If x is not a complex vector with its first dimension being 2,
-                        or x is an empty vector, then an error will be raised.
-
-    :returns: The product of all of the complex numbers in x
-    :rtype: torch.Tensor
-    """
-
-    if len(list(x.size())) < 2:
-        raise ValueError("The input is not of the right dimension!")
-
-    if len(real(x)) == 0:
-        raise ("x must be non-empty!")
-
-    for i in range(len(real(x)) - 1):
-        x[:, i + 1] = scalar_mult(x[:, i], x[:, i + 1])
-
-    return x[:, -1]
-
-
 def conjugate(x):
     """A function that takes the conjugate transpose of the argument.
 
@@ -306,6 +282,26 @@ def kronecker_prod(x, y):
             row_count += 1
 
     return z
+
+
+def sigmoid(x, y):
+    r"""Computes the sigmoid function of a complex number
+
+    :param x: The real part of the complex number
+    :type x: torch.Tensor
+    :param y: The imaginary part of the complex number
+    :type y: torch.Tensor
+    :returns: The complex sigmoid of :math:`x + iy`
+    :rtype: torch.Tensor
+    """
+    x = x.numpy()
+    y = y.numpy()
+    z = x + 1j * y
+
+    out = np.exp(z) / (1 + np.exp(z))
+    out = torch.tensor([np.real(out), np.imag(out)], dtype=torch.double)
+
+    return out
 
 
 def scalar_divide(x, y):

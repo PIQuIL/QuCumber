@@ -24,7 +24,8 @@ from qucumber import _warn_on_missing_gpu
 
 
 class PurificationRBM(nn.Module):
-    """An RBM with a hidden and "auxiliary" layer, each separately connected to the visible units
+    r"""An RBM with a hidden and "auxiliary" layer, each separately connected to the visible units
+
     :param num_visible: The number of visible units, i.e. the size of the system
     :type num_visible: int
     :param num_hidden: The number of units in the hidden layer
@@ -68,7 +69,8 @@ class PurificationRBM(nn.Module):
         self.initialize_parameters(zero_init=zero_init)
 
     def initialize_parameters(self, zero_init=False):
-        """Initialize the parameters of the RBM
+        r"""Initialize the parameters of the RBM
+
         :param zero_init: Whether or not to initalize the weights to zero
         :type zero_init: bool
         """
@@ -106,7 +108,8 @@ class PurificationRBM(nn.Module):
         )
 
     def effective_energy(self, v, a):
-        """Computes the equivalent of the "effective energy" for the RBM
+        r"""Computes the equivalent of the "effective energy" for the RBM
+
         :param v: The current state of the visible units
         :type v: torch.Tensor
         :param a: The current state of the auxiliary units
@@ -122,7 +125,7 @@ class PurificationRBM(nn.Module):
 
             vb_term = torch.mv(v, self.visible_bias)
             ab_term = torch.mv(a, self.aux_bias)
-            vb_term += torch.mv(torch.matmul(v, self.weights_U.data.t()), self.aux_bias)
+            vb_term += torch.mv(torch.matmul(v, self.weights_U.data.t()), a)
             other_term = F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(
                 1
             )
@@ -144,8 +147,9 @@ class PurificationRBM(nn.Module):
         return energy
 
     def prob_h_given_v(self, v, out=None):
-        """Given a visible unit configuration, compute the probability
+        r"""Given a visible unit configuration, compute the probability
         vector of the hidden units being on
+
         :param v: The visible units
         :type v: torch.Tensor
         :param out: The output tensor to write to
@@ -170,8 +174,9 @@ class PurificationRBM(nn.Module):
             return p
 
     def prob_a_given_v(self, v, out=None):
-        """Given a visible unit configuration, compute the probability
+        r"""Given a visible unit configuration, compute the probability
         vector of the auxiliary units being on
+
         :param v: The visible units
         :type v: torch.Tensor
         :param out: The output tensor to write to
@@ -196,8 +201,9 @@ class PurificationRBM(nn.Module):
             return p
 
     def prob_v_given_ha(self, h, a, out=None):
-        """Given a hidden and auxiliary unit configuration, compute
+        r"""Given a hidden and auxiliary unit configuration, compute
         the probability vector of the hidden units being on
+
         :param h: The hidden units
         :type h: torch.Tensor
         :param a: The auxiliary units
@@ -228,7 +234,8 @@ class PurificationRBM(nn.Module):
             return p
 
     def sample_a_given_v(self, v, out=None):
-        """Sample/generate an auxiliary state given a visible state
+        r"""Sample/generate an auxiliary state given a visible state
+
         :param v: The visible state
         :type v: torch.Tensor
         :param out: The output tensor to write to
@@ -242,7 +249,8 @@ class PurificationRBM(nn.Module):
         return a
 
     def sample_h_given_v(self, v, out=None):
-        """Sample/generate a hidden state given a visible state
+        r"""Sample/generate a hidden state given a visible state
+
         :param v: The visible state
         :type v: torch.Tensor
         :param out: The output tensor to write to
@@ -256,8 +264,9 @@ class PurificationRBM(nn.Module):
         return h
 
     def sample_v_given_ha(self, h, a, out=None):
-        """Sample/generate a visible state given the
+        r"""Sample/generate a visible state given the
         hidden and auxiliary states
+
         :param h: The hidden state
         :type h: torch.Tensor
         :param a: The auxiliary state
@@ -273,9 +282,10 @@ class PurificationRBM(nn.Module):
         return v
 
     def gibbs_steps(self, k, initial_state, overwrite=False):
-        """Perform k steps of Block Gibbs sampling. One step consists of
+        r"""Perform k steps of Block Gibbs sampling. One step consists of
         sampling the hidden and auxiliary states from the visible state, and
         then sampling the visible state from the hidden and auxiliary states
+
         :param k: The number of Block Gibbs steps
         :type k: int
         :param initial_state: The initial visible state
@@ -300,7 +310,8 @@ class PurificationRBM(nn.Module):
 
     def mixing_term(self, v):
         r"""Describes the extent of mixing in the system,
-            :math: `V_\theta = \frac{1}{2}U_\theta + d_\theta
+            :math:`V_\theta = \frac{1}{2}U_\theta + d_\theta`
+
         :param v: The visible state of the system
         :type v: torch.Tensor
         :returns: The term describing the mixing of the system
@@ -323,6 +334,7 @@ class PurificationRBM(nn.Module):
 
     def GammaP(self, v, vp):
         r"""Calculates an element of the :math:`\Gamma^{(+)}` matrix
+
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
@@ -356,6 +368,7 @@ class PurificationRBM(nn.Module):
 
     def GammaM(self, v, vp):
         r"""Calculates an element of the :math:`\Gamma^{(-)}` matrix
+
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
@@ -390,6 +403,7 @@ class PurificationRBM(nn.Module):
     def GammaP_grad(self, v, vp, reduce=False):
         r"""Calculates an element of the gradient of
             the :math:`\Gamma^{(+)}` matrix
+
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
@@ -450,6 +464,7 @@ class PurificationRBM(nn.Module):
     def GammaM_grad(self, v, vp, reduce=False):
         r"""Calculates an element of the gradient of
             the :math:`\Gamma^{(-)}` matrix
+
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
@@ -508,8 +523,9 @@ class PurificationRBM(nn.Module):
         )
 
     def probability(self, v, a):
-        """Computes the probability of finding the system in a particular
-           state of the visible and auxiliary units
+        r"""Computes the probability of finding the system in a particular
+            state of the visible and auxiliary units
+
         :param v: The visible units
         :type v: torch.Tensor
         :param a: The auxiliary units
@@ -521,7 +537,8 @@ class PurificationRBM(nn.Module):
         return self.effective_energy(v, a).exp()
 
     def partition(self, v_space, a_space):
-        """Computes the partition function
+        r"""Computes the partition function
+
         :param v_space: The Hilbert space of the visible units
         :type v_space: torch.Tensor
         :param a_space: The Hilbert space of the auxiilary units
