@@ -28,3 +28,10 @@ Abstract WaveFunction
 .. autoclass:: qucumber.nn_states.WaveFunctionBase
     :members:
     :show-inheritance:
+
+Density Matrix
+------------------------------
+
+.. autoclass:: qucumber.nn_states.DensityMatrix
+    :members:
+    :show-inheritance:

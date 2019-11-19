@@ -19,6 +19,7 @@ Welcome to QuCumber's documentation!
    _examples/Tutorial2_TrainComplexWaveFunction/tutorial_qubits.ipynb
    _examples/Tutorial3_DataGeneration_CalculateObservables/tutorial_sampling_observables.ipynb
    _examples/Tutorial4_MonitoringObservables/tutorial_monitor_observables.ipynb
+   _examples/Tutorial5_TrainDensityMatrix/tutorial_density_matrix.ipynb
 
 
 .. toctree::

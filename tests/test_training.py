@@ -25,7 +25,7 @@ import qucumber.utils.data as data
 import qucumber.utils.training_statistics as ts
 import qucumber.utils.unitaries as unitaries
 from qucumber.callbacks import MetricEvaluator, LambdaCallback
-from qucumber.nn_states import ComplexWaveFunction, PositiveWaveFunction
+from qucumber.nn_states import ComplexWaveFunction, PositiveWaveFunction, DensityMatrix
 from . import __tests_location__
 
 SEED = 1234
@@ -80,6 +80,38 @@ def test_complex_wavefunction(gpu):
     new_params = parameters_to_vector(nn_state.rbm_am.parameters())
 
     msg = "ComplexWaveFunction's parameters did not change!"
+    assert not torch.equal(old_params, new_params), msg
+
+
+@pytest.mark.parametrize("gpu", devices)
+def test_density_matrix(gpu):
+    qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
+    np.random.seed(SEED)
+
+    nn_state = DensityMatrix(2, 1, 1, gpu=gpu)
+
+    old_params = torch.cat(
+        (
+            parameters_to_vector(nn_state.rbm_am.parameters()),
+            parameters_to_vector(nn_state.rbm_ph.parameters()),
+        )
+    )
+
+    data = torch.ones(100, 2)
+
+    # generate sample bases randomly, with probability 0.9 of being 'Z', otherwise 'X'
+    bases = np.where(np.random.binomial(1, 0.9, size=(100, 2)), "Z", "X")
+
+    nn_state.fit(data, epochs=1, pos_batch_size=10, input_bases=bases)
+
+    new_params = torch.cat(
+        (
+            parameters_to_vector(nn_state.rbm_am.parameters()),
+            parameters_to_vector(nn_state.rbm_ph.parameters()),
+        )
+    )
+
+    msg = "DensityMatrix's parameters did not change!"
     assert not torch.equal(old_params, new_params), msg
 
 

@@ -20,11 +20,21 @@ from torch.nn.utils import parameters_to_vector
 import pytest
 
 import qucumber
-from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction
+from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction, DensityMatrix
 from . import __tests_location__
 
 INIT_SEED = 1234  # seed to initialize model params with
 SAMPLING_SEED = 1337  # seed to draw samples from the model with
+
+TOL = 1e-6
+
+
+def assertAlmostEqual(a, b, tol, msg=None):
+    a = a.to(device=torch.device("cpu"))
+    b = b.to(device=torch.device("cpu"))
+    result = torch.ge(tol * torch.ones_like(torch.abs(a - b)), torch.abs(a - b))
+    expect = torch.ones_like(torch.abs(a - b), dtype=torch.uint8)
+    assert torch.equal(result, expect), msg
 
 
 @pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
@@ -102,6 +112,40 @@ def test_positive_wavefunction_psi():
 
     msg = "PositiveWaveFunction is giving a non-zero imaginary part!"
     assert torch.equal(actual_psi, expected_psi), msg
+
+
+def test_density_matrix_hermiticity():
+    nn_state = DensityMatrix(5, 5, 5, gpu=False)
+
+    v_space = nn_state.generate_hilbert_space(5)
+    matrix = nn_state.rhoRBM(v_space, v_space)
+
+    # Pick 10 random elements to sample, row and column index
+    elements = torch.randint(0, 2 ** 5, (2, 10))
+
+    real_reg_elements = torch.zeros(10)
+    real_dag_elements = torch.zeros(10)
+    imag_reg_elements = torch.zeros(10)
+    imag_dag_elements = torch.zeros(10)
+
+    for i in range(10):
+        real_reg_elements[i] = matrix[0, elements[0][i], elements[1][i]]
+        real_dag_elements[i] = matrix[0, elements[1][i], elements[0][i]]
+        imag_reg_elements[i] = matrix[1, elements[0][i], elements[1][i]]
+        imag_dag_elements[i] = -matrix[1, elements[1][i], elements[0][i]]
+
+    assert torch.equal(real_reg_elements, real_dag_elements)
+    assert torch.equal(imag_reg_elements, imag_dag_elements)
+
+
+def test_density_matrix_tr1():
+    nn_state = DensityMatrix(5, 5, 5, gpu=False)
+
+    v_space = nn_state.generate_hilbert_space(5)
+    matrix = nn_state.rhoRBM(v_space, v_space)
+
+    msg = "Trace of density matrix is not within {0} of 1!".format(TOL)
+    assertAlmostEqual(torch.trace(matrix[0]), torch.Tensor([1]), TOL, msg=msg)
 
 
 def test_single_positive_sample():
