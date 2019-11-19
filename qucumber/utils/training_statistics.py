@@ -88,8 +88,7 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
                     cnt += 1
                 else:
                     v[j] = space[x, j]
-            U = torch.tensor([1.0, 0.0], dtype=torch.double,
-                             device=nn_state.device)
+            U = torch.tensor([1.0, 0.0], dtype=torch.double, device=nn_state.device)
             for ii in range(num_nontrivial_U):
                 tmp = unitaries[basis[nontrivial_sites[ii]]]
                 tmp = tmp[
@@ -148,8 +147,7 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
                 NLL -= (cplx.norm_sqr(nn_state.psi(samples[i])) + eps).log()
                 NLL += Z.log()
             else:
-                psi_r = rotate_psi(
-                    nn_state, train_bases[i], space, unitary_dict)
+                psi_r = rotate_psi(nn_state, train_bases[i], space, unitary_dict)
                 # Get the index value of the sample state
                 ind = 0
                 for j in range(nn_state.num_visible):
@@ -274,16 +272,14 @@ def density_matrix_KL(nn_state, target, bases, v_space, a_space):
 
     for basis in bases:
         rho_r = nn_state.rotate_rho(basis, v_space, Z, unitary_dict)
-        target_rho_r = nn_state.rotate_rho(
-            basis, v_space, Z, unitary_dict, rho=target)
+        target_rho_r = nn_state.rotate_rho(basis, v_space, Z, unitary_dict, rho=target)
 
         rho_r_diag[0] = torch.diagonal(rho_r[0])
         rho_r_diag[1] = torch.diagonal(rho_r[1])
         target_rho_r_diag[0] = torch.diagonal(target_rho_r[0])
         target_rho_r_diag[1] = torch.diagonal(target_rho_r[1])
 
-        KL += torch.sum(target_rho_r_diag[0] *
-                        probs_to_logits(target_rho_r_diag[0]))
+        KL += torch.sum(target_rho_r_diag[0] * probs_to_logits(target_rho_r_diag[0]))
         KL -= torch.sum(target_rho_r_diag[0] * probs_to_logits(rho_r_diag[0]))
 
     KL /= float(len(bases))

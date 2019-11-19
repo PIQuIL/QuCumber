@@ -70,8 +70,7 @@ try:
     )
 
     today = (
-        subprocess.check_output(
-            ["git", "show", "-s", "--format=%ad", "--date=short"])
+        subprocess.check_output(["git", "show", "-s", "--format=%ad", "--date=short"])
         .decode()
         .strip()
     )
@@ -154,8 +153,7 @@ suppress_warnings = ["epub.unknown_project_files"]
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {
-    "canonical_url": "https://qucumber.readthedocs.io/en/stable/"}
+html_theme_options = {"canonical_url": "https://qucumber.readthedocs.io/en/stable/"}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -404,8 +402,7 @@ rst_epilog = (
     + last_tag
 )
 
-conf_location = os.path.realpath(os.path.join(
-    os.getcwd(), os.path.dirname(__file__)))
+conf_location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 # the following code snippet was adapted from:
 # https://github.com/spatialaudio/nbsphinx/issues/170#issuecomment-373497587
@@ -421,8 +418,7 @@ def all_but_ipynb(directory, contents):
     ]
 
 
-shutil.rmtree(os.path.join(conf_location, "..",
-                           "docs/_examples"), ignore_errors=True)
+shutil.rmtree(os.path.join(conf_location, "..", "docs/_examples"), ignore_errors=True)
 shutil.copytree(
     os.path.join(conf_location, "..", "examples"),
     os.path.join(conf_location, "..", "docs/_examples"),

@@ -37,8 +37,7 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
     """
     data = []
     data.append(
-        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"),
-                     dtype=torch.double)
+        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"), dtype=torch.double)
     )
 
     if tr_psi_path is not None:
@@ -91,8 +90,7 @@ def load_data_DM(
     """
     data = []
     data.append(
-        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"),
-                     dtype=torch.double)
+        torch.tensor(np.loadtxt(tr_samples_path, dtype="float32"), dtype=torch.double)
     )
 
     if tr_mtx_real_path is not None:
@@ -107,8 +105,7 @@ def load_data_DM(
 
     if tr_mtx_real_path is not None or tr_mtx_imag_path is not None:
         if tr_mtx_real_path is None or tr_mtx_imag_path is None:
-            raise ValueError(
-                "Must provide a real and imaginary part of target matrix!")
+            raise ValueError("Must provide a real and imaginary part of target matrix!")
         else:
             data.append(cplx.make_complex(mtx_real, mtx_imag))
 
