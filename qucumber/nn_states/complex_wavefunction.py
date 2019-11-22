@@ -35,7 +35,11 @@ class ComplexWaveFunction(WaveFunctionBase):
     _rbm_ph = None
     _device = None
 
-    def __init__(self, num_visible, num_hidden=None, unitary_dict=None, gpu=True):
+    def __init__(self,
+                 num_visible,
+                 num_hidden=None,
+                 unitary_dict=None,
+                 gpu=True):
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
         self.rbm_am = BinaryRBM(self.num_visible, self.num_hidden, gpu=gpu)
@@ -43,9 +47,11 @@ class ComplexWaveFunction(WaveFunctionBase):
 
         self.device = self.rbm_am.device
 
-        self.unitary_dict = unitary_dict if unitary_dict else unitaries.create_dict()
+        self.unitary_dict = unitary_dict if unitary_dict else unitaries.create_dict(
+        )
         self.unitary_dict = {
-            k: v.to(device=self.device) for k, v in self.unitary_dict.items()
+            k: v.to(device=self.device)
+            for k, v in self.unitary_dict.items()
         }
 
     @property
@@ -128,9 +134,9 @@ class ComplexWaveFunction(WaveFunctionBase):
         amplitude, phase = self.amplitude(v), self.phase(v)
 
         # complex vector; shape: (2, len(v))
-        psi = torch.zeros(
-            (2,) + amplitude.shape, dtype=torch.double, device=self.device
-        )
+        psi = torch.zeros((2, ) + amplitude.shape,
+                          dtype=torch.double,
+                          device=self.device)
 
         # elementwise products
         psi[0] = amplitude * phase.cos()  # real part
@@ -139,13 +145,16 @@ class ComplexWaveFunction(WaveFunctionBase):
 
     def init_gradient(self, basis, sites):
         Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
-        vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
-        Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
+        vp = torch.zeros(self.num_visible,
+                         dtype=torch.double,
+                         device=self.device)
+        Us = torch.stack([self.unitary_dict[b]
+                          for b in basis[sites]]).cpu().numpy()
         rotated_grad = [
-            torch.zeros(
-                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
-            )
-            for net in self.networks
+            torch.zeros(2,
+                        getattr(self, net).num_pars,
+                        dtype=torch.double,
+                        device=self.device) for net in self.networks
         ]
         return Upsi, vp, Us, rotated_grad
 
@@ -159,19 +168,22 @@ class ComplexWaveFunction(WaveFunctionBase):
         # if the number of rotated sites is too large, fallback to loop
         #  since memory may be unable to store the entire expanded set of
         #  visible states
-        if sites.size > self.max_size or (
-            hasattr(self, "debug_gradient_rotation") and self.debug_gradient_rotation
-        ):
-            grad_size = (
-                self.num_visible * self.num_hidden + self.num_hidden + self.num_visible
-            )
+        if sites.size > self.max_size or (hasattr(self,
+                                                  "debug_gradient_rotation")
+                                          and self.debug_gradient_rotation):
+            grad_size = (self.num_visible * self.num_hidden + self.num_hidden +
+                         self.num_visible)
             vp = sample.round().clone()
             Z = torch.zeros(grad_size, dtype=torch.double, device=self.device)
-            Z2 = torch.zeros((2, grad_size), dtype=torch.double, device=self.device)
-            U = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
+            Z2 = torch.zeros((2, grad_size),
+                             dtype=torch.double,
+                             device=self.device)
+            U = torch.tensor([1.0, 1.0],
+                             dtype=torch.double,
+                             device=self.device)
             Ut = np.zeros_like(Us[:, 0], dtype=complex)
 
-            for x in range(2 ** sites.size):
+            for x in range(2**sites.size):
                 # overwrite rotated elements
                 vp = sample.round().clone()
                 vp[sites] = self.subspace_vector(x, size=sites.size)
@@ -189,14 +201,16 @@ class ComplexWaveFunction(WaveFunctionBase):
                 # Gradient on the current configuration
                 grad_vp0 = self.rbm_am.effective_energy_gradient(vp)
                 grad_vp1 = self.rbm_ph.effective_energy_gradient(vp)
-                rotated_grad[0] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp0, Z), out=Z2
-                )
-                rotated_grad[1] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp1, Z), out=Z2
-                )
+                rotated_grad[0] += cplx.scalar_mult(Upsi_v,
+                                                    cplx.make_complex(
+                                                        grad_vp0, Z),
+                                                    out=Z2)
+                rotated_grad[1] += cplx.scalar_mult(Upsi_v,
+                                                    cplx.make_complex(
+                                                        grad_vp1, Z),
+                                                    out=Z2)
         else:
-            vp = sample.round().clone().unsqueeze(0).repeat(2 ** sites.size, 1)
+            vp = sample.round().clone().unsqueeze(0).repeat(2**sites.size, 1)
             vp[:, sites] = self.generate_hilbert_space(size=sites.size)
             vp = vp.contiguous()
 
@@ -205,11 +219,8 @@ class ComplexWaveFunction(WaveFunctionBase):
             all_Us = Us[ints_size, :, int_sample, int_vp]
 
             Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=1)
-            U = (
-                cplx.make_complex(torch.tensor(Ut.real), torch.tensor(Ut.imag))
-                .to(vp)
-                .contiguous()
-            )
+            U = (cplx.make_complex(torch.tensor(Ut.real),
+                                   torch.tensor(Ut.imag)).to(vp).contiguous())
 
             Upsi_v = cplx.scalar_mult(U, self.psi(vp).detach())
 
@@ -268,42 +279,37 @@ class ComplexWaveFunction(WaveFunctionBase):
         """
         return super().compute_normalization(space)
 
-    def fit(
-        self,
-        data,
-        epochs=100,
-        pos_batch_size=100,
-        neg_batch_size=None,
-        k=1,
-        lr=1e-3,
-        input_bases=None,
-        progbar=False,
-        starting_epoch=1,
-        time=False,
-        callbacks=None,
-        optimizer=torch.optim.SGD,
-        **kwargs
-    ):
+    def fit(self,
+            data,
+            epochs=100,
+            pos_batch_size=100,
+            neg_batch_size=None,
+            k=1,
+            lr=1e-3,
+            input_bases=None,
+            progbar=False,
+            starting_epoch=1,
+            time=False,
+            callbacks=None,
+            optimizer=torch.optim.SGD,
+            **kwargs):
         if input_bases is None:
             raise ValueError(
-                "input_bases must be provided to train a ComplexWaveFunction!"
-            )
+                "input_bases must be provided to train a ComplexWaveFunction!")
         else:
-            super().fit(
-                data=data,
-                epochs=epochs,
-                pos_batch_size=pos_batch_size,
-                neg_batch_size=neg_batch_size,
-                k=k,
-                lr=lr,
-                input_bases=input_bases,
-                progbar=progbar,
-                starting_epoch=starting_epoch,
-                time=time,
-                callbacks=callbacks,
-                optimizer=optimizer,
-                **kwargs
-            )
+            super().fit(data=data,
+                        epochs=epochs,
+                        pos_batch_size=pos_batch_size,
+                        neg_batch_size=neg_batch_size,
+                        k=k,
+                        lr=lr,
+                        input_bases=input_bases,
+                        progbar=progbar,
+                        starting_epoch=starting_epoch,
+                        time=time,
+                        callbacks=callbacks,
+                        optimizer=optimizer,
+                        **kwargs)
 
     def save(self, location, metadata=None):
         metadata = metadata if metadata else {}

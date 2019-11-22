@@ -141,7 +141,7 @@ class WaveFunctionBase(abc.ABC):
         :rtype: torch.Tensor
         """
         v = v.to(device=self.device, dtype=torch.double)
-        return (self.amplitude(v)) ** 2 / Z
+        return (self.amplitude(v))**2 / Z
 
     def sample(self, k, num_samples=1, initial_state=None, overwrite=False):
         r"""Performs k steps of Block Gibbs sampling. One step consists of sampling
@@ -163,9 +163,8 @@ class WaveFunctionBase(abc.ABC):
         if initial_state is None:
             dist = torch.distributions.Bernoulli(probs=0.5)
             sample_size = torch.Size((num_samples, self.num_visible))
-            initial_state = dist.sample(sample_size).to(
-                device=self.device, dtype=torch.double
-            )
+            initial_state = dist.sample(sample_size).to(device=self.device,
+                                                        dtype=torch.double)
 
         return self.rbm_am.gibbs_steps(k, initial_state, overwrite=overwrite)
 
@@ -209,7 +208,7 @@ class WaveFunctionBase(abc.ABC):
         if size > self.max_size:
             raise ValueError("Size of the Hilbert space is too large!")
         else:
-            dim = np.arange(2 ** size)
+            dim = np.arange(2**size)
             space = (((dim[:, None] & (1 << np.arange(size)))) > 0)[:, ::-1]
             space = space.astype(int)
             return torch.tensor(space, dtype=torch.double, device=device)
@@ -246,8 +245,8 @@ class WaveFunctionBase(abc.ABC):
         for net in self.networks:
             if net in metadata.keys():
                 raise ValueError(
-                    "Invalid key in metadata; '{}' cannot be a key!".format(net)
-                )
+                    "Invalid key in metadata; '{}' cannot be a key!".format(
+                        net))
 
         data = {net: getattr(self, net).state_dict() for net in self.networks}
         data.update(**metadata)
@@ -290,7 +289,11 @@ class WaveFunctionBase(abc.ABC):
     def gradient(self):
         """Compute the gradient of a set of samples."""
 
-    def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch=None):
+    def compute_batch_gradients(self,
+                                k,
+                                samples_batch,
+                                neg_batch,
+                                bases_batch=None):
         """Compute the gradients of a batch of the training data (`samples_batch`).
 
         If measurements are taken in bases other than the reference basis,
@@ -328,10 +331,9 @@ class WaveFunctionBase(abc.ABC):
 
             # Initialize
             grad_data = [
-                torch.zeros(
-                    getattr(self, net).num_pars, dtype=torch.double, device=self.device
-                )
-                for net in self.networks
+                torch.zeros(getattr(self, net).num_pars,
+                            dtype=torch.double,
+                            device=self.device) for net in self.networks
             ]
 
             # Loop over each sample in the batch
@@ -355,13 +357,13 @@ class WaveFunctionBase(abc.ABC):
         return grad
 
     def _shuffle_data(
-        self,
-        pos_batch_size,
-        neg_batch_size,
-        num_batches,
-        train_samples,
-        input_bases,
-        z_samples,
+            self,
+            pos_batch_size,
+            neg_batch_size,
+            num_batches,
+            train_samples,
+            input_bases,
+            z_samples,
     ):
         pos_batch_perm = torch.randperm(train_samples.shape[0])
 
@@ -372,55 +374,55 @@ class WaveFunctionBase(abc.ABC):
             else:
                 neg_batch_perm = torch.randint(
                     train_samples.shape[0],
-                    size=(num_batches * neg_batch_size,),
+                    size=(num_batches * neg_batch_size, ),
                     dtype=torch.long,
                 )
             shuffled_neg_samples = train_samples[neg_batch_perm]
         else:
             neg_batch_perm = torch.randint(
                 z_samples.shape[0],
-                size=(num_batches * neg_batch_size,),
+                size=(num_batches * neg_batch_size, ),
                 dtype=torch.long,
             )
             shuffled_neg_samples = z_samples[neg_batch_perm]
 
         # List of all the batches for positive phase.
         pos_batches = [
-            shuffled_pos_samples[batch_start : (batch_start + pos_batch_size)]
-            for batch_start in range(0, len(shuffled_pos_samples), pos_batch_size)
+            shuffled_pos_samples[batch_start:(batch_start + pos_batch_size)]
+            for batch_start in range(0, len(shuffled_pos_samples),
+                                     pos_batch_size)
         ]
 
         neg_batches = [
-            shuffled_neg_samples[batch_start : (batch_start + neg_batch_size)]
-            for batch_start in range(0, len(shuffled_neg_samples), neg_batch_size)
+            shuffled_neg_samples[batch_start:(batch_start + neg_batch_size)]
+            for batch_start in range(0, len(shuffled_neg_samples),
+                                     neg_batch_size)
         ]
 
         if input_bases is not None:
             shuffled_pos_bases = input_bases[pos_batch_perm]
             pos_batches_bases = [
-                shuffled_pos_bases[batch_start : (batch_start + pos_batch_size)]
+                shuffled_pos_bases[batch_start:(batch_start + pos_batch_size)]
                 for batch_start in range(0, len(train_samples), pos_batch_size)
             ]
             return zip(pos_batches, neg_batches, pos_batches_bases)
         else:
             return zip(pos_batches, neg_batches)
 
-    def fit(
-        self,
-        data,
-        epochs=100,
-        pos_batch_size=100,
-        neg_batch_size=None,
-        k=1,
-        lr=1e-3,
-        input_bases=None,
-        progbar=False,
-        starting_epoch=1,
-        time=False,
-        callbacks=None,
-        optimizer=torch.optim.SGD,
-        **kwargs
-    ):
+    def fit(self,
+            data,
+            epochs=100,
+            pos_batch_size=100,
+            neg_batch_size=None,
+            k=1,
+            lr=1e-3,
+            input_bases=None,
+            progbar=False,
+            starting_epoch=1,
+            time=False,
+            callbacks=None,
+            optimizer=torch.optim.SGD,
+            **kwargs):
         """Train the WaveFunction.
 
         :param data: The training samples
@@ -468,32 +470,34 @@ class WaveFunctionBase(abc.ABC):
         neg_batch_size = neg_batch_size if neg_batch_size else pos_batch_size
 
         if isinstance(data, torch.Tensor):
-            train_samples = (
-                data.clone().detach().to(device=self.device, dtype=torch.double)
-            )
+            train_samples = (data.clone().detach().to(device=self.device,
+                                                      dtype=torch.double))
         else:
-            train_samples = torch.tensor(data, device=self.device, dtype=torch.double)
+            train_samples = torch.tensor(data,
+                                         device=self.device,
+                                         dtype=torch.double)
 
         if len(self.networks) > 1:
-            all_params = [getattr(self, net).parameters() for net in self.networks]
+            all_params = [
+                getattr(self, net).parameters() for net in self.networks
+            ]
             all_params = list(chain(*all_params))
             optimizer = optimizer(all_params, lr=lr, **kwargs)
         else:
             optimizer = optimizer(self.rbm_am.parameters(), lr=lr, **kwargs)
 
         if input_bases is not None:
-            z_samples = extract_refbasis_samples(train_samples, input_bases).to(
-                device=self.device
-            )
+            z_samples = extract_refbasis_samples(
+                train_samples, input_bases).to(device=self.device)
         else:
             z_samples = None
 
         callbacks.on_train_start(self)
 
         num_batches = ceil(train_samples.shape[0] / pos_batch_size)
-        for ep in progress_bar(
-            range(starting_epoch, epochs + 1), desc="Epochs ", disable=disable_progbar
-        ):
+        for ep in progress_bar(range(starting_epoch, epochs + 1),
+                               desc="Epochs ",
+                               disable=disable_progbar):
             data_iterator = self._shuffle_data(
                 pos_batch_size,
                 neg_batch_size,

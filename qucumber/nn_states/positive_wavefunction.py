@@ -115,9 +115,8 @@ class PositiveWaveFunction(WaveFunctionBase):
         amplitude = self.amplitude(v)
 
         # complex vector; shape: (2, len(v))
-        psi = torch.zeros((2,) + amplitude.shape).to(
-            dtype=torch.double, device=self.device
-        )
+        psi = torch.zeros((2, ) + amplitude.shape).to(dtype=torch.double,
+                                                      device=self.device)
         psi[0] = amplitude
         return psi
 
@@ -150,21 +149,19 @@ class PositiveWaveFunction(WaveFunctionBase):
         """
         return super().compute_batch_gradients(k, samples_batch, neg_batch)
 
-    def fit(
-        self,
-        data,
-        epochs=100,
-        pos_batch_size=100,
-        neg_batch_size=None,
-        k=1,
-        lr=1e-3,
-        progbar=False,
-        starting_epoch=1,
-        time=False,
-        callbacks=None,
-        optimizer=torch.optim.SGD,
-        **kwargs
-    ):
+    def fit(self,
+            data,
+            epochs=100,
+            pos_batch_size=100,
+            neg_batch_size=None,
+            k=1,
+            lr=1e-3,
+            progbar=False,
+            starting_epoch=1,
+            time=False,
+            callbacks=None,
+            optimizer=torch.optim.SGD,
+            **kwargs):
         """Train the WaveFunction.
 
         :param data: The training samples
@@ -196,20 +193,18 @@ class PositiveWaveFunction(WaveFunctionBase):
         :type optimizer: torch.optim.Optimizer
         :param kwargs: Keyword arguments to pass to the optimizer
         """
-        return super().fit(
-            data=data,
-            epochs=epochs,
-            pos_batch_size=pos_batch_size,
-            neg_batch_size=neg_batch_size,
-            k=k,
-            lr=lr,
-            progbar=progbar,
-            starting_epoch=starting_epoch,
-            time=time,
-            callbacks=callbacks,
-            optimizer=optimizer,
-            **kwargs
-        )
+        return super().fit(data=data,
+                           epochs=epochs,
+                           pos_batch_size=pos_batch_size,
+                           neg_batch_size=neg_batch_size,
+                           k=k,
+                           lr=lr,
+                           progbar=progbar,
+                           starting_epoch=starting_epoch,
+                           time=time,
+                           callbacks=callbacks,
+                           optimizer=optimizer,
+                           **kwargs)
 
     def compute_normalization(self, space):
         r"""Compute the normalization constant of the wavefunction.
@@ -227,7 +222,8 @@ class PositiveWaveFunction(WaveFunctionBase):
     @staticmethod
     def autoload(location, gpu=False):
         if not gpu:
-            state_dict = torch.load(location, map_location=lambda storage, loc: storage)
+            state_dict = torch.load(location,
+                                    map_location=lambda storage, loc: storage)
         else:
             state_dict = torch.load(location)
         wvfn = PositiveWaveFunction(

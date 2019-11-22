@@ -81,12 +81,14 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
                     cnt += 1
                 else:
                     v[j] = space[x, j]
-            U = torch.tensor([1.0, 0.0], dtype=torch.double, device=nn_state.device)
+            U = torch.tensor([1.0, 0.0],
+                             dtype=torch.double,
+                             device=nn_state.device)
             for ii in range(num_nontrivial_U):
                 tmp = unitaries[basis[nontrivial_sites[ii]]]
-                tmp = tmp[
-                    :, int(space[x][nontrivial_sites[ii]]), int(v[nontrivial_sites[ii]])
-                ].to(nn_state.device)
+                tmp = tmp[:,
+                          int(space[x][nontrivial_sites[ii]]),
+                          int(v[nontrivial_sites[ii]])].to(nn_state.device)
                 U = cplx.scalar_mult(U, tmp)
             if psi is None:
                 Upsi += cplx.scalar_mult(U, nn_state.psi(v).squeeze())
@@ -116,9 +118,10 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
     :returns: The Negative Log-Likelihood.
     :rtype: float
     """
-    psi_r = torch.zeros(
-        2, 1 << nn_state.num_visible, dtype=torch.double, device=nn_state.device
-    )
+    psi_r = torch.zeros(2,
+                        1 << nn_state.num_visible,
+                        dtype=torch.double,
+                        device=nn_state.device)
     NLL = 0.0
     unitary_dict = unitaries.create_dict()
     Z = nn_state.compute_normalization(space)
@@ -140,7 +143,8 @@ def NLL(nn_state, samples, space, train_bases=None, **kwargs):
                 NLL -= (cplx.norm_sqr(nn_state.psi(samples[i])) + eps).log()
                 NLL += Z.log()
             else:
-                psi_r = rotate_psi(nn_state, train_bases[i], space, unitary_dict)
+                psi_r = rotate_psi(nn_state, train_bases[i], space,
+                                   unitary_dict)
                 # Get the index value of the sample state
                 ind = 0
                 for j in range(nn_state.num_visible):
@@ -168,9 +172,10 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
     :returns: The KL divergence.
     :rtype: float
     """
-    psi_r = torch.zeros(
-        2, 1 << nn_state.num_visible, dtype=torch.double, device=nn_state.device
-    )
+    psi_r = torch.zeros(2,
+                        1 << nn_state.num_visible,
+                        dtype=torch.double,
+                        device=nn_state.device)
     KL = 0.0
     unitary_dict = unitaries.create_dict()
     target_psi = target_psi.to(nn_state.device)
@@ -179,32 +184,23 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
     if bases is None:
         num_bases = 1
         for i in range(len(space)):
-            KL += (
-                cplx.norm_sqr(target_psi[:, i])
-                * (cplx.norm_sqr(target_psi[:, i]) + eps).log()
-            )
-            KL -= (
-                cplx.norm_sqr(target_psi[:, i])
-                * (cplx.norm_sqr(nn_state.psi(space[i])) + eps).log()
-            )
+            KL += (cplx.norm_sqr(target_psi[:, i]) *
+                   (cplx.norm_sqr(target_psi[:, i]) + eps).log())
+            KL -= (cplx.norm_sqr(target_psi[:, i]) *
+                   (cplx.norm_sqr(nn_state.psi(space[i])) + eps).log())
             KL += cplx.norm_sqr(target_psi[:, i]) * Z.log()
     else:
         num_bases = len(bases)
         for b in range(1, len(bases)):
             psi_r = rotate_psi(nn_state, bases[b], space, unitary_dict)
-            target_psi_r = rotate_psi(
-                nn_state, bases[b], space, unitary_dict, target_psi
-            )
+            target_psi_r = rotate_psi(nn_state, bases[b], space, unitary_dict,
+                                      target_psi)
             for ii in range(len(space)):
                 if cplx.norm_sqr(target_psi_r[:, ii]) > 0.0:
-                    KL += (
-                        cplx.norm_sqr(target_psi_r[:, ii])
-                        * cplx.norm_sqr(target_psi_r[:, ii]).log()
-                    )
-                KL -= (
-                    cplx.norm_sqr(target_psi_r[:, ii])
-                    * cplx.norm_sqr(psi_r[:, ii]).log().item()
-                )
+                    KL += (cplx.norm_sqr(target_psi_r[:, ii]) *
+                           cplx.norm_sqr(target_psi_r[:, ii]).log())
+                KL -= (cplx.norm_sqr(target_psi_r[:, ii]) *
+                       cplx.norm_sqr(psi_r[:, ii]).log().item())
                 KL += cplx.norm_sqr(target_psi_r[:, ii]) * Z.log()
     return (KL / float(num_bases)).item()
 
@@ -258,21 +254,26 @@ def density_matrix_KL(nn_state, target, bases, v_space, a_space):
     """
     Z = nn_state.rbm_am.partition(v_space, a_space)
     unitary_dict = nn_state.unitary_dict
-    rho_r_diag = torch.zeros(2, 2 ** nn_state.num_visible, dtype=torch.double)
+    rho_r_diag = torch.zeros(2, 2**nn_state.num_visible, dtype=torch.double)
     target_rho_r_diag = torch.zeros_like(rho_r_diag)
 
     KL = 0.0
 
     for basis in bases:
         rho_r = nn_state.rotate_rho(basis, v_space, Z, unitary_dict)
-        target_rho_r = nn_state.rotate_rho(basis, v_space, Z, unitary_dict, rho=target)
+        target_rho_r = nn_state.rotate_rho(basis,
+                                           v_space,
+                                           Z,
+                                           unitary_dict,
+                                           rho=target)
 
         rho_r_diag[0] = torch.diagonal(rho_r[0])
         rho_r_diag[1] = torch.diagonal(rho_r[1])
         target_rho_r_diag[0] = torch.diagonal(target_rho_r[0])
         target_rho_r_diag[1] = torch.diagonal(target_rho_r[1])
 
-        KL += torch.sum(target_rho_r_diag[0] * probs_to_logits(target_rho_r_diag[0]))
+        KL += torch.sum(target_rho_r_diag[0] *
+                        probs_to_logits(target_rho_r_diag[0]))
         KL -= torch.sum(target_rho_r_diag[0] * probs_to_logits(rho_r_diag[0]))
 
     KL /= float(len(bases))

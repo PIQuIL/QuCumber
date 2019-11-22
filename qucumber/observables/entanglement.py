@@ -74,7 +74,7 @@ class SWAP(ObservableBase):
         # if their total number is odd, the last sample is ignored
         _ns = samples.shape[0] // 2
         samples1 = samples[:_ns, :]
-        samples2 = samples[_ns : _ns * 2, :]
+        samples2 = samples[_ns:_ns * 2, :]
 
         psi_ket1 = nn_state.psi(samples1)
         psi_ket2 = nn_state.psi(samples2)

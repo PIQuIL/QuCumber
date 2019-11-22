@@ -38,13 +38,11 @@ project = "QuCumber"
 author = "PIQuIL"
 copyright = "2018-{}, {}".format(date.today().year, author)
 
-
 init_file = {}
 with open("../qucumber/__version__.py", "r") as f:
     # The short X.Y.Z version
     exec(f.read(), init_file)
     version = init_file["__version__"]
-
 
 # The remainder of this section was adapted from nbsphinx's conf.py
 # https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
@@ -55,21 +53,15 @@ with open("../qucumber/__version__.py", "r") as f:
 # The full license is in the file LICENSE.txt, distributed with this software.
 
 try:
-    release = (
-        subprocess.check_output(["git", "describe", "--tags", "--always"])
-        .decode()
-        .strip()
-    )
+    release = (subprocess.check_output(
+        ["git", "describe", "--tags", "--always"]).decode().strip())
 
-    today = (
-        subprocess.check_output(["git", "show", "-s", "--format=%ad", "--date=short"])
-        .decode()
-        .strip()
-    )
+    today = (subprocess.check_output(
+        ["git", "show", "-s", "--format=%ad",
+         "--date=short"]).decode().strip())
 except Exception:
     release = "<unknown_release>"
     today = "<unknown_date>"
-
 
 print("Building version: " + version + "; release: " + release)
 
@@ -121,7 +113,6 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 
-
 # Things that nitpick mode should ignore.
 nitpick_ignore = [
     ("py:class", "int"),
@@ -145,7 +136,9 @@ suppress_warnings = ["epub.unknown_project_files"]
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {"canonical_url": "https://qucumber.readthedocs.io/en/stable/"}
+html_theme_options = {
+    "canonical_url": "https://qucumber.readthedocs.io/en/stable/"
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -184,16 +177,13 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
     html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
-
 # -- Options for HTMLHelp output ---------------------------------------------
-
 
 autodoc_member_order = "alphabetical"
 autodoc_mock_imports = ["torch", "tqdm", "numpy", "matplotlib"]
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "QuCumberdoc"
-
 
 # -- Options for LaTeX output ------------------------------------------------
 
@@ -206,7 +196,8 @@ latex_elements = {
     # 'pointsize': '10pt',
     # Additional stuff for the LaTeX preamble.
     #
-    "preamble": (r"\usepackage{physics}" r"\DeclareMathOperator{\sgn}{sgn}"),
+    "preamble": (r"\usepackage{physics}"
+                 r"\DeclareMathOperator{\sgn}{sgn}"),
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -215,10 +206,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (master_doc, "QuCumber.tex", "QuCumber Documentation", "PIQuIL", "manual")
-]
-
+latex_documents = [(master_doc, "QuCumber.tex", "QuCumber Documentation",
+                    "PIQuIL", "manual")]
 
 # -- Options for manual page output ------------------------------------------
 
@@ -226,24 +215,20 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [(master_doc, "qucumber", "QuCumber Documentation", [author], 1)]
 
-
 # -- Options for Texinfo output ----------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
-texinfo_documents = [
-    (
-        master_doc,
-        "QuCumber",
-        "QuCumber Documentation",
-        author,
-        "QuCumber",
-        "Neural Network Quantum State Tomography.",
-        "Miscellaneous",
-    )
-]
-
+texinfo_documents = [(
+    master_doc,
+    "QuCumber",
+    "QuCumber Documentation",
+    author,
+    "QuCumber",
+    "Neural Network Quantum State Tomography.",
+    "Miscellaneous",
+)]
 
 # -- Extension configuration -------------------------------------------------
 
@@ -251,7 +236,6 @@ texinfo_documents = [
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
-
 
 # -- Options for imgmath -----------------------------------------------------
 
@@ -261,14 +245,12 @@ imgmath_image_format = "svg"
 imgmath_font_size = 13
 imgmath_dvisvgm_args = ["--no-fonts", "-e"]
 
-
 # -- Options for napoleon ----------------------------------------------------
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 
 # -- Options for intersphinx -------------------------------------------------
-
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
@@ -277,7 +259,6 @@ intersphinx_mapping = {
 }
 
 # -- Options for linkcode extension ------------------------------------------
-
 
 # The code in this section has been adapted from scikit-learn's github_link.py
 # https://github.com/scikit-learn/scikit-learn/blob/1870d6d/doc/sphinxext/github_link.py
@@ -333,18 +314,16 @@ def linkcode_resolve(domain, info):
     except Exception:
         line_number = ""
 
-    return (
-        "https://github.com/PIQuIL/QuCumber/blob"
-        "/{revision}/qucumber/{file_name}#L{line_number}".format(
-            revision=revision, file_name=file_name, line_number=line_number
-        )
-    )
+    return ("https://github.com/PIQuIL/QuCumber/blob"
+            "/{revision}/qucumber/{file_name}#L{line_number}".format(
+                revision=revision,
+                file_name=file_name,
+                line_number=line_number))
 
 
 # -- End of code from scikit-learn's repo ------------------------------------
 
 # -- Options for nbsphinx ----------------------------------------------------
-
 
 # The code in this section has been adapted from nbsphinx's conf.py
 # https://github.com/spatialaudio/nbsphinx/blob/e36da77/doc/conf.py
@@ -355,7 +334,6 @@ def linkcode_resolve(domain, info):
 # The full license is in the file LICENSE.txt, distributed with this software.
 
 nbsphinx_execute = "auto"
-
 
 # will only link to binders for tagged releases
 nbsphinx_prolog = r"""
@@ -381,20 +359,17 @@ nbsphinx_prolog = r"""
 
 """
 
-
 split_rel = release.split("-")
-last_tag = "-".join(split_rel[: (-2 if len(split_rel) > 2 else None)])
+last_tag = "-".join(split_rel[:(-2 if len(split_rel) > 2 else None)])
 
-rst_epilog = (
-    ".. |BinderBadge| image:: _static/binder_badge.png \n"
-    + ".. _BinderBadge: https://mybinder.org/v2/gh/PIQuIL/QuCumber/"
-    + release
-    + "\n\n"
-    + ".. _Release: https://github.com/PIQuIL/QuCumber/releases/tag/"
-    + last_tag
-)
+rst_epilog = (".. |BinderBadge| image:: _static/binder_badge.png \n" +
+              ".. _BinderBadge: https://mybinder.org/v2/gh/PIQuIL/QuCumber/" +
+              release + "\n\n" +
+              ".. _Release: https://github.com/PIQuIL/QuCumber/releases/tag/" +
+              last_tag)
 
-conf_location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+conf_location = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 # the following code snippet was adapted from:
 # https://github.com/spatialaudio/nbsphinx/issues/170#issuecomment-373497587
@@ -404,13 +379,13 @@ print("Copying example notebooks into docs/_examples")
 
 def all_but_ipynb(directory, contents):
     return [
-        c
-        for c in contents
-        if os.path.isfile(os.path.join(directory, c)) and (not c.endswith(".ipynb"))
+        c for c in contents if os.path.isfile(os.path.join(directory, c)) and (
+            not c.endswith(".ipynb"))
     ]
 
 
-shutil.rmtree(os.path.join(conf_location, "..", "docs/_examples"), ignore_errors=True)
+shutil.rmtree(os.path.join(conf_location, "..", "docs/_examples"),
+              ignore_errors=True)
 shutil.copytree(
     os.path.join(conf_location, "..", "examples"),
     os.path.join(conf_location, "..", "docs/_examples"),

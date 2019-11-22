@@ -22,9 +22,8 @@ class BinaryRBM(nn.Module):
         super(BinaryRBM, self).__init__()
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
-        self.num_pars = (
-            (self.num_visible * self.num_hidden) + self.num_visible + self.num_hidden
-        )
+        self.num_pars = ((self.num_visible * self.num_hidden) +
+                         self.num_visible + self.num_hidden)
 
         _warn_on_missing_gpu(gpu)
         self.gpu = gpu and torch.cuda.is_available()
@@ -35,32 +34,32 @@ class BinaryRBM(nn.Module):
 
     def __repr__(self):
         return "BinaryRBM(num_visible={}, num_hidden={}, gpu={})".format(
-            self.num_visible, self.num_hidden, self.gpu
-        )
+            self.num_visible, self.num_hidden, self.gpu)
 
     def initialize_parameters(self, zero_weights=False):
         """Randomize the parameters of the RBM"""
 
         gen_tensor = torch.zeros if zero_weights else torch.randn
         self.weights = nn.Parameter(
-            (
-                gen_tensor(
-                    self.num_hidden,
-                    self.num_visible,
-                    device=self.device,
-                    dtype=torch.double,
-                )
-                / np.sqrt(self.num_visible)
-            ),
+            (gen_tensor(
+                self.num_hidden,
+                self.num_visible,
+                device=self.device,
+                dtype=torch.double,
+            ) / np.sqrt(self.num_visible)),
             requires_grad=True,
         )
 
         self.visible_bias = nn.Parameter(
-            torch.zeros(self.num_visible, device=self.device, dtype=torch.double),
+            torch.zeros(self.num_visible,
+                        device=self.device,
+                        dtype=torch.double),
             requires_grad=True,
         )
         self.hidden_bias = nn.Parameter(
-            torch.zeros(self.num_hidden, device=self.device, dtype=torch.double),
+            torch.zeros(self.num_hidden,
+                        device=self.device,
+                        dtype=torch.double),
             requires_grad=True,
         )
 
@@ -86,7 +85,8 @@ class BinaryRBM(nn.Module):
             v = v.unsqueeze(0)
 
         visible_bias_term = torch.mv(v, self.visible_bias)
-        hid_bias_term = F.softplus(F.linear(v, self.weights, self.hidden_bias)).sum(1)
+        hid_bias_term = F.softplus(F.linear(v, self.weights,
+                                            self.hidden_bias)).sum(1)
 
         return -(visible_bias_term + hid_bias_term)
 
@@ -144,9 +144,8 @@ class BinaryRBM(nn.Module):
         else:
             unsqueezed = False
 
-        p = torch.addmm(
-            self.visible_bias.data, h, self.weights.data, out=out
-        ).sigmoid_()
+        p = torch.addmm(self.visible_bias.data, h, self.weights.data,
+                        out=out).sigmoid_()
 
         if unsqueezed:
             return p.squeeze_(0)  # remove superfluous axis, if it exists
@@ -172,9 +171,10 @@ class BinaryRBM(nn.Module):
         else:
             unsqueezed = False
 
-        p = torch.addmm(
-            self.hidden_bias.data, v, self.weights.data.t(), out=out
-        ).sigmoid_()
+        p = torch.addmm(self.hidden_bias.data,
+                        v,
+                        self.weights.data.t(),
+                        out=out).sigmoid_()
 
         if unsqueezed:
             return p.squeeze_(0)  # remove superfluous axis, if it exists
@@ -230,9 +230,10 @@ class BinaryRBM(nn.Module):
         if overwrite is False:
             v = v.clone()
 
-        h = torch.zeros(
-            v.shape[0], self.num_hidden, device=self.device, dtype=torch.double
-        )
+        h = torch.zeros(v.shape[0],
+                        self.num_hidden,
+                        device=self.device,
+                        dtype=torch.double)
 
         for _ in range(k):
             self.sample_h_given_v(v, out=h)
