@@ -167,8 +167,10 @@ def test_sampling_with_overwrite():
 
     sample = nn_state.sample(k=10, initial_state=initial_state, overwrite=True)
 
-    assert torch.equal(sample, initial_state), "initial_state did not get overwritten!"
-    assert not torch.equal(sample, old_state), "Markov Chain did not get updated!"
+    assert torch.equal(
+        sample, initial_state), "initial_state did not get overwritten!"
+    assert not torch.equal(
+        sample, old_state), "Markov Chain did not get updated!"
 
 
 def test_bad_stop_training_val():

@@ -332,7 +332,8 @@ class WaveFunctionBase(abc.ABC):
             # Initialize
             grad_data = [
                 torch.zeros(
-                    getattr(self, net).num_pars, dtype=torch.double, device=self.device
+                    getattr(
+                        self, net).num_pars, dtype=torch.double, device=self.device
                 )
                 for net in self.networks
             ]
@@ -389,19 +390,19 @@ class WaveFunctionBase(abc.ABC):
 
         # List of all the batches for positive phase.
         pos_batches = [
-            shuffled_pos_samples[batch_start : (batch_start + pos_batch_size)]
+            shuffled_pos_samples[batch_start: (batch_start + pos_batch_size)]
             for batch_start in range(0, len(shuffled_pos_samples), pos_batch_size)
         ]
 
         neg_batches = [
-            shuffled_neg_samples[batch_start : (batch_start + neg_batch_size)]
+            shuffled_neg_samples[batch_start: (batch_start + neg_batch_size)]
             for batch_start in range(0, len(shuffled_neg_samples), neg_batch_size)
         ]
 
         if input_bases is not None:
             shuffled_pos_bases = input_bases[pos_batch_perm]
             pos_batches_bases = [
-                shuffled_pos_bases[batch_start : (batch_start + pos_batch_size)]
+                shuffled_pos_bases[batch_start: (batch_start + pos_batch_size)]
                 for batch_start in range(0, len(train_samples), pos_batch_size)
             ]
             return zip(pos_batches, neg_batches, pos_batches_bases)
@@ -475,10 +476,12 @@ class WaveFunctionBase(abc.ABC):
                 data.clone().detach().to(device=self.device, dtype=torch.double)
             )
         else:
-            train_samples = torch.tensor(data, device=self.device, dtype=torch.double)
+            train_samples = torch.tensor(
+                data, device=self.device, dtype=torch.double)
 
         if len(self.networks) > 1:
-            all_params = [getattr(self, net).parameters() for net in self.networks]
+            all_params = [getattr(self, net).parameters()
+                          for net in self.networks]
             all_params = list(chain(*all_params))
             optimizer = optimizer(all_params, lr=lr, **kwargs)
         else:

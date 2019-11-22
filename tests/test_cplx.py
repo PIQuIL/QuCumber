@@ -61,28 +61,32 @@ class TestCplx(unittest.TestCase):
         y = torch.tensor([5, 6])
         z = cplx.make_complex(x, y)
 
-        self.assertTensorsEqual(x, cplx.real(z), msg="Real part of vector failed!")
+        self.assertTensorsEqual(x, cplx.real(
+            z), msg="Real part of vector failed!")
 
     def test_imag_part_of_vector(self):
         x = torch.tensor([1, 2])
         y = torch.tensor([5, 6])
         z = cplx.make_complex(x, y)
 
-        self.assertTensorsEqual(y, cplx.imag(z), msg="Imaginary part of vector failed!")
+        self.assertTensorsEqual(y, cplx.imag(
+            z), msg="Imaginary part of vector failed!")
 
     def test_real_part_of_matrix(self):
         x = torch.tensor([[1, 2], [3, 4]])
         y = torch.tensor([[5, 6], [7, 8]])
         z = cplx.make_complex(x, y)
 
-        self.assertTensorsEqual(x, cplx.real(z), msg="Real part of matrix failed!")
+        self.assertTensorsEqual(x, cplx.real(
+            z), msg="Real part of matrix failed!")
 
     def test_imag_part_of_matrix(self):
         x = torch.tensor([[1, 2], [3, 4]])
         y = torch.tensor([[5, 6], [7, 8]])
         z = cplx.make_complex(x, y)
 
-        self.assertTensorsEqual(y, cplx.imag(z), msg="Imaginary part of matrix failed!")
+        self.assertTensorsEqual(y, cplx.imag(
+            z), msg="Imaginary part of matrix failed!")
 
     def test_real_part_of_tensor(self):
         x = torch.randn(3, 3, 3)
@@ -112,7 +116,8 @@ class TestCplx(unittest.TestCase):
         z1 = torch.tensor([[2, 3, 5], [6, 7, 2]], dtype=torch.double)
         z2 = torch.tensor([[1, 2, 2], [3, 4, 8]], dtype=torch.double)
 
-        expect = torch.tensor([[-16, -22, -6], [12, 26, 44]], dtype=torch.double)
+        expect = torch.tensor(
+            [[-16, -22, -6], [12, 26, 44]], dtype=torch.double)
 
         self.assertTensorsEqual(
             cplx.elementwise_mult(z1, z2),
@@ -154,7 +159,8 @@ class TestCplx(unittest.TestCase):
 
     def test_scalar_matrix_mult(self):
         scalar = torch.tensor([2, 3], dtype=torch.double)
-        matrix = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
+        matrix = torch.tensor(
+            [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
 
         expect = torch.tensor(
             [[[-13, -14], [-15, -16]], [[13, 18], [23, 28]]], dtype=torch.double
@@ -191,7 +197,8 @@ class TestCplx(unittest.TestCase):
             cplx.scalar_mult(scalar, vector, out=scalar)
 
     def test_matrix_vector_matmul(self):
-        matrix = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
+        matrix = torch.tensor(
+            [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
         vector = torch.tensor([[1, 2], [3, 4]], dtype=torch.double)
 
         expect = torch.tensor([[-34, -42], [28, 48]], dtype=torch.double)
@@ -203,8 +210,10 @@ class TestCplx(unittest.TestCase):
         )
 
     def test_matrix_matrix_matmul(self):
-        matrix1 = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
-        matrix2 = torch.tensor([[[1, 0], [3, 0]], [[0, 6], [0, 8]]], dtype=torch.double)
+        matrix1 = torch.tensor(
+            [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
+        matrix2 = torch.tensor(
+            [[[1, 0], [3, 0]], [[0, 6], [0, 8]]], dtype=torch.double)
         expect = torch.tensor(
             [[[7, -78], [15, -106]], [[23, 22], [31, 50]]], dtype=torch.double
         )
@@ -245,7 +254,8 @@ class TestCplx(unittest.TestCase):
 
     def test_outer_prod_error_large(self):
         # take outer prod of 2 rank 3 tensors, instead of rank 2
-        tensor = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
+        tensor = torch.tensor(
+            [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
         with self.assertRaises(ValueError):
             cplx.outer_prod(tensor, tensor)
 
@@ -259,7 +269,8 @@ class TestCplx(unittest.TestCase):
         )
 
     def test_matrix_conjugate(self):
-        matrix = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
+        matrix = torch.tensor(
+            [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
         expect = torch.tensor(
             [[[1, 3], [2, 4]], [[-5, -7], [-6, -8]]], dtype=torch.double
         )
@@ -268,7 +279,8 @@ class TestCplx(unittest.TestCase):
         )
 
     def test_kronecker_prod(self):
-        matrix = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
+        matrix = torch.tensor(
+            [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
 
         expect = torch.tensor(
             [
@@ -317,7 +329,8 @@ class TestCplx(unittest.TestCase):
 
     def test_matrix_scalar_divide(self):
         scalar = torch.tensor([1, 2], dtype=torch.double)
-        matrix = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
+        matrix = torch.tensor(
+            [[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.double)
 
         expect = torch.tensor(
             [[[2.2, 2.8], [3.4, 4.0]], [[0.6, 0.4], [0.2, 0.0]]], dtype=torch.double
@@ -333,7 +346,8 @@ class TestCplx(unittest.TestCase):
         scalar = torch.tensor([3, 4], dtype=torch.double)
         expect = torch.tensor(25, dtype=torch.double)
 
-        self.assertTensorsEqual(cplx.norm_sqr(scalar), expect, msg="Norm failed!")
+        self.assertTensorsEqual(cplx.norm_sqr(
+            scalar), expect, msg="Norm failed!")
 
     def test_norm(self):
         scalar = torch.tensor([3, 4], dtype=torch.double)

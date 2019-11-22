@@ -52,7 +52,8 @@ class PosGradsUtils:
             device=self.nn_state.device,
         )
         for i in range(len(vis)):
-            grad_KL += ((target_psi[i, 0]) ** 2) * self.nn_state.gradient(vis[i])
+            grad_KL += ((target_psi[i, 0]) ** 2) * \
+                self.nn_state.gradient(vis[i])
             grad_KL -= self.nn_state.probability(vis[i], Z) * self.nn_state.gradient(
                 vis[i]
             )
@@ -115,8 +116,8 @@ class ComplexGradsUtils:
 
         for b in range(len(bases)):
             psi = torch.zeros(2, D, dtype=torch.double)
-            psi_real = psi_data[b * D : (b + 1) * D, 0]
-            psi_imag = psi_data[b * D : (b + 1) * D, 1]
+            psi_real = psi_data[b * D: (b + 1) * D, 0]
+            psi_imag = psi_data[b * D: (b + 1) * D, 1]
             psi[0] = psi_real
             psi[1] = psi_imag
             psi_dict[bases[b]] = psi
@@ -141,10 +142,12 @@ class ComplexGradsUtils:
     def rotate_psi(self, basis, unitary_dict, vis):
         N = self.nn_state.num_visible
         v = torch.zeros(N, dtype=torch.double, device=self.nn_state.device)
-        psi_r = torch.zeros(2, 1 << N, dtype=torch.double, device=self.nn_state.device)
+        psi_r = torch.zeros(2, 1 << N, dtype=torch.double,
+                            device=self.nn_state.device)
 
         for x in range(1 << N):
-            Upsi = torch.zeros(2, dtype=torch.double, device=self.nn_state.device)
+            Upsi = torch.zeros(2, dtype=torch.double,
+                               device=self.nn_state.device)
             num_nontrivial_U = 0
             nontrivial_sites = []
             for j in range(N):
@@ -204,7 +207,8 @@ class ComplexGradsUtils:
 
     def compute_numerical_kl(self, psi_dict, vis, Z, unitary_dict, bases):
         N = self.nn_state.num_visible
-        psi_r = torch.zeros(2, 1 << N, dtype=torch.double, device=self.nn_state.device)
+        psi_r = torch.zeros(2, 1 << N, dtype=torch.double,
+                            device=self.nn_state.device)
         KL = 0.0
         for i in range(len(vis)):
             KL += (
@@ -276,12 +280,14 @@ class ComplexGradsUtils:
             param[i] += eps
 
             Z = self.nn_state.compute_normalization(vis)
-            KL_p = self.compute_numerical_kl(psi_dict, vis, Z, unitary_dict, bases)
+            KL_p = self.compute_numerical_kl(
+                psi_dict, vis, Z, unitary_dict, bases)
 
             param[i] -= 2 * eps
 
             Z = self.nn_state.compute_normalization(vis)
-            KL_m = self.compute_numerical_kl(psi_dict, vis, Z, unitary_dict, bases)
+            KL_m = self.compute_numerical_kl(
+                psi_dict, vis, Z, unitary_dict, bases)
             param[i] += eps
 
             num_gradKL.append((KL_p - KL_m) / (2 * eps))
@@ -301,7 +307,8 @@ class ComplexGradsUtils:
                 device=self.nn_state.device,
             ),
         ]
-        Z = self.nn_state.compute_normalization(vis).to(device=self.nn_state.device)
+        Z = self.nn_state.compute_normalization(
+            vis).to(device=self.nn_state.device)
 
         for i in range(len(vis)):
             grad_KL[0] += (
@@ -414,16 +421,19 @@ class DensityGradsUtils:
         grad = [0.0, 0.0]
 
         grad_data = [
-            torch.zeros(2, getattr(self.nn_state, net).num_pars, dtype=torch.double)
+            torch.zeros(2, getattr(self.nn_state, net).num_pars,
+                        dtype=torch.double)
             for net in self.nn_state.networks
         ]
 
-        grad_model = [torch.zeros(self.nn_state.rbm_am.num_pars, dtype=torch.double)]
+        grad_model = [torch.zeros(
+            self.nn_state.rbm_am.num_pars, dtype=torch.double)]
 
         rho_rbm = self.nn_state.rhoRBM(v_space, v_space)
 
         for i in range(data_samples.shape[0]):
-            data_gradient = self.nn_state.gradient(data_bases[i], data_samples[i])
+            data_gradient = self.nn_state.gradient(
+                data_bases[i], data_samples[i])
             grad_data[0] += data_gradient[0]
             grad_data[1] += data_gradient[1]
 
@@ -486,17 +496,20 @@ class DensityGradsUtils:
             param_ranges = {}
             counter = 0
             for param_name, param in rbm.named_parameters():
-                param_ranges[param_name] = range(counter, counter + param.numel())
+                param_ranges[param_name] = range(
+                    counter, counter + param.numel())
                 counter += param.numel()
 
             for i, grad in enumerate(num_grads[n]):
-                p_name, at_start = self.nn_state.get_param_status(i, param_ranges)
+                p_name, at_start = self.nn_state.get_param_status(
+                    i, param_ranges)
                 if at_start:
                     print(f"\nTesting {p_name}...")
                     print(f"Numerical KL\tAlg KL\t\tAlg KL No Gibbs")
 
                 print(
                     "{: 10.8f}\t{: 10.8f}\t{: 10.8f}\t\t".format(
-                        grad, alg_grads[n][i].item(), alg_grads_nogibbs[n][i].item()
+                        grad, alg_grads[n][i].item(
+                        ), alg_grads_nogibbs[n][i].item()
                     )
                 )

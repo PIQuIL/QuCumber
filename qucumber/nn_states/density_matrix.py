@@ -162,11 +162,13 @@ class DensityMatrix:
             phase = self.rbm_ph.mixing_term(v - vp)
 
             log_term = (
-                (1 + 2 * exp_arg.exp() * phase.cos() + (2 * exp_arg).exp()).sqrt().log()
+                (1 + 2 * exp_arg.exp() * phase.cos() +
+                 (2 * exp_arg).exp()).sqrt().log()
             )
 
             phase_term = (
-                (exp_arg.exp() * phase.sin()) / (1 + exp_arg.exp() * phase.cos())
+                (exp_arg.exp() * phase.sin()) /
+                (1 + exp_arg.exp() * phase.cos())
             ).atan()
 
             return cplx.make_complex(log_term.sum(), phase_term.sum())
@@ -231,10 +233,12 @@ class DensityMatrix:
 
             return cplx.make_complex(
                 parameters_to_vector(
-                    [W_grad_real, U_grad_real, vb_grad_real, hb_grad_real, ab_grad_real]
+                    [W_grad_real, U_grad_real, vb_grad_real,
+                        hb_grad_real, ab_grad_real]
                 ),
                 parameters_to_vector(
-                    [W_grad_imag, U_grad_imag, vb_grad_imag, hb_grad_imag, ab_grad_imag]
+                    [W_grad_imag, U_grad_imag, vb_grad_imag,
+                        hb_grad_imag, ab_grad_imag]
                 ),
             )
 
@@ -309,10 +313,12 @@ class DensityMatrix:
 
             return cplx.make_complex(
                 parameters_to_vector(
-                    [W_grad_real, U_grad_real, vb_grad_real, hb_grad_real, ab_grad_real]
+                    [W_grad_real, U_grad_real, vb_grad_real,
+                        hb_grad_real, ab_grad_real]
                 ),
                 parameters_to_vector(
-                    [W_grad_imag, U_grad_imag, vb_grad_imag, hb_grad_imag, ab_grad_imag]
+                    [W_grad_imag, U_grad_imag, vb_grad_imag,
+                        hb_grad_imag, ab_grad_imag]
                 ),
             )
 
@@ -434,7 +440,8 @@ class DensityMatrix:
                   of the amplitude and phase RBMS
         :rtype: list[torch.Tensor, torch.Tensor]
         """
-        UrhoU, v, vp, Us, Us_dag, rotated_grad = self.init_gradient(basis, sites)
+        UrhoU, v, vp, Us, Us_dag, rotated_grad = self.init_gradient(
+            basis, sites)
         int_sample = sample[sites].round().int().numpy()
         ints_size = np.arange(sites.size)
 
@@ -467,7 +474,8 @@ class DensityMatrix:
                 all_Us_dag = Us[ints_size, :, int_sample, int_vp]
 
                 Ut = np.prod(all_Us[:, 0] + (1j * all_Us[:, 1]))
-                Ut *= np.prod(np.conj(all_Us_dag[:, 0] + (1j * all_Us_dag[:, 1])))
+                Ut *= np.prod(np.conj(all_Us_dag[:,
+                                                 0] + (1j * all_Us_dag[:, 1])))
                 U_[0] = Ut.real
                 U_[1] = Ut.imag
 
@@ -660,19 +668,19 @@ class DensityMatrix:
 
         # List of all the batches for positive phase.
         pos_batches = [
-            shuffled_pos_samples[batch_start : (batch_start + pos_batch_size)]
+            shuffled_pos_samples[batch_start: (batch_start + pos_batch_size)]
             for batch_start in range(0, len(shuffled_pos_samples), pos_batch_size)
         ]
 
         neg_batches = [
-            shuffled_neg_samples[batch_start : (batch_start + neg_batch_size)]
+            shuffled_neg_samples[batch_start: (batch_start + neg_batch_size)]
             for batch_start in range(0, len(shuffled_neg_samples), neg_batch_size)
         ]
 
         if input_bases is not None:
             shuffled_pos_bases = input_bases[pos_batch_perm]
             pos_batches_bases = [
-                shuffled_pos_bases[batch_start : (batch_start + pos_batch_size)]
+                shuffled_pos_bases[batch_start: (batch_start + pos_batch_size)]
                 for batch_start in range(0, len(train_samples), pos_batch_size)
             ]
             return zip(pos_batches, neg_batches, pos_batches_bases)
