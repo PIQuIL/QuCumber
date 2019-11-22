@@ -143,10 +143,8 @@ class ComplexWaveFunction(WaveFunctionBase):
 
     def init_gradient(self, basis, sites):
         Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
-        vp = torch.zeros(self.num_visible, dtype=torch.double,
-                         device=self.device)
-        Us = torch.stack([self.unitary_dict[b]
-                          for b in basis[sites]]).cpu().numpy()
+        vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
+        Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
         rotated_grad = [
             torch.zeros(
                 2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
@@ -173,8 +171,7 @@ class ComplexWaveFunction(WaveFunctionBase):
             )
             vp = sample.round().clone()
             Z = torch.zeros(grad_size, dtype=torch.double, device=self.device)
-            Z2 = torch.zeros((2, grad_size), dtype=torch.double,
-                             device=self.device)
+            Z2 = torch.zeros((2, grad_size), dtype=torch.double, device=self.device)
             U = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
             Ut = np.zeros_like(Us[:, 0], dtype=complex)
 

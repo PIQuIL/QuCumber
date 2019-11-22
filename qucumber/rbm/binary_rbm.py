@@ -28,8 +28,7 @@ class BinaryRBM(nn.Module):
         self.num_visible = int(num_visible)
         self.num_hidden = int(num_hidden)
         self.num_pars = (
-            (self.num_visible * self.num_hidden) +
-            self.num_visible + self.num_hidden
+            (self.num_visible * self.num_hidden) + self.num_visible + self.num_hidden
         )
 
         _warn_on_missing_gpu(gpu)
@@ -55,20 +54,18 @@ class BinaryRBM(nn.Module):
                     self.num_visible,
                     device=self.device,
                     dtype=torch.double,
-                ) /
-                np.sqrt(self.num_visible)
+                )
+                / np.sqrt(self.num_visible)
             ),
             requires_grad=True,
         )
 
         self.visible_bias = nn.Parameter(
-            torch.zeros(self.num_visible, device=self.device,
-                        dtype=torch.double),
+            torch.zeros(self.num_visible, device=self.device, dtype=torch.double),
             requires_grad=True,
         )
         self.hidden_bias = nn.Parameter(
-            torch.zeros(self.num_hidden, device=self.device,
-                        dtype=torch.double),
+            torch.zeros(self.num_hidden, device=self.device, dtype=torch.double),
             requires_grad=True,
         )
 
@@ -94,8 +91,7 @@ class BinaryRBM(nn.Module):
             v = v.unsqueeze(0)
 
         visible_bias_term = torch.mv(v, self.visible_bias)
-        hid_bias_term = F.softplus(
-            F.linear(v, self.weights, self.hidden_bias)).sum(1)
+        hid_bias_term = F.softplus(F.linear(v, self.weights, self.hidden_bias)).sum(1)
 
         return -(visible_bias_term + hid_bias_term)
 

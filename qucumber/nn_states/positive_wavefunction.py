@@ -232,8 +232,7 @@ class PositiveWaveFunction(WaveFunctionBase):
     @staticmethod
     def autoload(location, gpu=False):
         if not gpu:
-            state_dict = torch.load(
-                location, map_location=lambda storage, loc: storage)
+            state_dict = torch.load(location, map_location=lambda storage, loc: storage)
         else:
             state_dict = torch.load(location)
         wvfn = PositiveWaveFunction(
