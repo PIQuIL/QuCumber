@@ -43,10 +43,7 @@ jobs:
       install: &test-install
         - travis_retry pip install tox-travis codecov docutils
       before_script:
-        - travis_retry pip install -e .[docs]
-        - make -C ./docs -e test
-        - make -C ./docs -e spelling
-        - make -C ./docs -e linkcheck
+        - sudo apt-get install texlive-latex-base
       script: &test-script
         - echo 'Running tests...'
         - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
