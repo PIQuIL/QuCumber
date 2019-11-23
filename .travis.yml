@@ -62,15 +62,16 @@ jobs:
 
 
     - os: linux
-      name: "Documentation Format Tests"
+      name: "Documentation Format and Style Tests"
       python: 3.6
       addons:
         apt:
           packages:
             - libenchant1c2a
             - pandoc
-      install: travis_retry pip install -e .[docs]
+      install: travis_retry pip install -e .[style,docs]
       script:
+        - inv style
         - make -C ./docs -e test
         - make -C ./docs -e spelling
         - make -C ./docs -e linkcheck

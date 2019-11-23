@@ -32,11 +32,11 @@ install_requires = [
 # using a requirements.txt file for RTD dependencies
 # since it runs out of memory when using `pip install -e .[rtd]` to install
 # the dependencies for some reason
-try:
-    with open(".build_tools/readthedocs/requirements.txt", "r") as reqs:
-        rtd_requires = [line.strip() for line in reqs.readlines()]
-except FileNotFoundError:
-    rtd_requires = []
+# try:
+with open(".build_tools/readthedocs/requirements.txt", "r") as reqs:
+    rtd_requires = [line.strip() for line in reqs.readlines()]
+# except FileNotFoundError:
+#     rtd_requires = []
 
 doc_requires = rtd_requires + [
     "sphinx_rtd_theme>=0.4.1",
