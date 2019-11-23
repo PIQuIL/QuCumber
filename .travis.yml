@@ -23,6 +23,17 @@ stages:
   - name: deploy
     if: branch = master
 
+python:
+  - 3.6
+  - 3.7
+
+env:
+  - TORCH="1.0"
+  - TORCH="1.1"
+  - TORCH="1.2"
+  - TORCH="1.3"
+  - TORCH="nightly"
+
 
 jobs:
   fast_finish: true
@@ -31,48 +42,14 @@ jobs:
   include:
     - stage: test
       os: linux
-      python:
-      - 3.6
-      - 3.7
-      sudo: false
-      env:
-        - TORCH="1.0"
-        - TORCH="1.1"
-        - TORCH="1.2"
-        - TORCH="1.3"
-        - TORCH="nightly"
       install: &test-install
-        # - travis_retry pip install -e .[coverage]
-        # - travis_retry pip install codecov docutils pytest-xdist
-        - travis_retry pip install tox-travis pytest-xdist
+        - travis_retry pip install tox-travis
       script: &test-script
         - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
         - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
         - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
         - echo -n 'travis_fold:end:pytest'
       after_success: codecov
-
-    # - os: linux
-    #   dist: xenial
-    #   python: 3.7
-    #   sudo: true
-    #   env:
-    #     - PY_TAG='cp37'
-    #   install: *test-install
-    #   script: *test-script
-    #   after_success: codecov
-
-    # - os: linux  # try running QuCumber against nightly build of PyTorch
-    #   name: "Torch Nightly"
-    #   dist: trusty
-    #   python: 3.6
-    #   env: ALLOW_FAIL=1
-    #   before_install: *test-install
-    #   install:
-    #     - travis_retry pip uninstall -y torch
-    #     - travis_retry pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
-    #   script: *test-script
-
 
     # only test most recent version of pytorch on macOS
     - os: osx
