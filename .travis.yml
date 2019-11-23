@@ -68,6 +68,7 @@ jobs:
 
 
     ####### misc extra configs
+    #######  only test on python 3.6, if it works there it should work on 3.7
     - python: 3.6
       env: TORCH="1.1"
       install: *test-install
@@ -97,7 +98,7 @@ jobs:
       name: "Python 3.6"
       language: objective-c
       env:
-        - PYENV_VERSION=3.6.6
+        - PYENV_VERSION=3.6.9
         - PY_TAG='cp36'
       before_install: &mac-install
         - mkdir -p $HOME/.matplotlib/
@@ -118,7 +119,7 @@ jobs:
       name: "Python 3.7"
       language: objective-c
       env:
-        - PYENV_VERSION=3.7.0
+        - PYENV_VERSION=3.7.5
         - PY_TAG='cp37'
       before_install: *mac-install
       install: *test-install
@@ -128,9 +129,7 @@ jobs:
     - stage: build
       name: "Test Package Locally"
       os: linux
-      python:
-        - 3.6
-        - 3.7
+      python: 3.6
       script:
         - python setup.py bdist_wheel
         - cd dist; pip install *.whl
