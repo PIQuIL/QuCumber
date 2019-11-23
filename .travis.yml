@@ -41,17 +41,16 @@ jobs:
             - libenchant1c2a
             - pandoc
       install: &test-install
-        - travis_retry pip install tox-travis codecov
+        - travis_retry pip install tox-travis codecov docutils
       before_script:
         - travis_retry pip install -e .[docs]
-        - cd docs; make test
-        - cd docs; make spelling
-        - cd docs; make linkcheck
+        - make -C ./docs -e test
+        - make -C ./docs -e spelling
+        - make -C ./docs -e linkcheck
       script: &test-script
-        - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
+        - echo 'Running tests...'
         - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
         - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
-        - echo -n 'travis_fold:end:pytest'
       after_success: codecov
 
     - python: 3.6
@@ -104,7 +103,7 @@ jobs:
       language: objective-c
       env:
         - PYENV_VERSION=3.6.9
-        - PY_TAG='cp36'
+        - PY_TAG='py36'
       before_install: &mac-install
         - mkdir -p $HOME/.matplotlib/
         - "echo backend : TkAgg > $HOME/.matplotlib/matplotlibrc"
@@ -117,7 +116,10 @@ jobs:
         - pyenv rehash
         - pip -V
       install: *test-install
-      script: *test-script
+      script: &mac-test
+        - echo 'Running tests...'
+        - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -e $PY_TAG-torch13 -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
+        - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -e $PY_TAG-torch13 -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
       after_success: codecov
 
     - os: osx
@@ -125,10 +127,10 @@ jobs:
       language: objective-c
       env:
         - PYENV_VERSION=3.7.5
-        - PY_TAG='cp37'
+        - PY_TAG='py37'
       before_install: *mac-install
       install: *test-install
-      script: *test-script
+      script: *mac-test
       after_success: codecov
 
     - stage: build
