@@ -34,6 +34,7 @@ jobs:
       os: linux
       python: 3.6
       env: TORCH="1.0"
+      dist: trusty  # for working pandoc install
       addons:
         apt:
           packages:
