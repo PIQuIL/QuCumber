@@ -72,19 +72,6 @@ jobs:
       script: *test-script
       after_success: codecov
 
-    - python: 3.8
-      env: TORCH="1.0"
-      install: *test-install
-      script: *test-script
-      after_success: codecov
-
-    - python: 3.8
-      env: TORCH="1.3"
-      install: *test-install
-      script: *test-script
-      after_success: codecov
-
-
     ####### misc extra configs
     #######  only test on python 3.6, if it works there it should work on 3.7
     - python: 3.6
@@ -139,17 +126,6 @@ jobs:
       env:
         - PYENV_VERSION=3.7.5
         - PY_TAG='cp37'
-      before_install: *mac-install
-      install: *test-install
-      script: *test-script
-      after_success: codecov
-
-    - os: osx
-      name: "Python 3.8"
-      language: objective-c
-      env:
-        - PYENV_VERSION=3.8.0
-        - PY_TAG='cp38'
       before_install: *mac-install
       install: *test-install
       script: *test-script
