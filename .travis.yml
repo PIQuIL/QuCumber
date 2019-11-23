@@ -43,7 +43,7 @@ jobs:
         - travis_retry pip install tox-travis codecov docutils
       before_script:
         - sudo apt-get install texlive-latex-base
-        - sudo apt-get install pandoc=1.12.2.1-1build2
+        - sudo apt-get install pandoc=1.12\*
       script: &test-script
         - echo 'Running tests...'
         - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
