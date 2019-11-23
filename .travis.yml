@@ -32,6 +32,7 @@ jobs:
   include:
     - stage: test
       os: linux
+      dist: trusty
       python: 3.6
       sudo: true
       env: TORCH="1.0"
