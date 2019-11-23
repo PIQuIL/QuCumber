@@ -1,4 +1,4 @@
-dist: trusty
+dist: xenial
 sudo: false
 language: python
 
@@ -124,28 +124,6 @@ jobs:
       install: *test-install
       script: *test-script
       after_success: codecov
-
-    # - os: linux
-    #   name: "Style Check"
-    #   python: 3.6
-    #   install:
-    #     - travis_retry pip install ipython
-    #     - travis_retry pip install -e .[style]
-    #   script: inv style
-
-    # - os: linux
-    #   name: "Documentation Format Tests"
-    #   python: 3.6
-    #   addons:
-    #     apt:
-    #       packages:
-    #         - libenchant1c2a
-    #         - pandoc
-    #   install: travis_retry pip install -e .[docs]
-    #   script:
-    #     - cd docs; make test
-    #     - cd docs; make spelling
-    #     - cd docs; make linkcheck
 
     - stage: build
       name: "Test Package Locally"
