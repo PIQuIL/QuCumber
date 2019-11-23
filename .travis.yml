@@ -32,20 +32,10 @@ jobs:
   include:
     - stage: test
       os: linux
-      dist: trusty
       python: 3.6
-      sudo: true
       env: TORCH="1.0"
-      addons:
-        apt:
-          packages:
-            - libenchant1c2a
-            - pandoc
       install: &test-install
         - travis_retry pip install tox-travis codecov
-      before_script:
-        - sudo apt-get install texlive-latex-base
-        - pandoc -v
       script: &test-script
         - echo 'Running tests...'
         - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
@@ -69,6 +59,21 @@ jobs:
       install: *test-install
       script: *test-script
       after_success: codecov
+
+
+    - os: linux
+      name: "Documentation Format Tests"
+      python: 3.6
+      addons:
+        apt:
+          packages:
+            - libenchant1c2a
+            - pandoc
+      install: travis_retry pip install -e .[docs]
+      script:
+        - make -C ./docs -e test
+        - make -C ./docs -e spelling
+        - make -C ./docs -e linkcheck
 
     ####### misc extra configs
     #######  only test on python 3.6, if it works there it should work on 3.7
