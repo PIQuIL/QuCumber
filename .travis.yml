@@ -27,46 +27,54 @@ stages:
 jobs:
   fast_finish: true
   allow_failures:
-    - env: ALLOW_FAIL=1
+    - env: TORCH="nightly"
   include:
     - stage: test
       os: linux
-      dist: trusty
-      python: 3.6
+      python:
+      - 3.6
+      - 3.7
       sudo: false
       env:
-        - PY_TAG='cp36'
+        - TORCH="1.0"
+        - TORCH="1.1"
+        - TORCH="1.2"
+        - TORCH="1.3"
+        - TORCH="nightly"
       install: &test-install
-        - travis_retry pip install -e .[coverage]
-        - travis_retry pip install codecov docutils pytest-xdist
+        # - travis_retry pip install -e .[coverage]
+        # - travis_retry pip install codecov docutils pytest-xdist
+        - travis_retry pip install tox-travis pytest-xdist
       script: &test-script
         - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
-        - if [[ $TRAVIS_BRANCH != "master" ]]; then pytest -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
-        - if [[ $TRAVIS_BRANCH == "master" ]]; then pytest -s --cov=qucumber --no-cov-on-fail -n auto; fi
+        - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
+        - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
         - echo -n 'travis_fold:end:pytest'
       after_success: codecov
 
-    - os: linux
-      dist: xenial
-      python: 3.7
-      sudo: true
-      env:
-        - PY_TAG='cp37'
-      install: *test-install
-      script: *test-script
-      after_success: codecov
+    # - os: linux
+    #   dist: xenial
+    #   python: 3.7
+    #   sudo: true
+    #   env:
+    #     - PY_TAG='cp37'
+    #   install: *test-install
+    #   script: *test-script
+    #   after_success: codecov
 
-    - os: linux  # try running QuCumber against nightly build of PyTorch
-      name: "Torch Nightly"
-      dist: trusty
-      python: 3.6
-      env: ALLOW_FAIL=1
-      before_install: *test-install
-      install:
-        - travis_retry pip uninstall -y torch
-        - travis_retry pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
-      script: *test-script
+    # - os: linux  # try running QuCumber against nightly build of PyTorch
+    #   name: "Torch Nightly"
+    #   dist: trusty
+    #   python: 3.6
+    #   env: ALLOW_FAIL=1
+    #   before_install: *test-install
+    #   install:
+    #     - travis_retry pip uninstall -y torch
+    #     - travis_retry pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+    #   script: *test-script
 
+
+    # only test most recent version of pytorch on macOS
     - os: osx
       name: "Python 3.6"
       language: objective-c
@@ -86,6 +94,7 @@ jobs:
         - pip -V
       install: *test-install
       script: *test-script
+      after_success: codecov
 
     - os: osx
       name: "Python 3.7"
@@ -96,28 +105,29 @@ jobs:
       before_install: *mac-install
       install: *test-install
       script: *test-script
+      after_success: codecov
 
-    - os: linux
-      name: "Style Check"
-      python: 3.6
-      install:
-        - travis_retry pip install ipython
-        - travis_retry pip install -e .[style]
-      script: inv style
+    # - os: linux
+    #   name: "Style Check"
+    #   python: 3.6
+    #   install:
+    #     - travis_retry pip install ipython
+    #     - travis_retry pip install -e .[style]
+    #   script: inv style
 
-    - os: linux
-      name: "Documentation Format Tests"
-      python: 3.6
-      addons:
-        apt:
-          packages:
-            - libenchant1c2a
-            - pandoc
-      install: travis_retry pip install -e .[docs]
-      script:
-        - cd docs; make test
-        - cd docs; make spelling
-        - cd docs; make linkcheck
+    # - os: linux
+    #   name: "Documentation Format Tests"
+    #   python: 3.6
+    #   addons:
+    #     apt:
+    #       packages:
+    #         - libenchant1c2a
+    #         - pandoc
+    #   install: travis_retry pip install -e .[docs]
+    #   script:
+    #     - cd docs; make test
+    #     - cd docs; make spelling
+    #     - cd docs; make linkcheck
 
     - stage: build
       name: "Test Package Locally"
