@@ -15,6 +15,7 @@ cache:
   directories:
     - "$HOME/.cache/pip"
     - "$HOME/.pyenv"
+    - "$HOME/.tox"
 
 
 stages:
@@ -41,7 +42,6 @@ jobs:
       install: &test-install
         - travis_retry pip install tox-travis codecov
       script: &test-script
-        - tox --listenvs
         - echo 'Running tests...' && echo -n 'travis_fold:start:pytest'
         - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
         - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
