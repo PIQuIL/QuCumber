@@ -273,7 +273,7 @@ class WaveFunctionBase(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def autoload(location, gpu=False):
+    def autoload(location, gpu=True):
         """Initializes a WaveFunction from the parameters in the given
         location.
 
@@ -306,7 +306,7 @@ class WaveFunctionBase(abc.ABC):
         :type neg_batch: torch.Tensor
         :param bases_batch: Batch of the input bases corresponding to the samples
                             in `samples_batch`.
-        :type bases_batch: np.array
+        :type bases_batch: numpy.ndarray
 
         :returns: List containing the gradients of the parameters.
         :rtype: list
@@ -425,7 +425,7 @@ class WaveFunctionBase(abc.ABC):
         """Train the WaveFunction.
 
         :param data: The training samples
-        :type data: np.array
+        :type data: numpy.ndarray
         :param epochs: The number of full training passes through the dataset.
                        Technically, this specifies the index of the *last* training
                        epoch, which is relevant if `starting_epoch` is being set.
@@ -442,7 +442,7 @@ class WaveFunctionBase(abc.ABC):
         :type lr: float
         :param input_bases: The measurement bases for each sample. Must be provided
                             if training a ComplexWaveFunction.
-        :type input_bases: np.array
+        :type input_bases: numpy.ndarray
         :param progbar: Whether or not to display a progress bar. If "notebook"
                         is passed, will use a Jupyter notebook compatible
                         progress bar.

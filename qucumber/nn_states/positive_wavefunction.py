@@ -191,7 +191,7 @@ class PositiveWaveFunction(WaveFunctionBase):
         """Train the WaveFunction.
 
         :param data: The training samples
-        :type data: np.array
+        :type data: numpy.ndarray
         :param epochs: The number of full training passes through the dataset.
                        Technically, this specifies the index of the *last* training
                        epoch, which is relevant if `starting_epoch` is being set.
@@ -248,11 +248,8 @@ class PositiveWaveFunction(WaveFunctionBase):
         return super().compute_normalization(space)
 
     @staticmethod
-    def autoload(location, gpu=False):
-        if not gpu:
-            state_dict = torch.load(location, map_location=lambda storage, loc: storage)
-        else:
-            state_dict = torch.load(location)
+    def autoload(location, gpu=True):
+        state_dict = torch.load(location)
         wvfn = PositiveWaveFunction(
             num_visible=len(state_dict["rbm_am"]["visible_bias"]),
             num_hidden=len(state_dict["rbm_am"]["hidden_bias"]),

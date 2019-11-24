@@ -40,6 +40,7 @@ from datetime import date
 
 sys.path.insert(0, os.path.abspath("../"))
 
+
 # -- Project information -----------------------------------------------------
 
 project = "QuCumber"
@@ -81,6 +82,7 @@ except Exception:
 
 print("Building version: " + version + "; release: " + release)
 
+
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -99,6 +101,7 @@ extensions = [
     "sphinx.ext.linkcode",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinxcontrib.spelling",
     "nbsphinx",
 ]
 
@@ -129,9 +132,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 
+# Enable nitpicky mode
+nitpicky = True
 
 # Things that nitpick mode should ignore.
 nitpick_ignore = [
+    ("py:class", "type"),
     ("py:class", "int"),
     ("py:class", "float"),
     ("py:class", "bool"),
@@ -140,9 +146,12 @@ nitpick_ignore = [
     ("py:class", "tuple"),
     ("py:class", "str"),
     ("py:class", "file"),
-    ("py:obj", "None"),
-    ("py:exc", "ValueError"),
     ("py:class", "callable"),
+    ("py:class", "classmethod"),
+    ("py:class", "torch.nn.modules.module.Module"),
+    ("py:obj", "None"),
+    ("py:obj", "ndarray"),
+    ("py:exc", "ValueError"),
 ]
 
 suppress_warnings = ["epub.unknown_project_files"]
@@ -194,7 +203,6 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
-
 
 autodoc_member_order = "alphabetical"
 autodoc_mock_imports = ["torch", "tqdm", "numpy", "matplotlib"]
@@ -255,6 +263,11 @@ texinfo_documents = [
 
 # -- Extension configuration -------------------------------------------------
 
+# -- Options for spell checking ----------------------------------------------
+
+spelling_ignore_pypi_package_names = True
+
+
 # -- Options for todo extension ----------------------------------------------
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
@@ -275,17 +288,17 @@ imgmath_dvisvgm_args = ["--no-fonts", "-e"]
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 
-# -- Options for intersphinx -------------------------------------------------
 
+# -- Options for intersphinx -------------------------------------------------
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
     "torch": ("https://pytorch.org/docs/stable/", None),
-    "numpy": ("http://docs.scipy.org/doc/numpy", None),
+    "numpy": ("http://docs.scipy.org/doc/numpy/", None),
 }
 
-# -- Options for linkcode extension ------------------------------------------
 
+# -- Options for linkcode extension ------------------------------------------
 
 # The code in this section has been adapted from scikit-learn's github_link.py
 # https://github.com/scikit-learn/scikit-learn/blob/1870d6d/doc/sphinxext/github_link.py
@@ -362,7 +375,7 @@ def linkcode_resolve(domain, info):
 
 # The full license is in the file LICENSE.txt, distributed with this software.
 
-nbsphinx_execute = "auto"
+nbsphinx_execute = "never"
 
 
 # will only link to binders for tagged releases

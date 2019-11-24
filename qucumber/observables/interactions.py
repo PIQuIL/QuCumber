@@ -20,7 +20,7 @@ from .utils import to_pm1
 class NeighbourInteraction(ObservableBase):
     r"""The :math:`\sigma^z_i \sigma^z_{i+c}` observable
 
-    Computes the `c`-th nearest neighbour interaction for a spin chain with
+    Computes the :math:`c^\text{th}` nearest neighbour interaction for a spin chain with
     either open or periodic boundary conditions.
 
     :param periodic_bcs: Specifies whether the system has periodic boundary

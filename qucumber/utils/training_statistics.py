@@ -105,7 +105,7 @@ def NLL(nn_state, samples, space, bases=None, **kwargs):
     :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
     :type space: torch.Tensor
     :param bases: An array of bases where measurements were taken.
-    :type bases: np.array(dtype=str)
+    :type bases: numpy.ndarray
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
     :returns: The Negative Log-Likelihood.
@@ -161,7 +161,7 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
     :type space: torch.Tensor
     :param bases: An array of unique bases. If given, the KL divergence will be
                   computed for each basis and the average will be returned.
-    :type bases: np.array(dtype=str)
+    :type bases: numpy.ndarray
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
     :returns: The KL divergence.

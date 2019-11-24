@@ -31,6 +31,12 @@ help:
 test:
 	@$(SPHINXBUILD) -nW -b dummy "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
+spelling:
+	@$(SPHINXBUILD) -M spelling "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) -W
+
+linkcheck:
+	@$(SPHINXBUILD) -M linkcheck "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) -W
+
 livehtml:
 	sphinx-autobuild -b html \
 		$(SPHINXAUTO) \

@@ -38,7 +38,11 @@ try:
 except FileNotFoundError:
     rtd_requires = []
 
-doc_requires = rtd_requires + ["sphinx_rtd_theme>=0.4.1", "sphinx-autobuild>=0.7.1"]
+doc_requires = rtd_requires + [
+    "sphinx_rtd_theme>=0.4.1",
+    "sphinx-autobuild>=0.7.1",
+    "sphinxcontrib-spelling>=4.2.0",
+]
 
 build_requires = ["setuptools>=40.0.0", "wheel>=0.31.1"]
 
@@ -51,14 +55,11 @@ style_requires = [
     "black==19.3b0; python_version>='3.6'",
     "flake8>=3.7.7",
     "flake8-bugbear>=19.3.0",
+    "invoke>=1.1.1",
+    "nbconvert>=5.3.1",
 ]
 
-travis_requires = (
-    build_requires
-    + coverage_requires
-    + style_requires
-    + ["invoke>=1.1.1", "nbconvert>=5.3.1"]
-)
+travis_requires = build_requires + coverage_requires + style_requires
 
 appveyor_requires = build_requires + test_requires
 
@@ -72,7 +73,7 @@ extras_require = {
     "travis": travis_requires,
     "appveyor": appveyor_requires,
     "rtd": rtd_requires,
-    "doc": doc_requires,
+    "docs": doc_requires,
 }
 
 setuptools.setup(

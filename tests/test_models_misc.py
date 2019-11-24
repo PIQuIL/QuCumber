@@ -23,19 +23,19 @@ import qucumber
 from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction
 from qucumber.utils.unitaries import create_dict
 from qucumber.utils.training_statistics import rotate_psi
-from . import __tests_location__
+
 
 INIT_SEED = 1234  # seed to initialize model params with
 SAMPLING_SEED = 1337  # seed to draw samples from the model with
 
 
 @pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
-def test_model_saving_and_loading(wvfn_type):
+def test_model_saving_and_loading(tmpdir, wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
     nn_state = wvfn_type(10, gpu=False)
 
-    model_path = os.path.join(__tests_location__, "wavefunction")
+    model_path = str(tmpdir.mkdir("wvfn").join("params.pt").realpath())
 
     nn_state.save(model_path)
 
@@ -44,6 +44,7 @@ def test_model_saving_and_loading(wvfn_type):
     orig_sample = nn_state.sample(k=10).to(dtype=torch.uint8)
 
     nn_state2 = wvfn_type(10, gpu=False)
+
     nn_state2.load(model_path)
 
     qucumber.set_random_seed(SAMPLING_SEED, cpu=True, gpu=False, quiet=True)
@@ -63,13 +64,38 @@ def test_model_saving_and_loading(wvfn_type):
     os.remove(model_path)
 
 
+gpu_availability = pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="GPU required"
+)
+
+devices = [
+    pytest.param(False, id="cpu"),
+    pytest.param(True, id="gpu", marks=[gpu_availability, pytest.mark.gpu]),
+]
+
+
 @pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
-def test_model_saving_bad_metadata_key(wvfn_type):
+@pytest.mark.parametrize("is_src_gpu", devices)
+@pytest.mark.parametrize("is_dest_gpu", devices)
+def test_autoloading(tmpdir, wvfn_type, is_src_gpu, is_dest_gpu):
+    model_path = str(tmpdir.mkdir("wvfn").join("params.pt").realpath())
+
+    nn_state = wvfn_type(10, gpu=is_src_gpu)
+    nn_state.save(model_path)
+
+    nn_state2 = wvfn_type(10, gpu=is_dest_gpu)
+    nn_state2.load(model_path)
+
+    os.remove(model_path)
+
+
+@pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
+def test_model_saving_bad_metadata_key(tmpdir, wvfn_type):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
     nn_state = wvfn_type(10, gpu=False)
 
-    model_path = os.path.join(__tests_location__, "wavefunction")
+    model_path = str(tmpdir.mkdir("wvfn").join("params.pt").realpath())
 
     msg = "Metadata with invalid key should raise an error."
     with pytest.raises(ValueError):

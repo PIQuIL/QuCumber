@@ -88,26 +88,30 @@ all files in this repo. However, some miscellaneous files may be licensed
 differently. See [LICENSE](LICENSE) for more details.
 
 ## Citation
-```
+
+```latex
 @Article{10.21468/SciPostPhys.7.1.009,
-	title={{QuCumber: wavefunction reconstruction with neural networks}},
-	author={Matthew J. S. Beach and Isaac De Vlugt and Anna Golubeva and Patrick Huembeli and Bohdan Kulchytskyy and Xiuzhe Luo and Roger G. Melko and Ejaaz Merali and Giacomo Torlai},
-	journal={SciPost Phys.},
-	volume={7},
-	issue={1},
-	pages={9},
-	year={2019},
-	publisher={SciPost},
-	doi={10.21468/SciPostPhys.7.1.009},
-	url={https://scipost.org/10.21468/SciPostPhys.7.1.009},
+    title={{QuCumber: wavefunction reconstruction with neural networks}},
+    author={Matthew J. S. Beach and Isaac De Vlugt and Anna Golubeva and Patrick Huembeli and Bohdan Kulchytskyy and Xiuzhe Luo and Roger G. Melko and Ejaaz Merali and Giacomo Torlai},
+    journal={SciPost Phys.},
+    volume={7},
+    issue={1},
+    pages={9},
+    year={2019},
+    publisher={SciPost},
+    doi={10.21468/SciPostPhys.7.1.009},
+    url={https://scipost.org/10.21468/SciPostPhys.7.1.009},
 }
 ```
+
 ## Acknowledgments
 
-- We thank M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and L. Hayward Sierens for many helpful discussions.
+- We thank M. Albergo, G. Carleo, J. Carrasquilla, D. Sehayek, and
+  L. Hayward Sierens for many helpful discussions.
 
-- We thank the [Perimeter Institute](https://www.perimeterinstitute.ca) for the continuing support of PIQuIL.
+- We thank the [Perimeter Institute](https://www.perimeterinstitute.ca) for the
+  continuing support of PIQuIL.
 
-- Thanks to Nick Mercer for creating our awesome logo. You can check out more of Nick's
-work by visiting [his portfolio](https://www.behance.net/nickdmercec607) on
-Behance!
+- Thanks to Nick Mercer for creating our awesome logo. You can check out more of
+  Nick's work by visiting [his portfolio](https://www.behance.net/nickdmercec607)
+  on Behance!
