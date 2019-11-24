@@ -4,6 +4,8 @@ callables
 contrastive
 dataset
 datasets
+evaluator
+evaluators
 GitHub
 gpu
 hyperparameter
