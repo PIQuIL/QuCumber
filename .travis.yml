@@ -143,11 +143,12 @@ jobs:
       os: linux
       python: 3.6
       script:
+        # make sure there arent any accidental dependencies on repo files
         - python setup.py bdist_wheel
         - find . ! -name 'dist' ! -name '.' ! -name '..' -type d -exec rm -rf {} +
         - find . ! -name '*.whl' -type f -exec rm -f {} +
-        - ls
-        - ls dist
+        - ls -a
+        - ls -a dist
         - cd dist; pip install *.whl
 
     - stage: deploy
