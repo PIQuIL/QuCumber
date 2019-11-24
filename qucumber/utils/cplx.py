@@ -287,12 +287,10 @@ def sigmoid(x, y):
     :returns: The complex sigmoid of :math:`x + iy`
     :rtype: torch.Tensor
     """
-    x = x.numpy()
-    y = y.numpy()
-    z = x + 1j * y
+    z = (x.cpu().numpy()) + 1j * (y.cpu().numpy())
 
     out = np.exp(z) / (1 + np.exp(z))
-    out = torch.tensor([np.real(out), np.imag(out)], dtype=torch.double)
+    out = torch.tensor([np.real(out), np.imag(out)]).to(x)
 
     return out
 

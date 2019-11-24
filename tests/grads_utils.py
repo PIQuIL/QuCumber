@@ -274,11 +274,22 @@ class DensityGradsUtils:
         grad = [0.0, 0.0]
 
         grad_data = [
-            torch.zeros(2, getattr(self.nn_state, net).num_pars, dtype=torch.double)
+            torch.zeros(
+                2,
+                getattr(self.nn_state, net).num_pars,
+                dtype=torch.double,
+                device=self.nn_state.device,
+            )
             for net in self.nn_state.networks
         ]
 
-        grad_model = [torch.zeros(self.nn_state.rbm_am.num_pars, dtype=torch.double)]
+        grad_model = [
+            torch.zeros(
+                self.nn_state.rbm_am.num_pars,
+                dtype=torch.double,
+                device=self.nn_state.device,
+            )
+        ]
 
         rho_rbm = self.nn_state.rhoRBM(v_space, v_space)
 

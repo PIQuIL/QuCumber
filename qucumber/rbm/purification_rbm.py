@@ -81,7 +81,13 @@ class PurificationRBM(nn.Module):
 
         self.weights_W = nn.Parameter(
             (
-                0.01 * gen_tensor(self.num_hidden, self.num_visible, dtype=torch.double)
+                0.01
+                * gen_tensor(
+                    self.num_hidden,
+                    self.num_visible,
+                    dtype=torch.double,
+                    device=self.device,
+                )
                 - 0.005
             ),
             requires_grad=False,
@@ -89,22 +95,31 @@ class PurificationRBM(nn.Module):
 
         self.weights_U = nn.Parameter(
             (
-                0.01 * gen_tensor(self.num_aux, self.num_visible, dtype=torch.double)
+                0.01
+                * gen_tensor(
+                    self.num_aux,
+                    self.num_visible,
+                    dtype=torch.double,
+                    device=self.device,
+                )
                 - 0.005
             ),
             requires_grad=False,
         )
 
         self.visible_bias = nn.Parameter(
-            torch.zeros(self.num_visible, dtype=torch.double), requires_grad=False
+            torch.zeros(self.num_visible, dtype=torch.double, device=self.device),
+            requires_grad=False,
         )
 
         self.hidden_bias = nn.Parameter(
-            torch.zeros(self.num_hidden, dtype=torch.double), requires_grad=False
+            torch.zeros(self.num_hidden, dtype=torch.double, device=self.device),
+            requires_grad=False,
         )
 
         self.aux_bias = nn.Parameter(
-            torch.zeros(self.num_aux, dtype=torch.double), requires_grad=False
+            torch.zeros(self.num_aux, dtype=torch.double, device=self.device),
+            requires_grad=False,
         )
 
     def effective_energy(self, v, a):
@@ -121,7 +136,9 @@ class PurificationRBM(nn.Module):
             v = v.unsqueeze(0)
             a = a.unsqueeze(0)
 
-            energy = torch.zeros(v.shape[0], a.shape[0], dtype=torch.double)
+            energy = torch.zeros(
+                v.shape[0], a.shape[0], dtype=torch.double, device=self.device
+            )
 
             vb_term = torch.mv(v, self.visible_bias)
             ab_term = torch.mv(a, self.aux_bias)
@@ -132,7 +149,9 @@ class PurificationRBM(nn.Module):
             energy = vb_term + ab_term + other_term
 
         else:
-            energy = torch.zeros(v.shape[0], a.shape[0], dtype=torch.double)
+            energy = torch.zeros(
+                v.shape[0], a.shape[0], dtype=torch.double, device=self.device
+            )
 
             for i in range(2 ** self.num_visible):
                 for j in range(2 ** self.num_aux):
@@ -320,9 +339,7 @@ class PurificationRBM(nn.Module):
         if len(v.shape) < 2:
             v = v.unsqueeze(0)
             unsqueezed = True
-
         else:
-
             unsqueezed = False
 
         mixing_term = F.linear(v, 0.5 * self.weights_U, self.aux_bias)
@@ -351,7 +368,10 @@ class PurificationRBM(nn.Module):
         # Computes the entrie matrix Gamma at once
         else:
             temp = torch.zeros(
-                2 ** (self.num_visible), 2 ** (self.num_visible), dtype=torch.double
+                2 ** (self.num_visible),
+                2 ** (self.num_visible),
+                dtype=torch.double,
+                device=self.device,
             )
 
             for i in range(2 ** self.num_visible):
@@ -385,7 +405,10 @@ class PurificationRBM(nn.Module):
         # Computes the entire matrix Gamma- at once
         else:
             temp = torch.zeros(
-                2 ** (self.num_visible), 2 ** (self.num_visible), dtype=torch.double
+                2 ** (self.num_visible),
+                2 ** (self.num_visible),
+                dtype=torch.double,
+                device=self.device,
             )
 
             for i in range(2 ** self.num_visible):
@@ -434,7 +457,9 @@ class PurificationRBM(nn.Module):
                 )
                 vb_grad = 0.5 * torch.sum(v + vp, 0)
                 hb_grad = 0.5 * torch.sum(prob_h + prob_hp, 0)
-                ab_grad = torch.zeros((v.shape[0], self.num_aux), dtype=torch.double)
+                ab_grad = torch.zeros(
+                    (v.shape[0], self.num_aux), dtype=torch.double, device=self.device
+                )
 
             else:
                 W_grad = 0.5 * (
@@ -444,10 +469,13 @@ class PurificationRBM(nn.Module):
                 U_grad = torch.zeros(
                     (v.shape[0], self.weights_U.shape[0], self.weights_U.shape[1]),
                     dtype=torch.double,
+                    device=self.device,
                 )
                 vb_grad = 0.5 * (v + vp)
                 hb_grad = 0.5 * (prob_h + prob_hp)
-                ab_grad = torch.zeros((v.shape[0], self.num_aux), dtype=torch.double)
+                ab_grad = torch.zeros(
+                    (v.shape[0], self.num_aux), dtype=torch.double, device=self.device
+                )
                 vec = [
                     W_grad.view(v.size()[0], -1),
                     U_grad.view(v.size()[0], -1),
@@ -492,10 +520,13 @@ class PurificationRBM(nn.Module):
                 U_grad = torch.zeros(
                     (v.shape[0], self.weights_U.shape[0], self.weights_U.shape[1]),
                     dtype=torch.double,
+                    device=self.device,
                 )
                 vb_grad = 0.5 * torch.sum(v - vp, 0)
                 hb_grad = 0.5 * torch.sum(prob_h - prob_hp, 0)
-                ab_grad = torch.zeros((v.shape[0], self.num_aux), dtype=torch.double)
+                ab_grad = torch.zeros(
+                    (v.shape[0], self.num_aux), dtype=torch.double, device=self.device
+                )
 
             else:
                 W_grad = 0.5 * (
@@ -505,10 +536,13 @@ class PurificationRBM(nn.Module):
                 U_grad = torch.zeros(
                     (v.shape[0], self.weights_U.shape[0], self.weights_U.shape[1]),
                     dtype=torch.double,
+                    device=self.device,
                 )
                 vb_grad = 0.5 * (v - vp)
                 hb_grad = 0.5 * (prob_h - prob_hp)
-                ab_grad = torch.zeros((v.shape[0], self.num_aux), dtype=torch.double)
+                ab_grad = torch.zeros(
+                    (v.shape[0], self.num_aux), dtype=torch.double, device=self.device
+                )
                 vec = [
                     W_grad.view(v.size()[0], -1),
                     U_grad.view(v.size()[0], -1),

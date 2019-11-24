@@ -244,14 +244,21 @@ class DensityMatrix:
                 self.rbm_am.weights_W.shape[0],
                 self.rbm_am.weights_W.shape[1],
                 dtype=torch.double,
+                device=self.device,
             )
             W_grad_imag = W_grad_real.clone()
             vb_grad_real = torch.zeros(
-                v.shape[0], self.rbm_am.num_visible, dtype=torch.double
+                v.shape[0],
+                self.rbm_am.num_visible,
+                dtype=torch.double,
+                device=self.device,
             )
             vb_grad_imag = vb_grad_real.clone()
             hb_grad_real = torch.zeros(
-                v.shape[0], self.rbm_am.num_hidden, dtype=torch.double
+                v.shape[0],
+                self.rbm_am.num_hidden,
+                dtype=torch.double,
+                device=self.device,
             )
             hb_grad_imag = hb_grad_real.clone()
             U_grad_real = 0.5 * (torch.einsum("ij,ik->ijk", sigReal, (v + vp)))
@@ -322,18 +329,25 @@ class DensityMatrix:
                 self.rbm_ph.weights_W.shape[0],
                 self.rbm_ph.weights_W.shape[1],
                 dtype=torch.double,
+                device=self.device,
             )
             W_grad_imag = W_grad_real.clone()
             vb_grad_real = torch.zeros(
-                v.shape[0], self.rbm_ph.num_visible, dtype=torch.double
+                v.shape[0],
+                self.rbm_ph.num_visible,
+                dtype=torch.double,
+                device=self.device,
             )
             vb_grad_imag = vb_grad_real.clone()
             hb_grad_real = torch.zeros(
-                v.shape[0], self.rbm_ph.num_hidden, dtype=torch.double
+                v.shape[0],
+                self.rbm_ph.num_hidden,
+                dtype=torch.double,
+                device=self.device,
             )
             hb_grad_imag = hb_grad_real.clone()
             ab_grad_real = torch.zeros(
-                v.shape[0], self.rbm_ph.num_aux, dtype=torch.double
+                v.shape[0], self.rbm_ph.num_aux, dtype=torch.double, device=self.device
             )
             ab_grad_imag = ab_grad_real.clone()
             U_grad_real = -0.5 * (torch.einsum("ij,ik->ijk", sigIm, (v - vp)))
@@ -370,10 +384,14 @@ class DensityMatrix:
         :rtype: torch.Tensor
         """
         if len(v.shape) < 2 and len(vp.shape) < 2:
-            out = torch.zeros(2, dtype=torch.double)
+            out = torch.zeros(2, dtype=torch.double, device=self.device)
         else:
             out = torch.zeros(
-                2, 2 ** self.num_visible, 2 ** self.num_visible, dtype=torch.double
+                2,
+                2 ** self.num_visible,
+                2 ** self.num_visible,
+                dtype=torch.double,
+                device=self.device,
             )
         pi_ = self.Pi(v, vp)
         amp = (self.rbm_am.GammaP(v, vp) + pi_[0]).exp()
@@ -405,16 +423,20 @@ class DensityMatrix:
         :param sites: The sites where the measurements are not
                       in the computational basis
         """
-        UrhoU = torch.zeros(2, dtype=torch.double)
-        v = torch.zeros(self.num_visible, dtype=torch.double)
-        vp = torch.zeros(self.num_visible, dtype=torch.double)
-        Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).numpy()
-        Us_dag = torch.stack(
-            [cplx.conjugate(self.unitary_dict[b]) for b in basis[sites]]
-        ).numpy()
+        UrhoU = torch.zeros(2, dtype=torch.double, device=self.device)
+        v = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
+        vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
+        Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
+        Us_dag = (
+            torch.stack([cplx.conjugate(self.unitary_dict[b]) for b in basis[sites]])
+            .cpu()
+            .numpy()
+        )
 
         rotated_grad = [
-            torch.zeros(2, getattr(self, net).num_pars, dtype=torch.double)
+            torch.zeros(
+                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
+            )
             for net in self.networks
         ]
 
@@ -435,11 +457,11 @@ class DensityMatrix:
         :rtype: list[torch.Tensor, torch.Tensor]
         """
         UrhoU, v, vp, Us, Us_dag, rotated_grad = self.init_gradient(basis, sites)
-        int_sample = sample[sites].round().int().numpy()
+        int_sample = sample[sites].round().int().cpu().numpy()
         ints_size = np.arange(sites.size)
 
-        U_ = torch.tensor([1.0, 1.0], dtype=torch.double)
-        UrhoU = torch.zeros(2, dtype=torch.double)
+        U_ = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
+        UrhoU = torch.zeros(2, dtype=torch.double, device=self.device)
         UrhoU_ = torch.zeros_like(UrhoU)
 
         grad_size = (
@@ -449,7 +471,7 @@ class DensityMatrix:
             + self.num_hidden
             + self.num_aux
         )
-        Z2 = torch.zeros((2, grad_size), dtype=torch.double)
+        Z2 = torch.zeros((2, grad_size), dtype=torch.double, device=self.device)
 
         v = sample.round().clone()
         vp = sample.round().clone()
@@ -457,13 +479,13 @@ class DensityMatrix:
         for x in range(2 ** sites.size):
             v = sample.round().clone()
             v[sites] = self.subspace_vector(x, sites.size)
-            int_v = v[sites].int().numpy()
+            int_v = v[sites].int().cpu().numpy()
             all_Us = Us[ints_size, :, int_sample, int_v]
 
             for y in range(2 ** sites.size):
                 vp = sample.round().clone()
                 vp[sites] = self.subspace_vector(y, sites.size)
-                int_vp = vp[sites].int().numpy()
+                int_vp = vp[sites].int().cpu().numpy()
                 all_Us_dag = Us[ints_size, :, int_sample, int_vp]
 
                 Ut = np.prod(all_Us[:, 0] + (1j * all_Us[:, 1]))
@@ -526,11 +548,15 @@ class DensityMatrix:
         grad = [0.0, 0.0]
 
         grad_data = [
-            torch.zeros(2, getattr(self, net).num_pars, dtype=torch.double)
+            torch.zeros(
+                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
+            )
             for net in self.networks
         ]
 
-        grad_model = [torch.zeros(self.rbm_am.num_pars, dtype=torch.double)]
+        grad_model = [
+            torch.zeros(self.rbm_am.num_pars, dtype=torch.double, device=self.device)
+        ]
 
         v_space = self.generate_hilbert_space(self.num_visible)
         rho_rbm = self.rhoRBM(v_space, v_space)
@@ -573,12 +599,13 @@ class DensityMatrix:
         grad = [0.0, 0.0]
 
         grad_data = [
-            torch.zeros(2, getattr(self, net).num_pars, dtype=torch.double)
+            torch.zeros(
+                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
+            )
             for net in self.networks
         ]
 
         for i in range(samples_batch.shape[0]):
-
             data_gradient = self.gradient(bases_batch[i], samples_batch[i])
             grad_data[0] += data_gradient[0]
             grad_data[1] += data_gradient[1]
@@ -589,11 +616,6 @@ class DensityMatrix:
         grad[1] = -cplx.real(grad_data[1]) / float(samples_batch.shape[0])
 
         return grad
-
-    def get_param_status(self, i, param_ranges):
-        for p, rng in param_ranges.items():
-            if i in rng:
-                return p, i == rng[0]
 
     def rotate_rho(self, basis, space, Z, unitaries, rho=None):
         r"""Computes the density matrix rotated into some basis
@@ -612,15 +634,16 @@ class DensityMatrix:
 
         unitaries = {k: v for k, v in unitaries.items()}
         us = [unitaries[b] for b in basis]
+        if len(us) == 0:
+            return rho
 
         # After ensuring there is more than one measurement, compute the
         # composite unitary by repeated Kronecker products
+        U = us[0]
+        for index in range(len(us) - 1):
+            U = cplx.kronecker_prod(U, us[index + 1])
 
-        if len(us) != 1:
-            for index in range(len(us) - 1):
-                us[index + 1] = cplx.kronecker_prod(us[index], us[index + 1])
-
-        U = us[-1]
+        U = U.to(rho)
         U_dag = cplx.conjugate(U)
 
         rot_rho = cplx.matmul(rho, U_dag)
@@ -757,7 +780,7 @@ class DensityMatrix:
         if time:
             callbacks.append(Timer())
 
-        train_samples = data.clone().detach().double()
+        train_samples = data.clone().detach().double().to(device=self.device)
 
         neg_batch_size = neg_batch_size if neg_batch_size else pos_batch_size
 
@@ -813,7 +836,7 @@ class DensityMatrix:
 
             if track_fid:
                 f = open(track_fid, "a")
-                f.write("Epoch: {0}\tFidelity: {1}\n".format(ep, fidel))
+                f.write(f"Epoch: {ep}\tFidelity: {fidel}\n")
                 f.close()
 
             if train_to_fid:
@@ -842,9 +865,7 @@ class DensityMatrix:
         # validate metadata
         for net in self.networks:
             if net in metadata.keys():
-                raise ValueError(
-                    "Invalid key in metadata; '{}' cannot be a key!".format(net)
-                )
+                raise ValueError(f"Invalid key in metadata; '{net}' cannot be a key!")
 
         data = {net: getattr(self, net).state_dict() for net in self.networks}
         data.update(**metadata)
