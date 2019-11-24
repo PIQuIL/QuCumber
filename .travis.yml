@@ -144,8 +144,9 @@ jobs:
       python: 3.6
       script:
         - python setup.py bdist_wheel
-        - find . ! -name 'dist' -type d -exec rm -rf {} +
+        - find . ! -name 'dist' ! -name '*.whl' ! -name '.' ! -name '..' -type f,d -exec rm -rf {} +
         - ls
+        - ls dist
         - cd dist; pip install *.whl
 
     - stage: deploy
