@@ -4,6 +4,8 @@ callables
 contrastive
 dataset
 datasets
+diagonalize
+diagonalized
 evaluator
 evaluators
 GitHub
@@ -27,6 +29,7 @@ projective
 PyTorch
 qubit
 QuCumber
+Rényi
 subclass
 subclasses
 subscripting

@@ -451,6 +451,8 @@ dmypy.json
 *.x
 
 *.pt
+!examples/Tutorial3_DataGeneration_CalculateObservables/saved_params.pt
+
 *.pdf
 !docs/_static/RBM_tutorial.pdf
 

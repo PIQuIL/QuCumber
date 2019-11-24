@@ -38,6 +38,10 @@ import sys
 from operator import attrgetter
 from datetime import date
 
+
+from sphinxcontrib.spelling.filters import ContractionFilter
+
+
 sys.path.insert(0, os.path.abspath("../"))
 
 
@@ -266,6 +270,7 @@ texinfo_documents = [
 # -- Options for spell checking ----------------------------------------------
 
 spelling_ignore_pypi_package_names = True
+spelling_filters = [ContractionFilter]  # TODO: fix contractions in spellcheck
 
 
 # -- Options for todo extension ----------------------------------------------
