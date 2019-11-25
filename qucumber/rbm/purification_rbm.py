@@ -580,5 +580,5 @@ class PurificationRBM(nn.Module):
         :returns: The partition function
         :rtype: torch.Tensor
         """
-        logZ = self.effective_energy(v_space, a_space).logsumexp((0, 1))
+        logZ = self.effective_energy(v_space, a_space).logsumexp(0).logsumexp(0)
         return logZ.exp()
