@@ -505,7 +505,7 @@ class PurificationRBM(nn.Module):
         prob_hp = self.prob_h_given_v(vp)
 
         if v.dim() < 2:
-            W_grad = 0.5 * (torch.ger(prob_h.t(), v) - torch.ger(prob_hp.t(), vp))
+            W_grad = 0.5 * (torch.ger(prob_h, v) - torch.ger(prob_hp, vp))
             U_grad = torch.zeros_like(self.weights_U)
             vb_grad = 0.5 * (v - vp)
             hb_grad = 0.5 * (prob_h - prob_hp)

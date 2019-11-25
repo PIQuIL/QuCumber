@@ -25,18 +25,13 @@ from qucumber.utils.unitaries import create_dict
 from qucumber.utils.training_statistics import rotate_psi
 
 
+from test_grads import assertAlmostEqual
+
+
 INIT_SEED = 1234  # seed to initialize model params with
 SAMPLING_SEED = 1337  # seed to draw samples from the model with
 
 TOL = 1e-6
-
-
-def assertAlmostEqual(a, b, tol, msg=None):
-    a = a.to(device=torch.device("cpu"))
-    b = b.to(device=torch.device("cpu"))
-    result = torch.ge(tol * torch.ones_like(torch.abs(a - b)), torch.abs(a - b))
-    expect = torch.ones_like(torch.abs(a - b), dtype=torch.uint8)
-    assert torch.equal(result, expect), msg
 
 
 @pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
@@ -172,7 +167,7 @@ def test_density_matrix_tr1():
     v_space = nn_state.generate_hilbert_space(5)
     matrix = nn_state.rhoRBM(v_space, v_space)
 
-    msg = "Trace of density matrix is not within {0} of 1!".format(TOL)
+    msg = f"Trace of density matrix is not within {TOL} of 1!"
     assertAlmostEqual(torch.trace(matrix[0]), torch.Tensor([1]), TOL, msg=msg)
 
 
