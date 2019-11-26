@@ -250,7 +250,7 @@ def density_matrix_KL(nn_state, target, bases, v_space, a_space):
     :param target: The target density matrix
     :type target: torch.Tensor
     :param bases: The bases in which measurement is made
-    :type bases: np.array
+    :type bases: numpy.ndarray
     :param v_space: The space of the visible states
     :type v_space: torch.Tensor
     :param a_space: The space of the auxiliary states

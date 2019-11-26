@@ -419,7 +419,7 @@ class DensityMatrix:
         r"""Initalizes all required variables for gradient computation
 
         :param basis: The bases of the measurements
-        :type basis: np.array
+        :type basis: numpy.ndarray
         :param sites: The sites where the measurements are not
                       in the computational basis
         """
@@ -446,10 +446,10 @@ class DensityMatrix:
         r"""Computes the gradients rotated into the measurement basis
 
         :param basis: The bases in which the measurement is made
-        :type basis: np.array
+        :type basis: numpy.ndarray
         :param sites: The sites where the measurements are not made
                       in the computational basis
-        :type sites: np.array
+        :type sites: numpy.ndarray
         :param sample: The measurement (either 0 or 1)
         :type sample: torch.Tensor
         :returns: A list of two tensors, representing the rotated gradients
@@ -513,7 +513,7 @@ class DensityMatrix:
         r"""Computes the gradient of the amplitude and phase RBM parameters
 
         :param basis: The bases in which the measurements are made
-        :type basis: np.array
+        :type basis: numpy.ndarray
         :param sample: The measurements
         :type sample: torch.Tensor
         :returns: A list containing the amplitude and phase
@@ -538,7 +538,7 @@ class DensityMatrix:
         :param train_samples: The measurements
         :type train_samples: torch.Tensor
         :param train_bases: The bases in which the measurements are made
-        :type train_bases: np.array
+        :type train_bases: numpy.ndarray
         :param Z: The partition function
         :type Z: torch.Tensor
         :returns: A list containing the amplitude and phase RBM gradients
@@ -621,7 +621,7 @@ class DensityMatrix:
         r"""Computes the density matrix rotated into some basis
 
         :param basis: The basis into which to rotate the density matrix
-        :type basis: np.array
+        :type basis: numpy.ndarray
         :param space: The Hilbert space of the system
         :type space: torch.Tensor
         :param unitaries: A dictionary of unitary matrices associated with
@@ -728,9 +728,9 @@ class DensityMatrix:
         r"""Trains the density matrix
 
         :param data: The training samples
-        :type data: np.array
+        :type data: numpy.ndarray
         :param input_bases: The measurement bases for each sample
-        :type input_bases: np.array
+        :type input_bases: numpy.ndarray
         :param target: The density matrix you are trying to train towards
         :type target: torch.Tensor
         :param epochs: The number of epochs to train for
@@ -753,7 +753,6 @@ class DensityMatrix:
         :param optimizer: The constructor of a torch optimizer
         :type optimizer: torch.optim.Optimizer
         :param scheduler: The constructor of a torch scheduler
-        :type scheduler: torch.optim.LRScheduler
         :param lr_drop_epoch: The epoch, or list of epochs, at which the
                               base learning rate is dropped
         :type lr_drop_epoch: int or list[int]
@@ -761,7 +760,7 @@ class DensityMatrix:
                                learning after the prescribed number of steps
         :type lr_drop_factor: float
         :param bases: All bases in which a measurement is made. Used to check gradients
-        :type bases: np.array
+        :type bases: numpy.ndarray
         :param train_to_fid: Instructs the RBM to end training prematurely if the
                              specified fidelity is reached. If it is never reached,
                              training will continue until the specified epoch

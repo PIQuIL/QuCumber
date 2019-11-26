@@ -208,7 +208,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 # -- Options for HTMLHelp output ---------------------------------------------
 
 autodoc_member_order = "alphabetical"
-autodoc_mock_imports = ["torch", "tqdm", "numpy", "matplotlib"]
+autodoc_mock_imports = ["torch", "tqdm", "numpy", "matplotlib", "scipy"]
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "QuCumberdoc"
@@ -299,6 +299,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
     "torch": ("https://pytorch.org/docs/stable/", None),
     "numpy": ("http://docs.scipy.org/doc/numpy/", None),
+    "scipy": ("http://docs.scipy.org/doc/scipy/reference", None),
 }
 
 
