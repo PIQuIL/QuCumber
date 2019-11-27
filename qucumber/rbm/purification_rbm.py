@@ -30,7 +30,7 @@ class PurificationRBM(nn.Module):
     :type num_visible: int
     :param num_hidden: The number of units in the hidden layer
     :type num_hidden: int
-    :param num_aux: The number of units in the auxilary purification layer
+    :param num_aux: The number of units in the auxiliary purification layer
     :type num_aux: int
     :param zero_init: Whether or not to initialize the weights to zero
     :type zero_init: bool
@@ -71,7 +71,7 @@ class PurificationRBM(nn.Module):
     def initialize_parameters(self, zero_init=False):
         r"""Initialize the parameters of the RBM
 
-        :param zero_init: Whether or not to initalize the weights to zero
+        :param zero_init: Whether or not to initialize the weights to zero
         :type zero_init: bool
         """
         if zero_init:
@@ -575,7 +575,7 @@ class PurificationRBM(nn.Module):
 
         :param v_space: The Hilbert space of the visible units
         :type v_space: torch.Tensor
-        :param a_space: The Hilbert space of the auxiilary units
+        :param a_space: The Hilbert space of the auxiliary units
         :type a_space: torch.Tensor
         :returns: The partition function
         :rtype: torch.Tensor

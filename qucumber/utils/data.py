@@ -85,7 +85,7 @@ def load_data_DM(
     :type bases_path: str
 
     :returns: A list of all input parameters, with the real and imaginary parts
-              combined into one (Pytorch-hack) complex matrix.
+              combined into one (PyTorch-hack) complex matrix.
     :rtype: list
     """
     data = []

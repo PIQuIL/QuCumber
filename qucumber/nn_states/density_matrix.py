@@ -416,7 +416,7 @@ class DensityMatrix:
         return self.rhoRBM_tilde(v, vp) / torch.trace(self.rhoRBM_tilde(v, vp)[0])
 
     def init_gradient(self, basis, sites):
-        r"""Initalizes all required variables for gradient computation
+        r"""Initializes all required variables for gradient computation
 
         :param basis: The bases of the measurements
         :type basis: numpy.ndarray
@@ -532,7 +532,7 @@ class DensityMatrix:
         return grad
 
     def compute_exact_grads(self, train_samples, train_bases, Z):
-        r"""Computes the gradients of the parameters, usign exact sampling
+        r"""Computes the gradients of the parameters, using exact sampling
         for the negative phase update instead of Gibbs sampling
 
         :param train_samples: The measurements
@@ -627,7 +627,7 @@ class DensityMatrix:
         :param unitaries: A dictionary of unitary matrices associated with
                           rotation into each basis
         :type unitaries: dict[str, torch.Tensor]
-        :returns: The rotated denstiy matrix
+        :returns: The rotated density matrix
         :rtype: torch.Tensor
         """
         rho = self.rhoRBM(space, space) if rho is None else rho
