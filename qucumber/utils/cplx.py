@@ -14,6 +14,7 @@
 
 
 import torch
+import numpy as np
 
 
 def make_complex(x, y=None):
@@ -274,6 +275,24 @@ def kronecker_prod(x, y):
             row_count += 1
 
     return z
+
+
+def sigmoid(x, y):
+    r"""Computes the sigmoid function of a complex number
+
+    :param x: The real part of the complex number
+    :type x: torch.Tensor
+    :param y: The imaginary part of the complex number
+    :type y: torch.Tensor
+    :returns: The complex sigmoid of :math:`x + iy`
+    :rtype: torch.Tensor
+    """
+    z = (x.cpu().numpy()) + 1j * (y.cpu().numpy())
+
+    out = np.exp(z) / (1 + np.exp(z))
+    out = torch.tensor([np.real(out), np.imag(out)]).to(x)
+
+    return out
 
 
 def scalar_divide(x, y):

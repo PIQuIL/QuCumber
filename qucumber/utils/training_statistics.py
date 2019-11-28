@@ -16,6 +16,7 @@
 import torch
 from torch.distributions.utils import probs_to_logits
 import numpy as np
+from scipy.linalg import sqrtm
 
 import qucumber.utils.cplx as cplx
 
@@ -206,5 +207,76 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
             KL += torch.sum(target_probs_r * probs_to_logits(target_probs_r))
             KL -= torch.sum(target_probs_r * probs_to_logits(probs_r))
         KL /= float(len(bases))
+
+    return KL.item()
+
+
+def density_matrix_fidelity(nn_state, target, v_space, **kwargs):
+    r"""Calculate the fidelity of the reconstructed density matrix
+    given the exact target density matrix
+
+    :param nn_state: The neural network state (i.e. current density matrix)
+    :type nn_state: qucumber.nn_states.DensityMatrix
+    :param target: The true density matrix of the system
+    :type target: torch.Tensor
+    :param v_space: The basis elements of the visible space
+    :type v_space: torch.Tensor
+    :param \**kwargs: Extra keyword arguments that may be passed.
+                      Will be ignored.
+    :returns: The fidelity
+    :rtype: float
+    """
+    rhoRBM_ = nn_state.rhoRBM(v_space, v_space)
+    argReal = cplx.real(rhoRBM_).numpy()
+    argIm = cplx.imag(rhoRBM_).numpy()
+
+    rho_rbm_ = argReal + 1j * argIm
+
+    argReal = cplx.real(target).numpy()
+    argIm = cplx.imag(target).numpy()
+
+    target_ = argReal + 1j * argIm
+
+    sqrt_rho_rbm = sqrtm(rho_rbm_)
+
+    arg = sqrtm(np.matmul(sqrt_rho_rbm, np.matmul(target_, sqrt_rho_rbm)))
+
+    return np.trace(arg).real
+
+
+def density_matrix_KL(nn_state, target, bases, v_space, a_space):
+    """Computes the KL divergence between the current and target density matrix
+
+    :param target: The target density matrix
+    :type target: torch.Tensor
+    :param bases: The bases in which measurement is made
+    :type bases: numpy.ndarray
+    :param v_space: The space of the visible states
+    :type v_space: torch.Tensor
+    :param a_space: The space of the auxiliary states
+    :type a_space: torch.Tensor
+    :returns: The KL divergence
+    :rtype: float
+    """
+    Z = nn_state.rbm_am.partition(v_space, a_space)
+    unitary_dict = nn_state.unitary_dict
+    rho_r_diag = torch.zeros(2, 2 ** nn_state.num_visible, dtype=torch.double)
+    target_rho_r_diag = torch.zeros_like(rho_r_diag)
+
+    KL = 0.0
+
+    for basis in bases:
+        rho_r = nn_state.rotate_rho(basis, v_space, Z, unitary_dict)
+        target_rho_r = nn_state.rotate_rho(basis, v_space, Z, unitary_dict, rho=target)
+
+        rho_r_diag[0] = torch.diagonal(rho_r[0])
+        rho_r_diag[1] = torch.diagonal(rho_r[1])
+        target_rho_r_diag[0] = torch.diagonal(target_rho_r[0])
+        target_rho_r_diag[1] = torch.diagonal(target_rho_r[1])
+
+        KL += torch.sum(target_rho_r_diag[0] * probs_to_logits(target_rho_r_diag[0]))
+        KL -= torch.sum(target_rho_r_diag[0] * probs_to_logits(rho_r_diag[0]))
+
+    KL /= float(len(bases))
 
     return KL.item()

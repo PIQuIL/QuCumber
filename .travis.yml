@@ -22,8 +22,7 @@ stages:
   - test
   - build
   - name: deploy
-    if: branch = master
-
+    if: (branch = master) AND (repo = PIQuIL/QuCumber) AND (tag IS present)
 
 jobs:
   fast_finish: true
@@ -123,8 +122,8 @@ jobs:
       install: *test-install
       script: &mac-test
         - echo 'Running tests...'
-        - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -e $PY_TAG-torch13 -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
-        - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -e $PY_TAG-torch13 -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
+        - if [[ $TRAVIS_BRANCH != "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
+        - if [[ $TRAVIS_BRANCH == "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
       after_success: codecov
 
     - os: osx
@@ -143,7 +142,7 @@ jobs:
       os: linux
       python: 3.6
       script:
-        # make sure there arent any accidental dependencies on repo files
+        # make sure there arent any accidental dependencies on misc repo files
         - python setup.py bdist_wheel
         - find . ! -name 'dist' ! -name '.' ! -name '..' -type d -exec rm -rf {} +
         - find . ! -name '*.whl' -type f -exec rm -f {} +
@@ -176,7 +175,9 @@ jobs:
       python: 3.6
       deploy:
         <<: *gh-releases
-        file: dist/*.tar.gz
+        file:
+          - dist/*.tar.gz
+          - dist/*.whl
 
     - name: "PyPI"
       script: skip

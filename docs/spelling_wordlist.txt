@@ -1,3 +1,7 @@
+Adadelta
+AdaDelta
+Adagrad
+AdaGrad
 autocorrelation
 callable
 callables
@@ -14,6 +18,7 @@ hyperparameter
 hyperparameters
 impactful
 instantiation
+infeasible
 ising
 jupyter
 Kronecker
@@ -30,6 +35,7 @@ PyTorch
 qubit
 QuCumber
 Rényi
+sigmoid
 subclass
 subclasses
 subscripting
