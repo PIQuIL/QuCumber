@@ -22,8 +22,7 @@ stages:
   - test
   - build
   - name: deploy
-    if: branch = master
-
+    if: (branch = master) AND (repo = PIQuIL/QuCumber) AND (tag IS present)
 
 jobs:
   fast_finish: true
