@@ -22,61 +22,14 @@ import torch
 from tqdm import tqdm, tqdm_notebook
 
 from qucumber.callbacks import CallbackList, Timer
+from qucumber.utils import cplx
 from qucumber.utils.data import extract_refbasis_samples
 from qucumber.utils.gradients_utils import vector_to_grads
+from .neural_state import NeuralState
 
 
-class WaveFunctionBase(abc.ABC):
+class WaveFunctionBase(NeuralState):
     """Abstract Base Class for WaveFunctions."""
-
-    _stop_training = False
-
-    @property
-    def stop_training(self):
-        """If `True`, will not train.
-
-        If this property is set to `True` during the training cycle, training
-        will terminate once the current batch or epoch ends (depending on when
-        `stop_training` was set).
-        """
-        return self._stop_training
-
-    @stop_training.setter
-    def stop_training(self, new_val):
-        if isinstance(new_val, bool):
-            self._stop_training = new_val
-        else:
-            raise ValueError("stop_training must be a boolean value!")
-
-    @property
-    def max_size(self):
-        """Maximum size of the Hilbert space for full enumeration"""
-        return 20
-
-    @property
-    @abc.abstractmethod
-    def networks(self):
-        """A list of the names of the internal RBMs."""
-
-    @property
-    @abc.abstractmethod
-    def rbm_am(self):
-        """The RBM to be used to learn the wavefunction amplitude."""
-
-    @rbm_am.setter
-    @abc.abstractmethod
-    def rbm_am(self, new_val):
-        raise NotImplementedError
-
-    @property
-    @abc.abstractmethod
-    def device(self):
-        """The device that the model is on."""
-
-    @device.setter
-    @abc.abstractmethod
-    def device(self, new_val):
-        raise NotImplementedError
 
     def reinitialize_parameters(self):
         """Randomize the parameters of the internal RBMs."""
@@ -115,7 +68,6 @@ class WaveFunctionBase(abc.ABC):
         :rtype: torch.Tensor
         """
 
-    @abc.abstractmethod
     def psi(self, v):
         r"""Compute the (unnormalized) wavefunction of a given vector/matrix of
         visible states.
@@ -130,200 +82,21 @@ class WaveFunctionBase(abc.ABC):
                   each visible state
         :rtype: torch.Tensor
         """
+        # vectors/tensors of shape (len(v),)
+        amplitude, phase = self.amplitude(v), self.phase(v)
+        return cplx.make_complex(
+            amplitude * phase.cos(),  # real part
+            amplitude * phase.sin(),  # imaginary part
+        )
 
-    def probability(self, v, Z):
-        """Evaluates the probability of the given vector(s) of visible
-        states.
-
-        :param v: The visible states.
-        :type v: torch.Tensor
-        :param Z: The partition function.
-        :type Z: float
-
-        :returns: The probability of the given vector(s) of visible units.
-        :rtype: torch.Tensor
-        """
-        v = v.to(device=self.device, dtype=torch.double)
-        return (self.amplitude(v)) ** 2 / Z
-
-    def sample(self, k, num_samples=1, initial_state=None, overwrite=False):
-        r"""Performs k steps of Block Gibbs sampling. One step consists of sampling
-        the hidden state :math:`\bm{h}` from the conditional distribution
-        :math:`p_{\bm{\lambda}}(\bm{h}\:|\:\bm{v})`, and sampling the visible
-        state :math:`\bm{v}` from the conditional distribution
-        :math:`p_{\bm{\lambda}}(\bm{v}\:|\:\bm{h})`.
-
-        :param k: Number of Block Gibbs steps.
-        :type k: int
-        :param num_samples: The number of samples to generate.
-        :type num_samples: int
-        :param initial_state: The initial state of the Markov Chains. If given,
-                              `num_samples` will be ignored.
-        :type initial_state: torch.Tensor
-        :param overwrite: Whether to overwrite the initial_state tensor, if it is provided.
-        :type overwrite: bool
-        """
-        if initial_state is None:
-            dist = torch.distributions.Bernoulli(probs=0.5)
-            sample_size = torch.Size((num_samples, self.num_visible))
-            initial_state = dist.sample(sample_size).to(
-                device=self.device, dtype=torch.double
-            )
-
-        return self.rbm_am.gibbs_steps(k, initial_state, overwrite=overwrite)
-
-    def subspace_vector(self, num, size=None, device=None):
-        r"""Generates a single vector from the Hilbert space of dimension
-        :math:`2^{\text{size}}`.
-
-        :param size: The size of each element of the Hilbert space.
-        :type size: int
-        :param num: The specific vector to return from the Hilbert space. Since
-                    the Hilbert space can be represented by the set of binary strings
-                    of length `size`, `num` is equivalent to the decimal representation
-                    of the returned vector.
-        :type num: int
-        :param device: The device to create the vector on. Defaults to the
-                       device this model is on.
-
-        :returns: A state from the Hilbert space.
-        :rtype: torch.Tensor
-        """
-        device = device if device is not None else self.device
-        size = size if size else self.num_visible
-        space = ((num & (1 << np.arange(size))) > 0)[::-1]
-        space = space.astype(int)
-        return torch.tensor(space, dtype=torch.double, device=device)
-
-    def generate_hilbert_space(self, size=None, device=None):
-        r"""Generates Hilbert space of dimension :math:`2^{\text{size}}`.
-
-        :param size: The size of each element of the Hilbert space. Defaults to
-                     the number of visible units.
-        :type size: int
-        :param device: The device to create the Hilbert space matrix on.
-                       Defaults to the device this model is on.
-
-        :returns: A tensor with all the basis states of the Hilbert space.
-        :rtype: torch.Tensor
-        """
-        device = device if device is not None else self.device
-        size = size if size else self.rbm_am.num_visible
-        if size > self.max_size:
-            raise ValueError("Size of the Hilbert space is too large!")
-        else:
-            dim = np.arange(2 ** size)
-            space = ((dim[:, None] & (1 << np.arange(size))) > 0)[:, ::-1]
-            space = space.astype(int)
-            return torch.tensor(space, dtype=torch.double, device=device)
-
-    def compute_normalization(self, space):
-        r"""Compute the normalization constant of the wavefunction.
-
-        .. math::
-
-            Z_{\bm{\lambda}}=
-            \sqrt{\sum_{\bm{\sigma}}|\psi_{\bm{\lambda\mu}}|^2}=
-            \sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}
-
-        :param space: A rank 2 tensor of the entire visible space.
-        :type space: torch.Tensor
-
-        """
-        return self.rbm_am.partition(space)
-
-    def save(self, location, metadata=None):
-        """Saves the WaveFunction parameters to the given location along with
-        any given metadata.
-
-        :param location: The location to save the data.
-        :type location: str or file
-        :param metadata: Any extra metadata to store alongside the WaveFunction
-                         parameters.
-        :type metadata: dict
-        """
-        # add extra metadata to dictionary before saving it to disk
-        metadata = metadata if metadata else {}
-
-        # validate metadata
-        for net in self.networks:
-            if net in metadata.keys():
-                raise ValueError(f"Invalid key in metadata; '{net}' cannot be a key!")
-
-        data = {net: getattr(self, net).state_dict() for net in self.networks}
-        data.update(**metadata)
-        torch.save(data, location)
-
-    def load(self, location):
-        """Loads the WaveFunction parameters from the given location ignoring any
-        metadata stored in the file. Overwrites the WaveFunction's parameters.
-
-        .. note::
-            The WaveFunction object on which this function is called must
-            have the same parameter shapes as the one who's parameters are being
-            loaded.
-
-        :param location: The location to load the WaveFunction parameters from.
-        :type location: str or file
-        """
-        state_dict = torch.load(location, map_location=self.device)
-
-        for net in self.networks:
-            getattr(self, net).load_state_dict(state_dict[net])
-
-    @staticmethod
-    @abc.abstractmethod
-    def autoload(location, gpu=True):
-        """Initializes a WaveFunction from the parameters in the given
-        location.
-
-        :param location: The location to load the model parameters from.
-        :type location: str or file
-        :param gpu: Whether the returned model should be on the GPU.
-        :type gpu: bool
-
-        :returns: A new WaveFunction initialized from the given parameters.
-                  The returned WaveFunction will be of whichever type this function
-                  was called on.
-        """
-
-    @abc.abstractmethod
-    def gradient(self):
-        """Compute the gradient of a set of samples."""
-
-    def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch=None):
-        """Compute the gradients of a batch of the training data (`samples_batch`).
-
-        If measurements are taken in bases other than the reference basis,
-        a list of bases (`bases_batch`) must also be provided.
-
-        :param k: Number of contrastive divergence steps in training.
-        :type k: int
-        :param samples_batch: Batch of the input samples.
-        :type samples_batch: torch.Tensor
-        :param neg_batch: Batch of the input samples for computing the
-                          negative phase.
-        :type neg_batch: torch.Tensor
-        :param bases_batch: Batch of the input bases corresponding to the samples
-                            in `samples_batch`.
-        :type bases_batch: numpy.ndarray
-
-        :returns: List containing the gradients of the parameters.
-        :rtype: list
-        """
-        # Negative phase: learning signal driven by the amplitude RBM of
-        # the NN state
-        vk = self.rbm_am.gibbs_steps(k, neg_batch)
-        grad_model = self.rbm_am.effective_energy_gradient(vk)
+    def positive_phase_gradients(self, samples_batch, bases_batch=None):
 
         # If measurements are taken in the reference bases only
         if bases_batch is None:
             grad = [0.0]
             # Positive phase: learning signal driven by the data (and bases)
             grad_data = self.gradient(samples_batch)
-            # Gradient = Positive Phase - Negative Phase
-            grad[0] = grad_data / float(samples_batch.shape[0])
-            grad[0] -= grad_model / float(neg_batch.shape[0])
+            grad[0] = grad_data[0] / float(samples_batch.shape[0])
         else:
             grad = [0.0, 0.0]
 
@@ -339,72 +112,18 @@ class WaveFunctionBase(abc.ABC):
             for i in range(samples_batch.shape[0]):
                 # Positive phase: learning signal driven by the data
                 #                 (and bases)
-                data_gradient = self.gradient(bases_batch[i], samples_batch[i])
+                data_gradient = self.gradient(samples_batch[i], bases_batch[i])
                 # Accumulate amplitude RBM gradient
                 grad_data[0] += data_gradient[0]
 
                 # Accumulate phase RBM gradient
                 grad_data[1] += data_gradient[1]
 
-            # Gradient = Positive Phase - Negative Phase
             grad[0] = grad_data[0] / float(samples_batch.shape[0])
-            grad[0] -= grad_model / float(neg_batch.shape[0])
 
-            # No negative signal for the phase parameters
             grad[1] = grad_data[1] / float(samples_batch.shape[0])
 
         return grad
-
-    def _shuffle_data(
-        self,
-        pos_batch_size,
-        neg_batch_size,
-        num_batches,
-        train_samples,
-        input_bases,
-        z_samples,
-    ):
-        pos_batch_perm = torch.randperm(train_samples.shape[0])
-
-        shuffled_pos_samples = train_samples[pos_batch_perm]
-        if input_bases is None:
-            if neg_batch_size == pos_batch_size:
-                neg_batch_perm = pos_batch_perm
-            else:
-                neg_batch_perm = torch.randint(
-                    train_samples.shape[0],
-                    size=(num_batches * neg_batch_size,),
-                    dtype=torch.long,
-                )
-            shuffled_neg_samples = train_samples[neg_batch_perm]
-        else:
-            neg_batch_perm = torch.randint(
-                z_samples.shape[0],
-                size=(num_batches * neg_batch_size,),
-                dtype=torch.long,
-            )
-            shuffled_neg_samples = z_samples[neg_batch_perm]
-
-        # List of all the batches for positive phase.
-        pos_batches = [
-            shuffled_pos_samples[batch_start : (batch_start + pos_batch_size)]
-            for batch_start in range(0, len(shuffled_pos_samples), pos_batch_size)
-        ]
-
-        neg_batches = [
-            shuffled_neg_samples[batch_start : (batch_start + neg_batch_size)]
-            for batch_start in range(0, len(shuffled_neg_samples), neg_batch_size)
-        ]
-
-        if input_bases is not None:
-            shuffled_pos_bases = input_bases[pos_batch_perm]
-            pos_batches_bases = [
-                shuffled_pos_bases[batch_start : (batch_start + pos_batch_size)]
-                for batch_start in range(0, len(train_samples), pos_batch_size)
-            ]
-            return zip(pos_batches, neg_batches, pos_batches_bases)
-        else:
-            return zip(pos_batches, neg_batches)
 
     def fit(
         self,

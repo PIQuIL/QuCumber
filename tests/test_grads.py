@@ -27,7 +27,6 @@ from qucumber.utils import unitaries
 from grads_utils import ComplexGradsUtils, PosGradsUtils, DensityGradsUtils
 
 
-K = 10
 SEED = 1234
 EPS = 1e-6
 
@@ -271,7 +270,7 @@ def wavefunction_graddata(request, wavefunction_data):
         num_grad_fn = grad_utils.numeric_gradNLL
         test_tol = PDIFF
 
-    alg_grads = alg_grad_fn(k=K, **wavefunction_data._asdict())
+    alg_grads = alg_grad_fn(**wavefunction_data._asdict())
     num_grads = [None for _ in nn_state.networks]
 
     for n, net in enumerate(nn_state.networks):

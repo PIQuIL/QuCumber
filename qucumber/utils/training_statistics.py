@@ -184,7 +184,7 @@ def NLL(nn_state, samples, space, bases=None, **kwargs):
 def KL(nn_state, target_psi, space, bases=None, **kwargs):
     r"""A function for calculating the total KL divergence.
 
-    .. math:: KL(P_{target} \vert P_{RBM}) = \sum_{x \in \mathcal{H}} P_{target}(x)\log(\frac{P_{RBM}(x)}{P_{target}(x)})
+    .. math:: KL(P_{target} \vert P_{RBM}) = -\sum_{x \in \mathcal{H}} P_{target}(x)\log(\frac{P_{RBM}(x)}{P_{target}(x)})
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).

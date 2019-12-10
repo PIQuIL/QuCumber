@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+import warnings
+
 import numpy as np
 import torch
 
@@ -23,16 +25,16 @@ from torch.nn import functional as F
 
 from tqdm import tqdm, tqdm_notebook
 
+from qucumber import _warn_on_missing_gpu
 from qucumber.utils import cplx, unitaries, training_statistics as ts
 from qucumber.utils.data import extract_refbasis_samples
 from qucumber.utils.gradients_utils import vector_to_grads
-
 from qucumber.callbacks import CallbackList, Timer
-
 from qucumber.rbm import PurificationRBM
+from .neural_state import NeuralState
 
 
-class DensityMatrix:
+class DensityMatrix(NeuralState):
     r"""
     :param num_visible: The number of visible units, i.e. the size of the system
     :type num_visible: int
@@ -51,17 +53,39 @@ class DensityMatrix:
     _device = None
 
     def __init__(
-        self, num_visible, num_hidden=None, num_aux=None, unitary_dict=None, gpu=False
+        self,
+        num_visible,
+        num_hidden=None,
+        num_aux=None,
+        unitary_dict=None,
+        gpu=False,
+        module=None,
     ):
-        self.rbm_am = PurificationRBM(num_visible, num_hidden, num_aux, gpu=gpu)
-        self.rbm_ph = PurificationRBM(num_visible, num_hidden, num_aux, gpu=gpu)
+        if gpu and torch.cuda.is_available():
+            warnings.warn(
+                "Using DensityMatrix on GPU is not recommended due to poor performance compared to CPU.",
+                ResourceWarning,
+                2,
+            )
+            self.device = torch.device("cuda")
+        else:
+            self.device = torch.device("cpu")
+
+        if module is None:
+            self.rbm_am = PurificationRBM(num_visible, num_hidden, num_aux, gpu=gpu)
+            self.rbm_ph = PurificationRBM(num_visible, num_hidden, num_aux, gpu=gpu)
+        else:
+            _warn_on_missing_gpu(gpu)
+            self.rbm_am = module.to(self.device)
+            self.rbm_am.device = self.device
+            self.rbm_ph = module.to(self.device).clone()
+            self.rbm_ph.device = self.device
 
         self.num_visible = self.rbm_am.num_visible
         self.num_hidden = self.rbm_am.num_hidden
         self.num_aux = self.rbm_am.num_aux
-
         self.device = self.rbm_am.device
-        self.max_size = 20
+
         self.unitary_dict = unitary_dict if unitary_dict else unitaries.create_dict()
         self.unitary_dict = {
             k: v.to(device=self.device) for k, v in self.unitary_dict.items()
@@ -95,51 +119,6 @@ class DensityMatrix:
     @device.setter
     def device(self, new_val):
         self._device = new_val
-
-    def subspace_vector(self, num, size=None, device=None):
-        r"""Generates a single vector from the Hilbert space of dimension
-        :math:`2^{\text{size}}`.
-
-        :param size: The size of each element of the Hilbert space.
-        :type size: int
-        :param num: The specific vector to return from the Hilbert space. Since
-                    the Hilbert space can be represented by the set of binary strings
-                    of length `size`, `num` is equivalent to the decimal representation
-                    of the returned vector.
-        :type num: int
-        :param device: The device to create the vector on. Defaults to the
-                       device this model is on.
-
-        :returns: A state from the Hilbert space.
-        :rtype: torch.Tensor
-        """
-        device = device if device is not None else self.device
-        size = size if size else self.num_visible
-        space = ((num & (1 << np.arange(size))) > 0)[::-1]
-        space = space.astype(int)
-        return torch.tensor(space, dtype=torch.double, device=device)
-
-    def generate_hilbert_space(self, size=None, device=None):
-        r"""Generates Hilbert space of dimension :math:`2^{\text{size}}`.
-
-        :param size: The size of each element of the Hilbert space. Defaults to
-                     the number of visible units.
-        :type size: int
-        :param device: The device to create the Hilbert space matrix on.
-                       Defaults to the device this model is on.
-
-        :returns: A tensor with all the basis states of the Hilbert space.
-        :rtype: torch.Tensor
-        """
-        device = device if device is not None else self.device
-        size = size if size else self.rbm_am.num_visible
-        if size > self.max_size:
-            raise ValueError("Size of the Hilbert space is too large!")
-        else:
-            dim = np.arange(2 ** size)
-            space = ((dim[:, None] & (1 << np.arange(size))) > 0)[:, ::-1]
-            space = space.astype(int)
-            return torch.tensor(space, dtype=torch.double, device=device)
 
     def pi(self, v, vp):
         r"""Calculates an element of the :math:`\Pi` matrix
@@ -302,9 +281,6 @@ class DensityMatrix:
 
         return cplx.make_complex(amp * phase.cos(), amp * phase.sin())
 
-    def probability(self, v, Z):
-        return (-self.rbm_am.effective_energy(v)).exp() / Z
-
     def init_gradient(self, basis, sites):
         r"""Initializes all required variables for gradient computation
 
@@ -335,6 +311,7 @@ class DensityMatrix:
         :type sites: numpy.ndarray
         :param sample: The measurement (either 0 or 1)
         :type sample: torch.Tensor
+
         :returns: A list of two tensors, representing the rotated gradients
                   of the amplitude and phase RBMS
         :rtype: list[torch.Tensor, torch.Tensor]
@@ -441,160 +418,6 @@ class DensityMatrix:
         return cplx.scalar_mult(  # need to multiply Gamma- by i
             self.rbm_ph.gamma_minus_grad(v, vp), torch.Tensor([0, 1])
         ) + self.pi_grad_ph(v, vp)
-
-    def gradient(self, basis, sample):
-        r"""Computes the gradient of the amplitude and phase RBM parameters
-
-        :param basis: The bases in which the measurements are made
-        :type basis: numpy.ndarray or str
-        :param sample: The measurements
-        :type sample: torch.Tensor
-        :returns: A list containing the amplitude and phase
-                  RBM parameter gradients
-        :rtype: list[torch.Tensor, torch.Tensor]
-        """
-        basis = np.array(list(basis))
-        rot_sites = np.where(basis != "Z")[0]
-
-        if rot_sites.size == 0:
-            grad = [self.rbm_am.effective_energy_gradient(sample), 0.0]
-        else:
-            grad = self.rotated_gradient(basis, rot_sites, sample)
-
-        return grad
-
-    def positive_phase_grads(self, train_samples, train_bases):
-        r"""Computes the positive phase of the gradients of the parameters
-
-        :param train_samples: The measurements
-        :type train_samples: torch.Tensor
-        :param train_bases: The bases in which the measurements are made
-        :type train_bases: numpy.ndarray
-
-        :returns: A list containing the amplitude and phase RBM gradients
-        :rtype: list[torch.Tensor, torch.Tensor]
-        """
-        grad = [0.0, 0.0]
-
-        grad_data = [
-            torch.zeros(
-                getattr(self, net).num_pars, dtype=torch.double, device=self.device
-            )
-            for net in self.networks
-        ]
-
-        for i in range(train_samples.shape[0]):
-            data_gradient = self.gradient(train_bases[i], train_samples[i])
-            grad_data[0] += data_gradient[0]
-            grad_data[1] += data_gradient[1]
-
-        # Can just take the real parts since the imaginary parts will have cancelled out
-        grad[0] = grad_data[0] / float(train_samples.shape[0])
-        grad[1] = grad_data[1] / float(train_samples.shape[0])
-
-        return grad
-
-    def compute_exact_grads(self, train_samples, train_bases, space):
-        r"""Computes the gradients of the parameters, using exact sampling
-        for the negative phase update instead of Gibbs sampling
-
-        :param train_samples: The measurements
-        :type train_samples: torch.Tensor
-        :param train_bases: The bases in which the measurements are made
-        :type train_bases: numpy.ndarray
-        :param space: A rank 2 tensor of the entire visible space.
-        :type space: torch.Tensor
-
-        :returns: A list containing the amplitude and phase RBM gradients
-                  calculated with exact sampling for negative phase update
-        :rtype: list[torch.Tensor, torch.Tensor]
-        """
-        grad = self.positive_phase_grads(train_samples, train_bases)
-
-        Z = self.normalization(space)
-        probs = self.probability(space, Z)
-        am_gr = self.rbm_am.effective_energy_gradient(
-            space, reduce=False
-        )  # (b, num_pars)
-
-        grad[0] -= torch.mv(am_gr.t(), probs)
-
-        return grad
-
-    def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch):
-        r"""Compute the gradients of a batch of training data
-
-        :param k: The number of contrastive divergence steps
-        :type k: int
-        :param samples_batch: Batch of input samples
-        :type samples_batch: torch.Tensor
-        :param neg_batch: Batch to be used in the calculation of the negative phase
-        :type neg_batch: torch.Tensor
-        :param bases_batch: The bases in which the measurements are taken, which
-                            correspond to the measurements in samples_batch
-        :type bases_batch: numpy.ndarray
-
-        :returns: List containing the gradients of amplitude and phase RBM parameters
-        :rtype: list[torch.Tensor, torch.Tensor]
-        """
-        grad = self.positive_phase_grads(samples_batch, bases_batch)
-
-        vk = self.rbm_am.gibbs_steps(k, neg_batch)
-        grad_model = self.rbm_am.effective_energy_gradient(vk)
-        grad[0] -= grad_model / float(neg_batch.shape[0])
-
-        return grad
-
-    def _shuffle_data(
-        self,
-        pos_batch_size,
-        neg_batch_size,
-        num_batches,
-        train_samples,
-        input_bases,
-        z_samples,
-    ):
-        pos_batch_perm = torch.randperm(train_samples.shape[0])
-
-        shuffled_pos_samples = train_samples[pos_batch_perm]
-        if input_bases is None:
-            if neg_batch_size == pos_batch_size:
-                neg_batch_perm = pos_batch_perm
-            else:
-                neg_batch_perm = torch.randint(
-                    train_samples.shape[0],
-                    size=(num_batches * neg_batch_size,),
-                    dtype=torch.long,
-                )
-            shuffled_neg_samples = train_samples[neg_batch_perm]
-        else:
-            neg_batch_perm = torch.randint(
-                z_samples.shape[0],
-                size=(num_batches * neg_batch_size,),
-                dtype=torch.long,
-            )
-            shuffled_neg_samples = z_samples[neg_batch_perm]
-
-        # List of all the batches for positive phase.
-        pos_batches = [
-            shuffled_pos_samples[batch_start : (batch_start + pos_batch_size)]
-            for batch_start in range(0, len(shuffled_pos_samples), pos_batch_size)
-        ]
-
-        neg_batches = [
-            shuffled_neg_samples[batch_start : (batch_start + neg_batch_size)]
-            for batch_start in range(0, len(shuffled_neg_samples), neg_batch_size)
-        ]
-
-        if input_bases is not None:
-            shuffled_pos_bases = input_bases[pos_batch_perm]
-            pos_batches_bases = [
-                shuffled_pos_bases[batch_start : (batch_start + pos_batch_size)]
-                for batch_start in range(0, len(train_samples), pos_batch_size)
-            ]
-            return zip(pos_batches, neg_batches, pos_batches_bases)
-        else:
-            return zip(pos_batches, neg_batches)
 
     def fit(
         self,

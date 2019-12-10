@@ -24,10 +24,10 @@ from qucumber.utils import auto_unsqueeze_arg
 
 
 class BinaryRBM(nn.Module):
-    def __init__(self, num_visible, num_hidden, zero_weights=False, gpu=True):
+    def __init__(self, num_visible, num_hidden=None, zero_weights=False, gpu=True):
         super().__init__()
         self.num_visible = int(num_visible)
-        self.num_hidden = int(num_hidden)
+        self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
         self.num_pars = (
             (self.num_visible * self.num_hidden) + self.num_visible + self.num_hidden
         )
