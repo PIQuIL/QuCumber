@@ -17,24 +17,15 @@ import warnings
 
 import numpy as np
 import torch
-
-from itertools import chain
-from math import ceil
-
 from torch.nn import functional as F
 
-from tqdm import tqdm, tqdm_notebook
-
 from qucumber import _warn_on_missing_gpu
-from qucumber.utils import cplx, unitaries, training_statistics as ts
-from qucumber.utils.data import extract_refbasis_samples
-from qucumber.utils.gradients_utils import vector_to_grads
-from qucumber.callbacks import CallbackList, Timer
+from qucumber.utils import cplx, unitaries
 from qucumber.rbm import PurificationRBM
-from .neural_state import NeuralState
+from .neural_state import NeuralStateBase
 
 
-class DensityMatrix(NeuralState):
+class DensityMatrix(NeuralStateBase):
     r"""
     :param num_visible: The number of visible units, i.e. the size of the system
     :type num_visible: int
@@ -422,144 +413,43 @@ class DensityMatrix(NeuralState):
     def fit(
         self,
         data,
-        input_bases,
-        target=None,
         epochs=100,
         pos_batch_size=100,
         neg_batch_size=None,
         k=1,
         lr=1,
+        input_bases=None,
         progbar=False,
         starting_epoch=1,
-        callbacks=None,
         time=False,
-        optimizer=torch.optim.Adadelta,
-        scheduler=torch.optim.lr_scheduler.MultiStepLR,
-        lr_drop_epoch=50,
-        lr_drop_factor=1.0,
-        bases=None,
-        train_to_fid=False,
-        track_fid=False,
+        callbacks=None,
+        optimizer=torch.optim.SGD,
+        optimizer_args=None,
+        scheduler=None,
+        scheduler_args=None,
         **kwargs,
     ):
-        r"""Trains the density matrix
-
-        :param data: The training samples
-        :type data: numpy.ndarray
-        :param input_bases: The measurement bases for each sample
-        :type input_bases: numpy.ndarray
-        :param target: The density matrix you are trying to train towards
-        :type target: torch.Tensor
-        :param epochs: The number of epochs to train for
-        :type epochs: int
-        :param pos_batch_size: The size of batches for the positive phase
-        :type pos_batch_size: int
-        :param neg_batch_size: The size of batches for the negative phase
-        :type neg_batch_size: int
-        :param k: Number of contrastive divergence steps
-        :type k: int
-        :param lr: Learning rate - different meaning depending on optimizer!
-        :type lr: float
-        :param progbar: Whether or note to use a progress bar. Pass "notebook"
-                        for a Jupyter notebook-friendly version
-        :type progbar: bool or str
-        :param starting_epoch: The epoch to start from
-        :type starting_epoch: int
-        :param callbacks: Callbacks to run while training
-        :type callbacks: list[qucumber.callbacks.CallbackBase]
-        :param optimizer: The constructor of a torch optimizer
-        :type optimizer: torch.optim.Optimizer
-        :param scheduler: The constructor of a torch scheduler
-        :param lr_drop_epoch: The epoch, or list of epochs, at which the
-                              base learning rate is dropped
-        :type lr_drop_epoch: int or list[int]
-        :param lr_drop_factor: The factor by which the scheduler will decrease the
-                               learning after the prescribed number of steps
-        :type lr_drop_factor: float
-        :param bases: All bases in which a measurement is made. Used to check gradients
-        :type bases: numpy.ndarray
-        :param train_to_fid: Instructs the RBM to end training prematurely if the
-                             specified fidelity is reached. If it is never reached,
-                             training will continue until the specified epoch
-        :type train_to_fid: float or bool
-        :param track_fid: A file to which to write fidelity at every epoch.
-                          Useful for keeping track of training run in background
-        :type track_fid: str or bool
-        """
-        disable_progbar = progbar is False
-        progress_bar = tqdm_notebook if progbar == "notebook" else tqdm
-        lr_drop_epoch = (
-            [lr_drop_epoch] if isinstance(lr_drop_epoch, int) else lr_drop_epoch
-        )
-
-        callbacks = CallbackList(callbacks if callbacks else [])
-        if time:
-            callbacks.append(Timer())
-
-        train_samples = data.clone().detach().double().to(device=self.device)
-
-        neg_batch_size = neg_batch_size if neg_batch_size else pos_batch_size
-
-        all_params = [getattr(self, net).parameters() for net in self.networks]
-        all_params = list(chain(*all_params))
-
-        optimizer = optimizer(all_params, lr=lr, **kwargs)
-        scheduler = scheduler(optimizer, lr_drop_epoch, gamma=lr_drop_factor)
-
-        z_samples = extract_refbasis_samples(train_samples, input_bases)
-
-        num_batches = ceil(train_samples.shape[0] / pos_batch_size)
-
-        callbacks.on_train_start(self)
-
-        for ep in progress_bar(
-            range(starting_epoch, epochs + 1), desc="Epochs ", disable=disable_progbar
-        ):
-
-            data_iterator = self._shuffle_data(
-                pos_batch_size,
-                neg_batch_size,
-                num_batches,
-                train_samples,
-                input_bases,
-                z_samples,
+        if input_bases is None:
+            raise ValueError("input_bases must be provided to train a DensityMatrix!")
+        else:
+            super().fit(
+                data=data,
+                epochs=epochs,
+                pos_batch_size=pos_batch_size,
+                neg_batch_size=neg_batch_size,
+                k=k,
+                lr=lr,
+                input_bases=input_bases,
+                progbar=progbar,
+                starting_epoch=starting_epoch,
+                time=time,
+                callbacks=callbacks,
+                optimizer=optimizer,
+                optimizer_args=optimizer_args,
+                scheduler=scheduler,
+                scheduler_args=scheduler_args,
+                **kwargs,
             )
-            callbacks.on_epoch_start(self, ep)
-
-            for b, batch in enumerate(data_iterator):
-                callbacks.on_batch_start(self, ep, b)
-                all_grads = self.compute_batch_gradients(k, *batch)
-                optimizer.zero_grad()
-
-                for i, net in enumerate(self.networks):
-                    rbm = getattr(self, net)
-                    vector_to_grads(all_grads[i], rbm.parameters())
-
-                optimizer.step()
-
-                callbacks.on_batch_end(self, ep, b)
-
-            callbacks.on_epoch_end(self, ep)
-
-            scheduler.step()
-
-            if train_to_fid or track_fid:
-                v_space = self.generate_hilbert_space(self.num_visible)
-                fidel = ts.density_matrix_fidelity(self, target, v_space)
-
-            if track_fid:
-                f = open(track_fid, "a")
-                f.write(f"Epoch: {ep}\tFidelity: {fidel}\n")
-                f.close()
-
-            if train_to_fid:
-                if fidel >= train_to_fid:
-                    print(
-                        "\n\nTarget fidelity of", train_to_fid, "reached or exceeded!"
-                    )
-                    break
-
-        callbacks.on_train_end(self)
 
     def normalization(self, space):
         r"""Compute the normalization constant of the state.
@@ -567,57 +457,17 @@ class DensityMatrix(NeuralState):
         .. math::
 
             Z_{\bm{\lambda}}=
-            \sqrt{\sum_{\bm{\sigma}}|\psi_{\bm{\lambda\mu}}|^2}=
-            \sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}
+            \sum_{\bm{\sigma}} \rho_{\bm{\lambda}}(\bm{\sigma}, \bm{\sigma})
+            \sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})
 
         :param space: A rank 2 tensor of the entire visible space.
         :type space: torch.Tensor
 
         """
-        return self.rbm_am.partition(space)
-
-    def save(self, location, metadata=None):
-        """Saves the DensityMatrix parameters to the given location along with
-        any given metadata.
-
-        :param location: The location to save the data.
-        :type location: str or file
-        :param metadata: Any extra metadata to store alongside the DensityMatrix
-                         parameters.
-        :type metadata: dict
-        """
-        # add extra metadata to dictionary before saving it to disk
-        metadata = metadata if metadata else {}
-        metadata["unitary_dict"] = self.unitary_dict
-
-        # validate metadata
-        for net in self.networks:
-            if net in metadata.keys():
-                raise ValueError(f"Invalid key in metadata; '{net}' cannot be a key!")
-
-        data = {net: getattr(self, net).state_dict() for net in self.networks}
-        data.update(**metadata)
-        torch.save(data, location)
-
-    def load(self, location):
-        """Loads the DensityMatrix parameters from the given location ignoring any
-        metadata stored in the file. Overwrites the DensityMatrix's parameters.
-
-        .. note::
-            The DensityMatrix object on which this function is called must
-            have the same parameter shapes as the one who's parameters are being
-            loaded.
-
-        :param location: The location to load the DensityMatrix parameters from.
-        :type location: str or file
-        """
-        state_dict = torch.load(location, map_location=self.device)
-
-        for net in self.networks:
-            getattr(self, net).load_state_dict(state_dict[net])
+        return super().normalization(space)
 
     @staticmethod
-    def autoload(location, gpu=True):
+    def autoload(location, gpu=False):
         state_dict = torch.load(location)
         nn_state = DensityMatrix(
             unitary_dict=state_dict["unitary_dict"],

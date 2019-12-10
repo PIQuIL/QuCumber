@@ -67,11 +67,11 @@ class ObservableEvaluator(CallbackBase):
     This callback is called at the end of each epoch.
 
     .. note::
-        Since callback are given to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`
+        Since callback are given to :func:`fit<qucumber.nn_states.NeuralStateBase.fit>`
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`ObservableEvaluator<ObservableEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.NeuralStateBase.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`ObservableEvaluator<ObservableEvaluator>` having been called.
@@ -80,7 +80,7 @@ class ObservableEvaluator(CallbackBase):
                    observables(s).
     :type period: int
     :param observables: A list of Observables. Observable statistics are
-                        evaluated by sampling the WaveFunction. Note that
+                        evaluated by sampling the NeuralState. Note that
                         observables that have the same name will conflict,
                         and precedence will be given to the one which appears
                         later in the list.

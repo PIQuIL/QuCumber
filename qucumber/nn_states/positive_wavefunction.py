@@ -130,6 +130,8 @@ class PositiveWaveFunction(WaveFunctionBase):
 
         :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.Tensor
+        :param \*args: Ignored.
+        :param \**kwargs: Ignored.
 
         :returns: A two-element list containing the gradients of the
                   effective energy. The second element will always be zero.
@@ -142,6 +144,8 @@ class PositiveWaveFunction(WaveFunctionBase):
 
         :param samples_batch: The measurements
         :type samples_batch: torch.Tensor
+        :param \*args: Ignored.
+        :param \**kwargs: Ignored.
 
         :returns: A two-element list containing the gradients of the
                   effective energy. The second element will always be zero.
@@ -157,6 +161,8 @@ class PositiveWaveFunction(WaveFunctionBase):
         :type samples_batch: torch.Tensor
         :param space: A rank 2 tensor of the entire visible space.
         :type space: torch.Tensor
+        :param \*args: Ignored.
+        :param \**kwargs: Ignored.
 
         :returns: A single-element list containing the gradients calculated
                   with an exact negative phase update
@@ -165,7 +171,7 @@ class PositiveWaveFunction(WaveFunctionBase):
         return super().compute_exact_grads(samples_batch, space, bases_batch=None)
 
     def compute_batch_gradients(self, k, samples_batch, neg_batch, *args, **kwargs):
-        """Compute the gradients of a batch of the training data (`samples_batch`).
+        r"""Compute the gradients of a batch of the training data (`samples_batch`).
 
         :param k: Number of contrastive divergence steps in training.
         :type k: int
@@ -174,6 +180,8 @@ class PositiveWaveFunction(WaveFunctionBase):
         :param neg_batch: Batch of the input samples for computing the
                           negative phase.
         :type neg_batch: torch.Tensor
+        :param \*args: Ignored.
+        :param \**kwargs: Ignored.
 
         :returns: A single-element list containing the gradients calculated
                   with a Gibbs sampled negative phase update
@@ -196,39 +204,12 @@ class PositiveWaveFunction(WaveFunctionBase):
         time=False,
         callbacks=None,
         optimizer=torch.optim.SGD,
+        optimizer_args=None,
+        scheduler=None,
+        scheduler_args=None,
         **kwargs
     ):
-        """Train the WaveFunction.
-
-        :param data: The training samples
-        :type data: numpy.ndarray
-        :param epochs: The number of full training passes through the dataset.
-                       Technically, this specifies the index of the *last* training
-                       epoch, which is relevant if `starting_epoch` is being set.
-        :type epochs: int
-        :param pos_batch_size: The size of batches for the positive phase
-                               taken from the data.
-        :type pos_batch_size: int
-        :param neg_batch_size: The size of batches for the negative phase
-                               taken from the data. Defaults to `pos_batch_size`.
-        :type neg_batch_size: int
-        :param k: The number of contrastive divergence steps.
-        :type k: int
-        :param lr: Learning rate
-        :type lr: float
-        :param progbar: Whether or not to display a progress bar. If "notebook"
-                        is passed, will use a Jupyter notebook compatible
-                        progress bar.
-        :type progbar: bool or str
-        :param starting_epoch: The epoch to start from. Useful if continuing training
-                               from a previous state.
-        :type starting_epoch: int
-        :param callbacks: Callbacks to run while training.
-        :type callbacks: list[qucumber.callbacks.CallbackBase]
-        :param optimizer: The constructor of a torch optimizer.
-        :type optimizer: torch.optim.Optimizer
-        :param kwargs: Keyword arguments to pass to the optimizer
-        """
+        kwargs["input_bases"] = None
         return super().fit(
             data=data,
             epochs=epochs,
@@ -241,6 +222,9 @@ class PositiveWaveFunction(WaveFunctionBase):
             time=time,
             callbacks=callbacks,
             optimizer=optimizer,
+            optimizer_args=optimizer_args,
+            scheduler=scheduler,
+            scheduler_args=scheduler_args,
             **kwargs
         )
 

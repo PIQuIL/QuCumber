@@ -26,7 +26,7 @@ from qucumber.utils.data import extract_refbasis_samples
 from qucumber.utils.gradients_utils import vector_to_grads
 
 
-class NeuralState(abc.ABC):
+class NeuralStateBase(abc.ABC):
     """Abstract Base Class for Neural Network Quantum States."""
 
     _stop_training = False
@@ -179,7 +179,7 @@ class NeuralState(abc.ABC):
         .. math::
 
             Z_{\bm{\lambda}}=
-            \sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}
+            \sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})
 
         :param space: A rank 2 tensor of the entire visible space.
         :type space: torch.Tensor
@@ -188,6 +188,7 @@ class NeuralState(abc.ABC):
         return self.rbm_am.partition(space)
 
     def compute_normalization(self, space):
+        """Alias for `normalization`"""
         return self.normalization(space)
 
     def save(self, location, metadata=None):
@@ -202,6 +203,9 @@ class NeuralState(abc.ABC):
         """
         # add extra metadata to dictionary before saving it to disk
         metadata = metadata if metadata else {}
+
+        if hasattr(self, "unitary_dict"):
+            metadata["unitary_dict"] = self.unitary_dict
 
         # validate metadata
         for net in self.networks:
@@ -229,9 +233,12 @@ class NeuralState(abc.ABC):
         for net in self.networks:
             getattr(self, net).load_state_dict(state_dict[net])
 
+        if hasattr(self, "unitary_dict") and "unitary_dict" in state_dict.keys():
+            self.unitary_dict = state_dict["unitary_dict"]
+
     @staticmethod
     @abc.abstractmethod
-    def autoload(location, gpu=True):
+    def autoload(location, gpu=False):
         """Initializes a NeuralState from the parameters in the given
         location.
 
@@ -257,16 +264,18 @@ class NeuralState(abc.ABC):
                   of each of the internal RBMs.
         :rtype: list[torch.Tensor]
         """
+        grad = [
+            torch.zeros(
+                getattr(self, net).num_pars, dtype=torch.double, device=self.device
+            )
+            for net in self.networks
+        ]
         if bases is None:
-            grad = [self.rbm_am.effective_energy_gradient(samples), 0.0]
+            grad[0] = self.rbm_am.effective_energy_gradient(samples)
         else:
-            grad = [
-                torch.zeros(
-                    getattr(self, net).num_pars, dtype=torch.double, device=self.device
-                )
-                for net in self.networks
-            ]
-            samples = samples.unsqueeze(0) if samples.dim() < 2 else samples
+            if samples.dim() < 2:
+                samples = samples.unsqueeze(0)
+                bases = [bases]
 
             for i in range(samples.shape[0]):
                 basis = np.array(list(bases[i]))  # list is silly, but works for now
@@ -296,10 +305,8 @@ class NeuralState(abc.ABC):
         :returns: A two-element list containing the amplitude and phase RBM gradients
         :rtype: list[torch.Tensor]
         """
-        grad = self.gradient(samples_batch, bases_batch)
-        grad[0] = grad[0] / float(samples_batch.shape[0])
-        grad[1] = grad[1] / float(samples_batch.shape[0])
-
+        grad = self.gradient(samples_batch, bases=bases_batch)
+        grad = [gr / float(samples_batch.shape[0]) for gr in grad]
         return grad
 
     def compute_exact_gradients(self, samples_batch, space, bases_batch=None):
@@ -430,9 +437,12 @@ class NeuralState(abc.ABC):
         time=False,
         callbacks=None,
         optimizer=torch.optim.SGD,
+        optimizer_args=None,
+        scheduler=None,
+        scheduler_args=None,
         **kwargs,
     ):
-        """Train the WaveFunction.
+        r"""Train the NeuralState.
 
         :param data: The training samples
         :type data: numpy.ndarray
@@ -451,7 +461,7 @@ class NeuralState(abc.ABC):
         :param lr: Learning rate
         :type lr: float
         :param input_bases: The measurement bases for each sample. Must be provided
-                            if training a ComplexWaveFunction.
+                            if training a ComplexWaveFunction or DensityMatrix.
         :type input_bases: numpy.ndarray
         :param progbar: Whether or not to display a progress bar. If "notebook"
                         is passed, will use a Jupyter notebook compatible
@@ -464,7 +474,12 @@ class NeuralState(abc.ABC):
         :type callbacks: list[qucumber.callbacks.CallbackBase]
         :param optimizer: The constructor of a torch optimizer.
         :type optimizer: torch.optim.Optimizer
-        :param kwargs: Keyword arguments to pass to the optimizer
+        :param scheduler: The constructor of a torch scheduler
+        :param optimizer_args: Arguments to pass to the optimizer
+        :type optimizer_args: dict
+        :param scheduler_args: Arguments to pass to the scheduler
+        :type scheduler_args: dict
+        :param \**kwargs: Ignored; exists for backwards compatibility.
         """
         if self.stop_training:  # terminate immediately if stop_training is true
             return
@@ -485,12 +500,16 @@ class NeuralState(abc.ABC):
         else:
             train_samples = torch.tensor(data, device=self.device, dtype=torch.double)
 
-        if len(self.networks) > 1:
-            all_params = [getattr(self, net).parameters() for net in self.networks]
-            all_params = list(chain(*all_params))
-            optimizer = optimizer(all_params, lr=lr, **kwargs)
-        else:
-            optimizer = optimizer(self.rbm_am.parameters(), lr=lr, **kwargs)
+        all_params = [getattr(self, net).parameters() for net in self.networks]
+        all_params = list(chain(*all_params))
+
+        optimizer_args = {} if optimizer_args is None else optimizer_args
+        scheduler_args = {} if scheduler_args is None else scheduler_args
+
+        optimizer = optimizer(all_params, lr=lr, **optimizer_args)
+
+        if scheduler is not None:
+            scheduler = scheduler(optimizer, **scheduler_args)
 
         if input_bases is not None:
             z_samples = extract_refbasis_samples(train_samples, input_bases).to(
@@ -533,6 +552,9 @@ class NeuralState(abc.ABC):
                 if self.stop_training:  # check for stop_training signal
                     break
 
+            if scheduler is not None:
+                scheduler.step()
+
             callbacks.on_epoch_end(self, ep)
             if self.stop_training:  # check for stop_training signal
                 break
@@ -541,4 +563,4 @@ class NeuralState(abc.ABC):
 
 
 # make module path show up properly in sphinx docs
-NeuralState.__module__ = "qucumber.nn_states"
+NeuralStateBase.__module__ = "qucumber.nn_states"

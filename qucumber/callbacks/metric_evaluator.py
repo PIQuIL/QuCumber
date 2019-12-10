@@ -26,11 +26,11 @@ class MetricEvaluator(CallbackBase):
     This callback is called at the end of each epoch.
 
     .. note::
-        Since callbacks are given to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`
+        Since callbacks are given to :func:`fit<qucumber.nn_states.NeuralStateBase.fit>`
         as a list, they will be called in a deterministic order. It is
         therefore recommended that instances of
         :class:`MetricEvaluator<MetricEvaluator>` be among the first callbacks in
-        the list passed to :func:`fit<qucumber.nn_states.WaveFunctionBase.fit>`,
+        the list passed to :func:`fit<qucumber.nn_states.NeuralStateBase.fit>`,
         as one would often use it in conjunction with other callbacks like
         :class:`EarlyStopping<EarlyStopping>` which may depend on
         :class:`MetricEvaluator<MetricEvaluator>` having been called.
@@ -39,7 +39,7 @@ class MetricEvaluator(CallbackBase):
                    metric(s).
     :type period: int
     :param metrics: A dictionary of callables where the keys are the names of
-                    the metrics and the callables take the WaveFunction being trained
+                    the metrics and the callables take the NeuralState being trained
                     as their positional argument, along with some keyword
                     arguments. The metrics are evaluated and put into an internal
                     dictionary structure resembling the structure of `metrics`.

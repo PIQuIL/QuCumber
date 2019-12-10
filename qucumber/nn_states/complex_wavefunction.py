@@ -268,44 +268,6 @@ class ComplexWaveFunction(WaveFunctionBase):
 
         return grad
 
-    def gradient(self, sample, basis):
-        r"""Compute the gradient of a sample, measured in different bases.
-
-        :param basis: A set of bases.
-        :type basis: numpy.ndarray
-        :param sample: A sample to compute the gradient of.
-        :type sample: numpy.ndarray
-
-        :returns: A list of 2 tensors containing the parameters of each of the
-                  internal RBMs.
-        :rtype: list[torch.Tensor]
-        """
-        basis = np.array(list(basis))  # list is silly, but works for now
-        rot_sites = np.where(basis != "Z")[0]
-        if rot_sites.size == 0:
-            grad = [
-                self.rbm_am.effective_energy_gradient(sample),  # Real
-                0.0,  # Imaginary
-            ]
-        else:
-            grad = self.rotated_gradient(basis, rot_sites, sample)
-        return grad
-
-    def compute_normalization(self, space):
-        r"""Compute the normalization constant of the wavefunction.
-
-        .. math::
-
-            Z_{\bm{\lambda}}=
-            \sqrt{\sum_{\bm{\sigma}}|\psi_{\bm{\lambda\mu}}|^2}=
-            \sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}
-
-        :param space: A rank 2 tensor of the entire visible space.
-        :type space: torch.Tensor
-
-        """
-        return super().compute_normalization(space)
-
     def fit(
         self,
         data,
@@ -320,6 +282,9 @@ class ComplexWaveFunction(WaveFunctionBase):
         time=False,
         callbacks=None,
         optimizer=torch.optim.SGD,
+        optimizer_args=None,
+        scheduler=None,
+        scheduler_args=None,
         **kwargs
     ):
         if input_bases is None:
@@ -340,16 +305,14 @@ class ComplexWaveFunction(WaveFunctionBase):
                 time=time,
                 callbacks=callbacks,
                 optimizer=optimizer,
+                optimizer_args=optimizer_args,
+                scheduler=scheduler,
+                scheduler_args=scheduler_args,
                 **kwargs
             )
 
-    def save(self, location, metadata=None):
-        metadata = metadata if metadata else {}
-        metadata["unitary_dict"] = self.unitary_dict
-        super().save(location, metadata=metadata)
-
     @staticmethod
-    def autoload(location, gpu=True):
+    def autoload(location, gpu=False):
         state_dict = torch.load(location)
         wvfn = ComplexWaveFunction(
             unitary_dict=state_dict["unitary_dict"],
