@@ -20,6 +20,7 @@ from torch.nn import functional as F
 from torch.nn.utils import parameters_to_vector
 
 from qucumber import _warn_on_missing_gpu
+from qucumber.utils import auto_unsqueeze_arg
 
 
 class BinaryRBM(nn.Module):
@@ -39,8 +40,9 @@ class BinaryRBM(nn.Module):
         self.initialize_parameters(zero_weights=zero_weights)
 
     def __repr__(self):
-        return "BinaryRBM(num_visible={}, num_hidden={}, gpu={})".format(
-            self.num_visible, self.num_hidden, self.gpu
+        return (
+            f"BinaryRBM(num_visible={self.num_visible}, "
+            f"num_hidden={self.num_hidden}, gpu={self.gpu})"
         )
 
     def initialize_parameters(self, zero_weights=False):
@@ -86,10 +88,7 @@ class BinaryRBM(nn.Module):
         :returns: The effective energies of the given visible states.
         :rtype: torch.Tensor
         """
-        v = v.to(self.weights)
-        if len(v.shape) < 2:
-            v = v.unsqueeze(0)
-
+        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights)
         visible_bias_term = torch.mv(v, self.visible_bias)
         hid_bias_term = F.softplus(F.linear(v, self.weights, self.hidden_bias)).sum(1)
 
@@ -103,33 +102,29 @@ class BinaryRBM(nn.Module):
         :param reduce: If `True`, will sum over the gradients resulting from
                        each visible state. Otherwise will return a batch of
                        gradient vectors.
+        :type reduce: bool
 
         :returns: Will return a vector (or matrix if `reduce=False` and multiple
                   visible states were given as a matrix) containing the gradients
                   for all parameters (computed on the given visible states v).
         :rtype: torch.Tensor
         """
-        v = v.to(self.weights)
+        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights)
         prob = self.prob_h_given_v(v)
 
-        if v.dim() < 2:
-            W_grad = -torch.ger(prob, v)
+        if reduce:
+            W_grad = -torch.matmul(prob.t(), v)
+            vb_grad = -torch.sum(v, 0)
+            hb_grad = -torch.sum(prob, 0)
+            return parameters_to_vector([W_grad, vb_grad, hb_grad])
+        else:
+            W_grad = -torch.einsum("ij,ik->ijk", prob, v)
             vb_grad = -v
             hb_grad = -prob
-        else:
-            if reduce:
-                W_grad = -torch.matmul(prob.t(), v)
-                vb_grad = -torch.sum(v, 0)
-                hb_grad = -torch.sum(prob, 0)
-            else:
-                W_grad = -torch.einsum("ij,ik->ijk", prob, v)
-                vb_grad = -v
-                hb_grad = -prob
-                vec = [W_grad.view(v.size()[0], -1), vb_grad, hb_grad]
-                return torch.cat(vec, dim=1)
+            vec = [W_grad.view(v.size()[0], -1), vb_grad, hb_grad]
+            return torch.cat(vec, dim=-1)
 
-        return parameters_to_vector([W_grad, vb_grad, hb_grad])
-
+    @auto_unsqueeze_arg(1)
     def prob_v_given_h(self, h, out=None):
         """Given a hidden unit configuration, compute the probability
         vector of the visible units being on.
@@ -143,21 +138,11 @@ class BinaryRBM(nn.Module):
                   hidden state.
         :rtype: torch.Tensor
         """
-        if h.dim() < 2:  # create extra axis, if needed
-            h = h.unsqueeze(0)
-            unsqueezed = True
-        else:
-            unsqueezed = False
-
-        p = torch.addmm(
+        return torch.addmm(
             self.visible_bias.data, h, self.weights.data, out=out
         ).sigmoid_()
 
-        if unsqueezed:
-            return p.squeeze_(0)  # remove superfluous axis, if it exists
-        else:
-            return p
-
+    @auto_unsqueeze_arg(1)
     def prob_h_given_v(self, v, out=None):
         """Given a visible unit configuration, compute the probability
         vector of the hidden units being on.
@@ -171,20 +156,9 @@ class BinaryRBM(nn.Module):
                   visible state.
         :rtype: torch.Tensor
         """
-        if v.dim() < 2:  # create extra axis, if needed
-            v = v.unsqueeze(0)
-            unsqueezed = True
-        else:
-            unsqueezed = False
-
-        p = torch.addmm(
+        return torch.addmm(
             self.hidden_bias.data, v, self.weights.data.t(), out=out
         ).sigmoid_()
-
-        if unsqueezed:
-            return p.squeeze_(0)  # remove superfluous axis, if it exists
-        else:
-            return p
 
     def sample_v_given_h(self, h, out=None):
         """Sample/generate a visible state given a hidden state.
@@ -227,13 +201,16 @@ class BinaryRBM(nn.Module):
         :type k: int
         :param initial_state: The initial state of the Markov Chains.
         :type initial_state: torch.Tensor
-        :param overwrite: Whether to overwrite the initial_state tensor, if it is provided.
+        :param overwrite: Whether to overwrite the initial_state tensor.
+                          Exception: If initial_state is not on the same device
+                          as the RBM, it will NOT be overwritten.
         :type overwrite: bool
-        """
-        v = initial_state.to(self.weights)
 
-        if overwrite is False:
-            v = v.clone()
+        :returns: Returns the visible states after k steps of
+                  Block Gibbs sampling
+        :rtype: torch.Tensor
+        """
+        v = (initial_state if overwrite else initial_state.clone()).to(self.weights)
 
         h = torch.zeros(v.shape[0], self.num_hidden).to(self.weights)
 
@@ -253,6 +230,5 @@ class BinaryRBM(nn.Module):
                   state of the RBM.
         :rtype: torch.Tensor
         """
-        neg_free_energies = -self.effective_energy(space)
-        logZ = neg_free_energies.logsumexp(0)
+        logZ = (-self.effective_energy(space)).logsumexp(0)
         return logZ.exp()

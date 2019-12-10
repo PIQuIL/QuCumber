@@ -17,6 +17,7 @@ import torch
 
 from qucumber import _warn_on_missing_gpu
 from qucumber.rbm import BinaryRBM
+from qucumber.utils import cplx, auto_unsqueeze_arg
 from .wavefunction import WaveFunctionBase
 
 
@@ -95,6 +96,7 @@ class PositiveWaveFunction(WaveFunctionBase):
         """
         return super().amplitude(v)
 
+    @auto_unsqueeze_arg(1)
     def phase(self, v):
         r"""Compute the phase of a given vector/matrix of visible states.
 
@@ -106,18 +108,7 @@ class PositiveWaveFunction(WaveFunctionBase):
         :returns: Matrix/vector containing the phases of v
         :rtype: torch.Tensor
         """
-        if v.dim() == 1:
-            v = v.unsqueeze(0)
-            unsqueezed = True
-        else:
-            unsqueezed = False
-
-        phase = torch.zeros(v.shape[0])
-
-        if unsqueezed:
-            return phase.squeeze_(0)
-        else:
-            return phase
+        return torch.zeros(v.shape[0])
 
     def psi(self, v):
         r"""Compute the (unnormalized) wavefunction of a given vector/matrix of visible states.
@@ -134,15 +125,8 @@ class PositiveWaveFunction(WaveFunctionBase):
                   each visible state
         :rtype: torch.Tensor
         """
-        # vector/tensor of shape (len(v),)
-        amplitude = self.amplitude(v)
-
-        # complex vector; shape: (2, len(v))
-        psi = torch.zeros((2,) + amplitude.shape).to(
-            dtype=torch.double, device=self.device
-        )
-        psi[0] = amplitude
-        return psi
+        # vector/tensor of shape (2, len(v))
+        return cplx.make_complex(self.amplitude(v))
 
     def gradient(self, v):
         r"""Compute the gradient of the effective energy for a batch of states.

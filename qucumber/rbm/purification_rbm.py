@@ -13,13 +13,13 @@
 # limitations under the License.
 
 
+import numpy as np
 import torch
-
 from torch import nn
 from torch.nn import functional as F
 from torch.nn.utils import parameters_to_vector
 
-from qucumber.utils import cplx
+from qucumber.utils import cplx, auto_unsqueeze_arg
 from qucumber import _warn_on_missing_gpu
 
 
@@ -32,17 +32,21 @@ class PurificationRBM(nn.Module):
     :type num_hidden: int
     :param num_aux: The number of units in the auxiliary purification layer
     :type num_aux: int
-    :param zero_init: Whether or not to initialize the weights to zero
-    :type zero_init: bool
+    :param zero_weights: Whether or not to initialize the weights to zero
+    :type zero_weights: bool
     :param gpu: Whether to perform computations on the default gpu.
     :type gpu: bool
     """
 
-    def __init__(self, num_visible, num_hidden, num_aux, zero_init=False, gpu=False):
+    def __init__(
+        self, num_visible, num_hidden=None, num_aux=None, zero_weights=False, gpu=False
+    ):
         super().__init__()
         self.num_visible = int(num_visible)
-        self.num_hidden = int(num_hidden)
-        self.num_aux = int(num_aux)
+        self.num_hidden = (
+            int(num_hidden) if num_hidden is not None else self.num_visible
+        )
+        self.num_aux = int(num_aux) if num_hidden is not None else self.num_visible
 
         # Parameters are:
         # W: The weights of the visible-hidden edges
@@ -66,43 +70,44 @@ class PurificationRBM(nn.Module):
 
         self.device = torch.device("cuda") if self.gpu else torch.device("cpu")
 
-        self.initialize_parameters(zero_init=zero_init)
+        self.initialize_parameters(zero_weights=zero_weights)
 
-    def initialize_parameters(self, zero_init=False):
+    def __repr__(self):
+        return (
+            f"PurificationBinaryRBM(num_visible={self.num_visible}, "
+            f"num_hidden={self.num_hidden}, num_aux={self.num_aux}, gpu={self.gpu})"
+        )
+
+    def initialize_parameters(self, zero_weights=False):
         r"""Initialize the parameters of the RBM
 
-        :param zero_init: Whether or not to initialize the weights to zero
-        :type zero_init: bool
+        :param zero_weights: Whether or not to initialize the weights to zero
+        :type zero_weights: bool
         """
-        if zero_init:
-            gen_tensor = torch.zeros
-        else:
-            gen_tensor = torch.rand
+        gen_tensor = torch.zeros if zero_weights else torch.randn
 
         self.weights_W = nn.Parameter(
             (
-                0.01
-                * gen_tensor(
+                gen_tensor(
                     self.num_hidden,
                     self.num_visible,
                     dtype=torch.double,
                     device=self.device,
                 )
-                - 0.005
+                / np.sqrt(self.num_visible)
             ),
             requires_grad=False,
         )
 
         self.weights_U = nn.Parameter(
             (
-                0.01
-                * gen_tensor(
+                gen_tensor(
                     self.num_aux,
                     self.num_visible,
                     dtype=torch.double,
                     device=self.device,
                 )
-                - 0.005
+                / np.sqrt(self.num_visible)
             ),
             requires_grad=False,
         )
@@ -122,49 +127,71 @@ class PurificationRBM(nn.Module):
             requires_grad=False,
         )
 
-    def effective_energy(self, v, a):
-        r"""Computes the equivalent of the "effective energy" for the RBM
+    def effective_energy(self, v, a=None):
+        r"""Computes the equivalent of the "effective energy" for the RBM. If
+        `a` is `None`, will analytically trace out the auxiliary units.
 
-        :param v: The current state of the visible units
+        :param v: The current state of the visible units. Shape (b, n_v) or (n_v,).
         :type v: torch.Tensor
-        :param a: The current state of the auxiliary units
-        :type v: torch.Tensor
-        :returns: The "effective energy" of the RBM
+        :param a: The current state of the auxiliary units. Shape (b, n_a) or (n_a,).
+        :type a: torch.Tensor or None
+
+        :returns: The "effective energy" of the RBM. Shape (b,).
         :rtype: torch.Tensor
         """
-        if len(v.shape) < 2 and len(a.shape) < 2:
-            v = v.unsqueeze(0)
-            a = a.unsqueeze(0)
+        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights_W)
 
-            energy = torch.zeros(
-                v.shape[0], a.shape[0], dtype=torch.double, device=self.device
-            )
+        vis_term = torch.mv(v, self.visible_bias) + F.softplus(
+            F.linear(v, self.weights_W, self.hidden_bias)
+        ).sum(1)
 
-            vb_term = torch.mv(v, self.visible_bias)
-            ab_term = torch.mv(a, self.aux_bias)
-            vb_term += torch.mv(torch.matmul(v, self.weights_U.data.t()), a)
-            other_term = F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(
-                1
-            )
-            energy = vb_term + ab_term + other_term
+        if a is not None:
+            a = (a.unsqueeze(0) if a.dim() < 2 else a).to(self.weights_W)
 
+            aux_term = torch.mv(a, self.aux_bias)
+            mix_term = torch.einsum("bv,av,ba->b", v, self.weights_U.data, a)
+            return -(vis_term + aux_term + mix_term)
         else:
-            energy = torch.zeros(
-                v.shape[0], a.shape[0], dtype=torch.double, device=self.device
-            )
+            aux_term = F.softplus(F.linear(v, self.weights_U, self.aux_bias)).sum(1)
 
-            for i in range(2 ** self.num_visible):
-                for j in range(2 ** self.num_aux):
-                    vb_term = torch.dot(v[i], self.visible_bias)
-                    ab_term = torch.dot(a[j], self.aux_bias)
-                    vb_term += torch.dot(torch.mv(self.weights_U, v[i]), self.aux_bias)
-                    other_term = F.softplus(
-                        F.linear(v[i], self.weights_W, self.hidden_bias)
-                    ).sum(0)
-                    energy[i][j] = vb_term + ab_term + other_term
+            return -(vis_term + aux_term)
 
-        return energy
+    def effective_energy_gradient(self, v, reduce=True):
+        """The gradients of the effective energies for the given visible states.
 
+        :param v: The visible states.
+        :type v: torch.Tensor
+        :param reduce: If `True`, will sum over the gradients resulting from
+                       each visible state. Otherwise will return a batch of
+                       gradient vectors.
+        :type reduce: bool
+
+        :returns: Will return a vector (or matrix if `reduce=False` and multiple
+                  visible states were given as a matrix) containing the gradients
+                  for all parameters (computed on the given visible states v).
+        :rtype: torch.Tensor
+        """
+        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights_W)
+        ph = self.prob_h_given_v(v)
+        pa = self.prob_a_given_v(v)
+
+        if reduce:
+            W_grad = -torch.matmul(ph.t(), v)
+            U_grad = -torch.matmul(pa.t(), v)
+            vb_grad = -torch.sum(v, 0)
+            hb_grad = -torch.sum(ph, 0)
+            ab_grad = -torch.sum(pa, 0)
+            return parameters_to_vector([W_grad, U_grad, vb_grad, hb_grad, ab_grad])
+        else:
+            W_grad = -torch.einsum("ij,ik->ijk", ph, v).view(v.shape[0], -1)
+            U_grad = -torch.einsum("ij,ik->ijk", pa, v).view(v.shape[0], -1)
+            vb_grad = -v
+            hb_grad = -ph
+            ab_grad = -pa
+            vec = [W_grad, U_grad, vb_grad, hb_grad, ab_grad]
+            return torch.cat(vec, dim=1)
+
+    @auto_unsqueeze_arg(1)
     def prob_h_given_v(self, v, out=None):
         r"""Given a visible unit configuration, compute the probability
         vector of the hidden units being on
@@ -173,25 +200,16 @@ class PurificationRBM(nn.Module):
         :type v: torch.Tensor
         :param out: The output tensor to write to
         :type out: torch.Tensor
+
         :returns: The probability of the hidden units being active
                   given the visible state
         :rtype torch.Tensor:
         """
-        if v.dim() < 2:  # create extra axis, if needed
-            v = v.unsqueeze(0)
-            unsqueezed = True
-        else:
-            unsqueezed = False
-
-        p = torch.addmm(
+        return torch.addmm(
             self.hidden_bias.data, v, self.weights_W.data.t(), out=out
         ).sigmoid_()
 
-        if unsqueezed:
-            return p.squeeze_(0)  # remove superfluous axis, if it exists
-        else:
-            return p
-
+    @auto_unsqueeze_arg(1)
     def prob_a_given_v(self, v, out=None):
         r"""Given a visible unit configuration, compute the probability
         vector of the auxiliary units being on
@@ -200,25 +218,16 @@ class PurificationRBM(nn.Module):
         :type v: torch.Tensor
         :param out: The output tensor to write to
         :type out: torch.Tensor
+
         :returns: The probability of the auxiliary units being active
                   given the visible state
         :rtype torch.Tensor:
         """
-        if v.dim() < 2:  # create extra axis, if needed
-            v = v.unsqueeze(0)
-            unsqueezed = True
-        else:
-            unsqueezed = False
-
-        p = torch.addmm(
+        return torch.addmm(
             self.aux_bias.data, v, self.weights_U.data.t(), out=out
         ).sigmoid_()
 
-        if unsqueezed:
-            return p.squeeze_(0)  # remove superfluous axis, if it exists
-        else:
-            return p
-
+    @auto_unsqueeze_arg(1, 2)
     def prob_v_given_ha(self, h, a, out=None):
         r"""Given a hidden and auxiliary unit configuration, compute
         the probability vector of the hidden units being on
@@ -229,28 +238,17 @@ class PurificationRBM(nn.Module):
         :type a: torch.Tensor
         :param out: The output tensor to write to
         :type out: torch.Tensor
+
         :returns: The probability of the visible units being
                   active given the hidden and auxiliary states
         :rtype torch.Tensor:
         """
-        if h.dim() < 2 and a.dim() < 2:  # create extra axis, if needed
-            h = h.unsqueeze(0)
-            a = a.unsqueeze(0)
-            unsqueezed = True
-        else:
-            unsqueezed = False
-
-        p = torch.addmm(
-            torch.addmm(self.visible_bias.data, h, self.weights_W.data),
+        return torch.addmm(
+            torch.addmm(self.visible_bias.data, h, self.weights_W.data, out=out),
             a,
             self.weights_U.data,
             out=out,
         ).sigmoid_()
-
-        if unsqueezed:
-            return p.squeeze_(0)  # remove superfluous axis, if it exists
-        else:
-            return p
 
     def sample_a_given_v(self, v, out=None):
         r"""Sample/generate an auxiliary state given a visible state
@@ -259,12 +257,12 @@ class PurificationRBM(nn.Module):
         :type v: torch.Tensor
         :param out: The output tensor to write to
         :type out: torch.Tensor
+
         :returns: The sampled auxiliary state
         :rtype: torch.Tensor
         """
         a = self.prob_a_given_v(v, out=out)
         a = torch.bernoulli(a, out=out)
-
         return a
 
     def sample_h_given_v(self, v, out=None):
@@ -274,12 +272,12 @@ class PurificationRBM(nn.Module):
         :type v: torch.Tensor
         :param out: The output tensor to write to
         :type out: torch.Tensor
+
         :returns: The sampled hidden state
         :rtype: torch.Tensor
         """
         h = self.prob_h_given_v(v, out=out)
         h = torch.bernoulli(h, out=out)
-
         return h
 
     def sample_v_given_ha(self, h, a, out=None):
@@ -292,12 +290,12 @@ class PurificationRBM(nn.Module):
         :type a: torch.Tensor
         :param out: The output tensor to write to
         :type out: torch.Tensor
+
         :returns: The sampled visible state
         :rtype: torch.Tensor
         """
         v = self.prob_v_given_ha(h, a, out=out)
         v = torch.bernoulli(v, out=out)
-
         return v
 
     def gibbs_steps(self, k, initial_state, overwrite=False):
@@ -309,13 +307,16 @@ class PurificationRBM(nn.Module):
         :type k: int
         :param initial_state: The initial visible state
         :type initial_state: torch.Tensor
-        :param overwrite: Will overwrite initial_state tensor if True
+        :param overwrite: Whether to overwrite the initial_state tensor.
+                          Exception: If initial_state is not on the same device
+                          as the RBM, it will NOT be overwritten.
         :type overwrite: bool
-        :returns: Returns the visible state after k steps of
+
+        :returns: Returns the visible states after k steps of
                   Block Gibbs sampling
         :rtype: torch.Tensor
         """
-        v = initial_state.clone()
+        v = (initial_state if overwrite else initial_state.clone()).to(self.weights_W)
 
         h = torch.zeros(v.shape[0], self.num_hidden).to(self.weights_W)
         a = torch.zeros(v.shape[0], self.num_aux).to(self.weights_W)
