@@ -184,7 +184,6 @@ class ComplexWaveFunction(WaveFunctionBase):
 
     def init_gradient(self, basis, sites):
         Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
-        vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
         Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
         rotated_grad = [
             torch.zeros(
@@ -192,13 +191,11 @@ class ComplexWaveFunction(WaveFunctionBase):
             )
             for net in self.networks
         ]
-        return Upsi, vp, Us, rotated_grad
+        return Upsi, Us, rotated_grad
 
     def rotated_gradient(self, basis, sites, sample):
-        Upsi, vp, Us, rotated_grad = self.init_gradient(basis, sites)
+        Upsi, Us, rotated_grad = self.init_gradient(basis, sites)
         int_sample = sample[sites].round().int().cpu().numpy()
-
-        Upsi_v = torch.zeros_like(Upsi, device=self.device)
         ints_size = np.arange(sites.size)
 
         # if the number of rotated sites is too large, fallback to loop
@@ -207,12 +204,11 @@ class ComplexWaveFunction(WaveFunctionBase):
         if sites.size > self.max_size or (
             hasattr(self, "debug_gradient_rotation") and self.debug_gradient_rotation
         ):
-            grad_size = (
-                self.num_visible * self.num_hidden + self.num_hidden + self.num_visible
-            )
+            Upsi_v = torch.zeros_like(Upsi, device=self.device)
             vp = sample.round().clone()
-            Z = torch.zeros(grad_size, dtype=torch.double, device=self.device)
-            Z2 = torch.zeros((2, grad_size), dtype=torch.double, device=self.device)
+            Z2 = torch.zeros(
+                (2, self.rbm_am.num_pars), dtype=torch.double, device=self.device
+            )
             U = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
             Ut = np.zeros_like(Us[:, 0], dtype=complex)
 
@@ -235,10 +231,10 @@ class ComplexWaveFunction(WaveFunctionBase):
                 grad_vp0 = self.rbm_am.effective_energy_gradient(vp)
                 grad_vp1 = self.rbm_ph.effective_energy_gradient(vp)
                 rotated_grad[0] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp0, Z), out=Z2
+                    Upsi_v, cplx.make_complex(grad_vp0), out=Z2
                 )
                 rotated_grad[1] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp1, Z), out=Z2
+                    Upsi_v, cplx.make_complex(grad_vp1), out=Z2
                 )
         else:
             vp = sample.round().clone().unsqueeze(0).repeat(2 ** sites.size, 1)
@@ -255,9 +251,7 @@ class ComplexWaveFunction(WaveFunctionBase):
                 .to(vp)
                 .contiguous()
             )
-
             Upsi_v = cplx.scalar_mult(U, self.psi(vp).detach())
-
             Upsi = torch.sum(Upsi_v, dim=1)
 
             grad_vp0 = self.rbm_am.effective_energy_gradient(vp, reduce=False)

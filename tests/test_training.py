@@ -73,7 +73,12 @@ def test_complex_wavefunction(gpu):
 
     nn_state = ComplexWaveFunction(10, gpu=gpu)
 
-    old_params = parameters_to_vector(nn_state.rbm_am.parameters())
+    old_params = torch.cat(
+        (
+            parameters_to_vector(nn_state.rbm_am.parameters()),
+            parameters_to_vector(nn_state.rbm_ph.parameters()),
+        )
+    )
 
     data = torch.ones(100, 10)
 
@@ -82,7 +87,12 @@ def test_complex_wavefunction(gpu):
 
     nn_state.fit(data, epochs=1, pos_batch_size=10, input_bases=bases)
 
-    new_params = parameters_to_vector(nn_state.rbm_am.parameters())
+    new_params = torch.cat(
+        (
+            parameters_to_vector(nn_state.rbm_am.parameters()),
+            parameters_to_vector(nn_state.rbm_ph.parameters()),
+        )
+    )
 
     msg = "ComplexWaveFunction's parameters did not change!"
     assert not torch.equal(old_params, new_params), msg

@@ -74,6 +74,7 @@ def scalar_mult(x, y, out=None):
               Either overwrites `out`, or returns a new tensor.
     :rtype: torch.Tensor
     """
+    y = y.to(x)
     if out is None:
         out = torch.zeros(2, *((x[0] * y[0]).size()), dtype=x.dtype, device=x.device)
     else:
