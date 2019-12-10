@@ -136,10 +136,13 @@ def extract_refbasis_samples(train_samples, train_bases):
     :returns: The samples in the data that are only in the reference basis.
     :rtype: torch.Tensor
     """
+    torch_ver = int(torch.__version__[:3].replace(".", ""))
+    dtype = torch.bool if torch_ver >= 12 else torch.uint8
+
     idx = (
-        torch.tensor((train_bases == "Z").astype(np.uint8), dtype=torch.uint8)
+        torch.tensor((train_bases == "Z").astype(np.uint8))
         .all(dim=1)
-        .to(train_samples.device)
+        .to(device=train_samples.device, dtype=dtype)
     )
     z_samples = train_samples[idx]
     return z_samples
