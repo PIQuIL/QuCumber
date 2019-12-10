@@ -30,6 +30,7 @@ def flip_spin(i, samples):
     :type samples: torch.Tensor
     """
     samples[:, i].sub_(1).abs_()
+    return samples
 
 
 class SigmaX(ObservableBase):
@@ -61,22 +62,21 @@ class SigmaX(ObservableBase):
         samples = samples.to(device=nn_state.device)
 
         # vectors of shape: (2, num_samples,)
-        psis = nn_state.psi(samples)
-        psi_ratio_sum = torch.zeros_like(psis)
+        denom = nn_state.importance_sampling_denominator(samples)
+        numer_sum = torch.zeros_like(denom)
 
         for i in range(samples.shape[-1]):  # sum over spin sites
-            flip_spin(i, samples)  # flip the spin at site i
+            samples_ = flip_spin(i, samples.clone())  # flip the spin at site i
 
-            # compute ratio of psi_(-i) / psi and add it to the running sum
-            psi_ratio = nn_state.psi(samples)
-            psi_ratio = cplx.elementwise_division(psi_ratio, psis)
-            psi_ratio_sum.add_(psi_ratio)
+            # compute the numerator of the importance and add it to the running sum
+            numer = nn_state.importance_sampling_numerator(samples_, samples)
+            numer_sum.add_(numer)
 
-            flip_spin(i, samples)  # flip it back
+        numer_sum = cplx.elementwise_division(numer_sum, denom)
 
         # take real part (imaginary part should be approximately zero)
         # and divide by number of spins
-        res = cplx.real(psi_ratio_sum).div_(samples.shape[-1])
+        res = cplx.real(numer_sum).div_(samples.shape[-1])
         if self.absolute:
             return res.abs_()
         else:
@@ -112,28 +112,25 @@ class SigmaY(ObservableBase):
         samples = samples.to(device=nn_state.device)
 
         # vectors of shape: (2, num_samples,)
-        psis = nn_state.psi(samples)
-        psi_ratio_sum = torch.zeros_like(psis)
+        denom = nn_state.importance_sampling_denominator(samples)
+        numer_sum = torch.zeros_like(denom)
 
         for i in range(samples.shape[-1]):  # sum over spin sites
 
             coeff = -to_pm1(samples[:, i])
             coeff = cplx.make_complex(torch.zeros_like(coeff), coeff)
 
-            flip_spin(i, samples)  # flip the spin at site i
+            samples_ = flip_spin(i, samples.clone())  # flip the spin at site i
 
-            # compute ratio of psi_(-i) / psi, multiply it by the appropriate
-            # eigenvalue, and add it to the running sum
-            psi_ratio = nn_state.psi(samples)
-            psi_ratio = cplx.elementwise_division(psi_ratio, psis)
-            psi_ratio = cplx.elementwise_mult(psi_ratio, coeff)
-            psi_ratio_sum.add_(psi_ratio)
+            # compute the numerator of the importance and add it to the running sum
+            numer = nn_state.importance_sampling_numerator(samples_, samples)
+            numer = cplx.elementwise_mult(numer, coeff)
+            numer_sum.add_(numer)
 
-            flip_spin(i, samples)  # flip it back
-
+        numer_sum = cplx.elementwise_division(numer_sum, denom)
         # take real part (imaginary part should be approximately zero)
         # and divide by number of spins
-        res = cplx.real(psi_ratio_sum).div_(samples.shape[-1])
+        res = cplx.real(numer_sum).div_(samples.shape[-1])
         if self.absolute:
             return res.abs_()
         else:

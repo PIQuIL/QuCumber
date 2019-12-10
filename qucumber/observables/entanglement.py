@@ -73,24 +73,16 @@ class SWAP(ObservableBase):
                         Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
         """
-        samples = samples.to(device=nn_state.device, copy=True)
+        samples = samples.to(device=nn_state.device)
 
         # split the batch of samples into two equal batches
         # if their total number is odd, the last sample is ignored
         _ns = samples.shape[0] // 2
-        samples1 = samples[:_ns, :]
-        samples2 = samples[_ns : _ns * 2, :]
+        samples1, samples2 = samples[:_ns, :], samples[_ns : _ns * 2, :]
+        samples1_, samples2_ = swap(samples1.clone(), samples2.clone(), self.A)
 
-        psi_ket1 = nn_state.psi(samples1)
-        psi_ket2 = nn_state.psi(samples2)
+        weight1 = nn_state.importance_sampling_weight(samples1_, samples1)
+        weight2 = nn_state.importance_sampling_weight(samples2_, samples2)
+        weight = cplx.elementwise_mult(weight1, weight2)
 
-        psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
-        psi_ket_star = cplx.conjugate(psi_ket)
-
-        samples1_, samples2_ = swap(samples1, samples2, self.A)
-        psi_bra1 = nn_state.psi(samples1_)
-        psi_bra2 = nn_state.psi(samples2_)
-
-        psi_bra = cplx.elementwise_mult(psi_bra1, psi_bra2)
-        psi_bra_star = cplx.conjugate(psi_bra)
-        return cplx.real(cplx.elementwise_division(psi_bra_star, psi_ket_star))
+        return cplx.real(weight)

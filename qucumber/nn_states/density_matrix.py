@@ -272,6 +272,12 @@ class DensityMatrix(NeuralStateBase):
 
         return cplx.make_complex(amp * phase.cos(), amp * phase.sin())
 
+    def importance_sampling_numerator(self, iter_sample, drawn_sample):
+        return self.rho(drawn_sample, iter_sample)
+
+    def importance_sampling_denominator(self, drawn_sample):
+        return self.probability(drawn_sample)
+
     def init_gradient(self, basis, sites):
         r"""Initializes all required variables for gradient computation
 

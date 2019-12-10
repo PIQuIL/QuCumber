@@ -80,6 +80,12 @@ class WaveFunctionBase(NeuralStateBase):
             amplitude * phase.sin(),  # imaginary part
         )
 
+    def importance_sampling_numerator(self, v, vp):
+        return self.psi(v)
+
+    def importance_sampling_denominator(self, vp):
+        return self.psi(vp)
+
     def normalization(self, space):
         r"""Compute the norm of the wavefunction.
 

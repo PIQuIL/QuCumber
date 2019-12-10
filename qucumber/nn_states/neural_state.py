@@ -22,6 +22,7 @@ import torch
 from tqdm import tqdm, tqdm_notebook
 
 from qucumber.callbacks import CallbackList, Timer
+from qucumber.utils import cplx
 from qucumber.utils.data import extract_refbasis_samples
 from qucumber.utils.gradients_utils import vector_to_grads
 
@@ -86,7 +87,7 @@ class NeuralStateBase(abc.ABC):
     def __getattr__(self, attr):
         return getattr(self.rbm_am, attr)
 
-    def probability(self, v, Z):
+    def probability(self, v, Z=1.0):
         """Evaluates the probability of the given vector(s) of visible
         states. Assumes the visible states were measured in the computational
         basis.
@@ -94,6 +95,7 @@ class NeuralStateBase(abc.ABC):
         :param v: The visible states.
         :type v: torch.Tensor
         :param Z: The partition function / normalization constant.
+                  Defaults to 1, producing unnormalized probabilities.
         :type Z: float
 
         :returns: The probability of the given vector(s) of visible units.
@@ -249,8 +251,26 @@ class NeuralStateBase(abc.ABC):
 
         :returns: A new NeuralState initialized from the given parameters.
                   The returned NeuralState will be of whichever type this function
-                  was called on.
+                  was called on. An error may be thrown if the loaded parameters
+                  correspond to a different type of NeuralState than the caller.
         """
+
+    @abc.abstractmethod
+    def importance_sampling_numerator(self, v, vp):
+        """Compute the numerator of the weight of sample `v`,
+        with respect to the drawn sample `vp`."""
+
+    @abc.abstractmethod
+    def importance_sampling_denominator(self, vp):
+        """Compute the denominator of the weight of a sample,
+        with respect to the drawn sample `vp`."""
+
+    def importance_sampling_weight(self, v, vp):
+        """Compute the weight of sample `v`, with respect to the drawn sample `vp`."""
+        return cplx.elementwise_division(
+            self.importance_sampling_numerator(v, vp),
+            self.importance_sampling_denominator(vp),
+        )
 
     def gradient(self, samples, bases=None):
         r"""Compute the gradient of a batch of sample, measured in given bases.
