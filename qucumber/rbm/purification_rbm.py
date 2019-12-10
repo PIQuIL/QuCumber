@@ -328,35 +328,27 @@ class PurificationRBM(nn.Module):
 
         return v
 
+    @auto_unsqueeze_arg(1)
     def mixing_term(self, v):
         r"""Describes the extent of mixing in the system,
-            :math:`V_\theta = \frac{1}{2}U_\theta + d_\theta`
+            :math:`V_\theta = \frac{1}{2}U_\theta \bm{\sigma} + d_\theta`
 
         :param v: The visible state of the system
         :type v: torch.Tensor
+
         :returns: The term describing the mixing of the system
         :rtype: torch.Tensor
         """
-        if len(v.shape) < 2:
-            v = v.unsqueeze(0)
-            unsqueezed = True
-        else:
-            unsqueezed = False
+        return F.linear(v, 0.5 * self.weights_U, self.aux_bias)
 
-        mixing_term = F.linear(v, 0.5 * self.weights_U, self.aux_bias)
-
-        if unsqueezed:
-            return mixing_term.squeeze(0)
-        else:
-            return mixing_term
-
-    def GammaP(self, v, vp):
+    def gamma_plus(self, v, vp):
         r"""Calculates an element of the :math:`\Gamma^{(+)}` matrix
 
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
         :type vp: torch.Tensor
+
         :returns: The matrix element given by
                   :math:`\langle\sigma|\Gamma^{(+)}|\sigma'\rangle`
         :rtype: torch.Tensor
@@ -365,35 +357,33 @@ class PurificationRBM(nn.Module):
             temp = torch.dot(v + vp, self.visible_bias)
             temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
             temp += F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
-
-        # Computes the entrie matrix Gamma at once
         else:
-            temp = torch.zeros(
-                2 ** (self.num_visible),
-                2 ** (self.num_visible),
-                dtype=torch.double,
-                device=self.device,
+            temp = torch.mv(v, self.visible_bias).unsqueeze_(1) + torch.mv(
+                vp, self.visible_bias
+            ).unsqueeze_(0)
+
+            temp += (
+                F.softplus(F.linear(v, self.weights_W, self.hidden_bias))
+                .sum(1)
+                .unsqueeze_(1)
             )
 
-            for i in range(2 ** self.num_visible):
-                for j in range(2 ** self.num_visible):
-                    temp[i][j] = torch.dot(v[i] + vp[j], self.visible_bias)
-                    temp[i][j] += F.softplus(
-                        F.linear(v[i], self.weights_W, self.hidden_bias)
-                    ).sum()
-                    temp[i][j] += F.softplus(
-                        F.linear(vp[j], self.weights_W, self.hidden_bias)
-                    ).sum()
+            temp += (
+                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias))
+                .sum(1)
+                .unsqueeze_(0)
+            )
 
         return 0.5 * temp
 
-    def GammaM(self, v, vp):
+    def gamma_minus(self, v, vp):
         r"""Calculates an element of the :math:`\Gamma^{(-)}` matrix
 
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
         :type vp: torch.Tensor
+
         :returns: The matrix element given by
                   :math:`\langle\sigma|\Gamma^{(-)}|\sigma'\rangle`
         :rtype: torch.Tensor
@@ -402,29 +392,26 @@ class PurificationRBM(nn.Module):
             temp = torch.dot(v - vp, self.visible_bias)
             temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
             temp -= F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
-
-        # Computes the entire matrix Gamma- at once
         else:
-            temp = torch.zeros(
-                2 ** (self.num_visible),
-                2 ** (self.num_visible),
-                dtype=torch.double,
-                device=self.device,
+            temp = torch.mv(v, self.visible_bias).unsqueeze_(1) - torch.mv(
+                vp, self.visible_bias
+            ).unsqueeze_(0)
+
+            temp += (
+                F.softplus(F.linear(v, self.weights_W, self.hidden_bias))
+                .sum(1)
+                .unsqueeze_(1)
             )
 
-            for i in range(2 ** self.num_visible):
-                for j in range(2 ** self.num_visible):
-                    temp[i][j] = torch.dot(v[i] - vp[j], self.visible_bias)
-                    temp[i][j] += F.softplus(
-                        F.linear(v[i], self.weights_W, self.hidden_bias)
-                    ).sum()
-                    temp[i][j] -= F.softplus(
-                        F.linear(vp[j], self.weights_W, self.hidden_bias)
-                    ).sum()
+            temp -= (
+                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias))
+                .sum(1)
+                .unsqueeze_(0)
+            )
 
         return 0.5 * temp
 
-    def GammaP_grad(self, v, vp, reduce=False):
+    def gamma_plus_grad(self, v, vp):
         r"""Calculates an element of the gradient of
             the :math:`\Gamma^{(+)}` matrix
 
@@ -432,65 +419,38 @@ class PurificationRBM(nn.Module):
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
         :type vp: torch.Tensor
+
         :returns: The matrix element given by
                   :math:`\langle\sigma|\nabla_\lambda\Gamma^{(+)}|\sigma'\rangle`
         :rtype: torch.Tensor
         """
+        unsqueezed = v.dim() < 2 or vp.dim() < 2
+        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights_W)
+        vp = (vp.unsqueeze(0) if vp.dim() < 2 else vp).to(self.weights_W)
+
         prob_h = self.prob_h_given_v(v)
         prob_hp = self.prob_h_given_v(vp)
 
-        if v.dim() < 2:
-            W_grad = 0.5 * (torch.ger(prob_h, v) + torch.ger(prob_hp, vp))
-            U_grad = torch.zeros_like(self.weights_U)
-            vb_grad = 0.5 * (v + vp)
-            hb_grad = 0.5 * (prob_h + prob_hp)
-            ab_grad = torch.zeros_like(self.aux_bias)
-
-        else:
-            # Don't think this works, but the 'else' option does
-            if reduce:
-                W_grad = 0.5 * (
-                    torch.matmul(prob_h.t(), v) + torch.matmul(prob_hp.t(), vp)
-                )
-                U_grad = torch.zeros(
-                    (self.weights_U.shape[0], self.weights_U.shape[1]),
-                    dtype=torch.double,
-                )
-                vb_grad = 0.5 * torch.sum(v + vp, 0)
-                hb_grad = 0.5 * torch.sum(prob_h + prob_hp, 0)
-                ab_grad = torch.zeros(
-                    (v.shape[0], self.num_aux), dtype=torch.double, device=self.device
-                )
-
-            else:
-                W_grad = 0.5 * (
-                    torch.einsum("ij,ik->ijk", prob_h, v)
-                    + torch.einsum("ij,ik->ijk", prob_hp, vp)
-                )
-                U_grad = torch.zeros(
-                    (v.shape[0], self.weights_U.shape[0], self.weights_U.shape[1]),
-                    dtype=torch.double,
-                    device=self.device,
-                )
-                vb_grad = 0.5 * (v + vp)
-                hb_grad = 0.5 * (prob_h + prob_hp)
-                ab_grad = torch.zeros(
-                    (v.shape[0], self.num_aux), dtype=torch.double, device=self.device
-                )
-                vec = [
-                    W_grad.view(v.size()[0], -1),
-                    U_grad.view(v.size()[0], -1),
-                    vb_grad,
-                    hb_grad,
-                    ab_grad,
-                ]
-                return cplx.make_complex(torch.cat(vec, dim=1))
-
-        return cplx.make_complex(
-            parameters_to_vector([W_grad, U_grad, vb_grad, hb_grad, ab_grad])
+        W_grad = 0.5 * (
+            torch.einsum("ij,ik->ijk", prob_h, v)
+            + torch.einsum("ij,ik->ijk", prob_hp, vp)
         )
+        U_grad = torch.zeros_like(self.weights_U).expand(v.shape[0], -1, -1)
+        vb_grad = 0.5 * (v + vp)
+        hb_grad = 0.5 * (prob_h + prob_hp)
+        ab_grad = torch.zeros_like(self.aux_bias).expand(v.shape[0], -1)
+        vec = [
+            W_grad.view(v.shape[0], -1),
+            U_grad.view(v.shape[0], -1),
+            vb_grad,
+            hb_grad,
+            ab_grad,
+        ]
+        if unsqueezed:
+            vec = [grad.squeeze_(0) for grad in vec]
+        return cplx.make_complex(torch.cat(vec, dim=-1))
 
-    def GammaM_grad(self, v, vp, reduce=False):
+    def gamma_minus_grad(self, v, vp):
         r"""Calculates an element of the gradient of
             the :math:`\Gamma^{(-)}` matrix
 
@@ -498,88 +458,45 @@ class PurificationRBM(nn.Module):
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
         :type vp: torch.Tensor
+
         :returns: The matrix element given by
                   :math:`\langle\sigma|\nabla_\mu\Gamma^{(-)}|\sigma'\rangle`
         :rtype: torch.Tensor
         """
+        unsqueezed = v.dim() < 2 or vp.dim() < 2
+        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights_W)
+        vp = (vp.unsqueeze(0) if vp.dim() < 2 else vp).to(self.weights_W)
+
         prob_h = self.prob_h_given_v(v)
         prob_hp = self.prob_h_given_v(vp)
 
-        if v.dim() < 2:
-            W_grad = 0.5 * (torch.ger(prob_h, v) - torch.ger(prob_hp, vp))
-            U_grad = torch.zeros_like(self.weights_U)
-            vb_grad = 0.5 * (v - vp)
-            hb_grad = 0.5 * (prob_h - prob_hp)
-            ab_grad = torch.zeros_like(self.aux_bias)
-
-        else:
-            # Don't think this works, but the 'else' option does. Never use reduce
-            if reduce:
-                W_grad = 0.5 * (
-                    torch.matmul(prob_h.t(), v) - torch.matmul(prob_hp.t(), vp)
-                )
-                U_grad = torch.zeros(
-                    (v.shape[0], self.weights_U.shape[0], self.weights_U.shape[1]),
-                    dtype=torch.double,
-                    device=self.device,
-                )
-                vb_grad = 0.5 * torch.sum(v - vp, 0)
-                hb_grad = 0.5 * torch.sum(prob_h - prob_hp, 0)
-                ab_grad = torch.zeros(
-                    (v.shape[0], self.num_aux), dtype=torch.double, device=self.device
-                )
-
-            else:
-                W_grad = 0.5 * (
-                    torch.einsum("ij,ik->ijk", prob_h, v)
-                    - torch.einsum("ij,ik->ijk", prob_hp, vp)
-                )
-                U_grad = torch.zeros(
-                    (v.shape[0], self.weights_U.shape[0], self.weights_U.shape[1]),
-                    dtype=torch.double,
-                    device=self.device,
-                )
-                vb_grad = 0.5 * (v - vp)
-                hb_grad = 0.5 * (prob_h - prob_hp)
-                ab_grad = torch.zeros(
-                    (v.shape[0], self.num_aux), dtype=torch.double, device=self.device
-                )
-                vec = [
-                    W_grad.view(v.size()[0], -1),
-                    U_grad.view(v.size()[0], -1),
-                    vb_grad,
-                    hb_grad,
-                    ab_grad,
-                ]
-                return cplx.make_complex(torch.cat(vec, dim=1))
-
-        return cplx.make_complex(
-            parameters_to_vector([W_grad, U_grad, vb_grad, hb_grad, ab_grad])
+        W_grad = 0.5 * (
+            torch.einsum("ij,ik->ijk", prob_h, v)
+            - torch.einsum("ij,ik->ijk", prob_hp, vp)
         )
+        U_grad = torch.zeros_like(self.weights_U).expand(v.shape[0], -1, -1)
+        vb_grad = 0.5 * (v - vp)
+        hb_grad = 0.5 * (prob_h - prob_hp)
+        ab_grad = torch.zeros_like(self.aux_bias).expand(v.shape[0], -1)
+        vec = [
+            W_grad.view(v.size()[0], -1),
+            U_grad.view(v.size()[0], -1),
+            vb_grad,
+            hb_grad,
+            ab_grad,
+        ]
+        if unsqueezed:
+            vec = [grad.squeeze_(0) for grad in vec]
+        return cplx.make_complex(torch.cat(vec, dim=-1))
 
-    def probability(self, v, a):
-        r"""Computes the probability of finding the system in a particular
-            state of the visible and auxiliary units
-
-        :param v: The visible units
-        :type v: torch.Tensor
-        :param a: The auxiliary units
-        :type a: torch.Tensor
-        :returns: The probability of the system having the
-                  input visible and auxiliary states
-        :rtype: torch.Tensor
-        """
-        return self.effective_energy(v, a).exp()
-
-    def partition(self, v_space, a_space):
+    def partition(self, space):
         r"""Computes the partition function
 
-        :param v_space: The Hilbert space of the visible units
-        :type v_space: torch.Tensor
-        :param a_space: The Hilbert space of the auxiliary units
-        :type a_space: torch.Tensor
+        :param space: The Hilbert space of the visible units
+        :type space: torch.Tensor
+
         :returns: The partition function
         :rtype: torch.Tensor
         """
-        logZ = self.effective_energy(v_space, a_space).logsumexp(0).logsumexp(0)
+        logZ = (-self.effective_energy(space)).logsumexp(0)
         return logZ.exp()

@@ -14,6 +14,7 @@
 
 
 import os.path
+from functools import reduce
 
 import torch
 from torch.nn.utils import parameters_to_vector
@@ -21,9 +22,9 @@ import pytest
 
 import qucumber
 from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction, DensityMatrix
+from qucumber.utils import cplx
 from qucumber.utils.unitaries import create_dict
-from qucumber.utils.training_statistics import rotate_psi
-
+from qucumber.utils.training_statistics import rotate_psi, rotate_rho
 
 from test_grads import assertAlmostEqual
 
@@ -140,35 +141,31 @@ def test_positive_wavefunction_psi():
 def test_density_matrix_hermiticity():
     nn_state = DensityMatrix(5, 5, 5, gpu=False)
 
-    v_space = nn_state.generate_hilbert_space(5)
-    matrix = nn_state.rhoRBM(v_space, v_space)
+    space = nn_state.generate_hilbert_space(5)
+    Z = nn_state.normalization(space)
+    rho = nn_state.rho(space, space) / Z
 
-    # Pick 10 random elements to sample, row and column index
-    elements = torch.randint(0, 2 ** 5, (2, 10))
-
-    real_reg_elements = torch.zeros(10)
-    real_dag_elements = torch.zeros(10)
-    imag_reg_elements = torch.zeros(10)
-    imag_dag_elements = torch.zeros(10)
-
-    for i in range(10):
-        real_reg_elements[i] = matrix[0, elements[0][i], elements[1][i]]
-        real_dag_elements[i] = matrix[0, elements[1][i], elements[0][i]]
-        imag_reg_elements[i] = matrix[1, elements[0][i], elements[1][i]]
-        imag_dag_elements[i] = -matrix[1, elements[1][i], elements[0][i]]
-
-    assert torch.equal(real_reg_elements, real_dag_elements)
-    assert torch.equal(imag_reg_elements, imag_dag_elements)
+    assert torch.equal(rho, cplx.conjugate(rho)), "DensityMatrix should be Hermitian!"
 
 
 def test_density_matrix_tr1():
     nn_state = DensityMatrix(5, 5, 5, gpu=False)
 
     v_space = nn_state.generate_hilbert_space(5)
-    matrix = nn_state.rhoRBM(v_space, v_space)
+    matrix = nn_state.rho(v_space, v_space) / nn_state.normalization(v_space)
 
     msg = f"Trace of density matrix is not within {TOL} of 1!"
     assertAlmostEqual(torch.trace(matrix[0]), torch.Tensor([1]), TOL, msg=msg)
+
+
+def test_gamma_plus():
+    nn_state = DensityMatrix(5, gpu=False)
+    v = nn_state.generate_hilbert_space(5)
+    vp = v[:4, :]
+
+    gamma_p = nn_state.rbm_am.gamma_plus(v, vp)
+
+    assert gamma_p.shape == (v.shape[0], vp.shape[0])
 
 
 def test_single_positive_sample():
@@ -232,10 +229,38 @@ def test_large_hilbert_space_fail(wvfn_type):
         pytest.fail(msg)
 
 
-@pytest.mark.parametrize("num_visible", [1, 2, 10])
+@pytest.mark.parametrize("num_visible", [1, 2, 7])
 @pytest.mark.parametrize("wvfn_type", [PositiveWaveFunction, ComplexWaveFunction])
 def test_rotate_psi(num_visible, wvfn_type):
     nn_state = wvfn_type(num_visible, gpu=False)
     basis = "X" * num_visible
     unitary_dict = create_dict()
-    rotate_psi(nn_state, basis, nn_state.generate_hilbert_space(), unitary_dict)
+
+    space = nn_state.generate_hilbert_space()
+    psi = nn_state.psi(space)
+
+    psi_r_fast = rotate_psi(nn_state, basis, space, unitary_dict, psi=psi)
+
+    U = reduce(cplx.kronecker_prod, [unitary_dict[b] for b in basis])
+    psi_r_correct = cplx.matmul(U, psi)
+
+    assertAlmostEqual(psi_r_fast, psi_r_correct, msg="Fast psi rotation failed!")
+
+
+@pytest.mark.parametrize("num_visible", [1, 2, 7])
+@pytest.mark.parametrize("state_type", [DensityMatrix])
+def test_rotate_rho(num_visible, state_type):
+    nn_state = state_type(num_visible, gpu=False)
+    basis = "X" * num_visible
+    unitary_dict = create_dict()
+
+    space = nn_state.generate_hilbert_space()
+    rho = nn_state.rho(space, space)
+
+    rho_r_fast = rotate_rho(nn_state, basis, space, unitary_dict, rho=rho)
+
+    U = reduce(cplx.kronecker_prod, [unitary_dict[b] for b in basis])
+    rho_r_correct = cplx.matmul(U, rho)
+    rho_r_correct = cplx.matmul(rho_r_correct, cplx.conjugate(U))
+
+    assertAlmostEqual(rho_r_fast, rho_r_correct, msg="Fast rho rotation failed!")

@@ -19,7 +19,7 @@ import torch
 from itertools import chain
 from math import ceil
 
-from torch.nn.utils import parameters_to_vector
+from torch.nn import functional as F
 
 from tqdm import tqdm, tqdm_notebook
 
@@ -50,23 +50,22 @@ class DensityMatrix:
     _rbm_ph = None
     _device = None
 
-    def __init__(self, num_visible, num_hidden, num_aux, unitary_dict=None, gpu=False):
-        self.rbm_am = PurificationRBM(
-            int(num_visible), int(num_hidden), int(num_aux), gpu=gpu
-        )
+    def __init__(
+        self, num_visible, num_hidden=None, num_aux=None, unitary_dict=None, gpu=False
+    ):
+        self.rbm_am = PurificationRBM(num_visible, num_hidden, num_aux, gpu=gpu)
+        self.rbm_ph = PurificationRBM(num_visible, num_hidden, num_aux, gpu=gpu)
 
-        self.rbm_ph = PurificationRBM(
-            int(num_visible), int(num_hidden), int(num_aux), gpu=gpu
-        )
-
-        self.num_visible = int(num_visible)
-        self.num_hidden = int(num_hidden)
-        self.num_aux = int(num_aux)
+        self.num_visible = self.rbm_am.num_visible
+        self.num_hidden = self.rbm_am.num_hidden
+        self.num_aux = self.rbm_am.num_aux
 
         self.device = self.rbm_am.device
-
+        self.max_size = 20
         self.unitary_dict = unitary_dict if unitary_dict else unitaries.create_dict()
-        self.unitary_dict = {k: v for k, v in self.unitary_dict.items()}
+        self.unitary_dict = {
+            k: v.to(device=self.device) for k, v in self.unitary_dict.items()
+        }
 
     @property
     def networks(self):
@@ -89,64 +88,60 @@ class DensityMatrix:
     def rbm_ph(self, new_val):
         self._rbm_ph = new_val
 
-    def generate_hilbert_space(self, n, device=None):
-        r"""Generates Hilbert space of dimension :math:`2^n`.
+    @property
+    def device(self):
+        return self._device
 
-        :param n: The size of each element in the Hilbert space
-        :type n: int
-        :returns: A tensor with the basis states of the Hilbert space
-        :rtype: torch.Tensor
-        """
-        device = device if device is not None else self.device
-        dim = np.arange(2 ** n)
-        space = ((dim[:, None] & (1 << np.arange(n))) > 0)[:, ::-1]
-        space = space.astype(int)
-        return torch.tensor(space, dtype=torch.double, device=device)
+    @device.setter
+    def device(self, new_val):
+        self._device = new_val
 
-    def subspace_vector(self, num, size, device=None):
-        r"""Generates a single vector from Hilbert space of
-            dimension :math:`2^{n}`
+    def subspace_vector(self, num, size=None, device=None):
+        r"""Generates a single vector from the Hilbert space of dimension
+        :math:`2^{\text{size}}`.
 
-        :param num: The decimal representation of the desired
-                    vector of the Hilbert space
-        :type num: int
-        :param size: The size of each element of the Hilbert space
+        :param size: The size of each element of the Hilbert space.
         :type size: int
-        :returns: A single vector from the Hilbert space
+        :param num: The specific vector to return from the Hilbert space. Since
+                    the Hilbert space can be represented by the set of binary strings
+                    of length `size`, `num` is equivalent to the decimal representation
+                    of the returned vector.
+        :type num: int
+        :param device: The device to create the vector on. Defaults to the
+                       device this model is on.
+
+        :returns: A state from the Hilbert space.
         :rtype: torch.Tensor
         """
         device = device if device is not None else self.device
+        size = size if size else self.num_visible
         space = ((num & (1 << np.arange(size))) > 0)[::-1]
         space = space.astype(int)
         return torch.tensor(space, dtype=torch.double, device=device)
 
-    def am_grads(self, v, vp):
-        r"""Computes the gradients of the amplitude RBM for given input states
+    def generate_hilbert_space(self, size=None, device=None):
+        r"""Generates Hilbert space of dimension :math:`2^{\text{size}}`.
 
-        :param v: The first input state, :math:`\sigma`
-        :type v: torch.Tensor
-        :param vp: The second input state, :math:`\sigma'`
-        :type vp: torch.Tensor
-        :returns: The gradients of all amplitude RBM parameters
+        :param size: The size of each element of the Hilbert space. Defaults to
+                     the number of visible units.
+        :type size: int
+        :param device: The device to create the Hilbert space matrix on.
+                       Defaults to the device this model is on.
+
+        :returns: A tensor with all the basis states of the Hilbert space.
         :rtype: torch.Tensor
         """
-        return self.rbm_am.GammaP_grad(v, vp) + self.Pi_grad_am(v, vp)
+        device = device if device is not None else self.device
+        size = size if size else self.rbm_am.num_visible
+        if size > self.max_size:
+            raise ValueError("Size of the Hilbert space is too large!")
+        else:
+            dim = np.arange(2 ** size)
+            space = ((dim[:, None] & (1 << np.arange(size))) > 0)[:, ::-1]
+            space = space.astype(int)
+            return torch.tensor(space, dtype=torch.double, device=device)
 
-    def ph_grads(self, v, vp):
-        r"""Computes the gradients of the phase RBM for given input states
-
-        :param v: The first input state, :math:`\sigma`
-        :type v: torch.Tensor
-        :param vp: The second input state, :math:`\sigma'`
-        :type vp: torch.Tensor
-        :returns: The gradients of all phase RBM parameters
-        :rtype: torch.Tensor
-        """
-        return cplx.scalar_mult(  # need to multiply Gamma- by i
-            self.rbm_ph.GammaM_grad(v, vp), torch.Tensor([0, 1])
-        ) + self.Pi_grad_ph(v, vp)
-
-    def Pi(self, v, vp):
+    def pi(self, v, vp):
         r"""Calculates an element of the :math:`\Pi` matrix
 
         :param v: One of the visible states, :math:`\sigma`
@@ -156,51 +151,36 @@ class DensityMatrix:
         :returns: The matrix element given by :math:`\langle\sigma|\Pi|\sigma'\rangle`
         :rtype: torch.Tensor
         """
-        if len(v.shape) < 2 and len(vp.shape) < 2:
+        m_am = F.linear(v, self.rbm_am.weights_U, self.rbm_am.aux_bias)
+        mp_am = F.linear(vp, self.rbm_am.weights_U, self.rbm_am.aux_bias)
 
-            exp_arg = self.rbm_am.mixing_term(v + vp)
-            phase = self.rbm_ph.mixing_term(v - vp)
+        m_ph = F.linear(v, self.rbm_ph.weights_U)
+        mp_ph = F.linear(vp, self.rbm_ph.weights_U)
 
-            log_term = (
-                (1 + 2 * exp_arg.exp() * phase.cos() + (2 * exp_arg).exp()).sqrt().log()
-            )
+        if v.dim() >= 2:
+            m_am = m_am.unsqueeze_(1)
+            m_ph = m_ph.unsqueeze_(1)
+        if vp.dim() >= 2:
+            mp_am = mp_am.unsqueeze_(0)
+            mp_ph = mp_ph.unsqueeze_(0)
 
-            phase_term = (
-                (exp_arg.exp() * phase.sin()) / (1 + exp_arg.exp() * phase.cos())
-            ).atan()
+        exp_arg = (m_am + mp_am) / 2
+        phase = (m_ph - mp_ph) / 2
 
-            return cplx.make_complex(log_term.sum(), phase_term.sum())
+        real = (
+            (1 + 2 * exp_arg.exp() * phase.cos() + (2 * exp_arg).exp())
+            .sqrt()
+            .log()
+            .sum(-1)
+        )
 
-        else:
-            out = torch.zeros(
-                2,
-                2 ** self.num_visible,
-                2 ** self.num_visible,
-                dtype=torch.double,
-                device=self.device,
-            )
-            for i in range(2 ** self.num_visible):
-                for j in range(2 ** self.num_visible):
-                    exp_arg = self.rbm_am.mixing_term(v[i] + vp[j])
-                    phase = self.rbm_ph.mixing_term(v[i] - vp[j])
+        imag = torch.atan2(
+            (exp_arg.exp() * phase.sin()), (1 + exp_arg.exp() * phase.cos())
+        ).sum(-1)
 
-                    log_term = (
-                        (1 + 2 * exp_arg.exp() * phase.cos() + (2 * exp_arg).exp())
-                        .sqrt()
-                        .log()
-                    )
+        return cplx.make_complex(real, imag)
 
-                    phase_term = (
-                        (exp_arg.exp() * phase.sin())
-                        / (1 + exp_arg.exp() * phase.cos())
-                    ).atan()
-
-                    out[0][i][j] = log_term.sum()
-                    out[1][i][j] = phase_term.sum()
-
-            return out
-
-    def Pi_grad_am(self, v, vp, reduce=False):
+    def pi_grad_am(self, v, vp):
         r"""Calculates the gradient of the :math:`\Pi` matrix with
             respect to the amplitude RBM parameters for two input states
 
@@ -212,79 +192,48 @@ class DensityMatrix:
                   :math:`\langle\sigma|\nabla_\lambda\Pi|\sigma'\rangle`
         :rtype: torch.Tensor
         """
-        argReal = self.rbm_am.mixing_term(v + vp)
-        argIm = self.rbm_ph.mixing_term(v - vp)
-        sigReal = cplx.sigmoid(argReal, argIm)[0]
-        sigIm = cplx.sigmoid(argReal, argIm)[1]
+        unsqueezed = v.dim() < 2 or vp.dim() < 2
+        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.rbm_am.weights_W)
+        vp = (vp.unsqueeze(0) if vp.dim() < 2 else vp).to(self.rbm_am.weights_W)
 
-        if v.dim() < 2:
-            W_grad_real = torch.zeros_like(self.rbm_am.weights_W)
-            W_grad_imag = W_grad_real.clone()
-            vb_grad_real = torch.zeros_like(self.rbm_am.visible_bias)
-            vb_grad_imag = vb_grad_real.clone()
-            hb_grad_real = torch.zeros_like(self.rbm_am.hidden_bias)
-            hb_grad_imag = hb_grad_real.clone()
-            U_grad_real = 0.5 * torch.ger(sigReal, (v + vp))
-            U_grad_imag = 0.5 * torch.ger(sigIm, (v + vp))
-            ab_grad_real = sigReal
-            ab_grad_imag = sigIm
+        arg_real = self.rbm_am.mixing_term(v + vp)
+        arg_imag = self.rbm_ph.mixing_term(v - vp)
+        sig = cplx.sigmoid(arg_real, arg_imag)
+        sig_real = cplx.real(sig)
+        sig_imag = cplx.imag(sig)
 
-            return cplx.make_complex(
-                parameters_to_vector(
-                    [W_grad_real, U_grad_real, vb_grad_real, hb_grad_real, ab_grad_real]
-                ),
-                parameters_to_vector(
-                    [W_grad_imag, U_grad_imag, vb_grad_imag, hb_grad_imag, ab_grad_imag]
-                ),
-            )
+        W_grad = torch.zeros_like(self.rbm_am.weights_W).expand(v.shape[0], -1, -1)
+        vb_grad = torch.zeros_like(self.rbm_am.visible_bias).expand(v.shape[0], -1)
+        hb_grad = torch.zeros_like(self.rbm_am.hidden_bias).expand(v.shape[0], -1)
+        U_grad_real = 0.5 * (torch.einsum("ij,ik->ijk", sig_real, (v + vp)))
+        U_grad_imag = 0.5 * (torch.einsum("ij,ik->ijk", sig_imag, (v + vp)))
+        ab_grad_real = sig_real
+        ab_grad_imag = sig_imag
 
-        else:
-            W_grad_real = torch.zeros(
-                v.shape[0],
-                self.rbm_am.weights_W.shape[0],
-                self.rbm_am.weights_W.shape[1],
-                dtype=torch.double,
-                device=self.device,
-            )
-            W_grad_imag = W_grad_real.clone()
-            vb_grad_real = torch.zeros(
-                v.shape[0],
-                self.rbm_am.num_visible,
-                dtype=torch.double,
-                device=self.device,
-            )
-            vb_grad_imag = vb_grad_real.clone()
-            hb_grad_real = torch.zeros(
-                v.shape[0],
-                self.rbm_am.num_hidden,
-                dtype=torch.double,
-                device=self.device,
-            )
-            hb_grad_imag = hb_grad_real.clone()
-            U_grad_real = 0.5 * (torch.einsum("ij,ik->ijk", sigReal, (v + vp)))
-            U_grad_imag = 0.5 * (torch.einsum("ij,ik->ijk", sigIm, (v + vp)))
-            ab_grad_real = sigReal
-            ab_grad_imag = sigIm
+        vec_real = [
+            W_grad.view(v.size()[0], -1),
+            U_grad_real.view(v.size()[0], -1),
+            vb_grad,
+            hb_grad,
+            ab_grad_real,
+        ]
+        vec_imag = [
+            W_grad.view(v.size()[0], -1).clone(),
+            U_grad_imag.view(v.size()[0], -1),
+            vb_grad.clone(),
+            hb_grad.clone(),
+            ab_grad_imag,
+        ]
 
-            vec_real = [
-                W_grad_real.view(v.size()[0], -1),
-                U_grad_real.view(v.size()[0], -1),
-                vb_grad_real,
-                hb_grad_real,
-                ab_grad_real,
-            ]
-            vec_imag = [
-                W_grad_imag.view(v.size()[0], -1),
-                U_grad_imag.view(v.size()[0], -1),
-                vb_grad_imag,
-                hb_grad_imag,
-                ab_grad_imag,
-            ]
-            return cplx.make_complex(
-                torch.cat(vec_real, dim=1), torch.cat(vec_imag, dim=1)
-            )
+        if unsqueezed:
+            vec_real = [grad.squeeze_(0) for grad in vec_real]
+            vec_imag = [grad.squeeze_(0) for grad in vec_imag]
 
-    def Pi_grad_ph(self, v, vp, reduce=False):
+        return cplx.make_complex(
+            torch.cat(vec_real, dim=-1), torch.cat(vec_imag, dim=-1)
+        )
+
+    def pi_grad_ph(self, v, vp):
         r"""Calculates the gradient of the :math:`\Pi` matrix with
             respect to the phase RBM parameters for two input states
 
@@ -296,84 +245,48 @@ class DensityMatrix:
                   :math:`\langle\sigma|\nabla_\mu\Pi|\sigma'\rangle`
         :rtype: torch.Tensor
         """
-        argReal = self.rbm_am.mixing_term(v + vp)
-        argIm = self.rbm_ph.mixing_term(v - vp)
-        sigmoid_term = cplx.sigmoid(argReal, argIm)
-        sigReal = sigmoid_term[0]
-        sigIm = sigmoid_term[1]
+        unsqueezed = v.dim() < 2 or vp.dim() < 2
+        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.rbm_ph.weights_W)
+        vp = (vp.unsqueeze(0) if vp.dim() < 2 else vp).to(self.rbm_ph.weights_W)
 
-        if v.dim() < 2:
-            W_grad_real = torch.zeros_like(self.rbm_ph.weights_W)
-            W_grad_imag = W_grad_real.clone()
-            vb_grad_real = torch.zeros_like(self.rbm_ph.visible_bias)
-            vb_grad_imag = vb_grad_real.clone()
-            hb_grad_real = torch.zeros_like(self.rbm_ph.hidden_bias)
-            hb_grad_imag = hb_grad_real.clone()
-            ab_grad_real = torch.zeros_like(self.rbm_ph.aux_bias)
-            ab_grad_imag = ab_grad_real.clone()
-            U_grad_real = -0.5 * torch.ger(sigIm, (v - vp))
-            U_grad_imag = 0.5 * torch.ger(sigReal, (v - vp))
+        arg_real = self.rbm_am.mixing_term(v + vp)
+        arg_imag = self.rbm_ph.mixing_term(v - vp)
+        sig = cplx.sigmoid(arg_real, arg_imag)
+        sig_real = cplx.real(sig)
+        sig_imag = cplx.imag(sig)
 
-            return cplx.make_complex(
-                parameters_to_vector(
-                    [W_grad_real, U_grad_real, vb_grad_real, hb_grad_real, ab_grad_real]
-                ),
-                parameters_to_vector(
-                    [W_grad_imag, U_grad_imag, vb_grad_imag, hb_grad_imag, ab_grad_imag]
-                ),
-            )
+        W_grad = torch.zeros_like(self.rbm_ph.weights_W).expand(v.shape[0], -1, -1)
+        vb_grad = torch.zeros_like(self.rbm_ph.visible_bias).expand(v.shape[0], -1)
+        hb_grad = torch.zeros_like(self.rbm_ph.hidden_bias).expand(v.shape[0], -1)
+        ab_grad = torch.zeros_like(self.rbm_ph.aux_bias).expand(v.shape[0], -1)
+        U_grad_real = -0.5 * (torch.einsum("ij,ik->ijk", sig_imag, (v - vp)))
+        U_grad_imag = 0.5 * (torch.einsum("ij,ik->ijk", sig_real, (v - vp)))
 
-        else:
-            W_grad_real = torch.zeros(
-                v.shape[0],
-                self.rbm_ph.weights_W.shape[0],
-                self.rbm_ph.weights_W.shape[1],
-                dtype=torch.double,
-                device=self.device,
-            )
-            W_grad_imag = W_grad_real.clone()
-            vb_grad_real = torch.zeros(
-                v.shape[0],
-                self.rbm_ph.num_visible,
-                dtype=torch.double,
-                device=self.device,
-            )
-            vb_grad_imag = vb_grad_real.clone()
-            hb_grad_real = torch.zeros(
-                v.shape[0],
-                self.rbm_ph.num_hidden,
-                dtype=torch.double,
-                device=self.device,
-            )
-            hb_grad_imag = hb_grad_real.clone()
-            ab_grad_real = torch.zeros(
-                v.shape[0], self.rbm_ph.num_aux, dtype=torch.double, device=self.device
-            )
-            ab_grad_imag = ab_grad_real.clone()
-            U_grad_real = -0.5 * (torch.einsum("ij,ik->ijk", sigIm, (v - vp)))
-            U_grad_imag = 0.5 * (torch.einsum("ij,ik->ijk", sigReal, (v - vp)))
+        vec_real = [
+            W_grad.view(v.size()[0], -1),
+            U_grad_real.view(v.size()[0], -1),
+            vb_grad,
+            hb_grad,
+            ab_grad,
+        ]
+        vec_imag = [
+            W_grad.view(v.size()[0], -1).clone(),
+            U_grad_imag.view(v.size()[0], -1),
+            vb_grad.clone(),
+            hb_grad.clone(),
+            ab_grad.clone(),
+        ]
 
-            vec_real = [
-                W_grad_real.view(v.size()[0], -1),
-                U_grad_real.view(v.size()[0], -1),
-                vb_grad_real,
-                hb_grad_real,
-                ab_grad_real,
-            ]
-            vec_imag = [
-                W_grad_imag.view(v.size()[0], -1),
-                U_grad_imag.view(v.size()[0], -1),
-                vb_grad_imag,
-                hb_grad_imag,
-                ab_grad_imag,
-            ]
-            return cplx.make_complex(
-                torch.cat(vec_real, dim=1), torch.cat(vec_imag, dim=1)
-            )
+        if unsqueezed:
+            vec_real = [grad.squeeze_(0) for grad in vec_real]
+            vec_imag = [grad.squeeze_(0) for grad in vec_imag]
 
-    def rhoRBM_tilde(self, v, vp):
-        r"""Computes the matrix elements of the current density matrix
-        excluding the partition function
+        return cplx.make_complex(
+            torch.cat(vec_real, dim=-1), torch.cat(vec_imag, dim=-1)
+        )
+
+    def rho(self, v, vp):
+        r"""Computes the matrix elements of the (unnormalized) density matrix
 
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
@@ -383,37 +296,14 @@ class DensityMatrix:
                   :math:`\langle\sigma|\widetilde{\rho}|\sigma'\rangle`
         :rtype: torch.Tensor
         """
-        if len(v.shape) < 2 and len(vp.shape) < 2:
-            out = torch.zeros(2, dtype=torch.double, device=self.device)
-        else:
-            out = torch.zeros(
-                2,
-                2 ** self.num_visible,
-                2 ** self.num_visible,
-                dtype=torch.double,
-                device=self.device,
-            )
-        pi_ = self.Pi(v, vp)
-        amp = (self.rbm_am.GammaP(v, vp) + pi_[0]).exp()
-        phase = self.rbm_ph.GammaM(v, vp) + pi_[1]
+        pi_ = self.pi(v, vp)
+        amp = (self.rbm_am.gamma_plus(v, vp) + cplx.real(pi_)).exp()
+        phase = self.rbm_ph.gamma_minus(v, vp) + cplx.imag(pi_)
 
-        out[0] = amp * (phase.cos())
-        out[1] = amp * (phase.sin())
+        return cplx.make_complex(amp * phase.cos(), amp * phase.sin())
 
-        return out
-
-    def rhoRBM(self, v, vp):
-        r"""Computes the matrix elements of the current density matrix
-
-        :param v: One of the visible states, :math:`\sigma`
-        :type v: torch.Tensor
-        :param vp: The other visible state, :math`\sigma'`
-        :type vp: torch.Tensor
-        :returns: The element of the current density matrix
-                  :math:`\langle\sigma|\rho|\sigma'\rangle`
-        :rtype: torch.Tensor
-        """
-        return self.rhoRBM_tilde(v, vp) / torch.trace(self.rhoRBM_tilde(v, vp)[0])
+    def probability(self, v, Z):
+        return (-self.rbm_am.effective_energy(v)).exp() / Z
 
     def init_gradient(self, basis, sites):
         r"""Initializes all required variables for gradient computation
@@ -424,14 +314,7 @@ class DensityMatrix:
                       in the computational basis
         """
         UrhoU = torch.zeros(2, dtype=torch.double, device=self.device)
-        v = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
-        vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
         Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
-        Us_dag = (
-            torch.stack([cplx.conjugate(self.unitary_dict[b]) for b in basis[sites]])
-            .cpu()
-            .numpy()
-        )
 
         rotated_grad = [
             torch.zeros(
@@ -440,7 +323,7 @@ class DensityMatrix:
             for net in self.networks
         ]
 
-        return UrhoU, v, vp, Us, Us_dag, rotated_grad
+        return UrhoU, Us, rotated_grad
 
     def rotated_gradient(self, basis, sites, sample):
         r"""Computes the gradients rotated into the measurement basis
@@ -456,64 +339,114 @@ class DensityMatrix:
                   of the amplitude and phase RBMS
         :rtype: list[torch.Tensor, torch.Tensor]
         """
-        UrhoU, v, vp, Us, Us_dag, rotated_grad = self.init_gradient(basis, sites)
+        UrhoU, Us, rotated_grad = self.init_gradient(basis, sites)
         int_sample = sample[sites].round().int().cpu().numpy()
         ints_size = np.arange(sites.size)
 
-        U_ = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
-        UrhoU = torch.zeros(2, dtype=torch.double, device=self.device)
-        UrhoU_ = torch.zeros_like(UrhoU)
+        # if the number of rotated sites is too large, fallback to loop
+        #  since memory may be unable to store the entire expanded set of
+        #  visible states
+        if (2 * sites.size) > self.max_size or (
+            hasattr(self, "debug_gradient_rotation") and self.debug_gradient_rotation
+        ):
+            U_ = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
+            UrhoU_ = torch.zeros_like(UrhoU)
+            Z2 = torch.zeros(
+                (2, self.rbm_am.num_pars), dtype=torch.double, device=self.device
+            )
 
-        grad_size = (
-            self.num_visible * self.num_hidden
-            + self.num_visible * self.num_aux
-            + self.num_visible
-            + self.num_hidden
-            + self.num_aux
-        )
-        Z2 = torch.zeros((2, grad_size), dtype=torch.double, device=self.device)
-
-        v = sample.round().clone()
-        vp = sample.round().clone()
-
-        for x in range(2 ** sites.size):
             v = sample.round().clone()
-            v[sites] = self.subspace_vector(x, sites.size)
-            int_v = v[sites].int().cpu().numpy()
+            vp = sample.round().clone()
+
+            for x in range(2 ** sites.size):
+                v = sample.round().clone()
+                v[sites] = self.subspace_vector(x, sites.size)
+                int_v = v[sites].int().cpu().numpy()
+                all_Us = Us[ints_size, :, int_sample, int_v]
+
+                for y in range(2 ** sites.size):
+                    vp = sample.round().clone()
+                    vp[sites] = self.subspace_vector(y, sites.size)
+                    int_vp = vp[sites].int().cpu().numpy()
+                    all_Us_dag = Us[ints_size, :, int_sample, int_vp]
+
+                    Ut = np.prod(all_Us[:, 0] + (1j * all_Us[:, 1]))
+                    Ut *= np.prod(np.conj(all_Us_dag[:, 0] + (1j * all_Us_dag[:, 1])))
+                    U_[0] = Ut.real
+                    U_[1] = Ut.imag
+
+                    cplx.scalar_mult(U_, self.rho(v, vp), out=UrhoU_)
+                    UrhoU += UrhoU_
+
+                    grad0 = self.am_grads(v, vp)
+                    grad1 = self.ph_grads(v, vp)
+
+                    rotated_grad[0] += cplx.scalar_mult(UrhoU_, grad0, out=Z2)
+                    rotated_grad[1] += cplx.scalar_mult(UrhoU_, grad1, out=Z2)
+        else:
+            v = sample.round().clone().unsqueeze(0).repeat(2 ** sites.size, 1)
+            v[:, sites] = self.generate_hilbert_space(size=sites.size)
+            v = v.contiguous()
+
+            int_v = v[:, sites].int().cpu().numpy()
             all_Us = Us[ints_size, :, int_sample, int_v]
+            Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=1)
+            Ut = np.outer(Ut, np.conj(Ut))
+            U = (
+                cplx.make_complex(torch.tensor(Ut.real), torch.tensor(Ut.imag))
+                .to(sample)
+                .contiguous()
+            )
+            UrhoU_v = cplx.scalar_mult(U, self.rho(v, v).detach())
+            UrhoU = torch.sum(UrhoU_v, dim=(1, 2))
 
-            for y in range(2 ** sites.size):
-                vp = sample.round().clone()
-                vp[sites] = self.subspace_vector(y, sites.size)
-                int_vp = vp[sites].int().cpu().numpy()
-                all_Us_dag = Us[ints_size, :, int_sample, int_vp]
-
-                Ut = np.prod(all_Us[:, 0] + (1j * all_Us[:, 1]))
-                Ut *= np.prod(np.conj(all_Us_dag[:, 0] + (1j * all_Us_dag[:, 1])))
-                U_[0] = Ut.real
-                U_[1] = Ut.imag
-
-                cplx.scalar_mult(U_, self.rhoRBM_tilde(v, vp), out=UrhoU_)
-                UrhoU += UrhoU_
-
-                grad0 = self.am_grads(v, vp)
-                grad1 = self.ph_grads(v, vp)
-
-                rotated_grad[0] += cplx.scalar_mult(UrhoU_, grad0, out=Z2)
-                rotated_grad[1] += cplx.scalar_mult(UrhoU_, grad1, out=Z2)
+            for i in range(v.shape[0]):
+                for j in range(v.shape[0]):
+                    rotated_grad[0] += cplx.scalar_mult(
+                        UrhoU_v[:, i, j], self.am_grads(v[i, ...], v[j, ...])
+                    )
+                    rotated_grad[1] += cplx.scalar_mult(
+                        UrhoU_v[:, i, j], self.ph_grads(v[i, ...], v[j, ...])
+                    )
 
         grad = [
-            cplx.scalar_divide(rotated_grad[0], UrhoU),
-            cplx.scalar_divide(rotated_grad[1], UrhoU),
+            -cplx.real(cplx.scalar_divide(rotated_grad[0], UrhoU)),
+            -cplx.real(cplx.scalar_divide(rotated_grad[1], UrhoU)),
         ]
 
         return grad
+
+    def am_grads(self, v, vp):
+        r"""Computes the gradients of the amplitude RBM for given input states
+
+        :param v: The first input state, :math:`\sigma`
+        :type v: torch.Tensor
+        :param vp: The second input state, :math:`\sigma'`
+        :type vp: torch.Tensor
+        :returns: The gradients of all amplitude RBM parameters
+        :rtype: torch.Tensor
+        """
+        return self.rbm_am.gamma_plus_grad(v, vp) + self.pi_grad_am(v, vp)
+
+    def ph_grads(self, v, vp):
+        r"""Computes the gradients of the phase RBM for given input states
+
+        :param v: The first input state, :math:`\sigma`
+        :type v: torch.Tensor
+        :param vp: The second input state, :math:`\sigma'`
+        :type vp: torch.Tensor
+        :returns: The gradients of all phase RBM parameters
+        :rtype: torch.Tensor
+        """
+        return cplx.scalar_mult(  # need to multiply Gamma- by i
+            self.rbm_ph.gamma_minus_grad(v, vp), torch.Tensor([0, 1])
+        ) + self.pi_grad_ph(v, vp)
 
     def gradient(self, basis, sample):
         r"""Computes the gradient of the amplitude and phase RBM parameters
 
         :param basis: The bases in which the measurements are made
-        :type basis: numpy.ndarray
+        :type basis: numpy.ndarray or str
         :param sample: The measurements
         :type sample: torch.Tensor
         :returns: A list containing the amplitude and phase
@@ -524,42 +457,31 @@ class DensityMatrix:
         rot_sites = np.where(basis != "Z")[0]
 
         if rot_sites.size == 0:
-            grad = [cplx.real(self.am_grads(sample, sample)), 0.0]
-
+            grad = [self.rbm_am.effective_energy_gradient(sample), 0.0]
         else:
             grad = self.rotated_gradient(basis, rot_sites, sample)
 
         return grad
 
-    def compute_exact_grads(self, train_samples, train_bases, Z):
-        r"""Computes the gradients of the parameters, using exact sampling
-        for the negative phase update instead of Gibbs sampling
+    def positive_phase_grads(self, train_samples, train_bases):
+        r"""Computes the positive phase of the gradients of the parameters
 
         :param train_samples: The measurements
         :type train_samples: torch.Tensor
         :param train_bases: The bases in which the measurements are made
         :type train_bases: numpy.ndarray
-        :param Z: The partition function
-        :type Z: torch.Tensor
+
         :returns: A list containing the amplitude and phase RBM gradients
-                  calculated with exact sampling for negative phase update
         :rtype: list[torch.Tensor, torch.Tensor]
         """
         grad = [0.0, 0.0]
 
         grad_data = [
             torch.zeros(
-                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
+                getattr(self, net).num_pars, dtype=torch.double, device=self.device
             )
             for net in self.networks
         ]
-
-        grad_model = [
-            torch.zeros(self.rbm_am.num_pars, dtype=torch.double, device=self.device)
-        ]
-
-        v_space = self.generate_hilbert_space(self.num_visible)
-        rho_rbm = self.rhoRBM(v_space, v_space)
 
         for i in range(train_samples.shape[0]):
             data_gradient = self.gradient(train_bases[i], train_samples[i])
@@ -567,15 +489,35 @@ class DensityMatrix:
             grad_data[1] += data_gradient[1]
 
         # Can just take the real parts since the imaginary parts will have cancelled out
-        grad[0] = -cplx.real(grad_data[0]) / float(train_samples.shape[0])
-        grad[1] = -cplx.real(grad_data[1]) / float(train_samples.shape[0])
+        grad[0] = grad_data[0] / float(train_samples.shape[0])
+        grad[1] = grad_data[1] / float(train_samples.shape[0])
 
-        for i in range(2 ** self.num_visible):
-            grad_model[0] += rho_rbm[0][i][i] * cplx.real(
-                self.am_grads(v_space[i], v_space[i])
-            )
+        return grad
 
-        grad[0] += grad_model[0]
+    def compute_exact_grads(self, train_samples, train_bases, space):
+        r"""Computes the gradients of the parameters, using exact sampling
+        for the negative phase update instead of Gibbs sampling
+
+        :param train_samples: The measurements
+        :type train_samples: torch.Tensor
+        :param train_bases: The bases in which the measurements are made
+        :type train_bases: numpy.ndarray
+        :param space: A rank 2 tensor of the entire visible space.
+        :type space: torch.Tensor
+
+        :returns: A list containing the amplitude and phase RBM gradients
+                  calculated with exact sampling for negative phase update
+        :rtype: list[torch.Tensor, torch.Tensor]
+        """
+        grad = self.positive_phase_grads(train_samples, train_bases)
+
+        Z = self.normalization(space)
+        probs = self.probability(space, Z)
+        am_gr = self.rbm_am.effective_energy_gradient(
+            space, reduce=False
+        )  # (b, num_pars)
+
+        grad[0] -= torch.mv(am_gr.t(), probs)
 
         return grad
 
@@ -590,66 +532,18 @@ class DensityMatrix:
         :type neg_batch: torch.Tensor
         :param bases_batch: The bases in which the measurements are taken, which
                             correspond to the measurements in samples_batch
+        :type bases_batch: numpy.ndarray
+
         :returns: List containing the gradients of amplitude and phase RBM parameters
         :rtype: list[torch.Tensor, torch.Tensor]
         """
+        grad = self.positive_phase_grads(samples_batch, bases_batch)
+
         vk = self.rbm_am.gibbs_steps(k, neg_batch)
-        grad_model = cplx.real(self.am_grads(vk, vk)).sum(0)
-
-        grad = [0.0, 0.0]
-
-        grad_data = [
-            torch.zeros(
-                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
-            )
-            for net in self.networks
-        ]
-
-        for i in range(samples_batch.shape[0]):
-            data_gradient = self.gradient(bases_batch[i], samples_batch[i])
-            grad_data[0] += data_gradient[0]
-            grad_data[1] += data_gradient[1]
-
-        # Can just take the real parts now since the imaginary parts have cancelled
-        grad[0] = -cplx.real(grad_data[0]) / float(samples_batch.shape[0])
-        grad[0] += grad_model / float(neg_batch.shape[0])
-        grad[1] = -cplx.real(grad_data[1]) / float(samples_batch.shape[0])
+        grad_model = self.rbm_am.effective_energy_gradient(vk)
+        grad[0] -= grad_model / float(neg_batch.shape[0])
 
         return grad
-
-    def rotate_rho(self, basis, space, Z, unitaries, rho=None):
-        r"""Computes the density matrix rotated into some basis
-
-        :param basis: The basis into which to rotate the density matrix
-        :type basis: numpy.ndarray
-        :param space: The Hilbert space of the system
-        :type space: torch.Tensor
-        :param unitaries: A dictionary of unitary matrices associated with
-                          rotation into each basis
-        :type unitaries: dict[str, torch.Tensor]
-        :returns: The rotated density matrix
-        :rtype: torch.Tensor
-        """
-        rho = self.rhoRBM(space, space) if rho is None else rho
-
-        unitaries = {k: v for k, v in unitaries.items()}
-        us = [unitaries[b] for b in basis]
-        if len(us) == 0:
-            return rho
-
-        # After ensuring there is more than one measurement, compute the
-        # composite unitary by repeated Kronecker products
-        U = us[0]
-        for index in range(len(us) - 1):
-            U = cplx.kronecker_prod(U, us[index + 1])
-
-        U = U.to(rho)
-        U_dag = cplx.conjugate(U)
-
-        rot_rho = cplx.matmul(rho, U_dag)
-        rot_rho_ = cplx.matmul(U, rot_rho)
-
-        return rot_rho_
 
     def _shuffle_data(
         self,
@@ -793,8 +687,6 @@ class DensityMatrix:
 
         num_batches = ceil(train_samples.shape[0] / pos_batch_size)
 
-        # here for now to test shit
-
         callbacks.on_train_start(self)
 
         for ep in progress_bar(
@@ -817,7 +709,6 @@ class DensityMatrix:
                 optimizer.zero_grad()
 
                 for i, net in enumerate(self.networks):
-
                     rbm = getattr(self, net)
                     vector_to_grads(all_grads[i], rbm.parameters())
 
@@ -846,6 +737,21 @@ class DensityMatrix:
                     break
 
         callbacks.on_train_end(self)
+
+    def normalization(self, space):
+        r"""Compute the normalization constant of the state.
+
+        .. math::
+
+            Z_{\bm{\lambda}}=
+            \sqrt{\sum_{\bm{\sigma}}|\psi_{\bm{\lambda\mu}}|^2}=
+            \sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}
+
+        :param space: A rank 2 tensor of the entire visible space.
+        :type space: torch.Tensor
+
+        """
+        return self.rbm_am.partition(space)
 
     def save(self, location, metadata=None):
         """Saves the DensityMatrix parameters to the given location along with
@@ -886,3 +792,16 @@ class DensityMatrix:
 
         for net in self.networks:
             getattr(self, net).load_state_dict(state_dict[net])
+
+    @staticmethod
+    def autoload(location, gpu=True):
+        state_dict = torch.load(location)
+        nn_state = DensityMatrix(
+            unitary_dict=state_dict["unitary_dict"],
+            num_visible=len(state_dict["rbm_am"]["visible_bias"]),
+            num_hidden=len(state_dict["rbm_am"]["hidden_bias"]),
+            num_aux=len(state_dict["rbm_am"]["aux_bias"]),
+            gpu=gpu,
+        )
+        nn_state.load(location)
+        return nn_state

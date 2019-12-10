@@ -267,61 +267,23 @@ class DensityGradsUtils:
 
     #     return torch.tensor(np.array(num_gradNLL), dtype=torch.double).to(param)
 
-    def compute_numerical_KL(self, target, bases, v_space, a_space):
-        return ts.density_matrix_KL(self.nn_state, target, bases, v_space, a_space)
+    def compute_numerical_KL(self, target, bases, space):
+        return ts.density_matrix_KL(self.nn_state, target, bases, space)
 
-    def algorithmic_gradKL(self, data_samples, data_bases, v_space, **kwargs):
-        grad = [0.0, 0.0]
+    def algorithmic_gradKL(self, data_samples, data_bases, space, **kwargs):
+        return self.nn_state.compute_exact_grads(data_samples, data_bases, space)
 
-        grad_data = [
-            torch.zeros(
-                2,
-                getattr(self.nn_state, net).num_pars,
-                dtype=torch.double,
-                device=self.nn_state.device,
-            )
-            for net in self.nn_state.networks
-        ]
-
-        grad_model = [
-            torch.zeros(
-                self.nn_state.rbm_am.num_pars,
-                dtype=torch.double,
-                device=self.nn_state.device,
-            )
-        ]
-
-        rho_rbm = self.nn_state.rhoRBM(v_space, v_space)
-
-        for i in range(data_samples.shape[0]):
-            data_gradient = self.nn_state.gradient(data_bases[i], data_samples[i])
-            grad_data[0] += data_gradient[0]
-            grad_data[1] += data_gradient[1]
-
-        # Can just take the real parts since the imaginary parts will have cancelled out
-        grad[0] = -cplx.real(grad_data[0]) / float(data_samples.shape[0])
-        grad[1] = -cplx.real(grad_data[1]) / float(data_samples.shape[0])
-
-        for i in range(2 ** self.nn_state.num_visible):
-            grad_model[0] += rho_rbm[0][i][i] * cplx.real(
-                self.nn_state.am_grads(v_space[i], v_space[i])
-            )
-
-        grad[0] += grad_model[0]
-
-        return grad
-
-    def numeric_gradKL(self, param, target, v_space, a_space, bases, eps, **kwargs):
+    def numeric_gradKL(self, param, target, space, bases, eps, **kwargs):
         num_gradKL = []
         param_shape = param.shape
         param = param.view(-1)
 
         for i in range(len(param)):
             param[i] += eps
-            KL_p = self.compute_numerical_KL(target, bases, v_space, a_space)
+            KL_p = self.compute_numerical_KL(target, bases, space)
 
             param[i] -= 2 * eps
-            KL_m = self.compute_numerical_KL(target, bases, v_space, a_space)
+            KL_m = self.compute_numerical_KL(target, bases, space)
 
             param[i] += eps
             num_gradKL.append((KL_p - KL_m) / (2 * eps))
@@ -329,7 +291,7 @@ class DensityGradsUtils:
         param = param.reshape(param_shape)
         return torch.tensor(num_gradKL, dtype=torch.double)
 
-    def all_num_grads(self, target, v_space, a_space, bases, eps):
+    def all_num_grads(self, target, space, bases, eps):
         num_grads = []
         for _n, net in enumerate(self.nn_state.networks):
             rbm = getattr(self.nn_state, net)
@@ -337,37 +299,9 @@ class DensityGradsUtils:
             counter = 0
             for param in rbm.parameters():
                 num_grad = torch.cat(
-                    (
-                        num_grad,
-                        self.numeric_gradKL(
-                            param, target, v_space, a_space, bases, eps
-                        ),
-                    )
+                    (num_grad, self.numeric_gradKL(param, target, space, bases, eps),)
                 )
                 counter += 1
             num_grads.append(num_grad)
 
         return num_grads
-
-    def test_grads(self, alg_grads, alg_grads_nogibbs, num_grads):
-        for n, net in enumerate(self.nn_state.networks):
-            print("\nRBM: %s" % net)
-            rbm = getattr(self.nn_state, net)
-
-            param_ranges = {}
-            counter = 0
-            for param_name, param in rbm.named_parameters():
-                param_ranges[param_name] = range(counter, counter + param.numel())
-                counter += param.numel()
-
-            for i, grad in enumerate(num_grads[n]):
-                p_name, at_start = self.nn_state.get_param_status(i, param_ranges)
-                if at_start:
-                    print(f"\nTesting {p_name}...")
-                    print(f"Numerical KL\tAlg KL\t\tAlg KL No Gibbs")
-
-                print(
-                    "{: 10.8f}\t{: 10.8f}\t{: 10.8f}\t\t".format(
-                        grad, alg_grads[n][i].item(), alg_grads_nogibbs[n][i].item()
-                    )
-                )

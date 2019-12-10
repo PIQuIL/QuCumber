@@ -32,7 +32,7 @@ SEED = 1234
 EPS = 1e-6
 
 TOL = torch.tensor(2e-8, dtype=torch.double)
-NDO_TOL = torch.tensor(2.00, dtype=torch.double)
+NDO_TOL = torch.tensor(1.00, dtype=torch.double)
 PDIFF = torch.tensor(100, dtype=torch.double)  # NLL grad tests are a bit too random tbh
 
 
@@ -43,20 +43,20 @@ def percent_diff(a, b):  # for NLL
 
 
 # assertion functions
-def assertAlmostEqual(a, b, tol, msg=None):
+def assertAlmostEqual(a, b, tol=TOL, msg=None):
     a = a.to(device=torch.device("cpu"))
     b = b.to(device=torch.device("cpu"))
     diff = torch.abs(a - b)
     result = torch.ge(tol * torch.ones_like(diff), diff)
-    assert torch.all(result).item(), msg
+    assert torch.all(result).squeeze().item(), msg
 
 
-def assertPercentDiff(a, b, pdiff, msg=None):
+def assertPercentDiff(a, b, pdiff=PDIFF, msg=None):
     a = a.to(device=torch.device("cpu"))
     b = b.to(device=torch.device("cpu"))
     pdiff = percent_diff(a, b)
     result = torch.ge(pdiff * torch.ones_like(pdiff), pdiff)
-    assert torch.all(result).item(), msg
+    assert torch.all(result).squeeze().item(), msg
 
 
 def positive_wavefunction_data(request, gpu, num_hidden):
@@ -170,7 +170,7 @@ def density_matrix_data(request, gpu, num_hidden):
     )
 
     num_visible = data_samples.shape[-1]
-    num_aux = num_hidden + 1  # this is not a rule, will change with data
+    num_aux = num_visible + 1
 
     unitary_dict = unitaries.create_dict()
     nn_state = DensityMatrix(
@@ -180,8 +180,7 @@ def density_matrix_data(request, gpu, num_hidden):
 
     bases = DGU.transform_bases(bases_data)
 
-    v_space = nn_state.generate_hilbert_space(num_visible)
-    a_space = nn_state.generate_hilbert_space(num_aux)
+    space = nn_state.generate_hilbert_space(num_visible)
 
     data_samples = data_samples.to(device=nn_state.device)
 
@@ -195,8 +194,7 @@ def density_matrix_data(request, gpu, num_hidden):
             "grad_utils",
             "bases",
             "target",
-            "v_space",
-            "a_space",
+            "space",
             "nn_state",
             "unitary_dict",
         ],
@@ -208,8 +206,7 @@ def density_matrix_data(request, gpu, num_hidden):
         grad_utils=DGU,
         bases=bases,
         target=target_matrix,
-        v_space=v_space,
-        a_space=a_space,
+        space=space,
         nn_state=nn_state,
         unitary_dict=unitary_dict,
     )

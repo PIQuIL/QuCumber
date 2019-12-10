@@ -48,6 +48,25 @@ def fidelity(nn_state, target_psi, space, **kwargs):
     return cplx.absolute_value(F).pow_(2).item()
 
 
+def _kron_mult(matrices, x):
+    n = [m.size()[0] for m in matrices]
+    l, r = np.prod(n), 1  # noqa: E741
+
+    y = x.clone()
+    for s in reversed(range(len(n))):
+        l //= n[s]  # noqa: E741
+        m = matrices[s]
+
+        for k in range(l):
+            for i in range(r):
+                slc = slice(k * n[s] * r + i, (k + 1) * n[s] * r + i, r)
+                temp = y[:, slc, ...]
+                y[:, slc, ...] = cplx.matmul(m, temp)
+        r *= n[s]
+
+    return y
+
+
 def rotate_psi(nn_state, basis, space, unitaries, psi=None):
     r"""A function that rotates the reconstructed wavefunction to a different
     basis.
@@ -76,23 +95,41 @@ def rotate_psi(nn_state, basis, space, unitaries, psi=None):
 
     unitaries = {k: v.to(device=nn_state.device) for k, v in unitaries.items()}
     us = [unitaries[b] for b in basis]
-    n_u = [u.size()[0] for u in us]
+    return _kron_mult(us, psi)
 
-    l, r = np.prod(n_u), 1  # noqa: E741
 
-    psi_r = psi.clone()
-    for s in reversed(range(len(n_u))):
-        l //= n_u[s]  # noqa: E741
-        m = us[s]
+def rotate_rho(nn_state, basis, space, unitaries, rho=None):
+    r"""Computes the density matrix rotated into some basis
 
-        for k in range(l):
-            for i in range(r):
-                slc = slice(k * n_u[s] * r + i, (k + 1) * n_u[s] * r + i, r)
-                U = psi_r[:, slc]
-                psi_r[:, slc] = cplx.matmul(m, U)
-        r *= n_u[s]
+    :param nn_state: The density matrix neural network state.
+    :type nn_state: qucumber.nn_states.DensityMatrix
+    :param basis: The basis to rotate the wavefunction to.
+    :type basis: str
+    :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
+    :type space: torch.Tensor
+    :param unitaries: A dictionary of unitary matrices associated with
+                        rotation into each basis
+    :type unitaries: dict(str, torch.Tensor)
+    :param psi: A density matrix that the user can input to override the neural
+                network state's density matrix.
+    :type psi: torch.Tensor
 
-    return psi_r
+    :returns: The rotated density matrix
+    :rtype: torch.Tensor
+    """
+    rho = (
+        nn_state.rho(space, space)
+        if rho is None
+        else rho.to(dtype=torch.double, device=nn_state.device)
+    )
+
+    unitaries = {k: v.to(device=nn_state.device) for k, v in unitaries.items()}
+    us = [unitaries[b] for b in basis]
+
+    rho_r = _kron_mult(us, rho)
+    rho_r = _kron_mult(us, cplx.conjugate(rho_r))
+
+    return rho_r
 
 
 def NLL(nn_state, samples, space, bases=None, **kwargs):
@@ -211,7 +248,7 @@ def KL(nn_state, target_psi, space, bases=None, **kwargs):
     return KL.item()
 
 
-def density_matrix_fidelity(nn_state, target, v_space, **kwargs):
+def density_matrix_fidelity(nn_state, target, space, **kwargs):
     r"""Calculate the fidelity of the reconstructed density matrix
     given the exact target density matrix
 
@@ -219,63 +256,59 @@ def density_matrix_fidelity(nn_state, target, v_space, **kwargs):
     :type nn_state: qucumber.nn_states.DensityMatrix
     :param target: The true density matrix of the system
     :type target: torch.Tensor
-    :param v_space: The basis elements of the visible space
-    :type v_space: torch.Tensor
+    :param space: The basis elements of the visible space
+    :type space: torch.Tensor
     :param \**kwargs: Extra keyword arguments that may be passed.
                       Will be ignored.
     :returns: The fidelity
     :rtype: float
     """
-    rhoRBM_ = nn_state.rhoRBM(v_space, v_space)
-    argReal = cplx.real(rhoRBM_).numpy()
-    argIm = cplx.imag(rhoRBM_).numpy()
+    Z = nn_state.normalization(space)
+    rho = nn_state.rho(space, space) / Z
+    arg_real = cplx.real(rho).numpy()
+    arg_imag = cplx.imag(rho).numpy()
 
-    rho_rbm_ = argReal + 1j * argIm
+    rho_rbm_ = arg_real + 1j * arg_imag
 
-    argReal = cplx.real(target).numpy()
-    argIm = cplx.imag(target).numpy()
+    arg_real = cplx.real(target).numpy()
+    arg_imag = cplx.imag(target).numpy()
 
-    target_ = argReal + 1j * argIm
+    target_ = arg_real + 1j * arg_imag
 
     sqrt_rho_rbm = sqrtm(rho_rbm_)
 
     arg = sqrtm(np.matmul(sqrt_rho_rbm, np.matmul(target_, sqrt_rho_rbm)))
-
     return np.trace(arg).real
 
 
-def density_matrix_KL(nn_state, target, bases, v_space, a_space):
+def density_matrix_KL(nn_state, target, bases, space):
     """Computes the KL divergence between the current and target density matrix
 
     :param target: The target density matrix
     :type target: torch.Tensor
     :param bases: The bases in which measurement is made
     :type bases: numpy.ndarray
-    :param v_space: The space of the visible states
-    :type v_space: torch.Tensor
-    :param a_space: The space of the auxiliary states
-    :type a_space: torch.Tensor
+    :param space: The space of the visible states
+    :type space: torch.Tensor
     :returns: The KL divergence
     :rtype: float
     """
-    Z = nn_state.rbm_am.partition(v_space, a_space)
+    Z = nn_state.normalization(space)
     unitary_dict = nn_state.unitary_dict
-    rho_r_diag = torch.zeros(2, 2 ** nn_state.num_visible, dtype=torch.double)
+    rho_r_diag = torch.zeros(2 ** nn_state.num_visible, dtype=torch.double)
     target_rho_r_diag = torch.zeros_like(rho_r_diag)
 
     KL = 0.0
 
     for basis in bases:
-        rho_r = nn_state.rotate_rho(basis, v_space, Z, unitary_dict)
-        target_rho_r = nn_state.rotate_rho(basis, v_space, Z, unitary_dict, rho=target)
+        rho_r = rotate_rho(nn_state, basis, space, unitary_dict) / Z
+        target_rho_r = rotate_rho(nn_state, basis, space, unitary_dict, rho=target)
 
-        rho_r_diag[0] = torch.diagonal(rho_r[0])
-        rho_r_diag[1] = torch.diagonal(rho_r[1])
-        target_rho_r_diag[0] = torch.diagonal(target_rho_r[0])
-        target_rho_r_diag[1] = torch.diagonal(target_rho_r[1])
+        rho_r_diag = torch.diagonal(cplx.real(rho_r))
+        target_rho_r_diag = torch.diagonal(cplx.real(target_rho_r))
 
-        KL += torch.sum(target_rho_r_diag[0] * probs_to_logits(target_rho_r_diag[0]))
-        KL -= torch.sum(target_rho_r_diag[0] * probs_to_logits(rho_r_diag[0]))
+        KL += torch.sum(target_rho_r_diag * probs_to_logits(target_rho_r_diag))
+        KL -= torch.sum(target_rho_r_diag * probs_to_logits(rho_r_diag))
 
     KL /= float(len(bases))
 
