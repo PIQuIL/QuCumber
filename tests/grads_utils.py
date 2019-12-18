@@ -252,8 +252,8 @@ class DensityGradsUtils:
 
     #     return torch.tensor(np.array(num_gradNLL), dtype=torch.double).to(param)
 
-    def compute_numerical_KL(self, target, bases, space):
-        return ts.density_matrix_KL(self.nn_state, target, bases, space)
+    def compute_numerical_KL(self, target, space, bases):
+        return ts.KL(self.nn_state, target, space, bases=bases)
 
     def algorithmic_gradKL(self, data_samples, data_bases, space, **kwargs):
         return self.nn_state.compute_exact_gradients(data_samples, space, data_bases)
@@ -265,10 +265,10 @@ class DensityGradsUtils:
 
         for i in range(len(param)):
             param[i] += eps
-            KL_p = self.compute_numerical_KL(target, bases, space)
+            KL_p = self.compute_numerical_KL(target, space, bases)
 
             param[i] -= 2 * eps
-            KL_m = self.compute_numerical_KL(target, bases, space)
+            KL_m = self.compute_numerical_KL(target, space, bases)
 
             param[i] += eps
             num_gradKL.append((KL_p - KL_m) / (2 * eps))

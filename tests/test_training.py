@@ -250,7 +250,7 @@ def test_trainingpositive(request):
             MetricEvaluator(
                 log_every,
                 {"Fidelity": ts.fidelity, "KL": ts.KL},
-                target_psi=target_psi,
+                target=target_psi,
                 space=space,
                 verbose=True,
             )
@@ -364,7 +364,7 @@ def test_trainingcomplex(request, vectorized):
             MetricEvaluator(
                 log_every,
                 {"Fidelity": ts.fidelity, "KL": ts.KL},
-                target_psi=target_psi,
+                target=target_psi,
                 bases=bases,
                 space=space,
                 verbose=True,
