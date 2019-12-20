@@ -169,5 +169,13 @@ def lint_example_notebooks(c, linter="flake8"):
 )
 def style(c):
     """Runs all style/format checks on code."""
-    c.run("flake8", warn=True, echo=True)
-    c.run("black --diff --check .", warn=True, echo=True)
+    num_fails = 0
+    run = c.run("flake8", warn=True, echo=True)
+    num_fails += int(run.failed)
+    run = c.run("black --diff --check .", warn=True, echo=True)
+    num_fails += int(run.failed)
+
+    if num_fails > 0:
+        raise Exit(
+            message="Code isn't formatted properly.", code=num_fails,
+        )

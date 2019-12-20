@@ -120,7 +120,7 @@ class DensityMatrix(NeuralStateBase):
 
         :param v: A batch of visible states, :math:`\sigma`.
         :type v: torch.Tensor
-        :param vp: The other batch of visible state, :math`\sigma'`.
+        :param vp: The other batch of visible state, :math:`\sigma'`.
         :type vp: torch.Tensor
         :param expand: Whether to return a matrix (`True`) or a vector (`False`).
         :type expand: bool

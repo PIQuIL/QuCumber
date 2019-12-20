@@ -303,7 +303,7 @@ def test_trainingcomplex(request, vectorized):
     print("--------------------")
 
     root = os.path.join(
-        request.fspath.dirname, "..", "examples", "Tutorial2_TrainComplexWaveFunction",
+        request.fspath.dirname, "..", "examples", "Tutorial2_TrainComplexWaveFunction"
     )
 
     train_samples_path = os.path.join(root, "qubits_train.txt")
