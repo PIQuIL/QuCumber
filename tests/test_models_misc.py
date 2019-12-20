@@ -169,9 +169,21 @@ def test_density_matrix_sizes():
     assert rho.shape == (2, v.shape[0], vp.shape[0])
 
 
-@pytest.mark.parametrize(
-    "prop", ["rho", "pi", "rbm_am.gamma_plus", "rbm_ph.gamma_minus"]
-)
+ndo_matrices = [
+    ("rho", True),
+    ("pi", True),
+    ("rbm_am.gamma_plus", False),
+    ("rbm_ph.gamma_minus", False),
+    ("pi_grad_am", True),
+    ("pi_grad_ph", True),
+    ("rbm_am.gamma_plus_grad", True),
+    ("rbm_ph.gamma_minus_grad", True),
+]
+
+ndo_matrices = [pytest.param(p, id=p[0]) for p in ndo_matrices]
+
+
+@pytest.mark.parametrize("prop", ndo_matrices)
 def test_density_matrix_expansion(prop):
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
 
@@ -179,33 +191,16 @@ def test_density_matrix_expansion(prop):
     v = nn_state.generate_hilbert_space(5)
     vp = v[torch.randperm(v.shape[0]), :]
 
+    prop, is_complex = prop
     fn = attrgetter(prop)(nn_state)
 
     matrix = fn(v, vp, expand=True)
     diag = fn(v, vp, expand=False)
 
     msg = f"Diagonal of matrix {prop} is wrong!"
-    assertAlmostEqual(torch.einsum("...ii->...i", matrix), diag, TOL, msg=msg)
 
-
-@pytest.mark.parametrize(
-    "prop",
-    ["pi_grad_am", "pi_grad_ph", "rbm_am.gamma_plus_grad", "rbm_ph.gamma_minus_grad"],
-)
-def test_density_matrix_gradient_expansion(prop):
-    qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
-
-    nn_state = DensityMatrix(5, gpu=False)
-    v = nn_state.generate_hilbert_space(5)
-    vp = v[torch.randperm(v.shape[0]), :]
-
-    fn = attrgetter(prop)(nn_state)
-
-    matrix = fn(v, vp, expand=True)
-    diag = fn(v, vp, expand=False)
-
-    msg = f"Diagonal of matrix {prop} is wrong!"
-    assertAlmostEqual(torch.einsum("cii...->ci...", matrix), diag, TOL, msg=msg)
+    equation = "cii...->ci..." if is_complex else "ii->i"
+    assertAlmostEqual(torch.einsum(equation, matrix), diag, TOL, msg=msg)
 
 
 def test_density_matrix_diagonal():
