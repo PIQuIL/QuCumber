@@ -111,14 +111,21 @@ class DensityMatrix(NeuralStateBase):
     def device(self, new_val):
         self._device = new_val
 
-    def pi(self, v, vp):
-        r"""Calculates an element of the :math:`\Pi` matrix
+    def pi(self, v, vp, expand=True):
+        r"""Calculates elements of the :math:`\Pi` matrix.
+        If `expand` is `True`, will return a complex matrix
+        :math:`A_{ij} = \langle\sigma_i|\Pi|\sigma'_j\rangle`.
+        Otherwise will return a complex vector
+        :math:`A_{i} = \langle\sigma_i|\Pi|\sigma'_i\rangle`.
 
-        :param v: One of the visible states, :math:`\sigma`
+        :param v: A batch of visible states, :math:`\sigma`.
         :type v: torch.Tensor
-        :param vp: The other visible state, :math`\sigma'`
+        :param vp: The other batch of visible state, :math`\sigma'`.
         :type vp: torch.Tensor
-        :returns: The matrix element given by :math:`\langle\sigma|\Pi|\sigma'\rangle`
+        :param expand: Whether to return a matrix (`True`) or a vector (`False`).
+        :type expand: bool
+
+        :returns: The matrix elements given by :math:`\langle\sigma|\Pi|\sigma'\rangle`
         :rtype: torch.Tensor
         """
         m_am = F.linear(v, self.rbm_am.weights_U, self.rbm_am.aux_bias)
@@ -127,10 +134,10 @@ class DensityMatrix(NeuralStateBase):
         m_ph = F.linear(v, self.rbm_ph.weights_U)
         mp_ph = F.linear(vp, self.rbm_ph.weights_U)
 
-        if v.dim() >= 2:
+        if expand and v.dim() >= 2:
             m_am = m_am.unsqueeze_(1)
             m_ph = m_ph.unsqueeze_(1)
-        if vp.dim() >= 2:
+        if expand and vp.dim() >= 2:
             mp_am = mp_am.unsqueeze_(0)
             mp_ph = mp_ph.unsqueeze_(0)
 
@@ -255,25 +262,36 @@ class DensityMatrix(NeuralStateBase):
             torch.cat(vec_real, dim=-1), torch.cat(vec_imag, dim=-1)
         )
 
-    def rho(self, v, vp):
-        r"""Computes the matrix elements of the (unnormalized) density matrix
+    def rho(self, v, vp=None, expand=True):
+        r"""Computes the matrix elements of the (unnormalized) density matrix.
+        If `expand` is `True`, will return a complex matrix
+        :math:`A_{ij} = \langle\sigma_i|\widetilde{\rho}|\sigma'_j\rangle`.
+        Otherwise will return a complex vector
+        :math:`A_{i} = \langle\sigma_i|\widetilde{\rho}|\sigma'_i\rangle`.
 
-        :param v: One of the visible states, :math:`\sigma`
+        :param v: One of the visible states, :math:`\sigma`.
         :type v: torch.Tensor
-        :param vp: The other visible state, :math`\sigma'`
+        :param vp: The other visible state, :math:`\sigma'`.
+                   If `None`, will be set to `v`.
         :type vp: torch.Tensor
-        :returns: The element of the current density matrix
+        :param expand: Whether to return a matrix (`True`) or a vector (`False`).
+        :type expand: bool
+
+        :returns: The elements of the current density matrix
                   :math:`\langle\sigma|\widetilde{\rho}|\sigma'\rangle`
         :rtype: torch.Tensor
         """
-        pi_ = self.pi(v, vp)
-        amp = (self.rbm_am.gamma_plus(v, vp) + cplx.real(pi_)).exp()
-        phase = self.rbm_ph.gamma_minus(v, vp) + cplx.imag(pi_)
+        if expand is False and vp is None:
+            return cplx.make_complex(self.probability(v))
+
+        pi_ = self.pi(v, vp, expand=expand)
+        amp = (self.rbm_am.gamma_plus(v, vp, expand=expand) + cplx.real(pi_)).exp()
+        phase = self.rbm_ph.gamma_minus(v, vp, expand=expand) + cplx.imag(pi_)
 
         return cplx.make_complex(amp * phase.cos(), amp * phase.sin())
 
     def importance_sampling_numerator(self, iter_sample, drawn_sample):
-        return self.rho(drawn_sample, iter_sample)
+        return self.rho(drawn_sample, iter_sample, expand=False)
 
     def importance_sampling_denominator(self, drawn_sample):
         return self.probability(drawn_sample)

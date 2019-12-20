@@ -136,7 +136,7 @@ class PurificationRBM(nn.Module):
         :param a: The current state of the auxiliary units. Shape (b, n_a) or (n_a,).
         :type a: torch.Tensor or None
 
-        :returns: The "effective energy" of the RBM. Shape (b,).
+        :returns: The "effective energy" of the RBM. Shape (b,) or (1,).
         :rtype: torch.Tensor
         """
         v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights_W)
@@ -341,48 +341,61 @@ class PurificationRBM(nn.Module):
         """
         return F.linear(v, 0.5 * self.weights_U, self.aux_bias)
 
-    def gamma_plus(self, v, vp):
-        r"""Calculates an element of the :math:`\Gamma^{(+)}` matrix
+    def gamma_plus(self, v, vp, expand=True):
+        r"""Calculates an element of the :math:`\Gamma^{(+)}` matrix.
+        If `expand` is `True`, will return a complex matrix
+        :math:`A_{ij} = \langle\sigma_i|\Gamma^{(+)}|\sigma'_j\rangle`.
+        Otherwise will return a complex vector
+        :math:`A_{i} = \langle\sigma_i|\Gamma^{(+)}|\sigma'_i\rangle`.
 
-        :param v: One of the visible states, :math:`\sigma`
+        :param v: A batch of visible states, :math:`\sigma`.
         :type v: torch.Tensor
-        :param vp: The other visible state, :math`\sigma'`
+        :param vp: The other batch of visible state, :math`\sigma'`.
         :type vp: torch.Tensor
+        :param expand: Whether to return a matrix (`True`) or a vector (`False`).
+                       Ignored if both inputs are vectors, in which case, a
+                       scalar is returned.
+        :type expand: bool
 
         :returns: The matrix element given by
                   :math:`\langle\sigma|\Gamma^{(+)}|\sigma'\rangle`
         :rtype: torch.Tensor
         """
-        if len(v.shape) < 2 and len(vp.shape) < 2:
+        if v.dim() < 2 and vp.dim() < 2:
             temp = torch.dot(v + vp, self.visible_bias)
             temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
             temp += F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
         else:
-            temp = torch.mv(v, self.visible_bias).unsqueeze_(1) + torch.mv(
-                vp, self.visible_bias
-            ).unsqueeze_(0)
-
-            temp += (
-                F.softplus(F.linear(v, self.weights_W, self.hidden_bias))
-                .sum(1)
-                .unsqueeze_(1)
+            temp1 = torch.mv(v, self.visible_bias) + (
+                F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(1)
             )
 
-            temp += (
-                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias))
-                .sum(1)
-                .unsqueeze_(0)
+            temp2 = torch.mv(vp, self.visible_bias) + (
+                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum(1)
             )
+
+            if expand:
+                temp = temp1.unsqueeze_(1) + temp2.unsqueeze_(0)
+            else:
+                temp = temp1 + temp2
 
         return 0.5 * temp
 
-    def gamma_minus(self, v, vp):
-        r"""Calculates an element of the :math:`\Gamma^{(-)}` matrix
+    def gamma_minus(self, v, vp, expand=True):
+        r"""Calculates an element of the :math:`\Gamma^{(-)}` matrix.
+        If `expand` is `True`, will return a complex matrix
+        :math:`A_{ij} = \langle\sigma_i|\Gamma^{(-)}|\sigma'_j\rangle`.
+        Otherwise will return a complex vector
+        :math:`A_{i} = \langle\sigma_i|\Gamma^{(-)}|\sigma'_i\rangle`.
 
-        :param v: One of the visible states, :math:`\sigma`
+        :param v: A batch of visible states, :math:`\sigma`.
         :type v: torch.Tensor
-        :param vp: The other visible state, :math`\sigma'`
+        :param vp: The other batch of visible state, :math`\sigma'`.
         :type vp: torch.Tensor
+        :param expand: Whether to return a matrix (`True`) or a vector (`False`).
+                       Ignored if both inputs are vectors, in which case, a
+                       scalar is returned.
+        :type expand: bool
 
         :returns: The matrix element given by
                   :math:`\langle\sigma|\Gamma^{(-)}|\sigma'\rangle`
@@ -393,21 +406,18 @@ class PurificationRBM(nn.Module):
             temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
             temp -= F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
         else:
-            temp = torch.mv(v, self.visible_bias).unsqueeze_(1) - torch.mv(
-                vp, self.visible_bias
-            ).unsqueeze_(0)
-
-            temp += (
-                F.softplus(F.linear(v, self.weights_W, self.hidden_bias))
-                .sum(1)
-                .unsqueeze_(1)
+            temp1 = torch.mv(v, self.visible_bias) + (
+                F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(1)
             )
 
-            temp -= (
-                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias))
-                .sum(1)
-                .unsqueeze_(0)
+            temp2 = torch.mv(vp, self.visible_bias) + (
+                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum(1)
             )
+
+            if expand:
+                temp = temp1.unsqueeze_(1) - temp2.unsqueeze_(0)
+            else:
+                temp = temp1 - temp2
 
         return 0.5 * temp
 

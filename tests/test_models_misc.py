@@ -15,6 +15,7 @@
 
 import os.path
 from functools import reduce
+from operator import attrgetter
 
 import torch
 from torch.nn.utils import parameters_to_vector
@@ -149,23 +150,53 @@ def test_density_matrix_hermiticity():
 
 
 def test_density_matrix_tr1():
-    nn_state = DensityMatrix(5, 5, 5, gpu=False)
+    nn_state = DensityMatrix(5, gpu=False)
 
-    v_space = nn_state.generate_hilbert_space(5)
-    matrix = nn_state.rho(v_space, v_space) / nn_state.normalization(v_space)
+    space = nn_state.generate_hilbert_space(5)
+    matrix = nn_state.rho(space, space) / nn_state.normalization(space)
 
     msg = f"Trace of density matrix is not within {TOL} of 1!"
     assertAlmostEqual(torch.trace(matrix[0]), torch.Tensor([1]), TOL, msg=msg)
 
 
-def test_gamma_plus():
+def test_density_matrix_sizes():
     nn_state = DensityMatrix(5, gpu=False)
     v = nn_state.generate_hilbert_space(5)
     vp = v[:4, :]
 
-    gamma_p = nn_state.rbm_am.gamma_plus(v, vp)
+    rho = nn_state.rho(v, vp)
 
-    assert gamma_p.shape == (v.shape[0], vp.shape[0])
+    assert rho.shape == (2, v.shape[0], vp.shape[0])
+
+
+@pytest.mark.parametrize(
+    "prop", ["rho", "pi", "rbm_am.gamma_plus", "rbm_ph.gamma_minus"]
+)
+def test_density_matrix_expansion(prop):
+    qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
+
+    nn_state = DensityMatrix(5, gpu=False)
+    v = nn_state.generate_hilbert_space(5)
+    vp = v[torch.randperm(v.shape[0]), :]
+
+    fn = attrgetter(prop)(nn_state)
+
+    matrix = fn(v, vp)
+    diag = fn(v, vp, expand=False)
+
+    msg = f"Diagonal of matrix {prop} is wrong!"
+    assertAlmostEqual(torch.diagonal(matrix, dim1=-2, dim2=-1), diag, TOL, msg=msg)
+
+
+def test_density_matrix_diagonal():
+    nn_state = DensityMatrix(5, gpu=False)
+    v = nn_state.generate_hilbert_space(5)
+
+    rho = nn_state.rho(v)
+    diag = nn_state.rho(v, expand=False)
+
+    msg = f"Diagonal of density matrix is wrong!"
+    assertAlmostEqual(torch.diagonal(rho, dim1=-2, dim2=-1), diag, TOL, msg=msg)
 
 
 def test_single_positive_sample():
