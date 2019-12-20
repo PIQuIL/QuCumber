@@ -302,34 +302,14 @@ def test_trainingcomplex(request, vectorized):
     print("Complex WaveFunction")
     print("--------------------")
 
-    train_samples_path = os.path.join(
-        request.fspath.dirname,
-        "..",
-        "examples",
-        "Tutorial2_TrainComplexWaveFunction",
-        "qubits_train.txt",
+    root = os.path.join(
+        request.fspath.dirname, "..", "examples", "Tutorial2_TrainComplexWaveFunction",
     )
-    train_bases_path = os.path.join(
-        request.fspath.dirname,
-        "..",
-        "examples",
-        "Tutorial2_TrainComplexWaveFunction",
-        "qubits_train_bases.txt",
-    )
-    bases_path = os.path.join(
-        request.fspath.dirname,
-        "..",
-        "examples",
-        "Tutorial2_TrainComplexWaveFunction",
-        "qubits_bases.txt",
-    )
-    psi_path = os.path.join(
-        request.fspath.dirname,
-        "..",
-        "examples",
-        "Tutorial2_TrainComplexWaveFunction",
-        "qubits_psi.txt",
-    )
+
+    train_samples_path = os.path.join(root, "qubits_train.txt")
+    train_bases_path = os.path.join(root, "qubits_train_bases.txt")
+    bases_path = os.path.join(root, "qubits_bases.txt")
+    psi_path = os.path.join(root, "qubits_psi.txt")
 
     train_samples, target_psi, train_bases, bases = data.load_data(
         train_samples_path, psi_path, train_bases_path, bases_path
