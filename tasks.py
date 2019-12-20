@@ -176,6 +176,4 @@ def style(c):
     num_fails += int(run.failed)
 
     if num_fails > 0:
-        raise Exit(
-            message="Code isn't formatted properly.", code=num_fails,
-        )
+        raise Exit(message="Code isn't formatted properly.", code=num_fails)

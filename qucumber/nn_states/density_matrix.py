@@ -424,7 +424,7 @@ class DensityMatrix(NeuralStateBase):
                 .to(sample)
                 .contiguous()
             )
-            UrhoU_v = cplx.scalar_mult(U, self.rho(v, v).detach())
+            UrhoU_v = cplx.scalar_mult(U, self.rho(v).detach())
             UrhoU = torch.sum(UrhoU_v, dim=(1, 2))
 
             am_grads = self.am_grads(v, v, expand=True)

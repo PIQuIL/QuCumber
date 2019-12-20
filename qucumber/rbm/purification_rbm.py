@@ -350,7 +350,7 @@ class PurificationRBM(nn.Module):
 
         :param v: A batch of visible states, :math:`\sigma`.
         :type v: torch.Tensor
-        :param vp: The other batch of visible state, :math`\sigma'`.
+        :param vp: The other batch of visible states, :math:`\sigma'`.
         :type vp: torch.Tensor
         :param expand: Whether to return a matrix (`True`) or a vector (`False`).
                        Ignored if both inputs are vectors, in which case, a
@@ -390,7 +390,7 @@ class PurificationRBM(nn.Module):
 
         :param v: A batch of visible states, :math:`\sigma`.
         :type v: torch.Tensor
-        :param vp: The other batch of visible state, :math`\sigma'`.
+        :param vp: The other batch of visible states, :math:`\sigma'`.
         :type vp: torch.Tensor
         :param expand: Whether to return a matrix (`True`) or a vector (`False`).
                        Ignored if both inputs are vectors, in which case, a
@@ -425,9 +425,9 @@ class PurificationRBM(nn.Module):
         r"""Calculates elements of the gradient of
             the :math:`\Gamma^{(+)}` matrix
 
-        :param v: One of the visible states, :math:`\sigma`
+        :param v: A batch of visible states, :math:`\sigma`
         :type v: torch.Tensor
-        :param vp: The other visible state, :math`\sigma'`
+        :param vp: The other batch of visible states, :math:`\sigma'`
         :type vp: torch.Tensor
         :param expand: Whether to return a rank-3 tensor (`True`) or a matrix (`False`).
         :type expand: bool
@@ -475,9 +475,9 @@ class PurificationRBM(nn.Module):
         r"""Calculates an element of the gradient of
             the :math:`\Gamma^{(-)}` matrix
 
-        :param v: One of the visible states, :math:`\sigma`
+        :param v: A batch of visible states, :math:`\sigma`
         :type v: torch.Tensor
-        :param vp: The other visible state, :math`\sigma'`
+        :param vp: The other batch of visible states, :math:`\sigma'`
         :type vp: torch.Tensor
 
         :returns: The matrix element given by
