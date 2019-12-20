@@ -342,7 +342,7 @@ class PurificationRBM(nn.Module):
         return F.linear(v, 0.5 * self.weights_U, self.aux_bias)
 
     def gamma_plus(self, v, vp, expand=True):
-        r"""Calculates an element of the :math:`\Gamma^{(+)}` matrix.
+        r"""Calculates elements of the :math:`\Gamma^{(+)}` matrix.
         If `expand` is `True`, will return a complex matrix
         :math:`A_{ij} = \langle\sigma_i|\Gamma^{(+)}|\sigma'_j\rangle`.
         Otherwise will return a complex vector
@@ -382,7 +382,7 @@ class PurificationRBM(nn.Module):
         return 0.5 * temp
 
     def gamma_minus(self, v, vp, expand=True):
-        r"""Calculates an element of the :math:`\Gamma^{(-)}` matrix.
+        r"""Calculates elements of the :math:`\Gamma^{(-)}` matrix.
         If `expand` is `True`, will return a complex matrix
         :math:`A_{ij} = \langle\sigma_i|\Gamma^{(-)}|\sigma'_j\rangle`.
         Otherwise will return a complex vector
@@ -421,14 +421,16 @@ class PurificationRBM(nn.Module):
 
         return 0.5 * temp
 
-    def gamma_plus_grad(self, v, vp):
-        r"""Calculates an element of the gradient of
+    def gamma_plus_grad(self, v, vp, expand=False):
+        r"""Calculates elements of the gradient of
             the :math:`\Gamma^{(+)}` matrix
 
         :param v: One of the visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
         :type vp: torch.Tensor
+        :param expand: Whether to return a rank-3 tensor (`True`) or a matrix (`False`).
+        :type expand: bool
 
         :returns: The matrix element given by
                   :math:`\langle\sigma|\nabla_\lambda\Gamma^{(+)}|\sigma'\rangle`
@@ -441,26 +443,35 @@ class PurificationRBM(nn.Module):
         prob_h = self.prob_h_given_v(v)
         prob_hp = self.prob_h_given_v(vp)
 
-        W_grad = 0.5 * (
-            torch.einsum("ij,ik->ijk", prob_h, v)
-            + torch.einsum("ij,ik->ijk", prob_hp, vp)
-        )
-        U_grad = torch.zeros_like(self.weights_U).expand(v.shape[0], -1, -1)
-        vb_grad = 0.5 * (v + vp)
-        hb_grad = 0.5 * (prob_h + prob_hp)
-        ab_grad = torch.zeros_like(self.aux_bias).expand(v.shape[0], -1)
+        W_grad_ = torch.einsum("ij,ik->ijk", prob_h, v)
+        W_grad_p = torch.einsum("ij,ik->ijk", prob_hp, vp)
+
+        if expand:
+            W_grad = 0.5 * (W_grad_.unsqueeze_(1) + W_grad_p.unsqueeze_(0))
+            vb_grad = 0.5 * (v.unsqueeze(1) + vp.unsqueeze(0))
+            hb_grad = 0.5 * (prob_h.unsqueeze_(1) + prob_hp.unsqueeze_(0))
+        else:
+            W_grad = 0.5 * (W_grad_ + W_grad_p)
+            vb_grad = 0.5 * (v + vp)
+            hb_grad = 0.5 * (prob_h + prob_hp)
+
+        batch_sizes = (v.shape[0], vp.shape[0]) if expand else (v.shape[0],)
+        U_grad = torch.zeros_like(self.weights_U).expand(*batch_sizes, -1, -1)
+        ab_grad = torch.zeros_like(self.aux_bias).expand(*batch_sizes, -1)
+
         vec = [
-            W_grad.view(v.shape[0], -1),
-            U_grad.view(v.shape[0], -1),
+            W_grad.view(*batch_sizes, -1),
+            U_grad.view(*batch_sizes, -1),
             vb_grad,
             hb_grad,
             ab_grad,
         ]
-        if unsqueezed:
+        if unsqueezed and not expand:
             vec = [grad.squeeze_(0) for grad in vec]
+
         return cplx.make_complex(torch.cat(vec, dim=-1))
 
-    def gamma_minus_grad(self, v, vp):
+    def gamma_minus_grad(self, v, vp, expand=False):
         r"""Calculates an element of the gradient of
             the :math:`\Gamma^{(-)}` matrix
 
@@ -480,23 +491,32 @@ class PurificationRBM(nn.Module):
         prob_h = self.prob_h_given_v(v)
         prob_hp = self.prob_h_given_v(vp)
 
-        W_grad = 0.5 * (
-            torch.einsum("ij,ik->ijk", prob_h, v)
-            - torch.einsum("ij,ik->ijk", prob_hp, vp)
-        )
-        U_grad = torch.zeros_like(self.weights_U).expand(v.shape[0], -1, -1)
-        vb_grad = 0.5 * (v - vp)
-        hb_grad = 0.5 * (prob_h - prob_hp)
-        ab_grad = torch.zeros_like(self.aux_bias).expand(v.shape[0], -1)
+        W_grad_ = torch.einsum("ij,ik->ijk", prob_h, v)
+        W_grad_p = torch.einsum("ij,ik->ijk", prob_hp, vp)
+
+        if expand:
+            W_grad = 0.5 * (W_grad_.unsqueeze_(1) - W_grad_p.unsqueeze_(0))
+            vb_grad = 0.5 * (v.unsqueeze(1) - vp.unsqueeze(0))
+            hb_grad = 0.5 * (prob_h.unsqueeze_(1) - prob_hp.unsqueeze_(0))
+        else:
+            W_grad = 0.5 * (W_grad_ - W_grad_p)
+            vb_grad = 0.5 * (v - vp)
+            hb_grad = 0.5 * (prob_h - prob_hp)
+
+        batch_sizes = (v.shape[0], vp.shape[0]) if expand else (v.shape[0],)
+        U_grad = torch.zeros_like(self.weights_U).expand(*batch_sizes, -1, -1)
+        ab_grad = torch.zeros_like(self.aux_bias).expand(*batch_sizes, -1)
+
         vec = [
-            W_grad.view(v.size()[0], -1),
-            U_grad.view(v.size()[0], -1),
+            W_grad.view(*batch_sizes, -1),
+            U_grad.view(*batch_sizes, -1),
             vb_grad,
             hb_grad,
             ab_grad,
         ]
-        if unsqueezed:
+        if unsqueezed and not expand:
             vec = [grad.squeeze_(0) for grad in vec]
+
         return cplx.make_complex(torch.cat(vec, dim=-1))
 
     def partition(self, space):

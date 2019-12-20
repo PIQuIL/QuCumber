@@ -181,22 +181,42 @@ def test_density_matrix_expansion(prop):
 
     fn = attrgetter(prop)(nn_state)
 
-    matrix = fn(v, vp)
+    matrix = fn(v, vp, expand=True)
     diag = fn(v, vp, expand=False)
 
     msg = f"Diagonal of matrix {prop} is wrong!"
-    assertAlmostEqual(torch.diagonal(matrix, dim1=-2, dim2=-1), diag, TOL, msg=msg)
+    assertAlmostEqual(torch.einsum("...ii->...i", matrix), diag, TOL, msg=msg)
+
+
+@pytest.mark.parametrize(
+    "prop",
+    ["pi_grad_am", "pi_grad_ph", "rbm_am.gamma_plus_grad", "rbm_ph.gamma_minus_grad"],
+)
+def test_density_matrix_gradient_expansion(prop):
+    qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
+
+    nn_state = DensityMatrix(5, gpu=False)
+    v = nn_state.generate_hilbert_space(5)
+    vp = v[torch.randperm(v.shape[0]), :]
+
+    fn = attrgetter(prop)(nn_state)
+
+    matrix = fn(v, vp, expand=True)
+    diag = fn(v, vp, expand=False)
+
+    msg = f"Diagonal of matrix {prop} is wrong!"
+    assertAlmostEqual(torch.einsum("cii...->ci...", matrix), diag, TOL, msg=msg)
 
 
 def test_density_matrix_diagonal():
     nn_state = DensityMatrix(5, gpu=False)
     v = nn_state.generate_hilbert_space(5)
 
-    rho = nn_state.rho(v)
+    rho = nn_state.rho(v, expand=True)
     diag = nn_state.rho(v, expand=False)
 
     msg = f"Diagonal of density matrix is wrong!"
-    assertAlmostEqual(torch.diagonal(rho, dim1=-2, dim2=-1), diag, TOL, msg=msg)
+    assertAlmostEqual(torch.einsum("cii...->ci...", rho), diag, TOL, msg=msg)
 
 
 def test_single_positive_sample():

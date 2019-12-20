@@ -169,6 +169,16 @@ def outer_prod(x, y):
     return z
 
 
+def einsum(equation, a, b):
+    r = torch.einsum(equation, real(a), real(b)) - torch.einsum(
+        equation, imag(a), imag(b)
+    )
+    i = torch.einsum(equation, real(a), imag(b)) + torch.einsum(
+        equation, imag(a), real(b)
+    )
+    return make_complex(r, i)
+
+
 def conjugate(x):
     """A function that takes the conjugate transpose of the argument.
 
