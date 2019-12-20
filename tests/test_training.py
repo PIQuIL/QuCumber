@@ -292,7 +292,7 @@ def test_trainingpositive(request):
 
 vectorization = [
     pytest.param(True, id="vectorized"),
-    pytest.param(False, id="not-vectorized"),
+    # pytest.param(False, id="not-vectorized"),
 ]
 
 
@@ -335,9 +335,6 @@ def test_trainingcomplex(request, vectorized):
         nn_state = ComplexWaveFunction(
             unitary_dict=unitary_dict, num_visible=nv, num_hidden=nh, gpu=False
         )
-
-        if not vectorized:
-            nn_state.debug_gradient_rotation = True
 
         space = nn_state.generate_hilbert_space(nv)
         callbacks = [

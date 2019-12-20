@@ -18,23 +18,39 @@ import numpy as np
 
 
 def make_complex(x, y=None):
-    """A function that combines the real (x) and imaginary (y) parts of a
-    vector or a matrix.
+    """A function that creates a torch compatible complex tensor.
 
-    .. note:: x and y must have the same shape.
+    .. note:: `x` and `y` must have the same shape.
 
-    :param x: The real part
-    :type x: torch.Tensor
-    :param y: The imaginary part. Can be None, in which case, the resulting
+    :param x: The real part or a complex numpy array. If a numpy array,
+              will ignore `y`.
+    :type x: torch.Tensor or numpy.ndarray
+    :param y: The imaginary part. Can be `None`, in which case, the resulting
               complex tensor will have imaginary part equal to zero.
     :type y: torch.Tensor
 
     :returns: The tensor :math:`[x,y] = x + iy`.
     :rtype: torch.Tensor
     """
+    if isinstance(x, np.ndarray):
+        return make_complex(torch.tensor(x.real), torch.tensor(x.imag)).contiguous()
+
     if y is None:
         y = torch.zeros_like(x)
     return torch.cat((x.unsqueeze(0), y.unsqueeze(0)), dim=0)
+
+
+def numpy(x):
+    """Converts a complex torch tensor into a numpy array
+
+
+    :param x: The tensor to convert.
+    :type x: torch.Tensor
+
+    :returns: A complex numpy array containing the data from `x`.
+    :rtype: numpy.ndarray
+    """
+    return real(x).numpy() + 1j * imag(x).numpy()
 
 
 def real(x):
@@ -169,14 +185,24 @@ def outer_prod(x, y):
     return z
 
 
-def einsum(equation, a, b):
-    r = torch.einsum(equation, real(a), real(b)) - torch.einsum(
-        equation, imag(a), imag(b)
-    )
-    i = torch.einsum(equation, real(a), imag(b)) + torch.einsum(
-        equation, imag(a), real(b)
-    )
-    return make_complex(r, i)
+def einsum(equation, a, b, real_part=True, imag_part=True):
+    if real_part:
+        r = torch.einsum(equation, real(a), real(b)) - torch.einsum(
+            equation, imag(a), imag(b)
+        )
+    if imag_part:
+        i = torch.einsum(equation, real(a), imag(b)) + torch.einsum(
+            equation, imag(a), real(b)
+        )
+
+    if real_part and imag_part:
+        return make_complex(r, i)
+    elif real_part:
+        return r
+    elif imag_part:
+        return i
+    else:
+        return None
 
 
 def conjugate(x):

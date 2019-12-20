@@ -24,8 +24,7 @@ import pytest
 import qucumber
 from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction, DensityMatrix
 from qucumber.utils import cplx
-from qucumber.utils.unitaries import create_dict
-from qucumber.utils.training_statistics import rotate_psi, rotate_rho
+from qucumber.utils.unitaries import create_dict, rotate_psi, rotate_rho
 
 from test_grads import assertAlmostEqual
 

@@ -160,24 +160,6 @@ class ComplexWaveFunction(WaveFunctionBase):
         """
         return super().psi(v)
 
-    def init_gradient(self, basis, sites):
-        r"""Initializes all required variables for gradient computation
-
-        :param basis: The bases of the measurements
-        :type basis: numpy.ndarray
-        :param sites: The sites where the measurements are not
-                      in the computational basis
-        """
-        Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
-        Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
-        rotated_grad = [
-            torch.zeros(
-                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
-            )
-            for net in self.networks
-        ]
-        return Upsi, Us, rotated_grad
-
     def rotated_gradient(self, basis, sites, sample):
         r"""Computes the gradients rotated into the measurement basis
 
@@ -193,77 +175,28 @@ class ComplexWaveFunction(WaveFunctionBase):
                   of the amplitude and phase RBMS
         :rtype: list[torch.Tensor, torch.Tensor]
         """
-        Upsi, Us, rotated_grad = self.init_gradient(basis, sites)
-        int_sample = sample[sites].round().int().cpu().numpy()
-        ints_size = np.arange(sites.size)
-
-        # if the number of rotated sites is too large, fallback to loop
-        #  since memory may be unable to store the entire expanded set of
-        #  visible states
-        if sites.size > self.max_size or (
-            hasattr(self, "debug_gradient_rotation") and self.debug_gradient_rotation
-        ):
-            Upsi_v = torch.zeros_like(Upsi, device=self.device)
-            vp = sample.round().clone()
-            Z2 = torch.zeros(
-                (2, self.rbm_am.num_pars), dtype=torch.double, device=self.device
+        rotated_grad = [
+            torch.zeros(
+                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
             )
-            U = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
-            Ut = np.zeros_like(Us[:, 0], dtype=complex)
+            for net in self.networks
+        ]
 
-            for x in range(2 ** sites.size):
-                # overwrite rotated elements
-                vp = sample.round().clone()
-                vp[sites] = self.subspace_vector(x, size=sites.size)
-                int_vp = vp[sites].int().cpu().numpy()
-                all_Us = Us[ints_size, :, int_sample, int_vp]
+        Upsi, Upsi_v, v = unitaries.rotate_psi_inner_prod(
+            self, basis, sample, include_extras=True
+        )
 
-                # Gradient from the rotation
-                Ut = np.prod(all_Us[:, 0] + (1j * all_Us[:, 1]))
-                U[0] = Ut.real
-                U[1] = Ut.imag
+        grad_vp0 = self.rbm_am.effective_energy_gradient(v, reduce=False)
+        grad_vp1 = self.rbm_ph.effective_energy_gradient(v, reduce=False)
 
-                cplx.scalar_mult(U, self.psi(vp), out=Upsi_v)
-                Upsi += Upsi_v
-
-                # Gradient on the current configuration
-                grad_vp0 = self.rbm_am.effective_energy_gradient(vp)
-                grad_vp1 = self.rbm_ph.effective_energy_gradient(vp)
-                rotated_grad[0] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp0), out=Z2
-                )
-                rotated_grad[1] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp1), out=Z2
-                )
-        else:
-            vp = sample.round().clone().unsqueeze(0).repeat(2 ** sites.size, 1)
-            vp[:, sites] = self.generate_hilbert_space(size=sites.size)
-            vp = vp.contiguous()
-
-            # overwrite rotated elements
-            int_vp = vp[:, sites].long().cpu().numpy()
-            all_Us = Us[ints_size, :, int_sample, int_vp]
-
-            Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=1)
-            U = (
-                cplx.make_complex(torch.tensor(Ut.real), torch.tensor(Ut.imag))
-                .to(vp)
-                .contiguous()
-            )
-            Upsi_v = cplx.scalar_mult(U, self.psi(vp).detach())
-            Upsi = torch.sum(Upsi_v, dim=1)
-
-            grad_vp0 = self.rbm_am.effective_energy_gradient(vp, reduce=False)
-            grad_vp1 = self.rbm_ph.effective_energy_gradient(vp, reduce=False)
-
-            # since grad_vp0/1 are real, can just treat the scalar multiplication
-            #  and addition as a matrix multiplication
-            torch.matmul(Upsi_v, grad_vp0, out=rotated_grad[0])
-            torch.matmul(Upsi_v, grad_vp1, out=rotated_grad[1])
+        # since grad_vp0/1 are real, can just treat the scalar multiplication
+        #  and addition as a matrix multiplication
+        torch.matmul(Upsi_v, grad_vp0, out=rotated_grad[0])
+        torch.matmul(Upsi_v, grad_vp1, out=rotated_grad[1])
 
         grad = [
-            cplx.scalar_divide(rotated_grad[0], Upsi)[0, :],  # Real
-            -cplx.scalar_divide(rotated_grad[1], Upsi)[1, :],  # Imaginary
+            cplx.real(cplx.scalar_divide(rotated_grad[0], Upsi)),  # Real
+            -cplx.imag(cplx.scalar_divide(rotated_grad[1], Upsi)),  # Imaginary
         ]
 
         return grad

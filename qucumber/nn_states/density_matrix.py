@@ -331,26 +331,6 @@ class DensityMatrix(NeuralStateBase):
     def importance_sampling_denominator(self, drawn_sample):
         return self.probability(drawn_sample)
 
-    def init_gradient(self, basis, sites):
-        r"""Initializes all required variables for gradient computation
-
-        :param basis: The bases of the measurements
-        :type basis: numpy.ndarray
-        :param sites: The sites where the measurements are not
-                      in the computational basis
-        """
-        UrhoU = torch.zeros(2, dtype=torch.double, device=self.device)
-        Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
-
-        rotated_grad = [
-            torch.zeros(
-                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
-            )
-            for net in self.networks
-        ]
-
-        return UrhoU, Us, rotated_grad
-
     def rotated_gradient(self, basis, sites, sample):
         r"""Computes the gradients rotated into the measurement basis
 
@@ -366,79 +346,25 @@ class DensityMatrix(NeuralStateBase):
                   of the amplitude and phase RBMS
         :rtype: list[torch.Tensor, torch.Tensor]
         """
-        UrhoU, Us, rotated_grad = self.init_gradient(basis, sites)
-        int_sample = sample[sites].round().int().cpu().numpy()
-        ints_size = np.arange(sites.size)
-
-        # if the number of rotated sites is too large, fallback to loop
-        #  since memory may be unable to store the entire expanded set of
-        #  visible states
-        if (2 * sites.size) > self.max_size or (
-            hasattr(self, "debug_gradient_rotation") and self.debug_gradient_rotation
-        ):
-            U_ = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
-            UrhoU_ = torch.zeros_like(UrhoU)
-            Z2 = torch.zeros(
-                (2, self.rbm_am.num_pars), dtype=torch.double, device=self.device
+        rotated_grad = [
+            torch.zeros(
+                getattr(self, net).num_pars, dtype=torch.double, device=self.device
             )
-
-            v = sample.round().clone()
-            vp = sample.round().clone()
-
-            for x in range(2 ** sites.size):
-                v = sample.round().clone()
-                v[sites] = self.subspace_vector(x, sites.size)
-                int_v = v[sites].int().cpu().numpy()
-                all_Us = Us[ints_size, :, int_sample, int_v]
-
-                for y in range(2 ** sites.size):
-                    vp = sample.round().clone()
-                    vp[sites] = self.subspace_vector(y, sites.size)
-                    int_vp = vp[sites].int().cpu().numpy()
-                    all_Us_dag = Us[ints_size, :, int_sample, int_vp]
-
-                    Ut = np.prod(all_Us[:, 0] + (1j * all_Us[:, 1]))
-                    Ut *= np.prod(np.conj(all_Us_dag[:, 0] + (1j * all_Us_dag[:, 1])))
-                    U_[0] = Ut.real
-                    U_[1] = Ut.imag
-
-                    cplx.scalar_mult(U_, self.rho(v, vp), out=UrhoU_)
-                    UrhoU += UrhoU_
-
-                    grad0 = self.am_grads(v, vp)
-                    grad1 = self.ph_grads(v, vp)
-
-                    rotated_grad[0] += cplx.scalar_mult(UrhoU_, grad0, out=Z2)
-                    rotated_grad[1] += cplx.scalar_mult(UrhoU_, grad1, out=Z2)
-        else:
-            v = sample.round().clone().unsqueeze(0).repeat(2 ** sites.size, 1)
-            v[:, sites] = self.generate_hilbert_space(size=sites.size)
-            v = v.contiguous()
-
-            int_v = v[:, sites].int().cpu().numpy()
-            all_Us = Us[ints_size, :, int_sample, int_v]
-            Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=1)
-            Ut = np.outer(Ut, np.conj(Ut))
-            U = (
-                cplx.make_complex(torch.tensor(Ut.real), torch.tensor(Ut.imag))
-                .to(sample)
-                .contiguous()
-            )
-            UrhoU_v = cplx.scalar_mult(U, self.rho(v).detach())
-            UrhoU = torch.sum(UrhoU_v, dim=(1, 2))
-
-            am_grads = self.am_grads(v, v, expand=True)
-            ph_grads = self.ph_grads(v, v, expand=True)
-
-            rotated_grad[0] = cplx.einsum("ij,ij...->...", UrhoU_v, am_grads)
-            rotated_grad[1] = cplx.einsum("ij,ij...->...", UrhoU_v, ph_grads)
-
-        grad = [
-            -cplx.real(cplx.scalar_divide(rotated_grad[0], UrhoU)),
-            -cplx.real(cplx.scalar_divide(rotated_grad[1], UrhoU)),
+            for net in self.networks
         ]
 
-        return grad
+        UrhoU, UrhoU_v, v = unitaries.rotate_rho_prob(
+            self, basis, sample, include_extras=True
+        )
+
+        raw_grads = [self.am_grads(v, v, expand=True), self.ph_grads(v, v, expand=True)]
+
+        for i in range(len(rotated_grad)):
+            rotated_grad[i] -= cplx.einsum(
+                "ij,ij...->...", UrhoU_v, raw_grads[i], imag_part=False
+            )
+
+        return [g / UrhoU for g in rotated_grad]
 
     def am_grads(self, v, vp, expand=False):
         r"""Computes the gradients of the amplitude RBM for given input states

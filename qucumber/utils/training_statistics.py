@@ -19,211 +19,13 @@ import numpy as np
 from scipy.linalg import sqrtm
 
 from qucumber.nn_states import WaveFunctionBase
-import qucumber.utils.cplx as cplx
-
-
-def _kron_mult(matrices, x):
-    n = [m.size()[0] for m in matrices]
-    l, r = np.prod(n), 1  # noqa: E741
-
-    y = x.clone()
-    for s in reversed(range(len(n))):
-        l //= n[s]  # noqa: E741
-        m = matrices[s]
-
-        for k in range(l):
-            for i in range(r):
-                slc = slice(k * n[s] * r + i, (k + 1) * n[s] * r + i, r)
-                temp = y[:, slc, ...]
-                y[:, slc, ...] = cplx.matmul(m, temp)
-        r *= n[s]
-
-    return y
-
-
-def rotate_psi(nn_state, basis, space, unitaries=None, psi=None):
-    r"""A function that rotates the reconstructed wavefunction to a different
-    basis.
-
-    :param nn_state: The neural network state (i.e. complex wavefunction or
-                     positive wavefunction).
-    :type nn_state: qucumber.nn_states.WaveFunctionBase
-    :param basis: The basis to rotate the wavefunction to.
-    :type basis: str
-    :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
-    :type space: torch.Tensor
-    :param unitaries: A dictionary of (2x2) unitary operators.
-    :type unitaries: dict(str, torch.Tensor)
-    :param psi: A wavefunction that the user can input to override the neural
-                network state's wavefunction.
-    :type psi: torch.Tensor
-
-    :returns: A wavefunction in a new basis.
-    :rtype: torch.Tensor
-    """
-    psi = (
-        nn_state.psi(space)
-        if psi is None
-        else psi.to(dtype=torch.double, device=nn_state.device)
-    )
-
-    unitaries = unitaries if unitaries else nn_state.unitary_dict
-    unitaries = {k: v.to(device=nn_state.device) for k, v in unitaries.items()}
-    us = [unitaries[b] for b in basis]
-    return _kron_mult(us, psi)
-
-
-def rotate_psi_prob(nn_state, basis, state, unitaries=None, psi=None):
-    r"""A function that rotates the wavefunction to a different
-    basis and then computes the resulting Born rule probability of a spin
-    configuration.
-
-    :param nn_state: The neural network state (i.e. complex wavefunction or
-                     positive wavefunction).
-    :type nn_state: qucumber.nn_states.WaveFunctionBase
-    :param basis: The basis to rotate the wavefunction to.
-    :type basis: str
-    :param state: The basis element to compute the probability of.
-    :type state: torch.Tensor
-    :param unitaries: A dictionary of (2x2) unitary operators.
-    :type unitaries: dict(str, torch.Tensor)
-    :param psi: A wavefunction that the user can input to override the neural
-                network state's wavefunction.
-    :type psi: torch.Tensor
-
-    :returns: Probability of the state wrt the rotated wavefunction.
-    :rtype: torch.Tensor
-    """
-    if unitaries:
-        unitaries = {k: v.to(device=nn_state.device) for k, v in unitaries.items()}
-    else:
-        unitaries = nn_state.unitary_dict
-
-    basis = np.array(list(basis))  # list is silly, but works for now
-    sites = np.where(basis != "Z")[0]
-    Us = torch.stack([unitaries[b] for b in basis[sites]]).cpu().numpy()
-
-    vp = state.round().clone().unsqueeze(0).repeat(2 ** sites.size, 1)
-    vp[:, sites] = nn_state.generate_hilbert_space(size=sites.size)
-    vp = vp.contiguous()
-
-    int_sample = state[sites].round().int().cpu().numpy()
-    ints_size = np.arange(sites.size)
-
-    # overwrite rotated elements
-    int_vp = vp[:, sites].long().cpu().numpy()
-    all_Us = Us[ints_size, :, int_sample, int_vp]
-
-    Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=1)
-    U = (
-        cplx.make_complex(torch.tensor(Ut.real), torch.tensor(Ut.imag))
-        .to(vp)
-        .contiguous()
-    )
-
-    psi = (
-        nn_state.psi(vp).detach()
-        if psi is None
-        else psi.to(dtype=torch.double, device=nn_state.device)
-    )
-
-    Upsi_v = cplx.scalar_mult(U, psi)
-    Upsi = torch.sum(Upsi_v, dim=1)
-
-    return cplx.norm_sqr(Upsi)
-
-
-def rotate_rho(nn_state, basis, space, unitaries=None, rho=None):
-    r"""Computes the density matrix rotated into some basis.
-
-    :param nn_state: The density matrix neural network state.
-    :type nn_state: qucumber.nn_states.DensityMatrix
-    :param basis: The basis to rotate the density matrix to.
-    :type basis: str
-    :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
-    :type space: torch.Tensor
-    :param unitaries: A dictionary of unitary matrices associated with
-                        rotation into each basis
-    :type unitaries: dict(str, torch.Tensor)
-    :param rho: A density matrix that the user can input to override the neural
-                network state's density matrix.
-    :type rho: torch.Tensor
-
-    :returns: The rotated density matrix
-    :rtype: torch.Tensor
-    """
-    rho = (
-        nn_state.rho(space, space)
-        if rho is None
-        else rho.to(dtype=torch.double, device=nn_state.device)
-    )
-
-    unitaries = unitaries if unitaries else nn_state.unitary_dict
-    unitaries = {k: v.to(device=nn_state.device) for k, v in unitaries.items()}
-    us = [unitaries[b] for b in basis]
-
-    rho_r = _kron_mult(us, rho)
-    rho_r = _kron_mult(us, cplx.conjugate(rho_r))
-
-    return rho_r
-
-
-def rotate_rho_prob(nn_state, basis, state, unitaries=None, rho=None):
-    r"""A function that rotates the wavefunction to a different
-    basis and then computes the resulting Born rule probability of a spin
-    configuration.
-
-    :param nn_state: The density matrix neural network state.
-    :type nn_state: qucumber.nn_states.DensityMatrix
-    :param basis: The basis to rotate the density matrix to.
-    :type basis: str
-    :param state: The basis element to compute the probability of.
-    :type state: torch.Tensor
-    :param unitaries: A dictionary of (2x2) unitary operators.
-    :type unitaries: dict(str, torch.Tensor)
-    :param rho: A density matrix that the user can input to override the neural
-                network state's density matrix.
-    :type rho: torch.Tensor
-
-    :returns: Probability of the state wrt the rotated density matrix.
-    :rtype: torch.Tensor
-    """
-    if unitaries:
-        unitaries = {k: v.to(device=nn_state.device) for k, v in unitaries.items()}
-    else:
-        unitaries = nn_state.unitary_dict
-
-    basis = np.array(list(basis))  # list is silly, but works for now
-    sites = np.where(basis != "Z")[0]
-    Us = torch.stack([unitaries[b] for b in basis[sites]]).cpu().numpy()
-
-    v = state.round().clone().unsqueeze(0).repeat(2 ** sites.size, 1)
-    v[:, sites] = nn_state.generate_hilbert_space(size=sites.size)
-    v = v.contiguous()
-
-    int_sample = state[sites].round().int().cpu().numpy()
-    ints_size = np.arange(sites.size)
-
-    int_v = v[:, sites].int().cpu().numpy()
-    all_Us = Us[ints_size, :, int_sample, int_v]
-    Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=1)
-    Ut = np.outer(Ut, np.conj(Ut))
-    U = (
-        cplx.make_complex(torch.tensor(Ut.real), torch.tensor(Ut.imag))
-        .to(state)
-        .contiguous()
-    )
-
-    rho = (
-        nn_state.rho(v).detach()
-        if rho is None
-        else rho.to(dtype=torch.double, device=nn_state.device)
-    )
-
-    UrhoU_v = cplx.scalar_mult(U, rho)
-    UrhoU = torch.sum(UrhoU_v, dim=(1, 2))
-
-    return cplx.real(UrhoU)
+from qucumber.utils import cplx
+from qucumber.utils.unitaries import (
+    rotate_psi,
+    rotate_rho,
+    rotate_psi_inner_prod,
+    rotate_rho_prob,
+)
 
 
 def fidelity(nn_state, target, space, **kwargs):
@@ -261,15 +63,8 @@ def fidelity(nn_state, target, space, **kwargs):
         assert target.dim() == 3, "target must be a complex matrix!"
 
         rho = nn_state.rho(space, space) / Z
-        arg_real = cplx.real(rho).numpy()
-        arg_imag = cplx.imag(rho).numpy()
-
-        rho_rbm_ = arg_real + 1j * arg_imag
-
-        arg_real = cplx.real(target).numpy()
-        arg_imag = cplx.imag(target).numpy()
-
-        target_ = arg_real + 1j * arg_imag
+        rho_rbm_ = cplx.numpy(rho)
+        target_ = cplx.numpy(target)
 
         sqrt_rho_rbm = sqrtm(rho_rbm_)
         prod = np.matmul(sqrt_rho_rbm, np.matmul(target_, sqrt_rho_rbm))
@@ -319,7 +114,12 @@ def NLL(nn_state, samples, space, bases=None, **kwargs):
                 NLL_ -= probs_to_logits(nn_probs).item()
             else:
                 if isinstance(nn_state, WaveFunctionBase):
-                    probs_r = rotate_psi_prob(nn_state, bases[i], samples[i]) / Z
+                    probs_r = (
+                        cplx.norm_sqr(
+                            rotate_psi_inner_prod(nn_state, bases[i], samples[i])
+                        )
+                        / Z
+                    )
                     NLL_ -= probs_to_logits(probs_r).item()
                 else:
                     probs_r = rotate_rho_prob(nn_state, bases[i], samples[i]) / Z
