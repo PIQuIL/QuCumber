@@ -366,12 +366,12 @@ class PurificationRBM(nn.Module):
             temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
             temp += F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
         else:
-            temp1 = torch.mv(v, self.visible_bias) + (
-                F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(1)
+            temp1 = torch.tensordot(v, self.visible_bias, dims=1) + (
+                F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(-1)
             )
 
-            temp2 = torch.mv(vp, self.visible_bias) + (
-                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum(1)
+            temp2 = torch.tensordot(vp, self.visible_bias, dims=1) + (
+                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum(-1)
             )
 
             if expand:
@@ -406,12 +406,12 @@ class PurificationRBM(nn.Module):
             temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
             temp -= F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
         else:
-            temp1 = torch.mv(v, self.visible_bias) + (
-                F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(1)
+            temp1 = torch.tensordot(v, self.visible_bias, dims=1) + (
+                F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(-1)
             )
 
-            temp2 = torch.mv(vp, self.visible_bias) + (
-                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum(1)
+            temp2 = torch.tensordot(vp, self.visible_bias, dims=1) + (
+                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum(-1)
             )
 
             if expand:

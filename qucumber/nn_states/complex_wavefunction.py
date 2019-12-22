@@ -160,52 +160,6 @@ class ComplexWaveFunction(WaveFunctionBase):
         """
         return super().psi(v)
 
-    def gradient(self, samples, bases=None):
-        r"""Compute the gradient of a batch of sample, measured in given bases.
-
-        :param sample: A batch of samples to compute the gradient of.
-        :type sample: numpy.ndarray
-        :param basis: A batch of bases.
-        :type basis: numpy.ndarray or list[str] or None
-
-        :returns: A list of 2 tensors containing the accumulated gradients
-                  of each of the internal RBMs.
-        :rtype: list[torch.Tensor]
-        """
-        grad = [
-            torch.zeros(
-                getattr(self, net).num_pars, dtype=torch.double, device=self.device
-            )
-            for net in self.networks
-        ]
-        if bases is None:
-            grad[0] = self.rbm_am.effective_energy_gradient(samples)
-        else:
-            if samples.dim() < 2:
-                samples = samples.unsqueeze(0)
-                bases = np.array(list(bases)).reshape(1, -1)
-
-            unique_bases, indices = np.unique(bases, axis=0, return_inverse=True)
-
-            for i in range(unique_bases.shape[0]):
-                basis = unique_bases[i, :]
-                rot_sites = np.where(basis != "Z")[0]
-
-                if rot_sites.size != 0:
-                    samp = samples[indices == i, :]
-                    sample_grad = self.rotated_gradient(basis, rot_sites, samp)
-                    grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
-                    grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
-                else:
-                    sample_grad = [
-                        self.rbm_am.effective_energy_gradient(samples[indices == i, :]),
-                        0.0,
-                    ]
-                    grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
-                    grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
-
-        return grad
-
     def rotated_gradient(self, basis, sites, sample):
         r"""Computes the gradients rotated into the measurement basis
 

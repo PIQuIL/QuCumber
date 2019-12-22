@@ -108,15 +108,17 @@ def NLL(nn_state, samples, space, bases=None, **kwargs):
             rot_sites = np.where(basis != "Z")[0]
 
             if rot_sites.size != 0:
-                samp = samples[indices == i, :]
                 if isinstance(nn_state, WaveFunctionBase):
-                    Upsi = rotate_psi_inner_prod(nn_state, basis, samp)
+                    Upsi = rotate_psi_inner_prod(
+                        nn_state, basis, samples[indices == i, :]
+                    )
                     probs_r = (cplx.absolute_value(Upsi) ** 2) / Z
                     NLL_ -= torch.sum(probs_to_logits(probs_r))
                 else:
-                    for j in range(samp.shape[0]):
-                        probs_r = rotate_rho_prob(nn_state, basis, samp[j]) / Z
-                        NLL_ -= torch.sum(probs_to_logits(probs_r))
+                    probs_r = (
+                        rotate_rho_prob(nn_state, basis, samples[indices == i, :]) / Z
+                    )
+                    NLL_ -= torch.sum(probs_to_logits(probs_r))
             else:
                 nn_probs = nn_state.probability(samples[indices == i, :], Z)
                 NLL_ -= torch.sum(probs_to_logits(nn_probs))

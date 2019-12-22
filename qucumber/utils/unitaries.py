@@ -216,7 +216,7 @@ def rotate_psi_inner_prod(
 
 
 def rotate_rho_prob(
-    nn_state, basis, state, unitaries=None, rho=None, include_extras=False
+    nn_state, basis, states, unitaries=None, rho=None, include_extras=False
 ):
     r"""A function that rotates the wavefunction to a different
     basis and then computes the resulting Born rule probability of a basis
@@ -237,21 +237,19 @@ def rotate_rho_prob(
     :returns: Probability of the state wrt the rotated density matrix.
     :rtype: torch.Tensor
     """
-    state = state.unsqueeze(0)
-    Ut, v = _rotate_basis_state(nn_state, basis, state, unitaries=unitaries)
-    Ut, v = Ut.flatten(), v.squeeze(1)
+    Ut, v = _rotate_basis_state(nn_state, basis, states, unitaries=unitaries)
+    Ut = np.einsum("ib,jb->ijb", Ut, np.conj(Ut))
 
-    Ut = np.outer(Ut, np.conj(Ut))
+    if rho is None:
+        rho = nn_state.rho(v, expand=True).detach()
 
-    rho = cplx.numpy(
-        (nn_state.rho(v, expand=True).detach() if rho is None else rho).cpu()
-    )
-
+    rho = cplx.numpy(rho.cpu())
     Ut *= rho
+
     UrhoU_v = cplx.make_complex(Ut).to(dtype=torch.double, device=nn_state.device)
-    UrhoU = torch.sum(UrhoU_v, dim=(1, 2))
+    UrhoU = cplx.real(torch.sum(UrhoU_v, dim=(1, 2)))
 
     if include_extras:
-        return cplx.real(UrhoU), UrhoU_v, v
+        return UrhoU, UrhoU_v, v
     else:
-        return cplx.real(UrhoU)
+        return UrhoU

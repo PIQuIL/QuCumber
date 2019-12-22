@@ -349,17 +349,24 @@ class DensityMatrix(NeuralStateBase):
         UrhoU, UrhoU_v, v = unitaries.rotate_rho_prob(
             self, basis, sample, include_extras=True
         )
+        inv_UrhoU = 1 / UrhoU
 
-        raw_grads = [self.am_grads(v, v, expand=True), self.ph_grads(v, v, expand=True)]
-
-        rotated_grad = [
-            -cplx.einsum("ij,ij...->...", UrhoU_v, g, imag_part=False)
-            for g in raw_grads
+        vr = v.reshape(-1, v.shape[-1])
+        raw_grads = [
+            self.am_grads(vr, expand=True).reshape(2, *v.shape[:-1], *v.shape[:-1], -1),
+            self.ph_grads(vr, expand=True).reshape(2, *v.shape[:-1], *v.shape[:-1], -1),
+        ]
+        raw_grads = [
+            torch.diagonal(rg, dim1=2, dim2=4).transpose(-1, -2) for rg in raw_grads
         ]
 
-        return [g / UrhoU for g in rotated_grad]
+        rotated_grad = [
+            -cplx.einsum("ijb,ijbg->bg", UrhoU_v, g, imag_part=False) for g in raw_grads
+        ]
 
-    def am_grads(self, v, vp, expand=False):
+        return [torch.einsum("b,bg->g", inv_UrhoU, g) for g in rotated_grad]
+
+    def am_grads(self, v, expand=False):
         r"""Computes the gradients of the amplitude RBM for given input states
 
         :param v: The first input state, :math:`\sigma`
@@ -369,11 +376,11 @@ class DensityMatrix(NeuralStateBase):
         :returns: The gradients of all amplitude RBM parameters
         :rtype: torch.Tensor
         """
-        return self.rbm_am.gamma_plus_grad(v, vp, expand=expand) + self.pi_grad_am(
-            v, vp, expand=expand
+        return self.rbm_am.gamma_plus_grad(v, v, expand=expand) + self.pi_grad_am(
+            v, v, expand=expand
         )
 
-    def ph_grads(self, v, vp, expand=False):
+    def ph_grads(self, v, expand=False):
         r"""Computes the gradients of the phase RBM for given input states
 
         :param v: The first input state, :math:`\sigma`
@@ -384,8 +391,8 @@ class DensityMatrix(NeuralStateBase):
         :rtype: torch.Tensor
         """
         return cplx.scalar_mult(  # need to multiply Gamma- by i
-            self.rbm_ph.gamma_minus_grad(v, vp, expand=expand), torch.Tensor([0, 1])
-        ) + self.pi_grad_ph(v, vp, expand=expand)
+            self.rbm_ph.gamma_minus_grad(v, v, expand=expand), torch.Tensor([0, 1])
+        ) + self.pi_grad_ph(v, v, expand=expand)
 
     def fit(
         self,
