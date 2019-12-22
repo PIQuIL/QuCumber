@@ -176,14 +176,14 @@ def rotate_psi_inner_prod(
     nn_state, basis, states, unitaries=None, psi=None, include_extras=False
 ):
     r"""A function that rotates the wavefunction to a different
-    basis and then computes the resulting amplitude of a basis element.
+    basis and then computes the resulting amplitude of a batch of basis elements.
 
     :param nn_state: The neural network state (i.e. complex wavefunction or
                      positive wavefunction).
     :type nn_state: qucumber.nn_states.WaveFunctionBase
     :param basis: The basis to rotate the wavefunction to.
     :type basis: str
-    :param states: The basis element to compute the amplitude of.
+    :param states: The batch of basis elements to compute the amplitudes of.
     :type states: torch.Tensor
     :param unitaries: A dictionary of (2x2) unitary operators.
     :type unitaries: dict(str, torch.Tensor)
@@ -194,9 +194,7 @@ def rotate_psi_inner_prod(
     :returns: Amplitude of the state wrt the rotated wavefunction.
     :rtype: torch.Tensor
     """
-    states = states.unsqueeze(0)
     Ut, v = _rotate_basis_state(nn_state, basis, states, unitaries=unitaries)
-    Ut, v = Ut.flatten(), v.squeeze(1)
 
     if psi is None:
         psi = (
@@ -209,7 +207,7 @@ def rotate_psi_inner_prod(
     Ut *= psi
 
     Upsi_v = cplx.make_complex(Ut).to(dtype=torch.double, device=nn_state.device)
-    Upsi = torch.sum(Upsi_v, dim=-1)
+    Upsi = torch.sum(Upsi_v, dim=-2)
 
     if include_extras:
         return Upsi, Upsi_v, v

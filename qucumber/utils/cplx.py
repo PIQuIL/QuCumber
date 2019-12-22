@@ -350,6 +350,13 @@ def scalar_divide(x, y):
     return numerator / denominator
 
 
+def inverse(z):
+    z_star = conjugate(z)
+    denominator = real(scalar_mult(z, z_star))
+
+    return z_star / denominator
+
+
 def norm_sqr(x):
     """A function that returns the squared norm of the argument.
 

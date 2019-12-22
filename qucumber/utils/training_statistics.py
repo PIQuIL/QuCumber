@@ -101,29 +101,25 @@ def NLL(nn_state, samples, space, bases=None, **kwargs):
     else:
         NLL_ = 0.0
 
-        for i in range(len(samples)):
-            # Check whether the sample was measured the reference basis
-            is_reference_basis = True
-            for j in range(nn_state.num_visible):
-                if bases[i][j] != "Z":
-                    is_reference_basis = False
-                    break
+        unique_bases, indices = np.unique(bases, axis=0, return_inverse=True)
 
-            if is_reference_basis is True:
-                nn_probs = nn_state.probability(samples[i], Z)
-                NLL_ -= probs_to_logits(nn_probs).item()
-            else:
+        for i in range(unique_bases.shape[0]):
+            basis = unique_bases[i, :]
+            rot_sites = np.where(basis != "Z")[0]
+
+            if rot_sites.size != 0:
+                samp = samples[indices == i, :]
                 if isinstance(nn_state, WaveFunctionBase):
-                    probs_r = (
-                        cplx.norm_sqr(
-                            rotate_psi_inner_prod(nn_state, bases[i], samples[i])
-                        )
-                        / Z
-                    )
-                    NLL_ -= probs_to_logits(probs_r).item()
+                    Upsi = rotate_psi_inner_prod(nn_state, basis, samp)
+                    probs_r = (cplx.absolute_value(Upsi) ** 2) / Z
+                    NLL_ -= torch.sum(probs_to_logits(probs_r))
                 else:
-                    probs_r = rotate_rho_prob(nn_state, bases[i], samples[i]) / Z
-                    NLL_ -= probs_to_logits(probs_r).item()
+                    for j in range(samp.shape[0]):
+                        probs_r = rotate_rho_prob(nn_state, basis, samp[j]) / Z
+                        NLL_ -= torch.sum(probs_to_logits(probs_r))
+            else:
+                nn_probs = nn_state.probability(samples[indices == i, :], Z)
+                NLL_ -= torch.sum(probs_to_logits(nn_probs))
 
         return NLL_ / float(len(samples))
 
