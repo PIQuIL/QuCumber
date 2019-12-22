@@ -141,18 +141,18 @@ class PurificationRBM(nn.Module):
         """
         v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights_W)
 
-        vis_term = torch.mv(v, self.visible_bias) + F.softplus(
+        vis_term = torch.matmul(v, self.visible_bias) + F.softplus(
             F.linear(v, self.weights_W, self.hidden_bias)
-        ).sum(1)
+        ).sum(-1)
 
         if a is not None:
             a = (a.unsqueeze(0) if a.dim() < 2 else a).to(self.weights_W)
 
-            aux_term = torch.mv(a, self.aux_bias)
-            mix_term = torch.einsum("bv,av,ba->b", v, self.weights_U.data, a)
+            aux_term = torch.matmul(a, self.aux_bias)
+            mix_term = torch.einsum("...v,av,...a->...", v, self.weights_U.data, a)
             return -(vis_term + aux_term + mix_term)
         else:
-            aux_term = F.softplus(F.linear(v, self.weights_U, self.aux_bias)).sum(1)
+            aux_term = F.softplus(F.linear(v, self.weights_U, self.aux_bias)).sum(-1)
 
             return -(vis_term + aux_term)
 
@@ -176,20 +176,20 @@ class PurificationRBM(nn.Module):
         pa = self.prob_a_given_v(v)
 
         if reduce:
-            W_grad = -torch.matmul(ph.t(), v)
-            U_grad = -torch.matmul(pa.t(), v)
+            W_grad = -torch.matmul(ph.transpose(0, -1), v)
+            U_grad = -torch.matmul(pa.transpose(0, -1), v)
             vb_grad = -torch.sum(v, 0)
             hb_grad = -torch.sum(ph, 0)
             ab_grad = -torch.sum(pa, 0)
             return parameters_to_vector([W_grad, U_grad, vb_grad, hb_grad, ab_grad])
         else:
-            W_grad = -torch.einsum("ij,ik->ijk", ph, v).view(v.shape[0], -1)
-            U_grad = -torch.einsum("ij,ik->ijk", pa, v).view(v.shape[0], -1)
+            W_grad = -torch.einsum("...j,...k->...jk", ph, v).view(*v.shape[:-1], -1)
+            U_grad = -torch.einsum("...j,...k->...jk", pa, v).view(*v.shape[:-1], -1)
             vb_grad = -v
             hb_grad = -ph
             ab_grad = -pa
             vec = [W_grad, U_grad, vb_grad, hb_grad, ab_grad]
-            return torch.cat(vec, dim=1)
+            return torch.cat(vec, dim=-1)
 
     @auto_unsqueeze_arg(1)
     def prob_h_given_v(self, v, out=None):
@@ -205,9 +205,11 @@ class PurificationRBM(nn.Module):
                   given the visible state
         :rtype torch.Tensor:
         """
-        return torch.addmm(
-            self.hidden_bias.data, v, self.weights_W.data.t(), out=out
-        ).sigmoid_()
+        return (
+            torch.matmul(v, self.weights_W.data.t(), out=out)
+            .add_(self.hidden_bias.data)
+            .sigmoid_()
+        )
 
     @auto_unsqueeze_arg(1)
     def prob_a_given_v(self, v, out=None):
@@ -223,9 +225,11 @@ class PurificationRBM(nn.Module):
                   given the visible state
         :rtype torch.Tensor:
         """
-        return torch.addmm(
-            self.aux_bias.data, v, self.weights_U.data.t(), out=out
-        ).sigmoid_()
+        return (
+            torch.matmul(v, self.weights_U.data.t(), out=out)
+            .add_(self.aux_bias.data)
+            .sigmoid_()
+        )
 
     @auto_unsqueeze_arg(1, 2)
     def prob_v_given_ha(self, h, a, out=None):
@@ -243,12 +247,12 @@ class PurificationRBM(nn.Module):
                   active given the hidden and auxiliary states
         :rtype torch.Tensor:
         """
-        return torch.addmm(
-            torch.addmm(self.visible_bias.data, h, self.weights_W.data, out=out),
-            a,
-            self.weights_U.data,
-            out=out,
-        ).sigmoid_()
+        return (
+            torch.matmul(h, self.weights_W.data, out=out)
+            .add_(self.visible_bias.data)
+            .add_(torch.matmul(a, self.weights_U.data, out=out))
+            .sigmoid_()
+        )
 
     def sample_a_given_v(self, v, out=None):
         r"""Sample/generate an auxiliary state given a visible state
@@ -318,8 +322,8 @@ class PurificationRBM(nn.Module):
         """
         v = (initial_state if overwrite else initial_state.clone()).to(self.weights_W)
 
-        h = torch.zeros(v.shape[0], self.num_hidden).to(self.weights_W)
-        a = torch.zeros(v.shape[0], self.num_aux).to(self.weights_W)
+        h = torch.zeros(*v.shape[:-1], self.num_hidden).to(self.weights_W)
+        a = torch.zeros(*v.shape[:-1], self.num_aux).to(self.weights_W)
 
         for _ in range(k):
             self.sample_h_given_v(v, out=h)
@@ -366,11 +370,11 @@ class PurificationRBM(nn.Module):
             temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
             temp += F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
         else:
-            temp1 = torch.tensordot(v, self.visible_bias, dims=1) + (
+            temp1 = torch.matmul(v, self.visible_bias) + (
                 F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(-1)
             )
 
-            temp2 = torch.tensordot(vp, self.visible_bias, dims=1) + (
+            temp2 = torch.matmul(vp, self.visible_bias) + (
                 F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum(-1)
             )
 
@@ -406,11 +410,11 @@ class PurificationRBM(nn.Module):
             temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
             temp -= F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
         else:
-            temp1 = torch.tensordot(v, self.visible_bias, dims=1) + (
+            temp1 = torch.matmul(v, self.visible_bias) + (
                 F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(-1)
             )
 
-            temp2 = torch.tensordot(vp, self.visible_bias, dims=1) + (
+            temp2 = torch.matmul(vp, self.visible_bias) + (
                 F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum(-1)
             )
 
@@ -443,8 +447,8 @@ class PurificationRBM(nn.Module):
         prob_h = self.prob_h_given_v(v)
         prob_hp = self.prob_h_given_v(vp)
 
-        W_grad_ = torch.einsum("ij,ik->ijk", prob_h, v)
-        W_grad_p = torch.einsum("ij,ik->ijk", prob_hp, vp)
+        W_grad_ = torch.einsum("...j,...k->...jk", prob_h, v)
+        W_grad_p = torch.einsum("...j,...k->...jk", prob_hp, vp)
 
         if expand:
             W_grad = 0.5 * (W_grad_.unsqueeze_(1) + W_grad_p.unsqueeze_(0))
@@ -455,7 +459,9 @@ class PurificationRBM(nn.Module):
             vb_grad = 0.5 * (v + vp)
             hb_grad = 0.5 * (prob_h + prob_hp)
 
-        batch_sizes = (v.shape[0], vp.shape[0]) if expand else (v.shape[0],)
+        batch_sizes = (
+            (v.shape[0], vp.shape[0], *v.shape[1:-1]) if expand else (*v.shape[:-1],)
+        )
         U_grad = torch.zeros_like(self.weights_U).expand(*batch_sizes, -1, -1)
         ab_grad = torch.zeros_like(self.aux_bias).expand(*batch_sizes, -1)
 
@@ -491,8 +497,8 @@ class PurificationRBM(nn.Module):
         prob_h = self.prob_h_given_v(v)
         prob_hp = self.prob_h_given_v(vp)
 
-        W_grad_ = torch.einsum("ij,ik->ijk", prob_h, v)
-        W_grad_p = torch.einsum("ij,ik->ijk", prob_hp, vp)
+        W_grad_ = torch.einsum("...j,...k->...jk", prob_h, v)
+        W_grad_p = torch.einsum("...j,...k->...jk", prob_hp, vp)
 
         if expand:
             W_grad = 0.5 * (W_grad_.unsqueeze_(1) - W_grad_p.unsqueeze_(0))
@@ -503,7 +509,9 @@ class PurificationRBM(nn.Module):
             vb_grad = 0.5 * (v - vp)
             hb_grad = 0.5 * (prob_h - prob_hp)
 
-        batch_sizes = (v.shape[0], vp.shape[0]) if expand else (v.shape[0],)
+        batch_sizes = (
+            (v.shape[0], vp.shape[0], *v.shape[1:-1]) if expand else (*v.shape[:-1],)
+        )
         U_grad = torch.zeros_like(self.weights_U).expand(*batch_sizes, -1, -1)
         ab_grad = torch.zeros_like(self.aux_bias).expand(*batch_sizes, -1)
 

@@ -89,8 +89,8 @@ class BinaryRBM(nn.Module):
         :rtype: torch.Tensor
         """
         v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights)
-        visible_bias_term = torch.mv(v, self.visible_bias)
-        hid_bias_term = F.softplus(F.linear(v, self.weights, self.hidden_bias)).sum(1)
+        visible_bias_term = torch.matmul(v, self.visible_bias)
+        hid_bias_term = F.softplus(F.linear(v, self.weights, self.hidden_bias)).sum(-1)
 
         return -(visible_bias_term + hid_bias_term)
 
@@ -113,15 +113,15 @@ class BinaryRBM(nn.Module):
         prob = self.prob_h_given_v(v)
 
         if reduce:
-            W_grad = -torch.matmul(prob.t(), v)
+            W_grad = -torch.matmul(prob.transpose(0, -1), v)
             vb_grad = -torch.sum(v, 0)
             hb_grad = -torch.sum(prob, 0)
             return parameters_to_vector([W_grad, vb_grad, hb_grad])
         else:
-            W_grad = -torch.einsum("ij,ik->ijk", prob, v)
+            W_grad = -torch.einsum("...j,...k->...jk", prob, v)
             vb_grad = -v
             hb_grad = -prob
-            vec = [W_grad.view(v.size()[0], -1), vb_grad, hb_grad]
+            vec = [W_grad.view(*v.shape[:-1], -1), vb_grad, hb_grad]
             return torch.cat(vec, dim=-1)
 
     @auto_unsqueeze_arg(1)
@@ -138,9 +138,11 @@ class BinaryRBM(nn.Module):
                   hidden state.
         :rtype: torch.Tensor
         """
-        return torch.addmm(
-            self.visible_bias.data, h, self.weights.data, out=out
-        ).sigmoid_()
+        return (
+            torch.matmul(h, self.weights.data, out=out)
+            .add_(self.visible_bias.data)
+            .sigmoid_()
+        )
 
     @auto_unsqueeze_arg(1)
     def prob_h_given_v(self, v, out=None):
@@ -156,9 +158,11 @@ class BinaryRBM(nn.Module):
                   visible state.
         :rtype: torch.Tensor
         """
-        return torch.addmm(
-            self.hidden_bias.data, v, self.weights.data.t(), out=out
-        ).sigmoid_()
+        return (
+            torch.matmul(v, self.weights.data.t(), out=out)
+            .add_(self.hidden_bias.data)
+            .sigmoid_()
+        )
 
     def sample_v_given_h(self, h, out=None):
         """Sample/generate a visible state given a hidden state.
@@ -212,7 +216,7 @@ class BinaryRBM(nn.Module):
         """
         v = (initial_state if overwrite else initial_state.clone()).to(self.weights)
 
-        h = torch.zeros(v.shape[0], self.num_hidden).to(self.weights)
+        h = torch.zeros(*v.shape[:-1], self.num_hidden).to(self.weights)
 
         for _ in range(k):
             self.sample_h_given_v(v, out=h)

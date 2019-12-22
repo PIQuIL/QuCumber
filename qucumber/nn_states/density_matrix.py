@@ -190,7 +190,9 @@ class DensityMatrix(NeuralStateBase):
 
         sig = cplx.sigmoid(arg_real, arg_imag)
 
-        batch_sizes = (v.shape[0], vp.shape[0]) if expand else (v.shape[0],)
+        batch_sizes = (
+            (v.shape[0], vp.shape[0], *v.shape[1:-1]) if expand else (*v.shape[:-1],)
+        )
 
         W_grad = torch.zeros_like(self.rbm_am.weights_W).expand(*batch_sizes, -1, -1)
         vb_grad = torch.zeros_like(self.rbm_am.visible_bias).expand(*batch_sizes, -1)
@@ -265,7 +267,9 @@ class DensityMatrix(NeuralStateBase):
         U_grad_real = -cplx.imag(U_grad)
         U_grad_imag = cplx.real(U_grad)
 
-        batch_sizes = (v.shape[0], vp.shape[0]) if expand else (v.shape[0],)
+        batch_sizes = (
+            (v.shape[0], vp.shape[0], *v.shape[1:-1]) if expand else (*v.shape[:-1],)
+        )
 
         W_grad = torch.zeros_like(self.rbm_ph.weights_W).expand(*batch_sizes, -1, -1)
         vb_grad = torch.zeros_like(self.rbm_ph.visible_bias).expand(*batch_sizes, -1)
