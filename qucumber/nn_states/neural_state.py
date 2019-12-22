@@ -295,22 +295,27 @@ class NeuralStateBase(abc.ABC):
         else:
             if samples.dim() < 2:
                 samples = samples.unsqueeze(0)
-                bases = [bases]
+                bases = np.array(list(bases)).reshape(1, -1)
 
-            for i in range(samples.shape[0]):
-                basis = np.array(list(bases[i]))  # list is silly, but works for now
+            unique_bases, indices = np.unique(bases, axis=0, return_inverse=True)
+
+            for i in range(unique_bases.shape[0]):
+                basis = unique_bases[i, :]
                 rot_sites = np.where(basis != "Z")[0]
 
                 if rot_sites.size != 0:
-                    sample_grad = self.rotated_gradient(basis, rot_sites, samples[i])
+                    samp = samples[indices == i, :]
+                    for j in range(samp.shape[0]):
+                        sample_grad = self.rotated_gradient(basis, rot_sites, samp[j])
+                        grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
+                        grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
                 else:
                     sample_grad = [
-                        self.rbm_am.effective_energy_gradient(samples[i]),
+                        self.rbm_am.effective_energy_gradient(samples[indices == i, :]),
                         0.0,
                     ]
-
-                grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
-                grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
+                    grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
+                    grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
 
         return grad
 

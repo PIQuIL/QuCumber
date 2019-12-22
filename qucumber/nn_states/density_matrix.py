@@ -346,23 +346,16 @@ class DensityMatrix(NeuralStateBase):
                   of the amplitude and phase RBMS
         :rtype: list[torch.Tensor, torch.Tensor]
         """
-        rotated_grad = [
-            torch.zeros(
-                getattr(self, net).num_pars, dtype=torch.double, device=self.device
-            )
-            for net in self.networks
-        ]
-
         UrhoU, UrhoU_v, v = unitaries.rotate_rho_prob(
             self, basis, sample, include_extras=True
         )
 
         raw_grads = [self.am_grads(v, v, expand=True), self.ph_grads(v, v, expand=True)]
 
-        for i in range(len(rotated_grad)):
-            rotated_grad[i] -= cplx.einsum(
-                "ij,ij...->...", UrhoU_v, raw_grads[i], imag_part=False
-            )
+        rotated_grad = [
+            -cplx.einsum("ij,ij...->...", UrhoU_v, g, imag_part=False)
+            for g in raw_grads
+        ]
 
         return [g / UrhoU for g in rotated_grad]
 
