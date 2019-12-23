@@ -150,6 +150,7 @@ def rotate_rho(nn_state, basis, space, unitaries=None, rho=None):
     return rho_r
 
 
+# TODO: make this a generator function
 def _rotate_basis_state(nn_state, basis, sites, states, unitaries=None):
     unitaries = unitaries if unitaries else nn_state.unitary_dict
     unitaries = {k: v.to(device="cpu") for k, v in unitaries.items()}
@@ -204,7 +205,8 @@ def rotate_psi_inner_prod(
                            well as the expanded basis states in the output.
     :type include_extras: bool
 
-    :returns: Amplitude of the state wrt the rotated wavefunction.
+    :returns: Amplitude of the states wrt the rotated wavefunction, and
+              possibly some extras.
     :rtype: torch.Tensor or tuple(torch.Tensor)
     """
     basis = np.array(list(basis))  # list is silly, but works for now
@@ -215,6 +217,7 @@ def rotate_psi_inner_prod(
     if psi is None:
         psi = nn_state.psi(v).detach()
     else:
+        # pick out the entries of psi that we actually need
         idx = _convert_basis_element_to_index(v).long()
         psi = psi[:, idx]
 
@@ -241,8 +244,8 @@ def rotate_rho_probs(
     :type nn_state: qucumber.nn_states.DensityMatrix
     :param basis: The basis to rotate the density matrix to.
     :type basis: str
-    :param state: The basis element to compute the probability of.
-    :type state: torch.Tensor
+    :param states: The batch of basis elements to compute the probabilities of.
+    :type states: torch.Tensor
     :param unitaries: A dictionary of (2x2) unitary operators.
     :type unitaries: dict(str, torch.Tensor)
     :param rho: A density matrix that the user can input to override the neural
@@ -252,7 +255,8 @@ def rotate_rho_probs(
                            well as the expanded basis states in the output.
     :type include_extras: bool
 
-    :returns: Probability of the state wrt the rotated density matrix.
+    :returns: Probability of the states wrt the rotated density matrix, and
+              possibly some extras.
     :rtype: torch.Tensor or tuple(torch.Tensor)
     """
     basis = np.array(list(basis))  # list is silly, but works for now
@@ -264,6 +268,7 @@ def rotate_rho_probs(
     if rho is None:
         rho = nn_state.rho(v).detach()
     else:
+        # pick out the entries of rho that we actually need
         idx = _convert_basis_element_to_index(v).long()
         rho = rho[:, idx.unsqueeze(0), idx.unsqueeze(1)]
 
@@ -271,7 +276,9 @@ def rotate_rho_probs(
     Ut *= rho
 
     UrhoU_v = cplx.make_complex(Ut).to(dtype=torch.double, device=nn_state.device)
-    UrhoU = cplx.real(torch.sum(UrhoU_v, dim=(1, 2)))
+    UrhoU = torch.sum(
+        cplx.real(UrhoU_v), dim=(0, 1)
+    )  # imaginary parts will cancel out anyway
 
     if include_extras:
         return UrhoU, UrhoU_v, v

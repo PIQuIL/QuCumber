@@ -56,6 +56,7 @@ style_requires = [
     "black==19.3b0; python_version>='3.6'",
     "flake8>=3.7.7",
     "flake8-bugbear>=19.3.0",
+    "flake8-fixme>=1.1.1",
     "invoke>=1.1.1",
     "nbconvert>=5.3.1",
 ]

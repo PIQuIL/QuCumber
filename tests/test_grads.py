@@ -256,10 +256,7 @@ def quantum_state_graddata(request, quantum_state_data):
             )
         num_grads[n] = num_grad
 
-    # density matrix grads are slightly less precise
-    test_tol = (2 * TOL) if isinstance(nn_state, DensityMatrix) else TOL
-
-    return nn_state, alg_grads, num_grads, grad_type, test_tol
+    return nn_state, alg_grads, num_grads, grad_type, TOL
 
 
 def get_param_status(i, param_ranges):

@@ -20,11 +20,7 @@ from scipy.linalg import sqrtm
 
 from qucumber.nn_states import WaveFunctionBase
 from qucumber.utils import cplx
-from qucumber.utils.unitaries import (
-    rotate_psi,
-    rotate_psi_inner_prod,
-    rotate_rho_probs,
-)
+from qucumber.utils.unitaries import rotate_psi, rotate_psi_inner_prod, rotate_rho_probs
 
 
 def fidelity(nn_state, target, space, **kwargs):
