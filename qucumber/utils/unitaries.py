@@ -65,6 +65,9 @@ def _kron_mult(matrices, x):
     n = [m.size()[0] for m in matrices]
     l, r = np.prod(n), 1  # noqa: E741
 
+    if l != x.shape[1]:  # noqa: E741
+        raise ValueError("Incompatible sizes!")
+
     y = x.clone()
     for s in reversed(range(len(n))):
         l //= n[s]  # noqa: E741
@@ -147,29 +150,36 @@ def rotate_rho(nn_state, basis, space, unitaries=None, rho=None):
     return rho_r
 
 
-def _rotate_basis_state(nn_state, basis, states, unitaries=None):
+def _rotate_basis_state(nn_state, basis, sites, states, unitaries=None):
     unitaries = unitaries if unitaries else nn_state.unitary_dict
     unitaries = {k: v.to(device="cpu") for k, v in unitaries.items()}
 
-    basis = np.array(list(basis))  # list is silly, but works for now
-    sites = np.where(basis != "Z")[0]
-    Us = torch.stack([unitaries[b] for b in basis[sites]]).cpu().numpy()
+    if sites.size != 0:
+        Us = torch.stack([unitaries[b] for b in basis[sites]]).cpu().numpy()
 
-    reps = [1 for _ in states.shape]
-    v = states.unsqueeze(0).repeat(2 ** sites.size, *reps)
-    v[..., sites] = nn_state.generate_hilbert_space(size=sites.size).unsqueeze(1)
-    v = v.contiguous()
+        reps = [1 for _ in states.shape]
+        v = states.unsqueeze(0).repeat(2 ** sites.size, *reps)
+        v[..., sites] = nn_state.generate_hilbert_space(size=sites.size).unsqueeze(1)
+        v = v.contiguous()
 
-    int_sample = states[..., sites].round().int().cpu().numpy()
-    ints_size = np.arange(sites.size)
+        int_sample = states[..., sites].round().int().cpu().numpy()
+        ints_size = np.arange(sites.size)
 
-    # overwrite rotated elements
-    int_vp = v[..., sites].long().cpu().numpy()
-    all_Us = Us[ints_size, :, int_sample, int_vp]
+        # overwrite rotated elements
+        int_vp = v[..., sites].long().cpu().numpy()
+        all_Us = Us[ints_size, :, int_sample, int_vp]
 
-    Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=-1)
+        Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=-1)
+    else:
+        v = states.unsqueeze(0)
+        Ut = np.ones(v.shape[:-1], dtype=complex)
 
     return Ut, v
+
+
+def _convert_basis_element_to_index(states):
+    powers = (2 ** (torch.arange(states.shape[-1], 0, -1) - 1)).to(states)
+    return torch.matmul(states, powers)
 
 
 def rotate_psi_inner_prod(
@@ -190,24 +200,29 @@ def rotate_psi_inner_prod(
     :param psi: A wavefunction that the user can input to override the neural
                 network state's wavefunction.
     :type psi: torch.Tensor
+    :param include_extras: Whether to include all the terms of the summation as
+                           well as the expanded basis states in the output.
+    :type include_extras: bool
 
     :returns: Amplitude of the state wrt the rotated wavefunction.
-    :rtype: torch.Tensor
+    :rtype: torch.Tensor or tuple(torch.Tensor)
     """
-    Ut, v = _rotate_basis_state(nn_state, basis, states, unitaries=unitaries)
+    basis = np.array(list(basis))  # list is silly, but works for now
+    sites = np.where(basis != "Z")[0]
+
+    Ut, v = _rotate_basis_state(nn_state, basis, sites, states, unitaries=unitaries)
 
     if psi is None:
-        psi = (
-            nn_state.psi(v.reshape(-1, nn_state.num_visible))
-            .detach()
-            .reshape(2, *v.shape[:-1])
-        )
+        psi = nn_state.psi(v).detach()
+    else:
+        idx = _convert_basis_element_to_index(v).long()
+        psi = psi[:, idx]
 
     psi = cplx.numpy(psi.cpu())
     Ut *= psi
 
     Upsi_v = cplx.make_complex(Ut).to(dtype=torch.double, device=nn_state.device)
-    Upsi = torch.sum(Upsi_v, dim=-2)
+    Upsi = torch.sum(Upsi_v, dim=1)
 
     if include_extras:
         return Upsi, Upsi_v, v
@@ -215,7 +230,7 @@ def rotate_psi_inner_prod(
         return Upsi
 
 
-def rotate_rho_prob(
+def rotate_rho_probs(
     nn_state, basis, states, unitaries=None, rho=None, include_extras=False
 ):
     r"""A function that rotates the wavefunction to a different
@@ -233,15 +248,24 @@ def rotate_rho_prob(
     :param rho: A density matrix that the user can input to override the neural
                 network state's density matrix.
     :type rho: torch.Tensor
+    :param include_extras: Whether to include all the terms of the summation as
+                           well as the expanded basis states in the output.
+    :type include_extras: bool
 
     :returns: Probability of the state wrt the rotated density matrix.
-    :rtype: torch.Tensor
+    :rtype: torch.Tensor or tuple(torch.Tensor)
     """
-    Ut, v = _rotate_basis_state(nn_state, basis, states, unitaries=unitaries)
+    basis = np.array(list(basis))  # list is silly, but works for now
+    sites = np.where(basis != "Z")[0]
+
+    Ut, v = _rotate_basis_state(nn_state, basis, sites, states, unitaries=unitaries)
     Ut = np.einsum("ib,jb->ijb", Ut, np.conj(Ut))
 
     if rho is None:
-        rho = nn_state.rho(v, expand=True).detach()
+        rho = nn_state.rho(v).detach()
+    else:
+        idx = _convert_basis_element_to_index(v).long()
+        rho = rho[:, idx.unsqueeze(0), idx.unsqueeze(1)]
 
     rho = cplx.numpy(rho.cpu())
     Ut *= rho

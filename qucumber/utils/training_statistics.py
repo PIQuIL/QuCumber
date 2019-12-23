@@ -22,9 +22,8 @@ from qucumber.nn_states import WaveFunctionBase
 from qucumber.utils import cplx
 from qucumber.utils.unitaries import (
     rotate_psi,
-    rotate_rho,
     rotate_psi_inner_prod,
-    rotate_rho_prob,
+    rotate_rho_probs,
 )
 
 
@@ -116,7 +115,7 @@ def NLL(nn_state, samples, space, bases=None, **kwargs):
                     NLL_ -= torch.sum(probs_to_logits(probs_r))
                 else:
                     probs_r = (
-                        rotate_rho_prob(nn_state, basis, samples[indices == i, :]) / Z
+                        rotate_rho_probs(nn_state, basis, samples[indices == i, :]) / Z
                     )
                     NLL_ -= torch.sum(probs_to_logits(probs_r))
             else:
@@ -198,13 +197,13 @@ def KL(nn_state, target, space, bases=None, **kwargs):
             if isinstance(target, dict):
                 target_rho_r = target[basis]
                 assert target_rho_r.dim() == 3, "target must be a complex matrix!"
+                target_probs_r = torch.diagonal(cplx.real(target_rho_r))
             else:
                 assert target.dim() == 3, "target must be a complex matrix!"
-                target_rho_r = rotate_rho(nn_state, basis, space, rho=target)
+                target_probs_r = rotate_rho_probs(nn_state, basis, space, rho=target)
 
-            rho_r = rotate_rho(nn_state, basis, space)
-            nn_probs_r = torch.diagonal(cplx.real(rho_r)) / Z
-            target_probs_r = torch.diagonal(cplx.real(target_rho_r))
+            rho_r = rotate_rho_probs(nn_state, basis, space)
+            nn_probs_r = rho_r / Z
 
             KL += _single_basis_KL(target_probs_r, nn_probs_r)
 

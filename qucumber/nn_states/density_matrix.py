@@ -15,7 +15,6 @@
 
 import warnings
 
-import numpy as np
 import torch
 from torch.nn import functional as F
 
@@ -157,7 +156,7 @@ class DensityMatrix(NeuralStateBase):
 
         return cplx.make_complex(real, imag)
 
-    def pi_grad_am(self, v, vp, expand=False):
+    def pi_grad(self, v, vp, phase=False, expand=False):
         r"""Calculates the gradient of the :math:`\Pi` matrix with
             respect to the amplitude RBM parameters for two input states
 
@@ -165,6 +164,9 @@ class DensityMatrix(NeuralStateBase):
         :type v: torch.Tensor
         :param vp: The other visible state, :math`\sigma'`
         :type vp: torch.Tensor
+        :param phase: Whether to compute the gradients for the phase RBM (`True`)
+                      or the amplitude RBM (`False`)
+        :type phase: bool
         :returns: The matrix element of the gradient given by
                   :math:`\langle\sigma|\nabla_\lambda\Pi|\sigma'\rangle`
         :rtype: torch.Tensor
@@ -198,13 +200,23 @@ class DensityMatrix(NeuralStateBase):
         vb_grad = torch.zeros_like(self.rbm_am.visible_bias).expand(*batch_sizes, -1)
         hb_grad = torch.zeros_like(self.rbm_am.hidden_bias).expand(*batch_sizes, -1)
 
-        temp = (v.unsqueeze(1) + vp.unsqueeze(0)) if expand else (v + vp)
+        if phase:
+            temp = (v.unsqueeze(1) - vp.unsqueeze(0)) if expand else (v - vp)
+            sig = cplx.scalar_mult(sig, cplx.I)
+
+            ab_grad_real = torch.zeros_like(self.rbm_ph.aux_bias).expand(
+                *batch_sizes, -1
+            )
+            ab_grad_imag = ab_grad_real.clone()
+        else:
+            temp = (v.unsqueeze(1) + vp.unsqueeze(0)) if expand else (v + vp)
+
+            ab_grad_real = cplx.real(sig)
+            ab_grad_imag = cplx.imag(sig)
+
         U_grad = 0.5 * torch.einsum("c...j,...k->c...jk", sig, temp)
         U_grad_real = cplx.real(U_grad)
         U_grad_imag = cplx.imag(U_grad)
-
-        ab_grad_real = cplx.real(sig)
-        ab_grad_imag = cplx.imag(sig)
 
         vec_real = [
             W_grad.view(*batch_sizes, -1),
@@ -219,76 +231,6 @@ class DensityMatrix(NeuralStateBase):
             vb_grad.clone(),
             hb_grad.clone(),
             ab_grad_imag,
-        ]
-
-        if unsqueezed and not expand:
-            vec_real = [grad.squeeze_(0) for grad in vec_real]
-            vec_imag = [grad.squeeze_(0) for grad in vec_imag]
-
-        return cplx.make_complex(
-            torch.cat(vec_real, dim=-1), torch.cat(vec_imag, dim=-1)
-        )
-
-    def pi_grad_ph(self, v, vp, expand=False):
-        r"""Calculates the gradient of the :math:`\Pi` matrix with
-            respect to the phase RBM parameters for two input states
-
-        :param v: One of the visible states, :math:`\sigma`
-        :type v: torch.Tensor
-        :param vp: The other visible state, :math`\sigma'`
-        :type vp: torch.Tensor
-        :returns: The matrix element of the gradient given by
-                  :math:`\langle\sigma|\nabla_\mu\Pi|\sigma'\rangle`
-        :rtype: torch.Tensor
-        """
-        unsqueezed = v.dim() < 2 or vp.dim() < 2
-        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.rbm_ph.weights_W)
-        vp = (vp.unsqueeze(0) if vp.dim() < 2 else vp).to(self.rbm_ph.weights_W)
-
-        if expand:
-            arg_real = 0.5 * (
-                F.linear(v, self.rbm_am.weights_U, self.rbm_am.aux_bias).unsqueeze_(1)
-                + F.linear(vp, self.rbm_am.weights_U, self.rbm_am.aux_bias).unsqueeze_(
-                    0
-                )
-            )
-            arg_imag = 0.5 * (
-                F.linear(v, self.rbm_ph.weights_U).unsqueeze_(1)
-                - F.linear(vp, self.rbm_ph.weights_U).unsqueeze_(0)
-            )
-        else:
-            arg_real = self.rbm_am.mixing_term(v + vp)
-            arg_imag = self.rbm_ph.mixing_term(v - vp)
-
-        sig = cplx.sigmoid(arg_real, arg_imag)
-
-        temp = (v.unsqueeze(1) - vp.unsqueeze(0)) if expand else (v - vp)
-        U_grad = 0.5 * torch.einsum("c...j,...k->c...jk", sig, temp)
-        U_grad_real = -cplx.imag(U_grad)
-        U_grad_imag = cplx.real(U_grad)
-
-        batch_sizes = (
-            (v.shape[0], vp.shape[0], *v.shape[1:-1]) if expand else (*v.shape[:-1],)
-        )
-
-        W_grad = torch.zeros_like(self.rbm_ph.weights_W).expand(*batch_sizes, -1, -1)
-        vb_grad = torch.zeros_like(self.rbm_ph.visible_bias).expand(*batch_sizes, -1)
-        hb_grad = torch.zeros_like(self.rbm_ph.hidden_bias).expand(*batch_sizes, -1)
-        ab_grad = torch.zeros_like(self.rbm_ph.aux_bias).expand(*batch_sizes, -1)
-
-        vec_real = [
-            W_grad.view(*batch_sizes, -1),
-            U_grad_real.view(*batch_sizes, -1),
-            vb_grad,
-            hb_grad,
-            ab_grad,
-        ]
-        vec_imag = [
-            W_grad.view(*batch_sizes, -1).clone(),
-            U_grad_imag.view(*batch_sizes, -1),
-            vb_grad.clone(),
-            hb_grad.clone(),
-            ab_grad.clone(),
         ]
 
         if unsqueezed and not expand:
@@ -324,8 +266,8 @@ class DensityMatrix(NeuralStateBase):
             vp = v
 
         pi_ = self.pi(v, vp, expand=expand)
-        amp = (self.rbm_am.gamma_plus(v, vp, expand=expand) + cplx.real(pi_)).exp()
-        phase = self.rbm_ph.gamma_minus(v, vp, expand=expand) + cplx.imag(pi_)
+        amp = (self.rbm_am.gamma(v, vp, eta=+1, expand=expand) + cplx.real(pi_)).exp()
+        phase = self.rbm_ph.gamma(v, vp, eta=-1, expand=expand) + cplx.imag(pi_)
 
         return cplx.make_complex(amp * phase.cos(), amp * phase.sin())
 
@@ -335,14 +277,11 @@ class DensityMatrix(NeuralStateBase):
     def importance_sampling_denominator(self, drawn_sample):
         return self.probability(drawn_sample)
 
-    def rotated_gradient(self, basis, sites, sample):
+    def rotated_gradient(self, basis, sample):
         r"""Computes the gradients rotated into the measurement basis
 
         :param basis: The bases in which the measurement is made
         :type basis: numpy.ndarray
-        :param sites: The sites where the measurements are not made
-                      in the computational basis
-        :type sites: numpy.ndarray
         :param sample: The measurement (either 0 or 1)
         :type sample: torch.Tensor
 
@@ -350,19 +289,12 @@ class DensityMatrix(NeuralStateBase):
                   of the amplitude and phase RBMS
         :rtype: list[torch.Tensor, torch.Tensor]
         """
-        UrhoU, UrhoU_v, v = unitaries.rotate_rho_prob(
+        UrhoU, UrhoU_v, v = unitaries.rotate_rho_probs(
             self, basis, sample, include_extras=True
         )
         inv_UrhoU = 1 / UrhoU
 
-        vr = v.reshape(-1, v.shape[-1])
-        raw_grads = [
-            self.am_grads(vr, expand=True).reshape(2, *v.shape[:-1], *v.shape[:-1], -1),
-            self.ph_grads(vr, expand=True).reshape(2, *v.shape[:-1], *v.shape[:-1], -1),
-        ]
-        raw_grads = [
-            torch.diagonal(rg, dim1=2, dim2=4).transpose(-1, -2) for rg in raw_grads
-        ]
+        raw_grads = [self.am_grads(v, expand=True), self.ph_grads(v, expand=True)]
 
         rotated_grad = [
             -cplx.einsum("ijb,ijbg->bg", UrhoU_v, g, imag_part=False) for g in raw_grads
@@ -380,8 +312,8 @@ class DensityMatrix(NeuralStateBase):
         :returns: The gradients of all amplitude RBM parameters
         :rtype: torch.Tensor
         """
-        return self.rbm_am.gamma_plus_grad(v, v, expand=expand) + self.pi_grad_am(
-            v, v, expand=expand
+        return self.rbm_am.gamma_grad(v, v, eta=+1, expand=expand) + self.pi_grad(
+            v, v, phase=False, expand=expand
         )
 
     def ph_grads(self, v, expand=False):
@@ -395,8 +327,8 @@ class DensityMatrix(NeuralStateBase):
         :rtype: torch.Tensor
         """
         return cplx.scalar_mult(  # need to multiply Gamma- by i
-            self.rbm_ph.gamma_minus_grad(v, v, expand=expand), torch.Tensor([0, 1])
-        ) + self.pi_grad_ph(v, v, expand=expand)
+            self.rbm_ph.gamma_grad(v, v, eta=-1, expand=expand), cplx.I
+        ) + self.pi_grad(v, v, phase=True, expand=expand)
 
     def fit(
         self,

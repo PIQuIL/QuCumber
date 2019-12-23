@@ -171,15 +171,30 @@ def test_density_matrix_sizes():
 ndo_matrices = [
     ("rho", True),
     ("pi", True),
-    ("rbm_am.gamma_plus", False),
-    ("rbm_ph.gamma_minus", False),
-    ("pi_grad_am", True),
-    ("pi_grad_ph", True),
-    ("rbm_am.gamma_plus_grad", True),
-    ("rbm_ph.gamma_minus_grad", True),
+    ("rbm_am.gamma", False, +1),
+    ("rbm_am.gamma", False, -1),
+    ("pi_grad", True, True),
+    ("pi_grad", True, False),
+    ("rbm_am.gamma_grad", True, +1),
+    ("rbm_am.gamma_grad", True, -1),
 ]
 
-ndo_matrices = [pytest.param(p, id=p[0]) for p in ndo_matrices]
+
+def _ndo_matrix_task_name(p):
+    if len(p) < 3:
+        return p[0]
+    else:
+        s = p[0]
+        if p[2] is not True and p[2] == +1:
+            s += "+"
+        elif p[2] == -1:
+            s += "-"
+        else:
+            s += "-" + str(p[2])
+        return s
+
+
+ndo_matrices = [pytest.param(p, id=_ndo_matrix_task_name(p)) for p in ndo_matrices]
 
 
 @pytest.mark.parametrize("prop", ndo_matrices)
@@ -190,13 +205,15 @@ def test_density_matrix_expansion(prop):
     v = nn_state.generate_hilbert_space(5)
     vp = v[torch.randperm(v.shape[0]), :]
 
-    prop, is_complex = prop
-    fn = attrgetter(prop)(nn_state)
+    prop_name = prop[0]
+    is_complex = prop[1]
+    args = prop[2:]
+    fn = attrgetter(prop_name)(nn_state)
 
-    matrix = fn(v, vp, expand=True)
-    diag = fn(v, vp, expand=False)
+    matrix = fn(v, vp, *args, expand=True)
+    diag = fn(v, vp, *args, expand=False)
 
-    msg = f"Diagonal of matrix {prop} is wrong!"
+    msg = f"Diagonal of matrix {prop_name} is wrong!"
 
     equation = "cii...->ci..." if is_complex else "ii->i"
     assertAlmostEqual(torch.einsum(equation, matrix), diag, TOL, msg=msg)

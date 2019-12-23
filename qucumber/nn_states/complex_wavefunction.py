@@ -15,7 +15,6 @@
 
 import warnings
 
-import numpy as np
 import torch
 
 from qucumber import _warn_on_missing_gpu
@@ -160,14 +159,11 @@ class ComplexWaveFunction(WaveFunctionBase):
         """
         return super().psi(v)
 
-    def rotated_gradient(self, basis, sites, sample):
+    def rotated_gradient(self, basis, sample):
         r"""Computes the gradients rotated into the measurement basis
 
         :param basis: The bases in which the measurement is made
         :type basis: numpy.ndarray
-        :param sites: The sites where the measurements are not made
-                      in the computational basis
-        :type sites: numpy.ndarray
         :param sample: The measurement (either 0 or 1)
         :type sample: torch.Tensor
 
@@ -213,7 +209,7 @@ class ComplexWaveFunction(WaveFunctionBase):
         """
         return cplx.scalar_mult(
             cplx.make_complex(self.rbm_ph.effective_energy_gradient(v, reduce=False)),
-            torch.Tensor([0, 1]),  # need to multiply phase gradient by i
+            cplx.I,  # need to multiply phase gradient by i
         )
 
     def fit(

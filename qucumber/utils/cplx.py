@@ -17,6 +17,9 @@ import torch
 import numpy as np
 
 
+I = torch.Tensor([0, 1])  # noqa: E741
+
+
 def make_complex(x, y=None):
     """A function that creates a torch compatible complex tensor.
 
@@ -92,13 +95,13 @@ def scalar_mult(x, y, out=None):
     """
     y = y.to(x)
     if out is None:
-        out = torch.zeros(2, *((x[0] * y[0]).size()), dtype=x.dtype, device=x.device)
+        out = torch.zeros(2, *((x[0] * y[0]).shape)).to(x)
     else:
         if out is x or out is y:
             raise RuntimeError("Can't overwrite an argument!")
 
-    out[0] = (x[0] * y[0]) - (x[1] * y[1])
-    out[1] = (x[0] * y[1]) + (x[1] * y[0])
+    torch.mul(real(x), real(y), out=real(out)).sub_(torch.mul(imag(x), imag(y)))
+    torch.mul(real(x), imag(y), out=imag(out)).add_(torch.mul(imag(x), real(y)))
 
     return out
 
@@ -117,18 +120,11 @@ def matmul(x, y):
     :returns: The product between x and y.
     :rtype: torch.Tensor
     """
-    if len(list(y.size())) == 2:
-        # if one of them is a vector (i.e. wanting to do MV mult)
-        z = torch.zeros(2, x.size()[1], dtype=x.dtype, device=x.device)
-        z[0] = torch.mv(x[0], y[0]) - torch.mv(x[1], y[1])
-        z[1] = torch.mv(x[0], y[1]) + torch.mv(x[1], y[0])
+    y = y.to(x)
+    re = torch.matmul(real(x), real(y)).sub_(torch.matmul(imag(x), imag(y)))
+    im = torch.matmul(real(x), imag(y)).add_(torch.matmul(imag(x), real(y)))
 
-    if len(list(y.size())) == 3:
-        z = torch.zeros(2, x.size()[1], y.size()[2], dtype=x.dtype, device=x.device)
-        z[0] = torch.matmul(x[0], y[0]) - torch.matmul(x[1], y[1])
-        z[1] = torch.matmul(x[0], y[1]) + torch.matmul(x[1], y[0])
-
-    return z
+    return make_complex(re, im)
 
 
 def inner_prod(x, y):

@@ -17,6 +17,7 @@ import torch
 
 from qucumber.utils import cplx
 from qucumber.utils import training_statistics as ts
+from qucumber.utils.unitaries import rotate_psi_inner_prod, rotate_rho_probs
 
 
 class PosGradsUtils:
@@ -129,7 +130,9 @@ class ComplexGradsUtils(PosGradsUtils):
             if isinstance(target, dict):
                 target_r = target[all_bases[b]]
             else:
-                target_r = ts.rotate_psi(self.nn_state, all_bases[b], space, rho=target)
+                target_r = rotate_psi_inner_prod(
+                    self.nn_state, all_bases[b], space, psi=target
+                )
             target_r = cplx.absolute_value(target_r) ** 2
 
             for i in range(len(space)):
@@ -163,9 +166,11 @@ class DensityGradsUtils(ComplexGradsUtils):
         for b in range(len(all_bases)):
             if isinstance(target, dict):
                 target_r = target[all_bases[b]]
+                target_r = torch.diagonal(cplx.real(target_r))
             else:
-                target_r = ts.rotate_rho(self.nn_state, all_bases[b], space, rho=target)
-            target_r = torch.diagonal(cplx.real(target_r))
+                target_r = rotate_rho_probs(
+                    self.nn_state, all_bases[b], space, rho=target
+                )
 
             for i in range(len(space)):
                 rotated_grad = self.nn_state.gradient(space[i], all_bases[b])

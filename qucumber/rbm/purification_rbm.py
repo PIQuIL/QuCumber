@@ -345,30 +345,36 @@ class PurificationRBM(nn.Module):
         """
         return F.linear(v, 0.5 * self.weights_U, self.aux_bias)
 
-    def gamma_plus(self, v, vp, expand=True):
-        r"""Calculates elements of the :math:`\Gamma^{(+)}` matrix.
+    def gamma(self, v, vp, eta=1, expand=True):
+        r"""Calculates elements of the :math:`\Gamma^{(\eta)}` matrix,
+        where :math:`\eta = \pm`.
         If `expand` is `True`, will return a complex matrix
-        :math:`A_{ij} = \langle\sigma_i|\Gamma^{(+)}|\sigma'_j\rangle`.
+        :math:`A_{ij} = \langle\sigma_i|\Gamma^{(\eta)}|\sigma'_j\rangle`.
         Otherwise will return a complex vector
-        :math:`A_{i} = \langle\sigma_i|\Gamma^{(+)}|\sigma'_i\rangle`.
+        :math:`A_{i} = \langle\sigma_i|\Gamma^{(\eta)}|\sigma'_i\rangle`.
 
         :param v: A batch of visible states, :math:`\sigma`.
         :type v: torch.Tensor
         :param vp: The other batch of visible states, :math:`\sigma'`.
         :type vp: torch.Tensor
+        :param eta: Determines which gamma matrix elements to compute.
+        :type eta: int
         :param expand: Whether to return a matrix (`True`) or a vector (`False`).
                        Ignored if both inputs are vectors, in which case, a
                        scalar is returned.
         :type expand: bool
 
         :returns: The matrix element given by
-                  :math:`\langle\sigma|\Gamma^{(+)}|\sigma'\rangle`
+                  :math:`\langle\sigma|\Gamma^{(\eta)}|\sigma'\rangle`
         :rtype: torch.Tensor
         """
+        sign = np.sign(eta)
         if v.dim() < 2 and vp.dim() < 2:
-            temp = torch.dot(v + vp, self.visible_bias)
+            temp = torch.dot(v + sign * vp, self.visible_bias)
             temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
-            temp += F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
+            temp += (
+                sign * F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
+            )
         else:
             temp1 = torch.matmul(v, self.visible_bias) + (
                 F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(-1)
@@ -379,67 +385,30 @@ class PurificationRBM(nn.Module):
             )
 
             if expand:
-                temp = temp1.unsqueeze_(1) + temp2.unsqueeze_(0)
+                temp = temp1.unsqueeze_(1) + (sign * temp2.unsqueeze_(0))
             else:
-                temp = temp1 + temp2
+                temp = temp1 + (sign * temp2)
 
         return 0.5 * temp
 
-    def gamma_minus(self, v, vp, expand=True):
-        r"""Calculates elements of the :math:`\Gamma^{(-)}` matrix.
-        If `expand` is `True`, will return a complex matrix
-        :math:`A_{ij} = \langle\sigma_i|\Gamma^{(-)}|\sigma'_j\rangle`.
-        Otherwise will return a complex vector
-        :math:`A_{i} = \langle\sigma_i|\Gamma^{(-)}|\sigma'_i\rangle`.
-
-        :param v: A batch of visible states, :math:`\sigma`.
-        :type v: torch.Tensor
-        :param vp: The other batch of visible states, :math:`\sigma'`.
-        :type vp: torch.Tensor
-        :param expand: Whether to return a matrix (`True`) or a vector (`False`).
-                       Ignored if both inputs are vectors, in which case, a
-                       scalar is returned.
-        :type expand: bool
-
-        :returns: The matrix element given by
-                  :math:`\langle\sigma|\Gamma^{(-)}|\sigma'\rangle`
-        :rtype: torch.Tensor
-        """
-        if len(v.shape) < 2 and len(vp.shape) < 2:
-            temp = torch.dot(v - vp, self.visible_bias)
-            temp += F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum()
-            temp -= F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum()
-        else:
-            temp1 = torch.matmul(v, self.visible_bias) + (
-                F.softplus(F.linear(v, self.weights_W, self.hidden_bias)).sum(-1)
-            )
-
-            temp2 = torch.matmul(vp, self.visible_bias) + (
-                F.softplus(F.linear(vp, self.weights_W, self.hidden_bias)).sum(-1)
-            )
-
-            if expand:
-                temp = temp1.unsqueeze_(1) - temp2.unsqueeze_(0)
-            else:
-                temp = temp1 - temp2
-
-        return 0.5 * temp
-
-    def gamma_plus_grad(self, v, vp, expand=False):
+    def gamma_grad(self, v, vp, eta=1, expand=False):
         r"""Calculates elements of the gradient of
-            the :math:`\Gamma^{(+)}` matrix
+            the :math:`\Gamma^{(\eta)}` matrix, where :math:`\eta = \pm`.
 
         :param v: A batch of visible states, :math:`\sigma`
         :type v: torch.Tensor
         :param vp: The other batch of visible states, :math:`\sigma'`
         :type vp: torch.Tensor
+        :param eta: Determines which gamma matrix elements to compute.
+        :type eta: int
         :param expand: Whether to return a rank-3 tensor (`True`) or a matrix (`False`).
         :type expand: bool
 
         :returns: The matrix element given by
-                  :math:`\langle\sigma|\nabla_\lambda\Gamma^{(+)}|\sigma'\rangle`
+                  :math:`\langle\sigma|\nabla_\lambda\Gamma^{(\eta)}|\sigma'\rangle`
         :rtype: torch.Tensor
         """
+        sign = np.sign(eta)
         unsqueezed = v.dim() < 2 or vp.dim() < 2
         v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights_W)
         vp = (vp.unsqueeze(0) if vp.dim() < 2 else vp).to(self.weights_W)
@@ -451,63 +420,13 @@ class PurificationRBM(nn.Module):
         W_grad_p = torch.einsum("...j,...k->...jk", prob_hp, vp)
 
         if expand:
-            W_grad = 0.5 * (W_grad_.unsqueeze_(1) + W_grad_p.unsqueeze_(0))
-            vb_grad = 0.5 * (v.unsqueeze(1) + vp.unsqueeze(0))
-            hb_grad = 0.5 * (prob_h.unsqueeze_(1) + prob_hp.unsqueeze_(0))
+            W_grad = 0.5 * (W_grad_.unsqueeze_(1) + sign * W_grad_p.unsqueeze_(0))
+            vb_grad = 0.5 * (v.unsqueeze(1) + sign * vp.unsqueeze(0))
+            hb_grad = 0.5 * (prob_h.unsqueeze_(1) + sign * prob_hp.unsqueeze_(0))
         else:
-            W_grad = 0.5 * (W_grad_ + W_grad_p)
-            vb_grad = 0.5 * (v + vp)
-            hb_grad = 0.5 * (prob_h + prob_hp)
-
-        batch_sizes = (
-            (v.shape[0], vp.shape[0], *v.shape[1:-1]) if expand else (*v.shape[:-1],)
-        )
-        U_grad = torch.zeros_like(self.weights_U).expand(*batch_sizes, -1, -1)
-        ab_grad = torch.zeros_like(self.aux_bias).expand(*batch_sizes, -1)
-
-        vec = [
-            W_grad.view(*batch_sizes, -1),
-            U_grad.view(*batch_sizes, -1),
-            vb_grad,
-            hb_grad,
-            ab_grad,
-        ]
-        if unsqueezed and not expand:
-            vec = [grad.squeeze_(0) for grad in vec]
-
-        return cplx.make_complex(torch.cat(vec, dim=-1))
-
-    def gamma_minus_grad(self, v, vp, expand=False):
-        r"""Calculates an element of the gradient of
-            the :math:`\Gamma^{(-)}` matrix
-
-        :param v: A batch of visible states, :math:`\sigma`
-        :type v: torch.Tensor
-        :param vp: The other batch of visible states, :math:`\sigma'`
-        :type vp: torch.Tensor
-
-        :returns: The matrix element given by
-                  :math:`\langle\sigma|\nabla_\mu\Gamma^{(-)}|\sigma'\rangle`
-        :rtype: torch.Tensor
-        """
-        unsqueezed = v.dim() < 2 or vp.dim() < 2
-        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights_W)
-        vp = (vp.unsqueeze(0) if vp.dim() < 2 else vp).to(self.weights_W)
-
-        prob_h = self.prob_h_given_v(v)
-        prob_hp = self.prob_h_given_v(vp)
-
-        W_grad_ = torch.einsum("...j,...k->...jk", prob_h, v)
-        W_grad_p = torch.einsum("...j,...k->...jk", prob_hp, vp)
-
-        if expand:
-            W_grad = 0.5 * (W_grad_.unsqueeze_(1) - W_grad_p.unsqueeze_(0))
-            vb_grad = 0.5 * (v.unsqueeze(1) - vp.unsqueeze(0))
-            hb_grad = 0.5 * (prob_h.unsqueeze_(1) - prob_hp.unsqueeze_(0))
-        else:
-            W_grad = 0.5 * (W_grad_ - W_grad_p)
-            vb_grad = 0.5 * (v - vp)
-            hb_grad = 0.5 * (prob_h - prob_hp)
+            W_grad = 0.5 * (W_grad_ + sign * W_grad_p)
+            vb_grad = 0.5 * (v + sign * vp)
+            hb_grad = 0.5 * (prob_h + sign * prob_hp)
 
         batch_sizes = (
             (v.shape[0], vp.shape[0], *v.shape[1:-1]) if expand else (*v.shape[:-1],)

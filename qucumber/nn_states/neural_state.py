@@ -305,7 +305,7 @@ class NeuralStateBase(abc.ABC):
 
                 if rot_sites.size != 0:
                     samp = samples[indices == i, :]
-                    sample_grad = self.rotated_gradient(basis, rot_sites, samp)
+                    sample_grad = self.rotated_gradient(basis, samp)
                     grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
                     grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
                 else:
