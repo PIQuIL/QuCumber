@@ -292,7 +292,7 @@ class DensityMatrix(NeuralStateBase):
         UrhoU, UrhoU_v, v = unitaries.rotate_rho_probs(
             self, basis, sample, include_extras=True
         )
-        inv_UrhoU = 1 / UrhoU
+        inv_UrhoU = 1 / (UrhoU + 1e-8)
 
         raw_grads = [self.am_grads(v, expand=True), self.ph_grads(v, expand=True)]
 

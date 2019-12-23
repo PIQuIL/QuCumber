@@ -19,11 +19,12 @@ import numpy as np
 from scipy.linalg import sqrtm
 
 from qucumber.nn_states import WaveFunctionBase
-from qucumber.utils import cplx
+from qucumber.utils import cplx, deprecated_kwarg
 from qucumber.utils.unitaries import rotate_psi, rotate_psi_inner_prod, rotate_rho_probs
 
 
-def fidelity(nn_state, target, space, **kwargs):
+@deprecated_kwarg(target_psi="target", target_rho="target")
+def fidelity(nn_state, target, space=None, **kwargs):
     r"""Calculates the square of the overlap (fidelity) between the reconstructed
     state and the true state (both in the computational basis).
 
@@ -38,13 +39,15 @@ def fidelity(nn_state, target, space, **kwargs):
     :type target: torch.Tensor
     :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
                   The ordering of the basis elements must match with the ordering of the
-                  coefficients given in `target`.
+                  coefficients given in `target`. If `None`, will generate them using
+                  the provided `nn_state`.
     :type space: torch.Tensor
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
     :returns: The fidelity.
     :rtype: float
     """
+    space = space if space is not None else nn_state.generate_hilbert_space()
     Z = nn_state.normalization(space)
     target = target.to(nn_state.device)
 
@@ -66,12 +69,14 @@ def fidelity(nn_state, target, space, **kwargs):
 
         # Instead of sqrt'ing then taking the trace, we compute the eigenvals,
         #  sqrt those, and then sum them up. This is a bit more efficient.
-        eigvals = np.linalg.eigvalsh(prod)
-        trace = np.sum(np.sqrt(eigvals).real)  # imaginary parts should be zero
+        eigvals = np.linalg.eigvals(prod).real  # imaginary parts should be zero
+        eigvals = np.abs(eigvals)
+        trace = np.sum(np.sqrt(eigvals))
+
         return trace ** 2
 
 
-def NLL(nn_state, samples, space, bases=None, **kwargs):
+def NLL(nn_state, samples, space=None, sample_bases=None, **kwargs):
     r"""A function for calculating the negative log-likelihood (NLL).
 
     :param nn_state: The neural network state.
@@ -79,24 +84,26 @@ def NLL(nn_state, samples, space, bases=None, **kwargs):
     :param samples: Samples to compute the NLL on.
     :type samples: torch.Tensor
     :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
+                  If `None`, will generate them using the provided `nn_state`.
     :type space: torch.Tensor
-    :param bases: An array of bases where measurements were taken.
-    :type bases: numpy.ndarray
+    :param sample_bases: An array of bases where measurements were taken.
+    :type sample_bases: numpy.ndarray
     :param \**kwargs: Extra keyword arguments that may be passed. Will be ignored.
 
     :returns: The Negative Log-Likelihood.
     :rtype: float
     """
+    space = space if space is not None else nn_state.generate_hilbert_space()
     Z = nn_state.normalization(space)
 
-    if bases is None:
+    if sample_bases is None:
         nn_probs = nn_state.probability(samples, Z)
         NLL_ = -torch.mean(probs_to_logits(nn_probs)).item()
         return NLL_
     else:
         NLL_ = 0.0
 
-        unique_bases, indices = np.unique(bases, axis=0, return_inverse=True)
+        unique_bases, indices = np.unique(sample_bases, axis=0, return_inverse=True)
 
         for i in range(unique_bases.shape[0]):
             basis = unique_bases[i, :]
@@ -127,7 +134,8 @@ def _single_basis_KL(target_probs, nn_probs):
     )
 
 
-def KL(nn_state, target, space, bases=None, **kwargs):
+@deprecated_kwarg(target_psi="target", target_rho="target")
+def KL(nn_state, target, space=None, bases=None, **kwargs):
     r"""A function for calculating the KL divergence averaged over every given
     basis.
 
@@ -141,7 +149,8 @@ def KL(nn_state, target, space, bases=None, **kwargs):
     :type target: torch.Tensor or dict(str, torch.Tensor)
     :param space: The basis elements of the Hilbert space of the system :math:`\mathcal{H}`.
                   The ordering of the basis elements must match with the ordering of the
-                  coefficients given in `target`.
+                  coefficients given in `target`. If `None`, will generate them using
+                  the provided `nn_state`.
     :type space: torch.Tensor
     :param bases: An array of unique bases. If given, the KL divergence will be
                   computed for each basis and the average will be returned.
@@ -151,7 +160,8 @@ def KL(nn_state, target, space, bases=None, **kwargs):
     :returns: The KL divergence.
     :rtype: float
     """
-    KL = 0.0
+    space = space if space is not None else nn_state.generate_hilbert_space()
+    Z = nn_state.normalization(space)
 
     if isinstance(target, dict):
         target = {k: v.to(nn_state.device) for k, v in target.items()}
@@ -164,7 +174,7 @@ def KL(nn_state, target, space, bases=None, **kwargs):
     else:
         target = target.to(nn_state.device)
 
-    Z = nn_state.normalization(space)
+    KL = 0.0
 
     if bases is None:
         target_probs = cplx.absolute_value(target) ** 2

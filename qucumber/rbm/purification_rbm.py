@@ -46,7 +46,7 @@ class PurificationRBM(nn.Module):
         self.num_hidden = (
             int(num_hidden) if num_hidden is not None else self.num_visible
         )
-        self.num_aux = int(num_aux) if num_hidden is not None else self.num_visible
+        self.num_aux = int(num_aux) if num_aux is not None else self.num_visible
 
         # Parameters are:
         # W: The weights of the visible-hidden edges
@@ -209,6 +209,7 @@ class PurificationRBM(nn.Module):
             torch.matmul(v, self.weights_W.data.t(), out=out)
             .add_(self.hidden_bias.data)
             .sigmoid_()
+            .clamp_(min=0, max=1)
         )
 
     @auto_unsqueeze_arg(1)
@@ -229,6 +230,7 @@ class PurificationRBM(nn.Module):
             torch.matmul(v, self.weights_U.data.t(), out=out)
             .add_(self.aux_bias.data)
             .sigmoid_()
+            .clamp_(min=0, max=1)
         )
 
     @auto_unsqueeze_arg(1, 2)
@@ -250,8 +252,9 @@ class PurificationRBM(nn.Module):
         return (
             torch.matmul(h, self.weights_W.data, out=out)
             .add_(self.visible_bias.data)
-            .add_(torch.matmul(a, self.weights_U.data, out=out))
+            .add_(torch.matmul(a, self.weights_U.data))
             .sigmoid_()
+            .clamp_(min=0, max=1)
         )
 
     def sample_a_given_v(self, v, out=None):

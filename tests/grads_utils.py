@@ -28,7 +28,7 @@ class PosGradsUtils:
         return ts.KL(self.nn_state, target, space, bases=all_bases)
 
     def compute_numerical_NLL(self, data_samples, space, data_bases=None):
-        return ts.NLL(self.nn_state, data_samples, space, bases=data_bases)
+        return ts.NLL(self.nn_state, data_samples, space, sample_bases=data_bases)
 
     def algorithmic_gradKL(self, target, space, **kwargs):
         Z = self.nn_state.normalization(space)
@@ -139,11 +139,13 @@ class ComplexGradsUtils(PosGradsUtils):
                 rotated_grad = self.nn_state.gradient(space[i], all_bases[b])
                 grad_KL[0] += target_r[i] * rotated_grad[0] / float(len(all_bases))
                 grad_KL[1] += target_r[i] * rotated_grad[1] / float(len(all_bases))
-                grad_KL[0] -= (
-                    self.nn_state.probability(space[i], Z)
-                    * self.nn_state.rbm_am.effective_energy_gradient(space[i])
-                    / float(len(all_bases))
-                )
+
+        probs = self.nn_state.probability(space, Z)
+        all_grads = self.nn_state.rbm_am.effective_energy_gradient(space, reduce=False)
+        grad_KL[0] -= torch.mv(
+            all_grads.t(), probs
+        )  # average the gradients, weighted by probs
+
         return grad_KL
 
 
@@ -174,12 +176,13 @@ class DensityGradsUtils(ComplexGradsUtils):
 
             for i in range(len(space)):
                 rotated_grad = self.nn_state.gradient(space[i], all_bases[b])
-
                 grad_KL[0] += target_r[i] * rotated_grad[0] / float(len(all_bases))
                 grad_KL[1] += target_r[i] * rotated_grad[1] / float(len(all_bases))
-                grad_KL[0] -= (
-                    self.nn_state.probability(space[i], Z)
-                    * self.nn_state.rbm_am.effective_energy_gradient(space[i])
-                    / float(len(all_bases))
-                )
+
+        probs = self.nn_state.probability(space, Z)
+        all_grads = self.nn_state.rbm_am.effective_energy_gradient(space, reduce=False)
+        grad_KL[0] -= torch.mv(
+            all_grads.t(), probs
+        )  # average the gradients, weighted by probs
+
         return grad_KL

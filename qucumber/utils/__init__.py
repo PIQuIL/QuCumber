@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import warnings
 from functools import wraps
 
 
@@ -35,5 +36,36 @@ class auto_unsqueeze_arg:
                 return f(*args, **kwargs).squeeze_(0)
             else:
                 return f(*args, **kwargs)
+
+        return wrapped_f
+
+
+# based on code found on StackOverflow:
+# https://stackoverflow.com/questions/49802412/how-to-implement-deprecation-in-python-with-argument-alias
+class deprecated_kwarg:
+    def __init__(self, **aliases):
+        self.aliases = aliases
+
+    def rename(self, function, kwargs):
+        for alias, true_name in self.aliases.items():
+            if alias in kwargs:
+                if true_name in kwargs:
+                    raise TypeError(
+                        f"{function} received both {alias} and {true_name}!"
+                    )
+
+                warnings.warn(
+                    f"The argument {alias} is deprecated for {function}; use {true_name} instead."
+                )
+
+                kwargs[true_name] = kwargs.pop(alias)
+
+        return kwargs
+
+    def __call__(self, f):
+        @wraps(f)
+        def wrapped_f(*args, **kwargs):
+            kwargs = self.rename(f.__name__, kwargs)
+            return f(*args, **kwargs)
 
         return wrapped_f

@@ -142,6 +142,7 @@ class BinaryRBM(nn.Module):
             torch.matmul(h, self.weights.data, out=out)
             .add_(self.visible_bias.data)
             .sigmoid_()
+            .clamp_(min=0, max=1)
         )
 
     @auto_unsqueeze_arg(1)
@@ -162,6 +163,7 @@ class BinaryRBM(nn.Module):
             torch.matmul(v, self.weights.data.t(), out=out)
             .add_(self.hidden_bias.data)
             .sigmoid_()
+            .clamp_(min=0, max=1)
         )
 
     def sample_v_given_h(self, h, out=None):
