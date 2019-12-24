@@ -103,8 +103,19 @@ def test_autoloading(tmpdir, state_type, is_src_gpu, is_dest_gpu):
     os.remove(model_path)
 
 
-@pytest.mark.parametrize("state_type", all_state_types)
-def test_model_saving_bad_metadata_key(tmpdir, state_type):
+@pytest.mark.parametrize(
+    "state_type, bad_key",
+    [
+        (PositiveWaveFunction, "rbm_am"),
+        (ComplexWaveFunction, "rbm_am"),
+        (ComplexWaveFunction, "rbm_ph"),
+        (ComplexWaveFunction, "unitary_dict"),
+        (DensityMatrix, "rbm_am"),
+        (DensityMatrix, "rbm_ph"),
+        (DensityMatrix, "unitary_dict"),
+    ],
+)
+def test_model_saving_bad_metadata_key(tmpdir, state_type, bad_key):
     # some CUDA ops are non-deterministic; don't test on GPU.
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
     nn_state = state_type(10, gpu=False)
@@ -113,7 +124,7 @@ def test_model_saving_bad_metadata_key(tmpdir, state_type):
 
     msg = "Metadata with invalid key should raise an error."
     with pytest.raises(ValueError):
-        nn_state.save(model_path, metadata={"rbm_am": 1337})
+        nn_state.save(model_path, metadata={bad_key: 1337})
         pytest.fail(msg)
 
 

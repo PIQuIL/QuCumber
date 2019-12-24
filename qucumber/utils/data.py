@@ -51,15 +51,7 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
         data.append(np.loadtxt(tr_bases_path, dtype=str))
 
     if bases_path is not None:
-        bases_data = np.loadtxt(bases_path, dtype=str)
-        bases = []
-        for i in range(len(bases_data)):
-            tmp = ""
-            for j in range(len(bases_data[i])):
-                if bases_data[i][j] != " ":
-                    tmp += bases_data[i][j]
-            bases.append(tmp)
-        data.append(bases)
+        data.append(np.loadtxt(bases_path, dtype=str))
     return data
 
 
@@ -113,15 +105,8 @@ def load_data_DM(
         data.append(np.loadtxt(tr_bases_path, dtype=str))
 
     if bases_path is not None:
-        bases_data = np.loadtxt(bases_path, dtype=str)
-        bases = []
-        for i in range(len(bases_data)):
-            tmp = ""
-            for j in range(len(bases_data[i])):
-                if bases_data[i][j] != " ":
-                    tmp += bases_data[i][j]
-            bases.append(tmp)
-        data.append(bases)
+        data.append(np.loadtxt(bases_path, dtype=str))
+
     return data
 
 

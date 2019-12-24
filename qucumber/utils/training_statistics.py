@@ -115,16 +115,15 @@ def NLL(nn_state, samples, space=None, sample_bases=None, **kwargs):
                     Upsi = rotate_psi_inner_prod(
                         nn_state, basis, samples[indices == i, :]
                     )
-                    probs_r = (cplx.absolute_value(Upsi) ** 2) / Z
-                    NLL_ -= torch.sum(probs_to_logits(probs_r))
+                    nn_probs = (cplx.absolute_value(Upsi) ** 2) / Z
                 else:
-                    probs_r = (
+                    nn_probs = (
                         rotate_rho_probs(nn_state, basis, samples[indices == i, :]) / Z
                     )
-                    NLL_ -= torch.sum(probs_to_logits(probs_r))
             else:
                 nn_probs = nn_state.probability(samples[indices == i, :], Z)
-                NLL_ -= torch.sum(probs_to_logits(nn_probs))
+
+            NLL_ -= torch.sum(probs_to_logits(nn_probs))
 
         return NLL_ / float(len(samples))
 

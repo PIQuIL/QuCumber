@@ -102,14 +102,8 @@ class ComplexGradsUtils(PosGradsUtils):
         return psi_dict
 
     def transform_bases(self, bases_data):
-        bases = []
-        for i in range(len(bases_data)):
-            tmp = ""
-            for j in range(len(bases_data[i])):
-                if bases_data[i][j] != " ":
-                    tmp += bases_data[i][j]
-            bases.append(tmp)
-        return bases
+        bases_strs = ["".join(b for b in basis if b != " ") for basis in bases_data]
+        return bases_strs
 
     def algorithmic_gradKL(self, target, space, all_bases, **kwargs):
         grad_KL = [
