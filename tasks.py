@@ -117,9 +117,7 @@ def lint_example_notebooks(c, linter="flake8"):
     )
     linter_commands = {
         "black": "black --check --diff -",
-        # last 3 are to ignore trailing whitespace, rest are from tox.ini
-        # should simplify this once flake8 fixes its --extend-ignore option
-        "flake8": "flake8 - --show-source --ignore=E203,E501,W503,W391,W291,E402",
+        "flake8": "flake8 - --show-source --extend-ignore=W391,W291,E402",
     }
 
     try:
@@ -170,8 +168,9 @@ def lint_example_notebooks(c, linter="flake8"):
 def style(c):
     """Runs all style/format checks on code."""
     num_fails = 0
-    run = c.run("flake8", warn=True, echo=True)
+    run = c.run("flake8 --extend-ignore=T", warn=True, echo=True)
     num_fails += int(run.failed)
+    c.run("flake8 --select=T", warn=True, echo=True)
     run = c.run("black --diff --check .", warn=True, echo=True)
     num_fails += int(run.failed)
 

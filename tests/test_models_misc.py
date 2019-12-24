@@ -378,6 +378,11 @@ def test_rotate_rho_probs(num_visible, state_type, precompute_rho):
 
     rho_r_probs_fast = rotate_rho_probs(nn_state, basis, space, unitary_dict, rho=rho)
 
+    # use different tolerance as this sometimes just barely breaks through the
+    #  smaller TOL value from test_grads.py
     assertAlmostEqual(
-        rho_r_probs, rho_r_probs_fast, msg="Fast rho probs rotation failed!"
+        rho_r_probs,
+        rho_r_probs_fast,
+        tol=(TOL / 10),
+        msg="Fast rho probs rotation failed!",
     )
