@@ -51,7 +51,7 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
         data.append(np.loadtxt(tr_bases_path, dtype=str))
 
     if bases_path is not None:
-        data.append(np.loadtxt(bases_path, dtype=str))
+        data.append(np.loadtxt(bases_path, dtype=str, ndmin=1))
     return data
 
 
@@ -105,7 +105,7 @@ def load_data_DM(
         data.append(np.loadtxt(tr_bases_path, dtype=str))
 
     if bases_path is not None:
-        data.append(np.loadtxt(bases_path, dtype=str))
+        data.append(np.loadtxt(bases_path, dtype=str, ndmin=1))
 
     return data
 
