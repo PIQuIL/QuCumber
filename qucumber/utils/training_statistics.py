@@ -104,6 +104,7 @@ def NLL(nn_state, samples, space=None, sample_bases=None, **kwargs):
         NLL_ = 0.0
 
         unique_bases, indices = np.unique(sample_bases, axis=0, return_inverse=True)
+        indices = torch.Tensor(indices).to(samples)
 
         for i in range(unique_bases.shape[0]):
             basis = unique_bases[i, :]

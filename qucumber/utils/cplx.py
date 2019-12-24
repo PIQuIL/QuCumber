@@ -182,13 +182,32 @@ def outer_prod(x, y):
 
 
 def einsum(equation, a, b, real_part=True, imag_part=True):
+    """Complex-aware version of `einsum`. See the torch documentation for more
+    details.
+
+    :param equation: The index equation. Passed directly to `torch.einsum`.
+    :type equation: str
+    :param a: A complex tensor.
+    :type a: torch.Tensor
+    :param b: A complex tensor.
+    :type b: torch.Tensor
+    :param real_part: Whether to compute and return the real part of the result.
+    :type real_part: bool
+    :param imag_part: Whether to compute and return the imaginary part of the result.
+    :type imag_part: bool
+
+    :returns: The Einstein summation of the input tensors performed according to
+              the given equation. If both `real_part` and `imag_part` are true,
+              the result will be a complex tensor, otherwise a real tensor.
+    :rtype: torch.Tensor
+    """
     if real_part:
-        r = torch.einsum(equation, real(a), real(b)) - torch.einsum(
-            equation, imag(a), imag(b)
+        r = torch.einsum(equation, real(a), real(b)).sub_(
+            torch.einsum(equation, imag(a), imag(b))
         )
     if imag_part:
-        i = torch.einsum(equation, real(a), imag(b)) + torch.einsum(
-            equation, imag(a), real(b)
+        i = torch.einsum(equation, real(a), imag(b)).add_(
+            torch.einsum(equation, imag(a), real(b))
         )
 
     if real_part and imag_part:

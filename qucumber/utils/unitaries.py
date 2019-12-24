@@ -151,9 +151,12 @@ def rotate_rho(nn_state, basis, space, unitaries=None, rho=None):
 
 
 # TODO: make this a generator function
-def _rotate_basis_state(nn_state, basis, sites, states, unitaries=None):
+def _rotate_basis_state(nn_state, basis, states, unitaries=None):
     unitaries = unitaries if unitaries else nn_state.unitary_dict
     unitaries = {k: v.to(device="cpu") for k, v in unitaries.items()}
+
+    basis = np.array(list(basis))
+    sites = np.where(basis != "Z")[0]
 
     if sites.size != 0:
         Us = torch.stack([unitaries[b] for b in basis[sites]]).cpu().numpy()
@@ -209,10 +212,7 @@ def rotate_psi_inner_prod(
               possibly some extras.
     :rtype: torch.Tensor or tuple(torch.Tensor)
     """
-    basis = np.array(list(basis))  # list is silly, but works for now
-    sites = np.where(basis != "Z")[0]
-
-    Ut, v = _rotate_basis_state(nn_state, basis, sites, states, unitaries=unitaries)
+    Ut, v = _rotate_basis_state(nn_state, basis, states, unitaries=unitaries)
 
     if psi is None:
         psi = nn_state.psi(v).detach()
@@ -259,10 +259,7 @@ def rotate_rho_probs(
               possibly some extras.
     :rtype: torch.Tensor or tuple(torch.Tensor)
     """
-    basis = np.array(list(basis))  # list is silly, but works for now
-    sites = np.where(basis != "Z")[0]
-
-    Ut, v = _rotate_basis_state(nn_state, basis, sites, states, unitaries=unitaries)
+    Ut, v = _rotate_basis_state(nn_state, basis, states, unitaries=unitaries)
     Ut = np.einsum("ib,jb->ijb", Ut, np.conj(Ut))
 
     if rho is None:

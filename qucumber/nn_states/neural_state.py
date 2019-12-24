@@ -298,23 +298,22 @@ class NeuralStateBase(abc.ABC):
                 bases = np.array(list(bases)).reshape(1, -1)
 
             unique_bases, indices = np.unique(bases, axis=0, return_inverse=True)
+            indices = torch.Tensor(indices).to(samples)
 
             for i in range(unique_bases.shape[0]):
                 basis = unique_bases[i, :]
                 rot_sites = np.where(basis != "Z")[0]
 
                 if rot_sites.size != 0:
-                    samp = samples[indices == i, :]
-                    sample_grad = self.rotated_gradient(basis, samp)
-                    grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
-                    grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
+                    sample_grad = self.rotated_gradient(basis, samples[indices == i, :])
                 else:
                     sample_grad = [
                         self.rbm_am.effective_energy_gradient(samples[indices == i, :]),
                         0.0,
                     ]
-                    grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
-                    grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
+
+                grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
+                grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
 
         return grad
 
