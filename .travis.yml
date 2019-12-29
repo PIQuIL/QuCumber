@@ -37,8 +37,8 @@ jobs:
         - travis_retry pip install tox-travis codecov
       script: &test-script
         - echo 'Running tests...'
-        - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
-        - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
+        - if [[ $TRAVIS_BRANCH != "master" ]]; then tox -- -s -m 'not slow and not extra'; fi # don't run slow/extra tests if not on master branch
+        - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -- -s --cov=qucumber --no-cov-on-fail; fi
       after_success: codecov
 
     - python: 3.6
@@ -122,8 +122,8 @@ jobs:
       install: *test-install
       script: &mac-test
         - echo 'Running tests...'
-        - if [[ $TRAVIS_BRANCH != "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
-        - if [[ $TRAVIS_BRANCH == "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
+        - if [[ $TRAVIS_BRANCH != "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s -m 'not slow and not extra'; fi # don't run slow/extra tests if not on master branch
+        - if [[ $TRAVIS_BRANCH == "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s --cov=qucumber --no-cov-on-fail; fi
       after_success: codecov
 
     - os: osx
