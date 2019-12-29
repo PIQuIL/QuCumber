@@ -247,22 +247,11 @@ def test_training(request, quantum_state_training_data):
 
     print("Training 10 times and checking fidelity and KL at 5 epochs...\n")
     for i in range(10):
-        print("Iteration: ", i + 1)
+        print(f"Iteration: {i + 1}")
 
-        reinit_params_fn = qstd["reinit_params_fn"]
-        reinit_params_fn(request, qstd["nn_state"])
+        qstd["reinit_params_fn"](request, qstd["nn_state"])
 
-        qstd["nn_state"].fit(
-            data=qstd["data"],
-            epochs=qstd["epochs"],
-            pos_batch_size=qstd["pos_batch_size"],
-            neg_batch_size=qstd["neg_batch_size"],
-            k=qstd["k"],
-            lr=qstd["lr"],
-            input_bases=qstd["input_bases"],
-            time=True,
-            progbar=False,
-        )
+        qstd["nn_state"].fit(time=True, progbar=False, **qstd)
 
         fidelities.append(ts.fidelity(**qstd))
         KLs.append(ts.KL(**qstd))
