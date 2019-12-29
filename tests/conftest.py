@@ -13,33 +13,6 @@
 # limitations under the License.
 
 
-import pytest
 import torch
 
 torch.set_printoptions(precision=10)
-
-
-def pytest_addoption(parser):
-    parser.addoption(
-        "--nll",
-        action="store_true",
-        dest="nll",
-        default=False,
-        help=(
-            "Run Negative Log Likelihood gradient tests. "
-            "Note that they are non-deterministic and may fail."
-        ),
-    )
-
-
-def pytest_collection_modifyitems(config, items):
-    # run NLL tests only if the option is given
-    if config.getoption("--nll"):
-        return
-    else:
-        skip_nll = pytest.mark.skip(
-            reason="doesn't give consistent results; add --nll option to run anyway"
-        )
-        for item in items:
-            if "nll" in item.keywords:
-                item.add_marker(skip_nll)

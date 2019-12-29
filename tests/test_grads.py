@@ -196,10 +196,7 @@ devices = [
     pytest.param(True, id="gpu", marks=[gpu_availability, pytest.mark.gpu]),
 ]
 hidden_layer_sizes = [pytest.param(9, id="9", marks=[pytest.mark.extra]), 10]
-grad_types = [
-    "KL",
-    pytest.param("NLL", id="NLL", marks=[pytest.mark.nll, pytest.mark.slow]),
-]
+grad_types = ["KL", "NLL"]
 
 
 @pytest.fixture(scope="module", params=quantum_state_types)
