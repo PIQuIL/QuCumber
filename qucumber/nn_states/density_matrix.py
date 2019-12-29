@@ -275,7 +275,7 @@ class DensityMatrix(NeuralStateBase):
         return self.rho(drawn_sample, iter_sample, expand=False)
 
     def importance_sampling_denominator(self, drawn_sample):
-        return self.probability(drawn_sample)
+        return cplx.make_complex(self.probability(drawn_sample))
 
     def rotated_gradient(self, basis, sample):
         r"""Computes the gradients rotated into the measurement basis

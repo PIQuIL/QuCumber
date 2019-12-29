@@ -103,7 +103,7 @@ class PositiveWaveFunction(WaveFunctionBase):
         :returns: Matrix/vector containing the phases of v
         :rtype: torch.Tensor
         """
-        return torch.zeros(v.shape[0])
+        return torch.zeros(v.shape[0], dtype=torch.double, device=self.device)
 
     def psi(self, v):
         r"""Compute the (unnormalized) wavefunction of a given vector/matrix of visible states.
