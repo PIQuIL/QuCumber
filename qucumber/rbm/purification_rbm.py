@@ -19,7 +19,7 @@ from torch import nn
 from torch.nn import functional as F
 from torch.nn.utils import parameters_to_vector
 
-from qucumber.utils import cplx, auto_unsqueeze_arg
+from qucumber.utils import cplx, auto_unsqueeze_args
 from qucumber import _warn_on_missing_gpu
 
 
@@ -127,6 +127,7 @@ class PurificationRBM(nn.Module):
             requires_grad=False,
         )
 
+    @auto_unsqueeze_args()
     def effective_energy(self, v, a=None):
         r"""Computes the equivalent of the "effective energy" for the RBM. If
         `a` is `None`, will analytically trace out the auxiliary units.
@@ -139,7 +140,7 @@ class PurificationRBM(nn.Module):
         :returns: The "effective energy" of the RBM. Shape (b,) or (1,).
         :rtype: torch.Tensor
         """
-        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights_W)
+        v = v.to(self.weights_W)
 
         vis_term = torch.matmul(v, self.visible_bias) + F.softplus(
             F.linear(v, self.weights_W, self.hidden_bias)
@@ -191,7 +192,7 @@ class PurificationRBM(nn.Module):
             vec = [W_grad, U_grad, vb_grad, hb_grad, ab_grad]
             return torch.cat(vec, dim=-1)
 
-    @auto_unsqueeze_arg(1)
+    @auto_unsqueeze_args()
     def prob_h_given_v(self, v, out=None):
         r"""Given a visible unit configuration, compute the probability
         vector of the hidden units being on
@@ -212,7 +213,7 @@ class PurificationRBM(nn.Module):
             .clamp_(min=0, max=1)
         )
 
-    @auto_unsqueeze_arg(1)
+    @auto_unsqueeze_args()
     def prob_a_given_v(self, v, out=None):
         r"""Given a visible unit configuration, compute the probability
         vector of the auxiliary units being on
@@ -233,7 +234,7 @@ class PurificationRBM(nn.Module):
             .clamp_(min=0, max=1)
         )
 
-    @auto_unsqueeze_arg(1, 2)
+    @auto_unsqueeze_args(1, 2)
     def prob_v_given_ha(self, h, a, out=None):
         r"""Given a hidden and auxiliary unit configuration, compute
         the probability vector of the hidden units being on
@@ -335,7 +336,7 @@ class PurificationRBM(nn.Module):
 
         return v
 
-    @auto_unsqueeze_arg(1)
+    @auto_unsqueeze_args()
     def mixing_term(self, v):
         r"""Describes the extent of mixing in the system,
             :math:`V_\theta = \frac{1}{2}U_\theta \bm{\sigma} + d_\theta`

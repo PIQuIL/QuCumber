@@ -176,11 +176,7 @@ class ComplexWaveFunction(WaveFunctionBase):
         )
         inv_Upsi = cplx.inverse(Upsi)
 
-        vr = v.reshape(-1, v.shape[-1])
-        raw_grads = [
-            self.am_grads(vr).reshape(2, *v.shape[:-1], -1),
-            self.ph_grads(vr).reshape(2, *v.shape[:-1], -1),
-        ]
+        raw_grads = [self.am_grads(v), self.ph_grads(v)]
 
         rotated_grad = [cplx.einsum("s...,s...g->...g", Upsi_v, g) for g in raw_grads]
         grad = [

@@ -18,8 +18,9 @@ from math import isclose
 import pytest
 import torch
 
-import qucumber.observables as observables
-from qucumber.nn_states import WaveFunctionBase
+from qucumber import observables
+from qucumber.nn_states import WaveFunctionBase, NeuralStateBase
+from qucumber.utils import cplx, auto_unsqueeze_args
 
 
 class MockWaveFunction(WaveFunctionBase):
@@ -66,35 +67,16 @@ class MockWaveFunction(WaveFunctionBase):
     def networks(self):
         return ["rbm_am"]
 
+    @auto_unsqueeze_args()
     def phase(self, v):
-        if v.dim() == 1:
-            v = v.unsqueeze(0)
-            unsqueezed = True
-        else:
-            unsqueezed = False
-
-        phase = torch.zeros(v.shape[0])
-
-        if unsqueezed:
-            return phase.squeeze_(0)
-        else:
-            return phase
+        return torch.zeros(v.shape[0])
 
     def amplitude(self, v):
         return torch.ones(v.size(0)) / torch.sqrt(torch.tensor(float(self.nqubits)))
 
     def psi(self, v):
         # vector/tensor of shape (len(v),)
-        amplitude = self.amplitude(v)
-
-        # complex vector; shape: (2, len(v))
-        psi = torch.zeros((2,) + amplitude.shape).to(
-            dtype=torch.double, device=self.device
-        )
-        psi[0] = amplitude
-
-        # squeeze down to complex scalar if there was only one visible state
-        return psi.squeeze()
+        return cplx.make_complex(self.amplitude(v))
 
 
 @pytest.fixture(scope="module")

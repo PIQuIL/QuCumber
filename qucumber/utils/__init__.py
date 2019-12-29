@@ -17,9 +17,12 @@ import warnings
 from functools import wraps
 
 
-class auto_unsqueeze_arg:
+class auto_unsqueeze_args:
     def __init__(self, *arg_indices):
-        self.arg_indices = arg_indices
+        self.arg_indices = list(arg_indices)
+
+        if len(self.arg_indices) == 0:
+            self.arg_indices.append(1)
 
     def __call__(self, f):
         @wraps(f)

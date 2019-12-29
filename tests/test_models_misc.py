@@ -150,11 +150,11 @@ def test_positive_wavefunction_psi():
     nn_state = PositiveWaveFunction(10, gpu=False)
 
     vis_state = torch.ones(10).to(dtype=torch.double)
-    actual_psi = nn_state.psi(vis_state)[1].to(vis_state)
-    expected_psi = torch.zeros(1).to(vis_state)
+    actual_psi_im = cplx.imag(nn_state.psi(vis_state)).to(vis_state)
+    expected_psi_im = torch.zeros(1).squeeze().to(vis_state)
 
     msg = "PositiveWaveFunction is giving a non-zero imaginary part!"
-    assert torch.equal(actual_psi, expected_psi), msg
+    assert torch.equal(actual_psi_im, expected_psi_im), msg
 
 
 def test_density_matrix_hermiticity():

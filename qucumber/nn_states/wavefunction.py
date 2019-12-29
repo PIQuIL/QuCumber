@@ -86,20 +86,6 @@ class WaveFunctionBase(NeuralStateBase):
     def importance_sampling_denominator(self, vp):
         return self.psi(vp)
 
-    def normalization(self, space):
-        r"""Compute the norm of the wavefunction.
-
-        .. math::
-
-            Z_{\bm{\lambda}}=
-            \sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})
-
-        :param space: A rank 2 tensor of the entire visible space.
-        :type space: torch.Tensor
-
-        """
-        return super().normalization(space)
-
 
 # make module path show up properly in sphinx docs
 WaveFunctionBase.__module__ = "qucumber.nn_states"

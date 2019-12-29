@@ -17,7 +17,7 @@ import torch
 
 from qucumber import _warn_on_missing_gpu
 from qucumber.rbm import BinaryRBM
-from qucumber.utils import cplx, auto_unsqueeze_arg
+from qucumber.utils import cplx, auto_unsqueeze_args
 from .wavefunction import WaveFunctionBase
 
 
@@ -91,7 +91,7 @@ class PositiveWaveFunction(WaveFunctionBase):
         """
         return super().amplitude(v)
 
-    @auto_unsqueeze_arg(1)
+    @auto_unsqueeze_args()
     def phase(self, v):
         r"""Compute the phase of a given vector/matrix of visible states.
 

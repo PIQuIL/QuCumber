@@ -20,7 +20,7 @@ from torch.nn import functional as F
 from torch.nn.utils import parameters_to_vector
 
 from qucumber import _warn_on_missing_gpu
-from qucumber.utils import auto_unsqueeze_arg
+from qucumber.utils import auto_unsqueeze_args
 
 
 class BinaryRBM(nn.Module):
@@ -71,6 +71,7 @@ class BinaryRBM(nn.Module):
             requires_grad=False,
         )
 
+    @auto_unsqueeze_args()
     def effective_energy(self, v):
         r"""The effective energies of the given visible states.
 
@@ -88,7 +89,7 @@ class BinaryRBM(nn.Module):
         :returns: The effective energies of the given visible states.
         :rtype: torch.Tensor
         """
-        v = (v.unsqueeze(0) if v.dim() < 2 else v).to(self.weights)
+        v = v.to(self.weights)
         visible_bias_term = torch.matmul(v, self.visible_bias)
         hid_bias_term = F.softplus(F.linear(v, self.weights, self.hidden_bias)).sum(-1)
 
@@ -124,7 +125,7 @@ class BinaryRBM(nn.Module):
             vec = [W_grad.view(*v.shape[:-1], -1), vb_grad, hb_grad]
             return torch.cat(vec, dim=-1)
 
-    @auto_unsqueeze_arg(1)
+    @auto_unsqueeze_args()
     def prob_v_given_h(self, h, out=None):
         """Given a hidden unit configuration, compute the probability
         vector of the visible units being on.
@@ -145,7 +146,7 @@ class BinaryRBM(nn.Module):
             .clamp_(min=0, max=1)
         )
 
-    @auto_unsqueeze_arg(1)
+    @auto_unsqueeze_args()
     def prob_h_given_v(self, v, out=None):
         """Given a visible unit configuration, compute the probability
         vector of the hidden units being on.

@@ -177,6 +177,9 @@ class NeuralStateBase(abc.ABC):
 
     def normalization(self, space):
         r"""Compute the normalization constant of the state.
+        In the case of a pure state, this is the norm of the unnormalized wavefunction.
+        In the case of a mixed state, this is the trace of the unnormalized density
+        matrix.
 
         .. math::
 
@@ -190,7 +193,7 @@ class NeuralStateBase(abc.ABC):
         return self.rbm_am.partition(space)
 
     def compute_normalization(self, space):
-        """Alias for `normalization`"""
+        """Alias for :func:`normalization<qucumber.nn_states.NeuralStateBase.normalization>`"""
         return self.normalization(space)
 
     def save(self, location, metadata=None):
