@@ -23,12 +23,11 @@ from torch.nn.utils import parameters_to_vector
 import qucumber
 import qucumber.utils.data as data
 import qucumber.utils.training_statistics as ts
-import qucumber.utils.unitaries as unitaries
 from qucumber.callbacks import LambdaCallback
 from qucumber.nn_states import ComplexWaveFunction, PositiveWaveFunction, DensityMatrix
 
 from test_models_misc import all_state_types
-from test_grads import devices
+from test_grads import devices, quantum_state_types
 
 SEED = 1234
 
@@ -143,56 +142,130 @@ def test_stop_training_in_epoch(gpu):
     assert nn_state.stop_training, msg
 
 
+@pytest.fixture(scope="module", params=quantum_state_types)
+def quantum_state_training_data(request):
+    nn_state_type = request.param
+
+    if nn_state_type == "positive":
+
+        root = os.path.join(
+            request.fspath.dirname,
+            "..",
+            "examples",
+            "Tutorial1_TrainPosRealWaveFunction",
+        )
+
+        train_samples, target = data.load_data(
+            tr_samples_path=os.path.join(root, "tfim1d_data.txt"),
+            tr_psi_path=os.path.join(root, "tfim1d_psi.txt"),
+        )
+        train_bases, bases = None, None
+
+        nn_state = PositiveWaveFunction(num_visible=train_samples.shape[-1], gpu=False)
+
+        batch_size, num_chains = 100, 200
+        fid_target, kl_target = 0.85, 0.29
+
+        reinit_params_fn = initialize_posreal_params
+
+    elif nn_state_type == "complex":
+
+        root = os.path.join(
+            request.fspath.dirname,
+            "..",
+            "examples",
+            "Tutorial2_TrainComplexWaveFunction",
+        )
+
+        train_samples, target, train_bases, bases = data.load_data(
+            tr_samples_path=os.path.join(root, "qubits_train.txt"),
+            tr_psi_path=os.path.join(root, "qubits_psi.txt"),
+            tr_bases_path=os.path.join(root, "qubits_train_bases.txt"),
+            bases_path=os.path.join(root, "qubits_bases.txt"),
+        )
+
+        nn_state = ComplexWaveFunction(num_visible=train_samples.shape[-1], gpu=False)
+
+        batch_size, num_chains = 50, 10
+        fid_target, kl_target = 0.38, 0.33
+
+        reinit_params_fn = initialize_complex_params
+
+    elif nn_state_type == "density_matrix":
+
+        root = os.path.join(
+            request.fspath.dirname, "..", "examples", "Tutorial3_TrainDensityMatrix"
+        )
+
+        train_samples, target, train_bases, bases = data.load_data_DM(
+            tr_samples_path=os.path.join(root, "N2_W_state_100_samples_data.txt"),
+            tr_mtx_real_path=os.path.join(root, "N2_W_state_target_real.txt"),
+            tr_mtx_imag_path=os.path.join(root, "N2_W_state_target_imag.txt"),
+            tr_bases_path=os.path.join(root, "N2_W_state_100_samples_bases.txt"),
+            bases_path=os.path.join(root, "N2_IC_bases.txt"),
+        )
+
+        nn_state = DensityMatrix(num_visible=train_samples.shape[-1], gpu=False)
+
+        batch_size, num_chains = 100, 10
+        fid_target, kl_target = 0.45, 0.42
+
+        def reinit_params_fn(req, nn_state):
+            nn_state.reinitialize_parameters()
+
+    else:
+        raise ValueError(
+            f"invalid test config: {nn_state_type} is not a valid quantum state type"
+        )
+
+    return {
+        "nn_state": nn_state,
+        "data": train_samples,
+        "input_bases": train_bases,
+        "target": target,
+        "bases": bases,
+        "epochs": 5,
+        "pos_batch_size": batch_size,
+        "neg_batch_size": num_chains,
+        "k": 10,
+        "lr": 0.1,
+        "space": nn_state.generate_hilbert_space(),
+        "fid_target": fid_target,
+        "kl_target": kl_target,
+        "reinit_params_fn": reinit_params_fn,
+    }
+
+
 @pytest.mark.slow
-def test_training_positive(request):
+def test_training(request, quantum_state_training_data):
     qucumber.set_random_seed(SEED, cpu=True, gpu=False, quiet=True)
-
-    print("Positive Wavefunction")
-    print("---------------------")
-
-    root = os.path.join(
-        request.fspath.dirname, "..", "examples", "Tutorial1_TrainPosRealWaveFunction",
-    )
-
-    train_samples_path = os.path.join(root, "tfim1d_data.txt")
-    psi_path = os.path.join(root, "tfim1d_psi.txt")
-
-    train_samples, target_psi = data.load_data(train_samples_path, psi_path)
-
-    nv = nh = train_samples.shape[-1]
 
     fidelities = []
     KLs = []
 
-    epochs = 5
-    batch_size = 100
-    num_chains = 200
-    CD = 10
-    lr = 0.1
-
-    nn_state = PositiveWaveFunction(num_visible=nv, num_hidden=nh, gpu=False)
-
-    space = nn_state.generate_hilbert_space()
+    qstd = quantum_state_training_data
 
     print("Training 10 times and checking fidelity and KL at 5 epochs...\n")
     for i in range(10):
         print("Iteration: ", i + 1)
 
-        initialize_posreal_params(request, nn_state)
+        reinit_params_fn = qstd["reinit_params_fn"]
+        reinit_params_fn(request, qstd["nn_state"])
 
-        nn_state.fit(
-            data=train_samples,
-            epochs=epochs,
-            pos_batch_size=batch_size,
-            neg_batch_size=num_chains,
-            k=CD,
-            lr=lr,
+        qstd["nn_state"].fit(
+            data=qstd["data"],
+            epochs=qstd["epochs"],
+            pos_batch_size=qstd["pos_batch_size"],
+            neg_batch_size=qstd["neg_batch_size"],
+            k=qstd["k"],
+            lr=qstd["lr"],
+            input_bases=qstd["input_bases"],
             time=True,
             progbar=False,
         )
 
-        fidelities.append(ts.fidelity(nn_state, target_psi, space))
-        KLs.append(ts.KL(nn_state, target_psi, space))
+        fidelities.append(ts.fidelity(**qstd))
+        KLs.append(ts.KL(**qstd))
         print(f"Fidelity: {fidelities[-1]}; KL: {KLs[-1]}.")
 
     print("\nStatistics")
@@ -206,167 +279,10 @@ def test_training_positive(request):
     )
     print("KL: ", np.average(KLs), "+/-", np.std(KLs) / np.sqrt(len(KLs)), "\n")
 
-    assert abs(np.average(fidelities) - 0.85) < 0.02
-    assert abs(np.average(KLs) - 0.29) < 0.02
-    assert (np.std(fidelities) / np.sqrt(len(fidelities))) < 0.01
-    assert (np.std(KLs) / np.sqrt(len(KLs))) < 0.01
-
-
-@pytest.mark.slow
-def test_training_complex(request):
-    qucumber.set_random_seed(SEED, cpu=True, gpu=False, quiet=True)
-
-    print("Complex WaveFunction")
-    print("--------------------")
-
-    root = os.path.join(
-        request.fspath.dirname, "..", "examples", "Tutorial2_TrainComplexWaveFunction"
-    )
-
-    train_samples_path = os.path.join(root, "qubits_train.txt")
-    train_bases_path = os.path.join(root, "qubits_train_bases.txt")
-    bases_path = os.path.join(root, "qubits_bases.txt")
-    psi_path = os.path.join(root, "qubits_psi.txt")
-
-    train_samples, target_psi, train_bases, bases = data.load_data(
-        train_samples_path, psi_path, train_bases_path, bases_path
-    )
-
-    unitary_dict = unitaries.create_dict()
-    nv = nh = train_samples.shape[-1]
-
-    fidelities = []
-    KLs = []
-
-    epochs = 5
-    batch_size = 50
-    num_chains = 10
-    CD = 10
-    lr = 0.1
-
-    nn_state = ComplexWaveFunction(
-        unitary_dict=unitary_dict, num_visible=nv, num_hidden=nh, gpu=False
-    )
-
-    space = nn_state.generate_hilbert_space(nv)
-
-    print("Training 10 times and checking fidelity and KL at 5 epochs...\n")
-    for i in range(10):
-        print("Iteration: ", i + 1)
-
-        initialize_complex_params(request, nn_state)
-
-        nn_state.fit(
-            data=train_samples,
-            epochs=epochs,
-            pos_batch_size=batch_size,
-            neg_batch_size=num_chains,
-            k=CD,
-            lr=lr,
-            time=True,
-            input_bases=train_bases,
-            progbar=False,
-        )
-
-        fidelities.append(ts.fidelity(nn_state, target_psi, space))
-        KLs.append(ts.KL(nn_state, target_psi, space, bases=bases))
-        print(f"Fidelity: {fidelities[-1]}; KL: {KLs[-1]}.")
-
-    print("\nStatistics")
-    print("----------")
-    print(
-        "Fidelity: ",
-        np.average(fidelities),
-        "+/-",
-        np.std(fidelities) / np.sqrt(len(fidelities)),
-        "\n",
-    )
-    print("KL: ", np.average(KLs), "+/-", np.std(KLs) / np.sqrt(len(KLs)), "\n")
-
-    assert abs(np.average(fidelities) - 0.38) < 0.02
-    assert abs(np.average(KLs) - 0.33) < 0.02
-    assert (np.std(fidelities) / np.sqrt(len(fidelities))) < 0.01
-    assert (np.std(KLs) / np.sqrt(len(KLs))) < 0.01
-
-
-@pytest.mark.slow
-def test_training_density_matrix(request):
-    qucumber.set_random_seed(SEED, cpu=True, gpu=False, quiet=True)
-
-    print("Density Matrix")
-    print("--------------------")
-
-    root = os.path.join(
-        request.fspath.dirname, "..", "examples", "Tutorial3_TrainDensityMatrix"
-    )
-
-    train_samples_path = os.path.join(root, "N2_W_state_100_samples_data.txt")
-    train_bases_path = os.path.join(root, "N2_W_state_100_samples_bases.txt")
-    bases_path = os.path.join(root, "N2_IC_bases.txt")
-    target_real_path = os.path.join(root, "N2_W_state_target_real.txt")
-    target_imag_path = os.path.join(root, "N2_W_state_target_imag.txt")
-
-    train_samples, target, train_bases, bases = data.load_data_DM(
-        train_samples_path,
-        target_real_path,
-        target_imag_path,
-        train_bases_path,
-        bases_path,
-    )
-
-    unitary_dict = unitaries.create_dict()
-    nv = train_samples.shape[-1]
-
-    fidelities = []
-    KLs = []
-
-    epochs = 5
-    batch_size = 100
-    num_chains = 10
-    CD = 10
-    lr = 0.1
-
-    nn_state = DensityMatrix(unitary_dict=unitary_dict, num_visible=nv, gpu=False)
-
-    space = nn_state.generate_hilbert_space(nv)
-
-    print("Training 10 times and checking fidelity and KL at 5 epochs...\n")
-    for i in range(10):
-        print("Iteration: ", i + 1)
-
-        nn_state.reinitialize_parameters()
-
-        nn_state.fit(
-            data=train_samples,
-            epochs=epochs,
-            pos_batch_size=batch_size,
-            neg_batch_size=num_chains,
-            k=CD,
-            lr=lr,
-            time=True,
-            input_bases=train_bases,
-            progbar=False,
-        )
-
-        fidelities.append(ts.fidelity(nn_state, target, space))
-        KLs.append(ts.KL(nn_state, target, space, bases=bases))
-        print(f"Fidelity: {fidelities[-1]}; KL: {KLs[-1]}.")
-
-    print("\nStatistics")
-    print("----------")
-    print(
-        "Fidelity: ",
-        np.average(fidelities),
-        "+/-",
-        np.std(fidelities) / np.sqrt(len(fidelities)),
-        "\n",
-    )
-    print("KL: ", np.average(KLs), "+/-", np.std(KLs) / np.sqrt(len(KLs)), "\n")
-
-    assert abs(np.average(fidelities) - 0.43) < 0.02
-    assert abs(np.average(KLs) - 0.42) < 0.02
+    assert abs(np.average(fidelities) - qstd["fid_target"]) < 0.02
+    assert abs(np.average(KLs) - qstd["kl_target"]) < 0.02
     assert (np.std(fidelities) / np.sqrt(len(fidelities))) < 0.02
-    assert (np.std(KLs) / np.sqrt(len(KLs))) < 0.01
+    assert (np.std(KLs) / np.sqrt(len(KLs))) < 0.02
 
 
 def initialize_posreal_params(request, nn_state):
