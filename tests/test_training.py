@@ -210,7 +210,7 @@ def quantum_state_training_data(request):
         batch_size, num_chains = 100, 10
         fid_target, kl_target = 0.45, 0.42
 
-        def reinit_params_fn(req, nn_state):
+        def reinit_params_fn(request, nn_state):
             nn_state.reinitialize_parameters()
 
     else:
