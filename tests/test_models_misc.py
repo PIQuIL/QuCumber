@@ -32,7 +32,7 @@ from qucumber.utils.unitaries import (
     rotate_rho_probs,
 )
 
-from test_grads import assertAlmostEqual
+from test_grads import assertAlmostEqual, devices
 
 
 INIT_SEED = 1234  # seed to initialize model params with
@@ -76,16 +76,6 @@ def test_model_saving_and_loading(tmpdir, state_type):
     assert torch.equal(orig_sample, post_autoload_sample), msg
 
     os.remove(model_path)
-
-
-gpu_availability = pytest.mark.skipif(
-    not torch.cuda.is_available(), reason="GPU required"
-)
-
-devices = [
-    pytest.param(False, id="cpu"),
-    pytest.param(True, id="gpu", marks=[gpu_availability, pytest.mark.gpu]),
-]
 
 
 @pytest.mark.parametrize("state_type", all_state_types)
@@ -213,10 +203,7 @@ def _ndo_matrix_task_name(p):
         return s
 
 
-ndo_matrices = [pytest.param(p, id=_ndo_matrix_task_name(p)) for p in ndo_matrices]
-
-
-@pytest.mark.parametrize("prop", ndo_matrices)
+@pytest.mark.parametrize("prop", ndo_matrices, ids=_ndo_matrix_task_name)
 def test_density_matrix_expansion(prop):
     qucumber.set_random_seed(INIT_SEED, cpu=True, gpu=False, quiet=True)
 
