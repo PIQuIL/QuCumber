@@ -95,7 +95,7 @@ def scalar_mult(x, y, out=None):
     """
     y = y.to(x)
     if out is None:
-        out = torch.zeros(2, *((x[0] * y[0]).shape)).to(x)
+        out = torch.zeros(2, *((real(x) * real(y)).shape)).to(x)
     else:
         if out is x or out is y:
             raise RuntimeError("Can't overwrite an argument!")
@@ -142,17 +142,20 @@ def inner_prod(x, y):
     :returns: The inner product, :math:`\\langle x\\vert y\\rangle`.
     :rtype: torch.Tensor
     """
-    z = torch.zeros(2, dtype=x.dtype, device=x.device)
+    y = y.to(x)
 
-    if len(list(x.size())) == 2 and len(list(y.size())) == 2:
-        z[0] = torch.dot(x[0], y[0]) + torch.dot(x[1], y[1])
-        z[1] = torch.dot(x[0], y[1]) + torch.dot(-x[1], y[0])
-
-    if len(list(x.size())) == 1 and len(list(y.size())) == 1:
-        z[0] = (x[0] * y[0]) + (x[1] * y[1])
-        z[1] = (x[0] * y[1]) + (-x[1] * y[0])
-
-    return z
+    if x.dim() == 2 and y.dim() == 2:
+        return make_complex(
+            torch.dot(real(x), real(y)) + torch.dot(imag(x), imag(y)),
+            torch.dot(real(x), imag(y)) - torch.dot(imag(x), real(y)),
+        )
+    elif x.dim() == 1 and y.dim() == 1:
+        return make_complex(
+            (real(x) * real(y)) + (imag(x) * imag(y)),
+            (real(x) * imag(y)) - (imag(x) * real(y)),
+        )
+    else:
+        raise ValueError("Unsupported input shapes!")
 
 
 def outer_prod(x, y):
@@ -171,7 +174,7 @@ def outer_prod(x, y):
         :math:`\\vert x \\rangle\\langle y\\vert`.
     :rtype: torch.Tensor
     """
-    if len(list(x.size())) != 2 or len(list(y.size())) != 2:
+    if x.dim() != 2 or y.dim() != 2:
         raise ValueError("An input is not of the right dimension.")
 
     z = torch.zeros(2, x.size()[1], y.size()[1], dtype=x.dtype, device=x.device)
@@ -269,7 +272,7 @@ def elementwise_division(x, y):
 
 
 def absolute_value(x):
-    """Computes the complex absolute value elementwise.
+    """Returns the complex absolute value elementwise.
 
     :param x: A complex tensor.
     :type x: torch.Tensor
@@ -279,12 +282,11 @@ def absolute_value(x):
     """
     x_star = x.clone()
     x_star[1] *= -1
-    return elementwise_mult(x, x_star)[0].sqrt_()
+    return real(elementwise_mult(x, x_star)).sqrt_()
 
 
 def kronecker_prod(x, y):
-    """A function that returns the tensor / Kronecker product of 2 complex
-    tensors, x and y.
+    """Returns the tensor / Kronecker product of 2 complex matrices, x and y.
 
     :param x: A complex matrix.
     :type x: torch.Tensor
@@ -297,40 +299,16 @@ def kronecker_prod(x, y):
     :returns: The Kronecker product of x and y, :math:`x \\otimes y`.
     :rtype: torch.Tensor
     """
-    if len(list(x.size())) != 3 or len(list(y.size())) != 3:
-        raise ValueError("An input is not of the right dimension.")
+    if not (x.dim() == y.dim() == 3):
+        raise ValueError("Inputs must be complex matrices!")
 
-    z = torch.zeros(
-        2,
-        x.size()[1] * y.size()[1],
-        x.size()[2] * y.size()[2],
-        dtype=x.dtype,
-        device=x.device,
+    return einsum("ab,cd->acbd", x, y).reshape(
+        2, x.shape[1] * y.shape[1], x.shape[2] * y.shape[2]
     )
-
-    row_count = 0
-
-    for i in range(x.size()[1]):
-        for k in range(y.size()[1]):
-            column_count = 0
-            for j in range(x.size()[2]):
-                for l in range(y.size()[2]):
-
-                    z[0][row_count][column_count] = (x[0][i][j] * y[0][k][l]) - (
-                        x[1][i][j] * y[1][k][l]
-                    )
-                    z[1][row_count][column_count] = (x[0][i][j] * y[1][k][l]) + (
-                        x[1][i][j] * y[0][k][l]
-                    )
-
-                    column_count += 1
-            row_count += 1
-
-    return z
 
 
 def sigmoid(x, y):
-    r"""Computes the sigmoid function of a complex number
+    r"""Returns the sigmoid function of a complex number. Acts elementwise.
 
     :param x: The real part of the complex number
     :type x: torch.Tensor
@@ -348,24 +326,30 @@ def sigmoid(x, y):
 
 
 def scalar_divide(x, y):
-    """A function that computes the division of x by y.
+    """Divides `x` by `y`.
+    If `x` and `y` have the same shape, then acts elementwise.
+    If `y` is a complex scalar, then performs a scalar division.
 
-    :param x: The numerator (a complex scalar, vector or matrix).
+    :param x: The numerator (a complex tensor).
     :type x: torch.Tensor
-    :param y: The denominator (a complex scalar).
+    :param y: The denominator (a complex tensor).
     :type y: torch.Tensor
 
     :returns: x / y
     :rtype: torch.Tensor
     """
-    y_star = conjugate(y)
-    numerator = scalar_mult(x, y_star)
-    denominator = real(scalar_mult(y, y_star))
-
-    return numerator / denominator
+    return scalar_mult(x, inverse(y))
 
 
 def inverse(z):
+    """Returns the multiplicative inverse of `z`. Acts elementwise.
+
+    :param z: The complex tensor.
+    :type z: torch.Tensor
+
+    :returns: 1 / z
+    :rtype: torch.Tensor
+    """
     z_star = conjugate(z)
     denominator = real(scalar_mult(z, z_star))
 
@@ -373,7 +357,7 @@ def inverse(z):
 
 
 def norm_sqr(x):
-    """A function that returns the squared norm of the argument.
+    """Returns the squared norm of the argument.
 
     :param x: A complex scalar.
     :type x: torch.Tensor
@@ -385,7 +369,7 @@ def norm_sqr(x):
 
 
 def norm(x):
-    """A function that returns the norm of the argument.
+    """Returns the norm of the argument.
 
     :param x: A complex scalar.
     :type x: torch.Tensor
