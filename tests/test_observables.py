@@ -75,9 +75,7 @@ class MockWaveFunction(WaveFunctionBase):
         return torch.zeros(v.shape[0], dtype=torch.double, device=self.device)
 
     def amplitude(self, v):
-        return torch.ones(
-            v.shape[0], dtype=torch.double, device=self.device
-        ) / torch.sqrt(torch.tensor(float(2 ** self.nqubits)))
+        return torch.ones(v.shape[0], dtype=torch.double, device=self.device)
 
     def psi(self, v):
         # vector/tensor of shape (len(v),)
@@ -129,9 +127,7 @@ class MockDensityMatrix(NeuralStateBase):
         return ["rbm_am"]
 
     def probability(self, v):
-        return torch.ones(v.shape[0], dtype=torch.double, device=self.device) / float(
-            2 ** self.nqubits
-        )
+        return torch.ones(v.shape[0], dtype=torch.double, device=self.device)
 
     def importance_sampling_numerator(self, iter_sample, drawn_sample):
         out = torch.zeros(iter_sample.shape[0], dtype=torch.double, device=self.device)
@@ -144,30 +140,26 @@ class MockDensityMatrix(NeuralStateBase):
 
 
 @pytest.fixture(scope="module", params=[MockWaveFunction, MockDensityMatrix])
-def mock_wavefunction_samples(request):
+def mock_state_samples(request):
     set_random_seed(SEED, cpu=True, gpu=False, quiet=True)
     state_type = request.param
 
-    if state_type == MockWaveFunction:
-        pauli_expectations = {
-            observables.SigmaX: (1.0, 1.0),
-            observables.SigmaY: (0.0, 0.0),
-            observables.SigmaZ: (0.0, 0.5),
-        }
-    else:
-        pauli_expectations = {
-            observables.SigmaX: (0.0, 0.0),
-            observables.SigmaY: (0.0, 0.0),
-            observables.SigmaZ: (0.0, 0.5),
-        }
+    pauli_expectations = {
+        observables.SigmaX: (1.0, 1.0),
+        observables.SigmaY: (0.0, 0.0),
+        observables.SigmaZ: (0.0, 0.5),
+    }
 
-    test_psi = state_type(2)
-    test_sample = test_psi.sample(num_samples=100000)
-    return test_psi, test_sample, pauli_expectations
+    if state_type == MockDensityMatrix:
+        pauli_expectations[observables.SigmaX] = (0.0, 0.0)
+
+    nn_state = state_type(2)
+    test_sample = nn_state.sample(num_samples=100000)
+    return nn_state, test_sample, pauli_expectations
 
 
-def test_spinflip(mock_wavefunction_samples):
-    test_psi, test_sample, _ = mock_wavefunction_samples
+def test_spinflip(mock_state_samples):
+    _, test_sample, _ = mock_state_samples
     samples = test_sample.clone()
     observables.pauli.flip_spin(1, samples)  # flip spin
     observables.pauli.flip_spin(1, samples)  # flip it back
@@ -185,8 +177,8 @@ paulis = [
 @pytest.mark.parametrize(
     "absolute", [pytest.param(True, id="absolute"), pytest.param(False, id="signed")]
 )
-def test_pauli(mock_wavefunction_samples, pauli, absolute):
-    test_psi, test_sample, pauli_expectations = mock_wavefunction_samples
+def test_pauli(mock_state_samples, pauli, absolute):
+    nn_state, test_sample, pauli_expectations = mock_state_samples
     expectations = pauli_expectations[pauli]
 
     if absolute:
@@ -197,7 +189,7 @@ def test_pauli(mock_wavefunction_samples, pauli, absolute):
         prefix = ""
 
     obs = pauli(absolute=absolute)
-    measure_O = float(obs.apply(test_psi, test_sample).mean())
+    measure_O = float(obs.apply(nn_state, test_sample).mean())
 
     assert isclose(
         mag, measure_O, abs_tol=1e-2
