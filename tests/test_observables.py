@@ -22,6 +22,8 @@ from qucumber import observables, set_random_seed
 from qucumber.nn_states import WaveFunctionBase, NeuralStateBase
 from qucumber.utils import cplx, auto_unsqueeze_args
 
+from conftest import all_state_types
+
 
 SEED = 1234
 
@@ -78,7 +80,6 @@ class MockWaveFunction(WaveFunctionBase):
         return torch.ones(v.shape[0], dtype=torch.double, device=self.device)
 
     def psi(self, v):
-        # vector/tensor of shape (len(v),)
         return cplx.make_complex(self.amplitude(v))
 
 
@@ -194,3 +195,74 @@ def test_pauli(mock_state_samples, pauli, absolute):
     assert isclose(
         mag, measure_O, abs_tol=1e-2
     ), "measure {}-magnetization failed".format(prefix + obs.symbol)
+
+
+@pytest.fixture(scope="module", params=[2, 7])
+def nn_state_num_visible(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=all_state_types)
+def nn_state(request, quantum_state_device, nn_state_num_visible):
+    set_random_seed(SEED, cpu=True, gpu=quantum_state_device, quiet=True)
+    state_type = request.param
+
+    return state_type(nn_state_num_visible, gpu=quantum_state_device)
+
+
+observable_constructors = [
+    observables.SWAP,
+    observables.SigmaX,
+    observables.SigmaY,
+    observables.SigmaZ,
+    observables.NeighbourInteraction,
+]
+
+observable_constructors = [(cls.__name__, cls) for cls in observable_constructors]
+
+observable_constructors.append(
+    (
+        "AlgebraicallyCombined",
+        lambda: -observables.NeighbourInteraction() - (3 * observables.SigmaX()) + 1,
+    )
+)
+
+
+@pytest.fixture(scope="module", params=observable_constructors, ids=lambda p: p[0])
+def nn_state_observable_fixture(request, nn_state):
+    obs_name, obs_constructor = request.param
+
+    if obs_name == "SWAP":
+        obs = obs_constructor(list(range(nn_state.num_visible // 2)))
+    else:
+        obs = obs_constructor()
+
+    return nn_state, obs
+
+
+@pytest.fixture(scope="module")
+def nn_state_observable_samples(request, nn_state_observable_fixture):
+    nn_state, obs = nn_state_observable_fixture
+
+    test_sample = nn_state.sample(k=1, num_samples=1000)
+    return nn_state, obs, test_sample
+
+
+def test_sanity_check_observable_apply(request, nn_state_observable_samples):
+    nn_state, obs, test_sample = nn_state_observable_samples
+    applied = obs.apply(nn_state, test_sample)
+
+    msg = "Output of `apply` should have the same number of samples as `test_sample`!"
+    assert applied.shape[0] == test_sample.shape[0], msg
+
+
+def test_sanity_check_observable_statistics_from_samples(
+    request, nn_state_observable_samples
+):
+    nn_state, obs, test_sample = nn_state_observable_samples
+    obs.statistics_from_samples(nn_state, test_sample)
+
+
+def test_sanity_check_observable_statistics(request, nn_state_observable_fixture):
+    nn_state, obs = nn_state_observable_fixture
+    obs.statistics(nn_state, 1000)

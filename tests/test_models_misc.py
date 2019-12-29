@@ -32,13 +32,11 @@ from qucumber.utils.unitaries import (
     rotate_rho_probs,
 )
 
-from test_grads import assertAlmostEqual, devices
+from conftest import devices, assertAlmostEqual, TOL
 
 
 INIT_SEED = 1234  # seed to initialize model params with
 SAMPLING_SEED = 1337  # seed to draw samples from the model with
-
-TOL = 1e-6
 
 all_state_types = [PositiveWaveFunction, ComplexWaveFunction, DensityMatrix]
 
@@ -381,6 +379,6 @@ def test_rotate_rho_probs(num_visible, state_type, precompute_rho):
     assertAlmostEqual(
         rho_r_probs,
         rho_r_probs_fast,
-        tol=(TOL / 10),
+        tol=(TOL * 10),
         msg="Fast rho probs rotation failed!",
     )

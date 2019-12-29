@@ -24,20 +24,11 @@ import qucumber
 from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction, DensityMatrix
 
 from grads_utils import ComplexGradsUtils, PosGradsUtils, DensityGradsUtils
+from conftest import all_state_types, assertAlmostEqual, TOL
 
 
 SEED = 1234
 EPS = 1e-6
-
-TOL = torch.tensor(2e-8, dtype=torch.double)
-
-
-def assertAlmostEqual(a, b, tol=TOL, msg=None):
-    a = a.to(device=torch.device("cpu"))
-    b = b.to(device=torch.device("cpu"))
-    diff = torch.abs(a - b)
-    result = torch.ge(tol * torch.ones_like(diff), diff)
-    assert torch.all(result).squeeze().item(), msg
 
 
 def positive_wavefunction_data(request, gpu, num_hidden):
@@ -57,7 +48,7 @@ def positive_wavefunction_data(request, gpu, num_hidden):
     PGU = PosGradsUtils(nn_state)
 
     data = data.to(device=nn_state.device)
-    space = nn_state.generate_hilbert_space(num_visible)
+    space = nn_state.generate_hilbert_space()
     target = target.to(device=nn_state.device)
 
     PositiveWaveFunctionFixture = namedtuple(
@@ -100,7 +91,7 @@ def complex_wavefunction_data(request, gpu, num_hidden):
     target = CGU.load_target_psi(all_bases, target_psi_tmp)
     target = {b: v.to(device=nn_state.device) for b, v in target.items()}
 
-    space = nn_state.generate_hilbert_space(num_visible)
+    space = nn_state.generate_hilbert_space()
     data_samples = data_samples.to(device=nn_state.device)
 
     ComplexWaveFunctionFixture = namedtuple(
@@ -157,7 +148,7 @@ def density_matrix_data(request, gpu, num_hidden):
 
     all_bases = DGU.transform_bases(all_bases)
 
-    space = nn_state.generate_hilbert_space(num_visible)
+    space = nn_state.generate_hilbert_space()
     data_samples = data_samples.to(device=nn_state.device)
     target = target.to(device=nn_state.device)
 
@@ -187,36 +178,23 @@ def density_matrix_data(request, gpu, num_hidden):
     )
 
 
-gpu_availability = pytest.mark.skipif(
-    not torch.cuda.is_available(), reason="GPU required"
-)
-quantum_state_types = ["positive", "complex", "density_matrix"]
-devices = [
-    pytest.param(False, id="cpu"),
-    pytest.param(True, id="gpu", marks=[gpu_availability, pytest.mark.gpu]),
-]
 hidden_layer_sizes = [pytest.param(9, id="9", marks=[pytest.mark.extra]), 10]
 grad_types = ["KL", "NLL"]
 
 
-@pytest.fixture(scope="module", params=quantum_state_types)
+@pytest.fixture(scope="module", params=all_state_types)
 def quantum_state_constructor(request):
     nn_state_type = request.param
-    if nn_state_type == "positive":
+    if nn_state_type == PositiveWaveFunction:
         return positive_wavefunction_data
-    elif nn_state_type == "complex":
+    elif nn_state_type == ComplexWaveFunction:
         return complex_wavefunction_data
-    elif nn_state_type == "density_matrix":
+    elif nn_state_type == DensityMatrix:
         return density_matrix_data
     else:
         raise ValueError(
             f"invalid test config: {nn_state_type} is not a valid quantum state type"
         )
-
-
-@pytest.fixture(scope="module", params=devices)
-def quantum_state_device(request):
-    return request.param
 
 
 @pytest.fixture(scope="module", params=hidden_layer_sizes)

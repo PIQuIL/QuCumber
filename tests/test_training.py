@@ -26,8 +26,7 @@ import qucumber.utils.training_statistics as ts
 from qucumber.callbacks import LambdaCallback
 from qucumber.nn_states import ComplexWaveFunction, PositiveWaveFunction, DensityMatrix
 
-from test_models_misc import all_state_types
-from test_grads import devices, quantum_state_types
+from conftest import devices, all_state_types
 
 SEED = 1234
 
@@ -142,11 +141,11 @@ def test_stop_training_in_epoch(gpu):
     assert nn_state.stop_training, msg
 
 
-@pytest.fixture(scope="module", params=quantum_state_types)
+@pytest.fixture(scope="module", params=all_state_types)
 def quantum_state_training_data(request):
     nn_state_type = request.param
 
-    if nn_state_type == "positive":
+    if nn_state_type == PositiveWaveFunction:
 
         root = os.path.join(
             request.fspath.dirname,
@@ -168,7 +167,7 @@ def quantum_state_training_data(request):
 
         reinit_params_fn = initialize_posreal_params
 
-    elif nn_state_type == "complex":
+    elif nn_state_type == ComplexWaveFunction:
 
         root = os.path.join(
             request.fspath.dirname,
@@ -191,7 +190,7 @@ def quantum_state_training_data(request):
 
         reinit_params_fn = initialize_complex_params
 
-    elif nn_state_type == "density_matrix":
+    elif nn_state_type == DensityMatrix:
 
         root = os.path.join(
             request.fspath.dirname, "..", "examples", "Tutorial3_TrainDensityMatrix"
