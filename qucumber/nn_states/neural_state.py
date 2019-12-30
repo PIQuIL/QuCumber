@@ -263,20 +263,20 @@ class NeuralStateBase(abc.ABC):
         """
 
     @abc.abstractmethod
-    def importance_sampling_numerator(self, v, vp):
-        """Compute the numerator of the weight of sample `v`,
-        with respect to the drawn sample `vp`."""
+    def importance_sampling_numerator(self, vp, v):
+        """Compute the numerator of the weight of sample `vp`,
+        with respect to the drawn sample `v`."""
 
     @abc.abstractmethod
-    def importance_sampling_denominator(self, vp):
+    def importance_sampling_denominator(self, v):
         """Compute the denominator of the weight of a sample,
-        with respect to the drawn sample `vp`."""
+        with respect to the drawn sample `v`."""
 
-    def importance_sampling_weight(self, v, vp):
-        """Compute the weight of sample `v`, with respect to the drawn sample `vp`."""
+    def importance_sampling_weight(self, vp, v):
+        """Compute the weight of sample `vp`, with respect to the drawn sample `v`."""
         return cplx.elementwise_division(
-            self.importance_sampling_numerator(v, vp),
-            self.importance_sampling_denominator(vp),
+            self.importance_sampling_numerator(vp, v),
+            self.importance_sampling_denominator(v),
         )
 
     def gradient(self, samples, bases=None):
