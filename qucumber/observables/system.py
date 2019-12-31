@@ -60,7 +60,7 @@ class System:
         """
         means = {name: 0.0 for name in self.observables.keys()}
         variances = {name: 0.0 for name in self.observables.keys()}
-        total_samples = 0.0
+        total_samples = 0
 
         chains = None
         num_chains = min(num_chains, num_samples) if num_chains != 0 else num_samples
@@ -94,6 +94,7 @@ class System:
                 "mean": means[obs_name],
                 "variance": variances[obs_name],
                 "std_error": np.sqrt(variances[obs_name] / total_samples),
+                "num_samples": total_samples,
             }
             for obs_name in self.observables.keys()
         }

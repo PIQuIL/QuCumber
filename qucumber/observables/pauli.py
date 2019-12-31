@@ -29,14 +29,14 @@ def flip_spin(i, samples):
                     Must be using the :math:`\sigma_i = 0, 1` convention.
     :type samples: torch.Tensor
     """
-    samples[:, i].sub_(1).abs_()
+    samples[..., i].sub_(1).abs_()
     return samples
 
 
 class SigmaX(ObservableBase):
     r"""The :math:`\sigma_x` observable
 
-    Computes the magnetization in the X direction of a spin chain.
+    Computes the average magnetization in the X direction of a spin chain.
 
     :param absolute: Specifies whether to estimate the absolute magnetization.
     :type absolute: bool
@@ -48,7 +48,7 @@ class SigmaX(ObservableBase):
         self.absolute = absolute
 
     def apply(self, nn_state, samples):
-        r"""Computes the magnetization along X of each sample in the given batch of samples.
+        r"""Computes the average magnetization along X of each sample in the given batch of samples.
 
         Assumes that the computational basis that the NeuralState was trained
         on was the Z basis.
@@ -86,7 +86,7 @@ class SigmaX(ObservableBase):
 class SigmaY(ObservableBase):
     r"""The :math:`\sigma_y` observable
 
-    Computes the magnetization in the Y direction of a spin chain.
+    Computes the average magnetization in the Y direction of a spin chain.
 
     :param absolute: Specifies whether to estimate the absolute magnetization.
     :type absolute: bool
@@ -98,7 +98,7 @@ class SigmaY(ObservableBase):
         self.absolute = absolute
 
     def apply(self, nn_state, samples):
-        r"""Computes the magnetization along Y of each sample in the given batch of samples.
+        r"""Computes the average magnetization along Y of each sample in the given batch of samples.
 
         Assumes that the computational basis that the NeuralState was trained
         on was the Z basis.
@@ -116,8 +116,7 @@ class SigmaY(ObservableBase):
         numer_sum = torch.zeros_like(denom)
 
         for i in range(samples.shape[-1]):  # sum over spin sites
-
-            coeff = -to_pm1(samples[:, i])
+            coeff = to_pm1(samples[..., i])
             coeff = cplx.make_complex(torch.zeros_like(coeff), coeff)
 
             samples_ = flip_spin(i, samples.clone())  # flip the spin at site i
@@ -140,7 +139,7 @@ class SigmaY(ObservableBase):
 class SigmaZ(ObservableBase):
     r"""The :math:`\sigma_z` observable.
 
-    Computes the magnetization in the Z direction of a spin chain.
+    Computes the average magnetization in the Z direction of a spin chain.
 
     :param absolute: Specifies whether to estimate the absolute magnetization.
     :type absolute: bool
@@ -152,7 +151,7 @@ class SigmaZ(ObservableBase):
         self.absolute = absolute
 
     def apply(self, nn_state, samples):
-        r"""Computes the magnetization along Z of each sample given a batch of samples.
+        r"""Computes the average magnetization along Z of each sample given a batch of samples.
 
         Assumes that the computational basis that the NeuralState was trained
         on was the Z basis.
