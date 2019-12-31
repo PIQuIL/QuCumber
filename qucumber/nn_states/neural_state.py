@@ -264,16 +264,60 @@ class NeuralStateBase(abc.ABC):
 
     @abc.abstractmethod
     def importance_sampling_numerator(self, vp, v):
-        """Compute the numerator of the weight of sample `vp`,
-        with respect to the drawn sample `v`."""
+        r"""Compute the numerator of the weight of sample `vp`,
+        with respect to the sample `v`.
+
+        In the case of a mixed state, this quantity is :math:`\rho(\bm{\sigma'}, \bm{\sigma})`,
+        while in the pure case it is :math:`\psi(\bm{\sigma'})`
+
+        :param vp: A batch containing the samples :math:`\bm{\sigma'}`
+        :type vp: torch.Tensor
+        :param v: A batch containing the samples :math:`\bm{\sigma}`
+        :type v: torch.Tensor
+
+        :returns: A complex tensor containing the numerator of the weights of
+                  :math:`\bm{\sigma'}` with respect to :math:`\bm{\sigma}`
+        :rtype: torch.Tensor
+        """
 
     @abc.abstractmethod
     def importance_sampling_denominator(self, v):
-        """Compute the denominator of the weight of a sample,
-        with respect to the drawn sample `v`."""
+        r"""Compute the denominator of the weight of an arbitrary sample,
+        with respect to the sample `v`.
+
+        In the case of a mixed state, this quantity is :math:`\rho(\bm{\sigma}, \bm{\sigma})`,
+        while in the pure case it is :math:`\psi(\bm{\sigma'})`
+
+        :param v: A batch containing the samples :math:`\bm{\sigma}`
+        :type v: torch.Tensor
+
+        :returns: A complex tensor containing the denominator of the weights
+                  with respect to :math:`\bm{\sigma}`
+        :rtype: torch.Tensor
+        """
 
     def importance_sampling_weight(self, vp, v):
-        """Compute the weight of sample `vp`, with respect to the drawn sample `v`."""
+        r"""Compute the weight of sample `vp`, with respect to the sample `v`.
+
+        In the case of a mixed state, this ratio is:
+
+        .. math::
+            \frac{\rho(\bm{\sigma'}, \bm{\sigma})}{\rho(\bm{\sigma}, \bm{\sigma})}
+
+        While in the pure case:
+
+        .. math::
+            \frac{\psi(\bm{\sigma'})}{\psi(\bm{\sigma})}
+
+        :param vp: A batch containing the samples :math:`\bm{\sigma'}`
+        :type vp: torch.Tensor
+        :param v: A batch containing the samples :math:`\bm{\sigma}`
+        :type v: torch.Tensor
+
+        :returns: A complex tensor containing the weights of :math:`\bm{\sigma'}` with
+                  respect to :math:`\bm{\sigma}`
+        :rtype: torch.Tensor
+        """
         return cplx.elementwise_division(
             self.importance_sampling_numerator(vp, v),
             self.importance_sampling_denominator(v),
