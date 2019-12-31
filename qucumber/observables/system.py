@@ -29,7 +29,16 @@ class System:
     def __init__(self, *observables):
         self.observables = {obs.name: obs for obs in observables}
 
-    def statistics(self, nn_state, num_samples, num_chains=0, burn_in=1000, steps=1):
+    def statistics(
+        self,
+        nn_state,
+        num_samples,
+        num_chains=0,
+        burn_in=1000,
+        steps=1,
+        initial_state=None,
+        overwrite=False,
+    ):
         """Estimates the expected value, variance, and the standard error of the
         observables over the distribution defined by `nn_state`.
 
@@ -50,20 +59,35 @@ class System:
         :type burn_in: int
         :param steps: The number of Gibbs Steps to take between each sample.
         :type steps: int
+        :param initial_state: The initial state of the Markov Chain. If given,
+                              `num_chains` will be ignored.
+        :type initial_state: torch.Tensor
+        :param overwrite: Whether to overwrite the `initial_state` tensor, if
+                          provided, with the updated state of the Markov chain.
+        :type overwrite: bool
+
         :returns: A dictionary of dictionaries. At the top level, the keys
                   will be the names of the observables this object is keeping
                   track of. The values will be dictionaries containing the
                   (estimated) expected value (key: "mean"), variance (key:
                   "variance"), and standard error (key: "std_error") of the
-                  corresponding observable.
+                  corresponding observable. Also outputs the total
+                  number of drawn samples (key: "num_samples").
         :rtype: dict(str, dict(str, float))
         """
         means = {name: 0.0 for name in self.observables.keys()}
         variances = {name: 0.0 for name in self.observables.keys()}
         total_samples = 0
 
-        chains = None
-        num_chains = min(num_chains, num_samples) if num_chains != 0 else num_samples
+        if initial_state is not None:
+            chains = initial_state if overwrite else initial_state.clone()
+            num_chains = len(initial_state)
+        else:
+            chains = None
+            num_chains = (
+                min(num_chains, num_samples) if num_chains != 0 else num_samples
+            )
+
         num_time_steps = int(np.ceil(num_samples / num_chains))
         for i in range(num_time_steps):
             num_gibbs_steps = burn_in if i == 0 else steps
@@ -109,12 +133,14 @@ class System:
         :type nn_state: qucumber.nn_states.NeuralStateBase
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
+
         :returns: A dictionary of dictionaries. At the top level, the keys
                   will be the names of the observables this object is keeping
                   track of. The values will be dictionaries containing the
                   (estimated) expected value (key: "mean"), variance (key:
                   "variance"), and standard error (key: "std_error") of the
-                  corresponding observable.
+                  corresponding observable. Also outputs the total number of
+                  drawn samples (key: "num_samples").
         :rtype: dict(str, dict(str, float))
         """
         statistics = {
