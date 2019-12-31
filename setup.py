@@ -42,7 +42,6 @@ except FileNotFoundError:
 doc_requires = rtd_requires + [
     "sphinx_rtd_theme>=0.4.1",
     "sphinx-autobuild>=0.7.1",
-    "sphinxcontrib-spelling>=4.2.0",
 ]
 
 build_requires = ["setuptools>=40.0.0", "wheel>=0.31.1"]

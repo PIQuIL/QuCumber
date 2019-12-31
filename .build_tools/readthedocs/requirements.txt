@@ -2,3 +2,4 @@ sphinx>=2.0.1
 nbsphinx>=0.3.4
 ipython>=6.5.0
 jupyter_client>4.2.0
+sphinxcontrib-spelling>=4.3.0
