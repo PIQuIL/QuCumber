@@ -78,17 +78,21 @@ class ObservableBase(abc.ABC):
 
     @abc.abstractmethod
     def apply(self, nn_state, samples):
-        """Computes the value of the observable, row-wise, on a batch of
-        samples.
+        r"""Computes the value of the local-estimator of the observable :math:`O`,
+        for a batch of samples :math:`\lbrace \sigma \rbrace`:
 
-        If we think of the samples given as a set of projective measurements
-        in a given computational basis, this method must return the expectation
-        of the operator with respect to each basis state in `samples`.
-        It must not perform any averaging for statistical purposes, as the
+        .. math::
+
+            \mathcal{O}(\sigma) &= \sum_{\sigma'} \frac{\rho(\sigma', \sigma)}{\rho(\sigma, \sigma)} O(\sigma, \sigma')
+            = \sum_{\sigma'} \frac{\psi(\sigma')}{\psi(\sigma)} O(\sigma, \sigma')
+
+
+        This function must not perform any averaging for statistical purposes, as the
         proper analysis is delegated to the specialized
         `statistics` and `statistics_from_samples` methods.
 
-        Must be implemented by any subclasses.
+        Must be implemented by any subclasses. Refer to the tutorial on Observables
+        to see an example.
 
         :param nn_state: The NeuralState that drew the samples.
         :type nn_state: qucumber.nn_states.NeuralStateBase
@@ -111,7 +115,7 @@ class ObservableBase(abc.ABC):
         :param initial_state: The initial state of the Markov Chain. If given,
                               `num_samples` will be ignored.
         :type initial_state: torch.Tensor
-        :param overwrite: Whether to overwrite the initial_state tensor, if
+        :param overwrite: Whether to overwrite the `initial_state` tensor, if
                           provided, with the updated state of the Markov chain.
         :type overwrite: bool
         :returns: The samples drawn through this observable.
@@ -127,7 +131,16 @@ class ObservableBase(abc.ABC):
             ),
         )
 
-    def statistics(self, nn_state, num_samples, num_chains=0, burn_in=1000, steps=1):
+    def statistics(
+        self,
+        nn_state,
+        num_samples,
+        num_chains=0,
+        burn_in=1000,
+        steps=1,
+        initial_state=None,
+        overwrite=False,
+    ):
         """Estimates the expected value, variance, and the standard error of the
         observable over the distribution defined by the NeuralState.
 
@@ -142,23 +155,39 @@ class ObservableBase(abc.ABC):
                            number of chains equal to `num_samples`. This is not
                            recommended in the case where a `num_samples` is
                            large, as this may use up all the available memory.
+                           Ignored if `initial_state` is provided.
         :type num_chains: int
         :param burn_in: The number of Gibbs Steps to perform before recording
                         any samples.
         :type burn_in: int
         :param steps: The number of Gibbs Steps to take between each sample.
         :type steps: int
+        :param initial_state: The initial state of the Markov Chain. If given,
+                              `num_chains` will be ignored.
+        :type initial_state: torch.Tensor
+        :param overwrite: Whether to overwrite the `initial_state` tensor, if
+                          provided, with the updated state of the Markov chain.
+        :type overwrite: bool
+
         :returns: A dictionary containing the (estimated) expected value
                   (key: "mean"), variance (key: "variance"), and standard error
-                  (key: "std_error") of the observable.
+                  (key: "std_error") of the observable. Also outputs the total
+                  number of drawn samples (key: "num_samples").
         :rtype: dict(str, float)
         """
         running_mean = 0.0
         running_variance = 0.0
         running_length = 0
 
-        chains = None
-        num_chains = min(num_chains, num_samples) if num_chains != 0 else num_samples
+        if initial_state is not None:
+            chains = initial_state if overwrite else initial_state.clone()
+            num_chains = len(initial_state)
+        else:
+            chains = None
+            num_chains = (
+                min(num_chains, num_samples) if num_chains != 0 else num_samples
+            )
+
         num_time_steps = int(np.ceil(num_samples / num_chains))
         for i in range(num_time_steps):
             num_gibbs_steps = burn_in if i == 0 else steps
@@ -187,6 +216,7 @@ class ObservableBase(abc.ABC):
             "mean": running_mean,
             "variance": running_variance,
             "std_error": std_error,
+            "num_samples": running_length,
         }
 
     def statistics_from_samples(self, nn_state, samples):
@@ -199,7 +229,8 @@ class ObservableBase(abc.ABC):
         :type samples: torch.Tensor
         :returns: A dictionary containing the (estimated) expected value
                   (key: "mean"), variance (key: "variance"), and standard error
-                  (key: "std_error") of the observable.
+                  (key: "std_error") of the observable. Also outputs the total
+                  number of drawn samples (key: "num_samples").
         :rtype: dict(str, float)
         """
         obs_samples = self.apply(nn_state, samples).data
@@ -208,7 +239,12 @@ class ObservableBase(abc.ABC):
         variance = obs_samples.var().item()
         std_error = np.sqrt(variance / len(obs_samples))
 
-        return {"mean": mean, "variance": variance, "std_error": std_error}
+        return {
+            "mean": mean,
+            "variance": variance,
+            "std_error": std_error,
+            "num_samples": len(obs_samples),
+        }
 
 
 # make module path show up properly in sphinx docs

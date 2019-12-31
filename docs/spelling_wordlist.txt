@@ -10,6 +10,8 @@ dataset
 datasets
 diagonalize
 diagonalized
+equilibrate
+equilibrated
 evaluator
 evaluators
 GitHub
@@ -27,10 +29,12 @@ Leibler
 macOS
 neighbour
 neighbours
+num
 numpy
 observable
 observables
 orthonormal
+pre
 projective
 PyTorch
 qubit

@@ -81,10 +81,10 @@ class WaveFunctionBase(NeuralStateBase):
         )
 
     def importance_sampling_numerator(self, vp, v):
-        return cplx.conjugate(self.psi(vp))
+        return self.psi(vp)
 
     def importance_sampling_denominator(self, v):
-        return cplx.conjugate(self.psi(v))
+        return self.psi(v)
 
 
 # make module path show up properly in sphinx docs

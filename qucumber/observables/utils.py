@@ -38,7 +38,7 @@ def _update_statistics(avg_a, var_a, len_a, avg_b, var_b, len_b):
         return 0.0, 0.0, 0
 
     new_len = len_a + len_b
-    new_mean = ((avg_a * len_a) + (avg_b * len_b)) / new_len
+    new_mean = ((avg_a * len_a) + (avg_b * len_b)) / float(new_len)
 
     delta = avg_b - avg_a
     scaled_var_a = var_a * (len_a - 1)
