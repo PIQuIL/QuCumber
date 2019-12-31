@@ -53,7 +53,7 @@ def numpy(x):
     :returns: A complex numpy array containing the data from `x`.
     :rtype: numpy.ndarray
     """
-    return real(x).numpy() + 1j * imag(x).numpy()
+    return real(x).detach().cpu().numpy() + 1j * imag(x).detach().cpu().numpy()
 
 
 def real(x):
