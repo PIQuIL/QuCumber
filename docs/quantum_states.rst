@@ -20,6 +20,13 @@ Complex WaveFunction
     :inherited-members:
     :show-inheritance:
 
+Density Matrix
+------------------------------
+
+.. autoclass:: qucumber.nn_states.DensityMatrix
+    :members:
+    :show-inheritance:
+
 Abstract WaveFunction
 ------------------------------
 
@@ -29,9 +36,11 @@ Abstract WaveFunction
     :members:
     :show-inheritance:
 
-Density Matrix
+Abstract NeuralState
 ------------------------------
 
-.. autoclass:: qucumber.nn_states.DensityMatrix
+.. note:: |AbstractClassNote|
+
+.. autoclass:: qucumber.nn_states.NeuralStateBase
     :members:
     :show-inheritance:

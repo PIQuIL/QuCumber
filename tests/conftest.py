@@ -16,30 +16,32 @@
 import pytest
 import torch
 
+from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction, DensityMatrix
+
 torch.set_printoptions(precision=10)
 
+all_state_types = [PositiveWaveFunction, ComplexWaveFunction, DensityMatrix]
 
-def pytest_addoption(parser):
-    parser.addoption(
-        "--nll",
-        action="store_true",
-        dest="nll",
-        default=False,
-        help=(
-            "Run Negative Log Likelihood gradient tests. "
-            "Note that they are non-deterministic and may fail."
-        ),
-    )
+gpu_availability = pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="GPU required"
+)
+devices = [
+    pytest.param(False, id="cpu"),
+    pytest.param(True, id="gpu", marks=[gpu_availability, pytest.mark.gpu]),
+]
 
 
-def pytest_collection_modifyitems(config, items):
-    # run NLL tests only if the option is given
-    if config.getoption("--nll"):
-        return
-    else:
-        skip_nll = pytest.mark.skip(
-            reason="doesn't give consistent results; add --nll option to run anyway"
-        )
-        for item in items:
-            if "nll" in item.keywords:
-                item.add_marker(skip_nll)
+@pytest.fixture(scope="module", params=devices)
+def quantum_state_device(request):
+    return request.param
+
+
+TOL = torch.tensor(2e-8, dtype=torch.double)
+
+
+def assertAlmostEqual(a, b, tol=TOL, msg=None):
+    a = a.to(device=torch.device("cpu"))
+    b = b.to(device=torch.device("cpu"))
+    diff = torch.abs(a - b)
+    result = torch.ge(tol * torch.ones_like(diff), diff)
+    assert torch.all(result).squeeze().item(), msg

@@ -90,8 +90,8 @@ class ObservableBase(abc.ABC):
 
         Must be implemented by any subclasses.
 
-        :param nn_state: The WaveFunction that drew the samples.
-        :type nn_state: qucumber.nn_states.WaveFunctionBase
+        :param nn_state: The NeuralState that drew the samples.
+        :type nn_state: qucumber.nn_states.NeuralStateBase
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
         :returns: The value of the observable of each given basis state.
@@ -100,10 +100,10 @@ class ObservableBase(abc.ABC):
         raise NotImplementedError
 
     def sample(self, nn_state, k, num_samples=1, initial_state=None, overwrite=False):
-        """Draws samples of the *observable* using the given WaveFunction.
+        """Draws samples of the *observable* using the given NeuralState.
 
-        :param nn_state: The WaveFunction to draw samples from.
-        :type nn_state: qucumber.nn_states.WaveFunctionBase
+        :param nn_state: The NeuralState to draw samples from.
+        :type nn_state: qucumber.nn_states.NeuralStateBase
         :param k: The number of Gibbs Steps to perform before drawing a sample.
         :type k: int
         :param num_samples: The number of samples to draw.
@@ -129,10 +129,10 @@ class ObservableBase(abc.ABC):
 
     def statistics(self, nn_state, num_samples, num_chains=0, burn_in=1000, steps=1):
         """Estimates the expected value, variance, and the standard error of the
-        observable over the distribution defined by the WaveFunction.
+        observable over the distribution defined by the NeuralState.
 
-        :param nn_state: The WaveFunction to draw samples from.
-        :type nn_state: qucumber.nn_states.WaveFunctionBase
+        :param nn_state: The NeuralState to draw samples from.
+        :type nn_state: qucumber.nn_states.NeuralStateBase
         :param num_samples: The number of samples to draw. The actual number of
                             samples drawn may be slightly higher if
                             `num_samples % num_chains != 0`.
@@ -193,8 +193,8 @@ class ObservableBase(abc.ABC):
         """Estimates the expected value, variance, and the standard error of the
         observable using the given samples.
 
-        :param nn_state: The WaveFunction that drew the samples.
-        :type nn_state: qucumber.nn_states.WaveFunctionBase
+        :param nn_state: The NeuralState that drew the samples.
+        :type nn_state: qucumber.nn_states.NeuralStateBase
         :param samples: A batch of sample states to calculate the observable on.
         :type samples: torch.Tensor
         :returns: A dictionary containing the (estimated) expected value

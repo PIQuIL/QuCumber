@@ -17,6 +17,7 @@ import torch
 
 from qucumber import _warn_on_missing_gpu
 from qucumber.rbm import BinaryRBM
+from qucumber.utils import cplx, auto_unsqueeze_args
 from .wavefunction import WaveFunctionBase
 
 
@@ -42,11 +43,7 @@ class PositiveWaveFunction(WaveFunctionBase):
 
     def __init__(self, num_visible, num_hidden=None, gpu=True, module=None):
         if module is None:
-            self.rbm_am = BinaryRBM(
-                int(num_visible),
-                int(num_hidden) if num_hidden else int(num_visible),
-                gpu=gpu,
-            )
+            self.rbm_am = BinaryRBM(num_visible, num_hidden, gpu=gpu)
         else:
             _warn_on_missing_gpu(gpu)
             gpu = gpu and torch.cuda.is_available()
@@ -56,7 +53,6 @@ class PositiveWaveFunction(WaveFunctionBase):
 
         self.num_visible = self.rbm_am.num_visible
         self.num_hidden = self.rbm_am.num_hidden
-
         self.device = self.rbm_am.device
 
     @property
@@ -95,6 +91,7 @@ class PositiveWaveFunction(WaveFunctionBase):
         """
         return super().amplitude(v)
 
+    @auto_unsqueeze_args()
     def phase(self, v):
         r"""Compute the phase of a given vector/matrix of visible states.
 
@@ -106,18 +103,7 @@ class PositiveWaveFunction(WaveFunctionBase):
         :returns: Matrix/vector containing the phases of v
         :rtype: torch.Tensor
         """
-        if v.dim() == 1:
-            v = v.unsqueeze(0)
-            unsqueezed = True
-        else:
-            unsqueezed = False
-
-        phase = torch.zeros(v.shape[0])
-
-        if unsqueezed:
-            return phase.squeeze_(0)
-        else:
-            return phase
+        return torch.zeros(v.shape[0], dtype=torch.double, device=self.device)
 
     def psi(self, v):
         r"""Compute the (unnormalized) wavefunction of a given vector/matrix of visible states.
@@ -134,31 +120,58 @@ class PositiveWaveFunction(WaveFunctionBase):
                   each visible state
         :rtype: torch.Tensor
         """
-        # vector/tensor of shape (len(v),)
-        amplitude = self.amplitude(v)
+        # vector/tensor of shape (2, len(v))
+        return cplx.make_complex(self.amplitude(v))
 
-        # complex vector; shape: (2, len(v))
-        psi = torch.zeros((2,) + amplitude.shape).to(
-            dtype=torch.double, device=self.device
-        )
-        psi[0] = amplitude
-        return psi
-
-    def gradient(self, v):
+    def gradient(self, v, *args, **kwargs):
         r"""Compute the gradient of the effective energy for a batch of states.
 
         :math:`\nabla_{\bm{\lambda}}\mathcal{E}_{\bm{\lambda}}(\bm{\sigma})`
 
         :param v: visible states :math:`\bm{\sigma}`
         :type v: torch.Tensor
+        :param \*args: Ignored.
+        :param \**kwargs: Ignored.
 
-        :returns: A single tensor containing all of the parameter gradients.
-        :rtype: torch.Tensor
+        :returns: A two-element list containing the gradients of the
+                  effective energy. The second element will always be zero.
+        :rtype: list[torch.Tensor]
         """
-        return self.rbm_am.effective_energy_gradient(v)
+        return super().gradient(v, bases=None)
 
-    def compute_batch_gradients(self, k, samples_batch, neg_batch):
-        """Compute the gradients of a batch of the training data (`samples_batch`).
+    def positive_phase_gradients(self, samples_batch, *args, **kwargs):
+        r"""Computes the positive phase of the gradients of the parameters.
+
+        :param samples_batch: The measurements
+        :type samples_batch: torch.Tensor
+        :param \*args: Ignored.
+        :param \**kwargs: Ignored.
+
+        :returns: A two-element list containing the gradients of the
+                  effective energy. The second element will always be zero.
+        :rtype: list[torch.Tensor]
+        """
+        return super().positive_phase_gradients(samples_batch, bases_batch=None)
+
+    def compute_exact_grads(self, samples_batch, space, *args, **kwargs):
+        r"""Computes the gradients of the parameters, using exact sampling
+        for the negative phase update instead of Gibbs sampling
+
+        :param samples_batch: The measurements
+        :type samples_batch: torch.Tensor
+        :param space: A rank 2 tensor of the entire visible space.
+        :type space: torch.Tensor
+        :param \*args: Ignored.
+        :param \**kwargs: Ignored.
+
+        :returns: A single-element list containing the gradients calculated
+                  with an exact negative phase update
+        :rtype: list[torch.Tensor]
+        """
+        return super().compute_exact_grads(samples_batch, space, bases_batch=None)
+
+    def compute_batch_gradients(self, k, samples_batch, neg_batch, *args, **kwargs):
+        r"""Compute the gradients of a batch of the training data (`samples_batch`).
 
         :param k: Number of contrastive divergence steps in training.
         :type k: int
@@ -167,11 +180,16 @@ class PositiveWaveFunction(WaveFunctionBase):
         :param neg_batch: Batch of the input samples for computing the
                           negative phase.
         :type neg_batch: torch.Tensor
+        :param \*args: Ignored.
+        :param \**kwargs: Ignored.
 
-        :returns: List containing the gradients of the parameters.
-        :rtype: list
+        :returns: A single-element list containing the gradients calculated
+                  with a Gibbs sampled negative phase update
+        :rtype: list[torch.Tensor]
         """
-        return super().compute_batch_gradients(k, samples_batch, neg_batch)
+        return super().compute_batch_gradients(
+            k, samples_batch, neg_batch, bases_batch=None
+        )
 
     def fit(
         self,
@@ -186,39 +204,12 @@ class PositiveWaveFunction(WaveFunctionBase):
         time=False,
         callbacks=None,
         optimizer=torch.optim.SGD,
+        optimizer_args=None,
+        scheduler=None,
+        scheduler_args=None,
         **kwargs
     ):
-        """Train the WaveFunction.
-
-        :param data: The training samples
-        :type data: numpy.ndarray
-        :param epochs: The number of full training passes through the dataset.
-                       Technically, this specifies the index of the *last* training
-                       epoch, which is relevant if `starting_epoch` is being set.
-        :type epochs: int
-        :param pos_batch_size: The size of batches for the positive phase
-                               taken from the data.
-        :type pos_batch_size: int
-        :param neg_batch_size: The size of batches for the negative phase
-                               taken from the data. Defaults to `pos_batch_size`.
-        :type neg_batch_size: int
-        :param k: The number of contrastive divergence steps.
-        :type k: int
-        :param lr: Learning rate
-        :type lr: float
-        :param progbar: Whether or not to display a progress bar. If "notebook"
-                        is passed, will use a Jupyter notebook compatible
-                        progress bar.
-        :type progbar: bool or str
-        :param starting_epoch: The epoch to start from. Useful if continuing training
-                               from a previous state.
-        :type starting_epoch: int
-        :param callbacks: Callbacks to run while training.
-        :type callbacks: list[qucumber.callbacks.CallbackBase]
-        :param optimizer: The constructor of a torch optimizer.
-        :type optimizer: torch.optim.Optimizer
-        :param kwargs: Keyword arguments to pass to the optimizer
-        """
+        kwargs["input_bases"] = None
         return super().fit(
             data=data,
             epochs=epochs,
@@ -231,21 +222,11 @@ class PositiveWaveFunction(WaveFunctionBase):
             time=time,
             callbacks=callbacks,
             optimizer=optimizer,
+            optimizer_args=optimizer_args,
+            scheduler=scheduler,
+            scheduler_args=scheduler_args,
             **kwargs
         )
-
-    def compute_normalization(self, space):
-        r"""Compute the normalization constant of the wavefunction.
-
-        .. math::
-
-            Z_{\bm{\lambda}}=\sqrt{\sum_{\bm{\sigma}}|\psi_{\bm{\lambda}}|^2}=
-            \sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}
-
-        :param space: A rank 2 tensor of the entire visible space.
-        :type space: torch.Tensor
-        """
-        return super().compute_normalization(space)
 
     @staticmethod
     def autoload(location, gpu=True):

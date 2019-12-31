@@ -15,7 +15,6 @@
 
 import warnings
 
-import numpy as np
 import torch
 
 from qucumber import _warn_on_missing_gpu
@@ -51,15 +50,11 @@ class ComplexWaveFunction(WaveFunctionBase):
     _device = None
 
     def __init__(
-        self, num_visible, num_hidden=None, unitary_dict=None, gpu=True, module=None
+        self, num_visible, num_hidden=None, unitary_dict=None, gpu=False, module=None
     ):
         if gpu and torch.cuda.is_available():
             warnings.warn(
-                (
-                    "Using ComplexWaveFunction on GPU is not recommended due to poor "
-                    "performance compared to CPU. In the future, ComplexWaveFunction "
-                    "will default to using CPU, even if a GPU is available."
-                ),
+                "Using ComplexWaveFunction on GPU is not recommended due to poor performance compared to CPU.",
                 ResourceWarning,
                 2,
             )
@@ -68,16 +63,8 @@ class ComplexWaveFunction(WaveFunctionBase):
             self.device = torch.device("cpu")
 
         if module is None:
-            self.rbm_am = BinaryRBM(
-                int(num_visible),
-                int(num_hidden) if num_hidden else int(num_visible),
-                gpu=gpu,
-            )
-            self.rbm_ph = BinaryRBM(
-                int(num_visible),
-                int(num_hidden) if num_hidden else int(num_visible),
-                gpu=gpu,
-            )
+            self.rbm_am = BinaryRBM(num_visible, num_hidden, gpu=gpu)
+            self.rbm_ph = BinaryRBM(num_visible, num_hidden, gpu=gpu)
         else:
             _warn_on_missing_gpu(gpu)
             self.rbm_am = module.to(self.device)
@@ -85,8 +72,9 @@ class ComplexWaveFunction(WaveFunctionBase):
             self.rbm_ph = module.to(self.device).clone()
             self.rbm_ph.device = self.device
 
-        self.num_visible = int(num_visible)
-        self.num_hidden = int(num_hidden) if num_hidden else self.num_visible
+        self.num_visible = self.rbm_am.num_visible
+        self.num_hidden = self.rbm_am.num_hidden
+        self.device = self.rbm_am.device
 
         self.unitary_dict = unitary_dict if unitary_dict else unitaries.create_dict()
         self.unitary_dict = {
@@ -169,149 +157,56 @@ class ComplexWaveFunction(WaveFunctionBase):
                   each visible state
         :rtype: torch.Tensor
         """
-        # vectors/tensors of shape (len(v),)
-        amplitude, phase = self.amplitude(v), self.phase(v)
+        return super().psi(v)
 
-        # complex vector; shape: (2, len(v))
-        psi = torch.zeros(
-            (2,) + amplitude.shape, dtype=torch.double, device=self.device
-        )
+    def rotated_gradient(self, basis, sample):
+        r"""Computes the gradients rotated into the measurement basis
 
-        # elementwise products
-        psi[0] = amplitude * phase.cos()  # real part
-        psi[1] = amplitude * phase.sin()  # imaginary part
-        return psi
-
-    def init_gradient(self, basis, sites):
-        Upsi = torch.zeros(2, dtype=torch.double, device=self.device)
-        vp = torch.zeros(self.num_visible, dtype=torch.double, device=self.device)
-        Us = torch.stack([self.unitary_dict[b] for b in basis[sites]]).cpu().numpy()
-        rotated_grad = [
-            torch.zeros(
-                2, getattr(self, net).num_pars, dtype=torch.double, device=self.device
-            )
-            for net in self.networks
-        ]
-        return Upsi, vp, Us, rotated_grad
-
-    def rotated_gradient(self, basis, sites, sample):
-        Upsi, vp, Us, rotated_grad = self.init_gradient(basis, sites)
-        int_sample = sample[sites].round().int().cpu().numpy()
-
-        Upsi_v = torch.zeros_like(Upsi, device=self.device)
-        ints_size = np.arange(sites.size)
-
-        # if the number of rotated sites is too large, fallback to loop
-        #  since memory may be unable to store the entire expanded set of
-        #  visible states
-        if sites.size > self.max_size or (
-            hasattr(self, "debug_gradient_rotation") and self.debug_gradient_rotation
-        ):
-            grad_size = (
-                self.num_visible * self.num_hidden + self.num_hidden + self.num_visible
-            )
-            vp = sample.round().clone()
-            Z = torch.zeros(grad_size, dtype=torch.double, device=self.device)
-            Z2 = torch.zeros((2, grad_size), dtype=torch.double, device=self.device)
-            U = torch.tensor([1.0, 1.0], dtype=torch.double, device=self.device)
-            Ut = np.zeros_like(Us[:, 0], dtype=complex)
-
-            for x in range(2 ** sites.size):
-                # overwrite rotated elements
-                vp = sample.round().clone()
-                vp[sites] = self.subspace_vector(x, size=sites.size)
-                int_vp = vp[sites].int().cpu().numpy()
-                all_Us = Us[ints_size, :, int_sample, int_vp]
-
-                # Gradient from the rotation
-                Ut = np.prod(all_Us[:, 0] + (1j * all_Us[:, 1]))
-                U[0] = Ut.real
-                U[1] = Ut.imag
-
-                cplx.scalar_mult(U, self.psi(vp), out=Upsi_v)
-                Upsi += Upsi_v
-
-                # Gradient on the current configuration
-                grad_vp0 = self.rbm_am.effective_energy_gradient(vp)
-                grad_vp1 = self.rbm_ph.effective_energy_gradient(vp)
-                rotated_grad[0] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp0, Z), out=Z2
-                )
-                rotated_grad[1] += cplx.scalar_mult(
-                    Upsi_v, cplx.make_complex(grad_vp1, Z), out=Z2
-                )
-        else:
-            vp = sample.round().clone().unsqueeze(0).repeat(2 ** sites.size, 1)
-            vp[:, sites] = self.generate_hilbert_space(size=sites.size)
-            vp = vp.contiguous()
-
-            # overwrite rotated elements
-            int_vp = vp[:, sites].long().cpu().numpy()
-            all_Us = Us[ints_size, :, int_sample, int_vp]
-
-            Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=1)
-            U = (
-                cplx.make_complex(torch.tensor(Ut.real), torch.tensor(Ut.imag))
-                .to(vp)
-                .contiguous()
-            )
-
-            Upsi_v = cplx.scalar_mult(U, self.psi(vp).detach())
-
-            Upsi = torch.sum(Upsi_v, dim=1)
-
-            grad_vp0 = self.rbm_am.effective_energy_gradient(vp, reduce=False)
-            grad_vp1 = self.rbm_ph.effective_energy_gradient(vp, reduce=False)
-
-            # since grad_vp0/1 are real, can just treat the scalar multiplication
-            #  and addition as a matrix multiplication
-            torch.matmul(Upsi_v, grad_vp0, out=rotated_grad[0])
-            torch.matmul(Upsi_v, grad_vp1, out=rotated_grad[1])
-
-        grad = [
-            cplx.scalar_divide(rotated_grad[0], Upsi)[0, :],  # Real
-            -cplx.scalar_divide(rotated_grad[1], Upsi)[1, :],  # Imaginary
-        ]
-
-        return grad
-
-    def gradient(self, basis, sample):
-        r"""Compute the gradient of a sample, measured in different bases.
-
-        :param basis: A set of bases.
+        :param basis: The bases in which the measurement is made
         :type basis: numpy.ndarray
-        :param sample: A sample to compute the gradient of.
-        :type sample: numpy.ndarray
+        :param sample: The measurement (either 0 or 1)
+        :type sample: torch.Tensor
 
-        :returns: A list of 2 tensors containing the parameters of each of the
-                  internal RBMs.
-        :rtype: list[torch.Tensor]
+        :returns: A list of two tensors, representing the rotated gradients
+                  of the amplitude and phase RBMS
+        :rtype: list[torch.Tensor, torch.Tensor]
         """
-        basis = np.array(list(basis))  # list is silly, but works for now
-        rot_sites = np.where(basis != "Z")[0]
-        if rot_sites.size == 0:
-            grad = [
-                self.rbm_am.effective_energy_gradient(sample),  # Real
-                0.0,  # Imaginary
-            ]
-        else:
-            grad = self.rotated_gradient(basis, rot_sites, sample)
+        Upsi, Upsi_v, v = unitaries.rotate_psi_inner_prod(
+            self, basis, sample, include_extras=True
+        )
+        inv_Upsi = cplx.inverse(Upsi)
+
+        raw_grads = [self.am_grads(v), self.ph_grads(v)]
+
+        rotated_grad = [cplx.einsum("s...,s...g->...g", Upsi_v, g) for g in raw_grads]
+        grad = [
+            cplx.einsum("b,bg->g", inv_Upsi, rg, imag_part=False) for rg in rotated_grad
+        ]
+
         return grad
 
-    def compute_normalization(self, space):
-        r"""Compute the normalization constant of the wavefunction.
+    def am_grads(self, v):
+        r"""Computes the gradients of the amplitude RBM for given input states
 
-        .. math::
-
-            Z_{\bm{\lambda}}=
-            \sqrt{\sum_{\bm{\sigma}}|\psi_{\bm{\lambda\mu}}|^2}=
-            \sqrt{\sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})}
-
-        :param space: A rank 2 tensor of the entire visible space.
-        :type space: torch.Tensor
-
+        :param v: The input state, :math:`\sigma`
+        :type v: torch.Tensor
+        :returns: The gradients of all amplitude RBM parameters
+        :rtype: torch.Tensor
         """
-        return super().compute_normalization(space)
+        return cplx.make_complex(self.rbm_am.effective_energy_gradient(v, reduce=False))
+
+    def ph_grads(self, v):
+        r"""Computes the gradients of the phase RBM for given input states
+
+        :param v: The input state, :math:`\sigma`
+        :type v: torch.Tensor
+        :returns: The gradients of all phase RBM parameters
+        :rtype: torch.Tensor
+        """
+        return cplx.scalar_mult(
+            cplx.make_complex(self.rbm_ph.effective_energy_gradient(v, reduce=False)),
+            cplx.I,  # need to multiply phase gradient by i
+        )
 
     def fit(
         self,
@@ -327,6 +222,9 @@ class ComplexWaveFunction(WaveFunctionBase):
         time=False,
         callbacks=None,
         optimizer=torch.optim.SGD,
+        optimizer_args=None,
+        scheduler=None,
+        scheduler_args=None,
         **kwargs
     ):
         if input_bases is None:
@@ -347,16 +245,14 @@ class ComplexWaveFunction(WaveFunctionBase):
                 time=time,
                 callbacks=callbacks,
                 optimizer=optimizer,
+                optimizer_args=optimizer_args,
+                scheduler=scheduler,
+                scheduler_args=scheduler_args,
                 **kwargs
             )
 
-    def save(self, location, metadata=None):
-        metadata = metadata if metadata else {}
-        metadata["unitary_dict"] = self.unitary_dict
-        super().save(location, metadata=metadata)
-
     @staticmethod
-    def autoload(location, gpu=True):
+    def autoload(location, gpu=False):
         state_dict = torch.load(location)
         wvfn = ComplexWaveFunction(
             unitary_dict=state_dict["unitary_dict"],

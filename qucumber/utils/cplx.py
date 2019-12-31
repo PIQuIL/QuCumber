@@ -17,24 +17,43 @@ import torch
 import numpy as np
 
 
+I = torch.Tensor([0, 1])  # noqa: E741
+
+
 def make_complex(x, y=None):
-    """A function that combines the real (x) and imaginary (y) parts of a
-    vector or a matrix.
+    """A function that creates a torch compatible complex tensor.
 
-    .. note:: x and y must have the same shape.
+    .. note:: `x` and `y` must have the same shape.
 
-    :param x: The real part
-    :type x: torch.Tensor
-    :param y: The imaginary part. Can be None, in which case, the resulting
+    :param x: The real part or a complex numpy array. If a numpy array,
+              will ignore `y`.
+    :type x: torch.Tensor or numpy.ndarray
+    :param y: The imaginary part. Can be `None`, in which case, the resulting
               complex tensor will have imaginary part equal to zero.
     :type y: torch.Tensor
 
     :returns: The tensor :math:`[x,y] = x + iy`.
     :rtype: torch.Tensor
     """
+    if isinstance(x, np.ndarray):
+        return make_complex(torch.tensor(x.real), torch.tensor(x.imag)).contiguous()
+
     if y is None:
         y = torch.zeros_like(x)
     return torch.cat((x.unsqueeze(0), y.unsqueeze(0)), dim=0)
+
+
+def numpy(x):
+    """Converts a complex torch tensor into a numpy array
+
+
+    :param x: The tensor to convert.
+    :type x: torch.Tensor
+
+    :returns: A complex numpy array containing the data from `x`.
+    :rtype: numpy.ndarray
+    """
+    return real(x).detach().cpu().numpy() + 1j * imag(x).detach().cpu().numpy()
 
 
 def real(x):
@@ -74,14 +93,15 @@ def scalar_mult(x, y, out=None):
               Either overwrites `out`, or returns a new tensor.
     :rtype: torch.Tensor
     """
+    y = y.to(x)
     if out is None:
-        out = torch.zeros(2, *((x[0] * y[0]).size()), dtype=x.dtype, device=x.device)
+        out = torch.zeros(2, *((real(x) * real(y)).shape)).to(x)
     else:
         if out is x or out is y:
             raise RuntimeError("Can't overwrite an argument!")
 
-    out[0] = (x[0] * y[0]) - (x[1] * y[1])
-    out[1] = (x[0] * y[1]) + (x[1] * y[0])
+    torch.mul(real(x), real(y), out=real(out)).sub_(torch.mul(imag(x), imag(y)))
+    torch.mul(real(x), imag(y), out=imag(out)).add_(torch.mul(imag(x), real(y)))
 
     return out
 
@@ -100,18 +120,11 @@ def matmul(x, y):
     :returns: The product between x and y.
     :rtype: torch.Tensor
     """
-    if len(list(y.size())) == 2:
-        # if one of them is a vector (i.e. wanting to do MV mult)
-        z = torch.zeros(2, x.size()[1], dtype=x.dtype, device=x.device)
-        z[0] = torch.mv(x[0], y[0]) - torch.mv(x[1], y[1])
-        z[1] = torch.mv(x[0], y[1]) + torch.mv(x[1], y[0])
+    y = y.to(x)
+    re = torch.matmul(real(x), real(y)).sub_(torch.matmul(imag(x), imag(y)))
+    im = torch.matmul(real(x), imag(y)).add_(torch.matmul(imag(x), real(y)))
 
-    if len(list(y.size())) == 3:
-        z = torch.zeros(2, x.size()[1], y.size()[2], dtype=x.dtype, device=x.device)
-        z[0] = torch.matmul(x[0], y[0]) - torch.matmul(x[1], y[1])
-        z[1] = torch.matmul(x[0], y[1]) + torch.matmul(x[1], y[0])
-
-    return z
+    return make_complex(re, im)
 
 
 def inner_prod(x, y):
@@ -129,17 +142,20 @@ def inner_prod(x, y):
     :returns: The inner product, :math:`\\langle x\\vert y\\rangle`.
     :rtype: torch.Tensor
     """
-    z = torch.zeros(2, dtype=x.dtype, device=x.device)
+    y = y.to(x)
 
-    if len(list(x.size())) == 2 and len(list(y.size())) == 2:
-        z[0] = torch.dot(x[0], y[0]) + torch.dot(x[1], y[1])
-        z[1] = torch.dot(x[0], y[1]) + torch.dot(-x[1], y[0])
-
-    if len(list(x.size())) == 1 and len(list(y.size())) == 1:
-        z[0] = (x[0] * y[0]) + (x[1] * y[1])
-        z[1] = (x[0] * y[1]) + (-x[1] * y[0])
-
-    return z
+    if x.dim() == 2 and y.dim() == 2:
+        return make_complex(
+            torch.dot(real(x), real(y)) + torch.dot(imag(x), imag(y)),
+            torch.dot(real(x), imag(y)) - torch.dot(imag(x), real(y)),
+        )
+    elif x.dim() == 1 and y.dim() == 1:
+        return make_complex(
+            (real(x) * real(y)) + (imag(x) * imag(y)),
+            (real(x) * imag(y)) - (imag(x) * real(y)),
+        )
+    else:
+        raise ValueError("Unsupported input shapes!")
 
 
 def outer_prod(x, y):
@@ -158,7 +174,7 @@ def outer_prod(x, y):
         :math:`\\vert x \\rangle\\langle y\\vert`.
     :rtype: torch.Tensor
     """
-    if len(list(x.size())) != 2 or len(list(y.size())) != 2:
+    if x.dim() != 2 or y.dim() != 2:
         raise ValueError("An input is not of the right dimension.")
 
     z = torch.zeros(2, x.size()[1], y.size()[1], dtype=x.dtype, device=x.device)
@@ -166,6 +182,45 @@ def outer_prod(x, y):
     z[1] = torch.ger(x[0], -y[1]) + torch.ger(x[1], y[0])
 
     return z
+
+
+def einsum(equation, a, b, real_part=True, imag_part=True):
+    """Complex-aware version of `einsum`. See the torch documentation for more
+    details.
+
+    :param equation: The index equation. Passed directly to `torch.einsum`.
+    :type equation: str
+    :param a: A complex tensor.
+    :type a: torch.Tensor
+    :param b: A complex tensor.
+    :type b: torch.Tensor
+    :param real_part: Whether to compute and return the real part of the result.
+    :type real_part: bool
+    :param imag_part: Whether to compute and return the imaginary part of the result.
+    :type imag_part: bool
+
+    :returns: The Einstein summation of the input tensors performed according to
+              the given equation. If both `real_part` and `imag_part` are true,
+              the result will be a complex tensor, otherwise a real tensor.
+    :rtype: torch.Tensor
+    """
+    if real_part:
+        r = torch.einsum(equation, real(a), real(b)).sub_(
+            torch.einsum(equation, imag(a), imag(b))
+        )
+    if imag_part:
+        i = torch.einsum(equation, real(a), imag(b)).add_(
+            torch.einsum(equation, imag(a), real(b))
+        )
+
+    if real_part and imag_part:
+        return make_complex(r, i)
+    elif real_part:
+        return r
+    elif imag_part:
+        return i
+    else:
+        return None
 
 
 def conjugate(x):
@@ -217,7 +272,7 @@ def elementwise_division(x, y):
 
 
 def absolute_value(x):
-    """Computes the complex absolute value elementwise.
+    """Returns the complex absolute value elementwise.
 
     :param x: A complex tensor.
     :type x: torch.Tensor
@@ -227,12 +282,11 @@ def absolute_value(x):
     """
     x_star = x.clone()
     x_star[1] *= -1
-    return elementwise_mult(x, x_star)[0].sqrt_()
+    return real(elementwise_mult(x, x_star)).sqrt_()
 
 
 def kronecker_prod(x, y):
-    """A function that returns the tensor / Kronecker product of 2 complex
-    tensors, x and y.
+    """Returns the tensor / Kronecker product of 2 complex matrices, x and y.
 
     :param x: A complex matrix.
     :type x: torch.Tensor
@@ -245,40 +299,16 @@ def kronecker_prod(x, y):
     :returns: The Kronecker product of x and y, :math:`x \\otimes y`.
     :rtype: torch.Tensor
     """
-    if len(list(x.size())) != 3 or len(list(y.size())) != 3:
-        raise ValueError("An input is not of the right dimension.")
+    if not (x.dim() == y.dim() == 3):
+        raise ValueError("Inputs must be complex matrices!")
 
-    z = torch.zeros(
-        2,
-        x.size()[1] * y.size()[1],
-        x.size()[2] * y.size()[2],
-        dtype=x.dtype,
-        device=x.device,
+    return einsum("ab,cd->acbd", x, y).reshape(
+        2, x.shape[1] * y.shape[1], x.shape[2] * y.shape[2]
     )
-
-    row_count = 0
-
-    for i in range(x.size()[1]):
-        for k in range(y.size()[1]):
-            column_count = 0
-            for j in range(x.size()[2]):
-                for l in range(y.size()[2]):
-
-                    z[0][row_count][column_count] = (x[0][i][j] * y[0][k][l]) - (
-                        x[1][i][j] * y[1][k][l]
-                    )
-                    z[1][row_count][column_count] = (x[0][i][j] * y[1][k][l]) + (
-                        x[1][i][j] * y[0][k][l]
-                    )
-
-                    column_count += 1
-            row_count += 1
-
-    return z
 
 
 def sigmoid(x, y):
-    r"""Computes the sigmoid function of a complex number
+    r"""Returns the sigmoid function of a complex number. Acts elementwise.
 
     :param x: The real part of the complex number
     :type x: torch.Tensor
@@ -296,25 +326,38 @@ def sigmoid(x, y):
 
 
 def scalar_divide(x, y):
-    """A function that computes the division of x by y.
+    """Divides `x` by `y`.
+    If `x` and `y` have the same shape, then acts elementwise.
+    If `y` is a complex scalar, then performs a scalar division.
 
-    :param x: The numerator (a complex scalar, vector or matrix).
+    :param x: The numerator (a complex tensor).
     :type x: torch.Tensor
-    :param y: The denominator (a complex scalar).
+    :param y: The denominator (a complex tensor).
     :type y: torch.Tensor
 
     :returns: x / y
     :rtype: torch.Tensor
     """
-    y_star = conjugate(y)
-    numerator = scalar_mult(x, y_star)
-    denominator = real(scalar_mult(y, y_star))
+    return scalar_mult(x, inverse(y))
 
-    return numerator / denominator
+
+def inverse(z):
+    """Returns the multiplicative inverse of `z`. Acts elementwise.
+
+    :param z: The complex tensor.
+    :type z: torch.Tensor
+
+    :returns: 1 / z
+    :rtype: torch.Tensor
+    """
+    z_star = conjugate(z)
+    denominator = real(scalar_mult(z, z_star))
+
+    return z_star / denominator
 
 
 def norm_sqr(x):
-    """A function that returns the squared norm of the argument.
+    """Returns the squared norm of the argument.
 
     :param x: A complex scalar.
     :type x: torch.Tensor
@@ -326,7 +369,7 @@ def norm_sqr(x):
 
 
 def norm(x):
-    """A function that returns the norm of the argument.
+    """Returns the norm of the argument.
 
     :param x: A complex scalar.
     :type x: torch.Tensor

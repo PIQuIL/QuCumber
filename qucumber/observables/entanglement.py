@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+import torch
+
 from .observable import ObservableBase
 from qucumber.utils import cplx
 
@@ -40,7 +42,7 @@ class SWAP(ObservableBase):
 
     Can be used to compute the 2nd Renyi entropy of the region A through:
 
-    :math:`S_2 = -\ln\langle \text{Swap}_A \rangle`
+    :math:`S_2 = -\ln\langle \text{SWAP}_A \rangle`
 
     Ref: PhysRevLett.104.157201
 
@@ -67,30 +69,22 @@ class SWAP(ObservableBase):
         of samples needs to be built from two independent initializations of
         the wavefunction each having a different random number generator.
 
-        :param nn_state: The WaveFunction that drew the samples.
-        :type nn_state: qucumber.nn_states.WaveFunctionBase
+        :param nn_state: The NeuralState that drew the samples.
+        :type nn_state: qucumber.nn_states.NeuralStateBase
         :param samples: A batch of samples to calculate the observable on.
-                        Must be using the :math:`\sigma_i = 0, 1` convention.
         :type samples: torch.Tensor
         """
-        samples = samples.to(device=nn_state.device, copy=True)
+        samples = samples.to(device=nn_state.device)
 
-        # split the batch of samples into two equal batches
-        # if their total number is odd, the last sample is ignored
-        _ns = samples.shape[0] // 2
-        samples1 = samples[:_ns, :]
-        samples2 = samples[_ns : _ns * 2, :]
+        # assuming each sample is independent, we perform a swap against
+        #  the next sample in the batch (looping around to the first if we've
+        #  reached the end of the batch).
+        samples1 = samples
+        samples2 = torch.roll(samples1, 1, 0)
+        samples1_, samples2_ = swap(samples1.clone(), samples2.clone(), self.A)
 
-        psi_ket1 = nn_state.psi(samples1)
-        psi_ket2 = nn_state.psi(samples2)
+        weight1 = nn_state.importance_sampling_weight(samples1_, samples1)
+        weight2 = nn_state.importance_sampling_weight(samples2_, samples2)
+        weight = cplx.elementwise_mult(weight1, weight2)
 
-        psi_ket = cplx.elementwise_mult(psi_ket1, psi_ket2)
-        psi_ket_star = cplx.conjugate(psi_ket)
-
-        samples1_, samples2_ = swap(samples1, samples2, self.A)
-        psi_bra1 = nn_state.psi(samples1_)
-        psi_bra2 = nn_state.psi(samples2_)
-
-        psi_bra = cplx.elementwise_mult(psi_bra1, psi_bra2)
-        psi_bra_star = cplx.conjugate(psi_bra)
-        return cplx.real(cplx.elementwise_division(psi_bra_star, psi_ket_star))
+        return cplx.real(weight)

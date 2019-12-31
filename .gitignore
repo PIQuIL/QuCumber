@@ -457,3 +457,6 @@ dmypy.json
 !docs/_static/RBM_tutorial.pdf
 
 .pytype/
+
+*.ipynb
+!examples/**/tutorial_*.ipynb

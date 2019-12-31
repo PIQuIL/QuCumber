@@ -51,15 +51,7 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
         data.append(np.loadtxt(tr_bases_path, dtype=str))
 
     if bases_path is not None:
-        bases_data = np.loadtxt(bases_path, dtype=str, ndmin=1)
-        bases = []
-        for i in range(len(bases_data)):
-            tmp = ""
-            for j in range(len(bases_data[i])):
-                if bases_data[i][j] != " ":
-                    tmp += bases_data[i][j]
-            bases.append(tmp)
-        data.append(bases)
+        data.append(np.loadtxt(bases_path, dtype=str, ndmin=1))
     return data
 
 
@@ -85,7 +77,7 @@ def load_data_DM(
     :type bases_path: str
 
     :returns: A list of all input parameters, with the real and imaginary parts
-              combined into one (PyTorch-hack) complex matrix.
+              of the target density matrix (if provided) combined into one complex matrix.
     :rtype: list
     """
     data = []
@@ -113,15 +105,8 @@ def load_data_DM(
         data.append(np.loadtxt(tr_bases_path, dtype=str))
 
     if bases_path is not None:
-        bases_data = np.loadtxt(bases_path, dtype=str, ndmin=1)
-        bases = []
-        for i in range(len(bases_data)):
-            tmp = ""
-            for j in range(len(bases_data[i])):
-                if bases_data[i][j] != " ":
-                    tmp += bases_data[i][j]
-            bases.append(tmp)
-        data.append(bases)
+        data.append(np.loadtxt(bases_path, dtype=str, ndmin=1))
+
     return data
 
 
@@ -136,10 +121,13 @@ def extract_refbasis_samples(train_samples, train_bases):
     :returns: The samples in the data that are only in the reference basis.
     :rtype: torch.Tensor
     """
+    torch_ver = int(torch.__version__[:3].replace(".", ""))
+    dtype = torch.bool if torch_ver >= 12 else torch.uint8
+
     idx = (
-        torch.tensor((train_bases == "Z").astype(np.uint8), dtype=torch.uint8)
+        torch.tensor((train_bases == "Z").astype(np.uint8))
         .all(dim=1)
-        .to(train_samples.device)
+        .to(device=train_samples.device, dtype=dtype)
     )
     z_samples = train_samples[idx]
     return z_samples
