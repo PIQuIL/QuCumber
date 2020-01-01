@@ -40,7 +40,7 @@ Before you start writing your code, there are a few things you need to set up:
 
 ### Fork and Branch
 
-Fork the QuCumber repository on GitHub and create a branch from the `develop`
+Fork the QuCumber repository on GitHub and create a branch from the `master`
 branch on your fork. Be sure to give it a descriptive name (ideally referencing
 the relevant issue number). For example, after cloning your fork to a local
 directory, you could create a branch to solve an issue with the documentation
@@ -55,7 +55,7 @@ where issue #42 is the issue you're working on.
 ### Setting Up Your Development Environment
 
 We recommend developing under at least Python 3.6, in order to fully utilise
-available development tools (like [`black`'s](https://github.com/ambv/black)).
+available development tools (like [`black`'s](https://github.com/ambv/black) autoformatting).
 In most cases it should be sufficient to run the following:
 
 ```bash
@@ -79,14 +79,8 @@ In addition, the following sets of arguments may be useful:
 # only run if there is a gpu available)
 pytest -m 'not gpu'
 
-# To include Negative Log-Likelihood gradient tests which are skipped by default
-# These tests tend to be fairly slow and are also be a bit inconsistent
-# as they involve random sampling.
-pytest --nll
-
 # To skip tests marked as 'slow', these include tests which train models
-# for a few epochs, as well as the NLL tests (may give confusing results if
-# run together with --nll)
+# for a few epochs
 pytest -m 'not slow'
 
 pytest -m 'not slow and not gpu'  # exclude slow AND gpu tests
@@ -102,7 +96,7 @@ pytest --cov=qucumber  # to show test coverage
 pytest --durations=N  # show test durations for the N slowest tests (use N=0 to show all)
 ```
 
-If you have Python versions 3.5, 3.6, and 3.7 all installed on your system, you
+If you have Python versions 3.6, and 3.7 all installed on your system, you
 can also use `tox` to run the unit tests on each version separately like so:
 
 ```bash
@@ -111,8 +105,10 @@ tox
 tox -- -m "not slow"  # can pass pytest options after a double dash: --
 ```
 
-`tox` is currently set up to automatically generate coverage reports when run,
-so you don't have to pass `--cov=qucumber`.
+`tox` is currently set up to build and test qucumber against several 
+different versions of `PyTorch` (including the nightly release) on
+both Python 3.6 and 3.7. Also, `tox` is setup to automatically 
+generate coverage reports when run, so you don't have to pass `--cov=qucumber`.
 
 ### Building Documentation
 
@@ -141,7 +137,7 @@ infinite loop. In this case, it suffices to exit it with `Ctrl+C` and running
 QuCumber's Python code follows [`black`'s](https://github.com/ambv/black) styling
 conventions + `flake8`. These should have been installed when you installed the
 development dependencies. Our custom `flake8` config can be found in the repository's
-`setup.cfg` file.
+`tox.ini` file.
 
 To run code style checks, run the following from the repository's root directory:
 
@@ -194,7 +190,9 @@ Unfortunately, `black` does not support auto-formatting of Jupyter notebooks,
 but the above command will provide you with the changes that it would have made.
 However, there is an easier way, you can use the
 [blackcellmagic](https://github.com/csurfer/blackcellmagic) Jupyter extension
-to format notebook cells.
+to format notebook cells. Note that these checks are included in the `pre-commit`
+config and will therefore be done automatically when you try to commit changes 
+to notebooks.
 
 ### License Headers
 
@@ -207,6 +205,25 @@ contain the license header:
 
 ```bash
 inv license-check
+```
+
+Note that this check is included in the `pre-commit` config and will therefore 
+be done automatically when you try to commit changes to notebooks.
+
+### Running all style checks
+
+If you want to run all style checks together (license checking, and notebook 
+and code linting) you can run the following:
+
+```bash
+inv style
+```
+
+We've setup a `tox` environment which automatically runs these style checks when you
+run `tox`. To specifically run this environment, run:
+
+```bash
+tox -e misc
 ```
 
 ## Submitting a Pull Request
