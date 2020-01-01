@@ -178,8 +178,8 @@ def outer_prod(x, y):
         raise ValueError("An input is not of the right dimension.")
 
     z = torch.zeros(2, x.size()[1], y.size()[1], dtype=x.dtype, device=x.device)
-    z[0] = torch.ger(x[0], y[0]) - torch.ger(x[1], -y[1])
-    z[1] = torch.ger(x[0], -y[1]) + torch.ger(x[1], y[0])
+    z[0] = torch.ger(real(x), real(y)) - torch.ger(imag(x), -imag(y))
+    z[1] = torch.ger(real(x), -imag(y)) + torch.ger(imag(x), real(y))
 
     return z
 
@@ -224,25 +224,36 @@ def einsum(equation, a, b, real_part=True, imag_part=True):
 
 
 def conjugate(x):
-    """A function that takes the conjugate transpose of the argument.
+    """Returns the conjugate transpose of the argument.
 
-    :param x: A complex vector or matrix.
+    In the case of a scalar or vector, only the complex conjugate is taken.
+    In the case of a rank-2 or higher tensor, the complex conjugate is taken,
+    then the first two indices of the tensor are swapped.
+
+    :param x: A complex tensor.
     :type x: torch.Tensor
 
     :returns: The conjugate of x.
     :rtype: torch.Tensor
     """
-    if x.dim() == 1 or x.dim() == 2:
-        z = torch.zeros_like(x)
-        z[0] = x[0]
-        z[1] = -x[1]
+    if x.dim() < 3:
+        return conj(x)
+    else:
+        return make_complex(
+            torch.transpose(real(x), 0, 1), -torch.transpose(imag(x), 0, 1)
+        )
 
-    if x.dim() == 3:
-        z = torch.zeros(2, x.size()[2], x.size()[1], dtype=x.dtype, device=x.device)
-        z[0] = torch.transpose(x[0], 0, 1)
-        z[1] = -torch.transpose(x[1], 0, 1)
 
-    return z
+def conj(x):
+    """Returns the element-wise complex conjugate of the argument.
+
+    :param x: A complex tensor.
+    :type x: torch.Tensor
+
+    :returns: The complex conjugate of x.
+    :rtype: torch.Tensor
+    """
+    return make_complex(real(x), -imag(x))
 
 
 def elementwise_mult(x, y):
@@ -263,8 +274,7 @@ def elementwise_division(x, y):
     if x.shape != y.shape:
         raise ValueError("x and y must have the same shape!")
 
-    y_star = y.clone()
-    y_star[1] *= -1
+    y_star = conj(y)
 
     sqrd_abs_y = absolute_value(y).pow_(2)
 
@@ -280,8 +290,7 @@ def absolute_value(x):
     :returns: A real tensor.
     :rtype: torch.Tensor
     """
-    x_star = x.clone()
-    x_star[1] *= -1
+    x_star = conj(x)
     return real(elementwise_mult(x, x_star)).sqrt_()
 
 
@@ -350,7 +359,7 @@ def inverse(z):
     :returns: 1 / z
     :rtype: torch.Tensor
     """
-    z_star = conjugate(z)
+    z_star = conj(z)
     denominator = real(scalar_mult(z, z_star))
 
     return z_star / denominator
