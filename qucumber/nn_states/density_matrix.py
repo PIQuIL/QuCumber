@@ -371,21 +371,6 @@ class DensityMatrix(NeuralStateBase):
                 **kwargs,
             )
 
-    def normalization(self, space):
-        r"""Compute the normalization constant of the state.
-
-        .. math::
-
-            Z_{\bm{\lambda}}=
-            \sum_{\bm{\sigma}} \rho_{\bm{\lambda}}(\bm{\sigma}, \bm{\sigma})
-            \sum_{\bm{\sigma}} p_{\bm{\lambda}}(\bm{\sigma})
-
-        :param space: A rank 2 tensor of the entire visible space.
-        :type space: torch.Tensor
-
-        """
-        return super().normalization(space)
-
     @staticmethod
     def autoload(location, gpu=False):
         state_dict = torch.load(location)
