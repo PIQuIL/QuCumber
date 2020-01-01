@@ -30,10 +30,10 @@ size of the visible layer corresponds to the input data, i.e. the number of
 qubits. The size of the hidden layer is a hyperparameter, varied to systematically control
 representation error.
 
-Currently, quantum state reconstruction can be performed on pure states with either
-positive-definite or complex wavefunctions. In the case of a positive-definite
-wavefunction, data is only required in one basis. For complex wavefunctions,
-measurement data in additional bases will be required to train the wavefunction.
+Currently, quantum state reconstruction/tomography can be performed on both pure and mixed states. 
+Pure state reconstruction can be further broken down into positive or complex wavefunction reconstruction.
+In the case of a positive wavefunction, data is only required in one basis. For complex wavefunctions as
+well as mixed states, measurement data in additional bases will be required to train the state.
 
 ## Documentation
 
@@ -62,17 +62,16 @@ If, for some reason, `pip` fails to install PyTorch, you can find installation
 instructions on their website. Once that's done you should be able to install
 QuCumber through `pip` as above.
 
-QuCumber supports Python 3.5 and newer stable versions.
+QuCumber supports Python 3.6 and newer stable versions.
 
 ### Installing the bleeding-edge version
 
 If you'd like to install the most upto date, but potentially unstable version,
-you can clone the repository's develop branch and then build from source like so:
+you can clone the repository's master branch and then build from source like so:
 
 ```bash
 git clone git@github.com:PIQuIL/QuCumber.git
 cd ./QuCumber
-git checkout develop
 python setup.py install
 ```
 
