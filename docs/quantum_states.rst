@@ -25,6 +25,7 @@ Density Matrix
 
 .. autoclass:: qucumber.nn_states.DensityMatrix
     :members:
+    :inherited-members:
     :show-inheritance:
 
 Abstract WaveFunction
