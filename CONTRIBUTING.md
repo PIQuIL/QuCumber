@@ -229,8 +229,7 @@ tox -e misc
 ## Submitting a Pull Request
 
 Once you've finished writing your code (and testing it sufficiently!), you can
-open up a pull request against the `develop` branch (don't PR to `master`, as
-we want it to be as close to the last stable release as possible).
+open up a pull request against the `master` branch.
 
 Your code will be run through all of the checks listed above automatically,
 and the checks *must* pass in order for your code to be merged. A PIQuIL
