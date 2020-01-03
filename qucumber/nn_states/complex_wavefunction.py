@@ -178,7 +178,7 @@ class ComplexWaveFunction(WaveFunctionBase):
 
         raw_grads = [self.am_grads(v), self.ph_grads(v)]
 
-        rotated_grad = [cplx.einsum("s...,s...g->...g", Upsi_v, g) for g in raw_grads]
+        rotated_grad = [cplx.einsum("ib,ibg->bg", Upsi_v, g) for g in raw_grads]
         grad = [
             cplx.einsum("b,bg->g", inv_Upsi, rg, imag_part=False) for rg in rotated_grad
         ]
@@ -190,6 +190,7 @@ class ComplexWaveFunction(WaveFunctionBase):
 
         :param v: The input state, :math:`\sigma`
         :type v: torch.Tensor
+
         :returns: The gradients of all amplitude RBM parameters
         :rtype: torch.Tensor
         """
@@ -200,6 +201,7 @@ class ComplexWaveFunction(WaveFunctionBase):
 
         :param v: The input state, :math:`\sigma`
         :type v: torch.Tensor
+
         :returns: The gradients of all phase RBM parameters
         :rtype: torch.Tensor
         """

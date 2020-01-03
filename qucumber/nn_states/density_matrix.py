@@ -167,6 +167,7 @@ class DensityMatrix(NeuralStateBase):
         :param phase: Whether to compute the gradients for the phase RBM (`True`)
                       or the amplitude RBM (`False`)
         :type phase: bool
+
         :returns: The matrix element of the gradient given by
                   :math:`\langle\sigma|\nabla_\lambda\Pi|\sigma'\rangle`
         :rtype: torch.Tensor
@@ -286,7 +287,7 @@ class DensityMatrix(NeuralStateBase):
         :type sample: torch.Tensor
 
         :returns: A list of two tensors, representing the rotated gradients
-                  of the amplitude and phase RBMS
+                  of the amplitude and phase RBMs
         :rtype: list[torch.Tensor, torch.Tensor]
         """
         UrhoU, UrhoU_v, v = unitaries.rotate_rho_probs(
@@ -294,7 +295,7 @@ class DensityMatrix(NeuralStateBase):
         )
         inv_UrhoU = 1 / (UrhoU + 1e-8)  # avoid dividing by zero
 
-        raw_grads = [self.am_grads(v, expand=True), self.ph_grads(v, expand=True)]
+        raw_grads = [self.am_grads(v), self.ph_grads(v)]
 
         rotated_grad = [
             -cplx.einsum("ijb,ijbg->bg", UrhoU_v, g, imag_part=False) for g in raw_grads
@@ -302,33 +303,31 @@ class DensityMatrix(NeuralStateBase):
 
         return [torch.einsum("b,bg->g", inv_UrhoU, g) for g in rotated_grad]
 
-    def am_grads(self, v, expand=False):
+    def am_grads(self, v):
         r"""Computes the gradients of the amplitude RBM for given input states
 
         :param v: The first input state, :math:`\sigma`
         :type v: torch.Tensor
-        :param vp: The second input state, :math:`\sigma'`
-        :type vp: torch.Tensor
+
         :returns: The gradients of all amplitude RBM parameters
         :rtype: torch.Tensor
         """
-        return self.rbm_am.gamma_grad(v, v, eta=+1, expand=expand) + self.pi_grad(
-            v, v, phase=False, expand=expand
+        return self.rbm_am.gamma_grad(v, v, eta=+1, expand=True) + self.pi_grad(
+            v, v, phase=False, expand=True
         )
 
-    def ph_grads(self, v, expand=False):
+    def ph_grads(self, v):
         r"""Computes the gradients of the phase RBM for given input states
 
         :param v: The first input state, :math:`\sigma`
         :type v: torch.Tensor
-        :param vp: The second input state, :math:`\sigma'`
-        :type vp: torch.Tensor
+
         :returns: The gradients of all phase RBM parameters
         :rtype: torch.Tensor
         """
         return cplx.scalar_mult(  # need to multiply Gamma- by i
-            self.rbm_ph.gamma_grad(v, v, eta=-1, expand=expand), cplx.I
-        ) + self.pi_grad(v, v, phase=True, expand=expand)
+            self.rbm_ph.gamma_grad(v, v, eta=-1, expand=True), cplx.I
+        ) + self.pi_grad(v, v, phase=True, expand=True)
 
     def fit(
         self,
