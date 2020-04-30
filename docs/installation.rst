@@ -30,11 +30,11 @@ example, if your system does not have a GPU card, you will need the CPU version:
 
     conda install pytorch torchvision cpuonly -c pytorch
 
- To install QuCumber on Anaconda, start the Anaconda prompt,
- or navigate to the directory (through command prompt) where `pip.exe`
- is installed (usually :code:`C:\Python\Scripts\pip.exe`) and then type::
+To install QuCumber on Anaconda, start the Anaconda prompt,
+or navigate to the directory (through command prompt) where `pip.exe`
+is installed (usually :code:`C:\Python\Scripts\pip.exe`) and then type::
 
-     pip.exe install qucumber
+    pip.exe install qucumber
 
 
 -------------
