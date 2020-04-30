@@ -21,7 +21,7 @@ Anaconda installed first and using the 64-bit graphical installer
 **Before** you install Anaconda, make sure to have a LaTeX distribution installed,
 for example MiKTeX
 (https://miktex.org/download/ctan/systems/win32/miktex/setup/windows-x64/basic-miktex-2.9.7417-x64.exe),
-as Matplotlib libraries require LaTeX for nice visualization in PyTorch
+as Matplotlib libraries require LaTeX for nice visualization in Python.
 
 After the Anaconda installation, follow specific instructions on
 https://pytorch.org/get-started/locally/ to get the correct
