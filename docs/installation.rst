@@ -26,7 +26,13 @@ Navigate to the main directory and type::
 Windows
 -------
 
-Navigate to the directory (through command prompt) where `pip.exe` is installed
+Pytorch is required. Anaconda install (following https://pytorch.org/get-started/locally/) 
+and using 64-bit graphical installer works well
+(https://repo.anaconda.com/archive/Anaconda3-2020.02-Windows-x86_64.exe). 
+Before you install Anaconda, make sure to have Latex installed, e.g. MikTex (https://miktex.org/download/ctan/systems/win32/miktex/setup/windows-x64/basic-miktex-2.9.7417-x64.exe),
+as Matplotlib libraries require Latex for nice visualization in Pytorch
+
+Follow the instructions on Navigate to the directory (through command prompt) where `pip.exe` is installed
 (usually :code:`C:\Python\Scripts\pip.exe`) and type::
 
     pip.exe install qucumber
