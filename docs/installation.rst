@@ -39,10 +39,11 @@ conda install pytorch torchvision cpuonly -c pytorch
 Before you install Anaconda, make sure to have Latex installed, e.g. MikTex (https://miktex.org/download/ctan/systems/win32/miktex/setup/windows-x64/basic-miktex-2.9.7417-x64.exe),
 as Matplotlib libraries require Latex for nice visualization in Pytorch
 
-Finally, for qucumber, follow the instructions on Navigate to the directory (through command prompt) where `pip.exe` is installed
-(usually :code:`C:\Python\Scripts\pip.exe`) and type::
+ For Anaconda install, start Anaconda prompt, or navigate to the directory (through command prompt) where `pip.exe` 
+ is installed (usually :code:`C:\Python\Scripts\pip.exe`) and then type::    
+ 
+     pip.exe install qucumber
 
-    pip.exe install qucumber
 
 -------------
 Linux / macOS
