@@ -27,6 +27,7 @@ Kronecker
 Kullback
 Leibler
 macOS
+Matplotlib
 neighbour
 neighbours
 num
