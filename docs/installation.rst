@@ -25,7 +25,7 @@ as Matplotlib libraries require LaTeX for nice visualization in PyTorch
 
 After the Anaconda installation, follow specific instructions on
 https://pytorch.org/get-started/locally/ to get the correct
-installation command for PyTorch, which is CUDA/Python version dependent. For
+installation command for PyTorch, which is CUDA version dependent. For
 example, if your system does not have a GPU card, you will need the CPU version::
 
     conda install pytorch torchvision cpuonly -c pytorch
