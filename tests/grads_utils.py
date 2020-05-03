@@ -15,6 +15,7 @@
 
 import torch
 
+from qucumber.rbm.negative_phase_estimators import ExactEstimator
 from qucumber.utils import cplx
 from qucumber.utils import training_statistics as ts
 from qucumber.utils.unitaries import rotate_psi_inner_prod, rotate_rho_probs
@@ -118,7 +119,6 @@ class ComplexGradsUtils(PosGradsUtils):
                 device=self.nn_state.device,
             ),
         ]
-        Z = self.nn_state.normalization(space)
 
         for b in range(len(all_bases)):
             if isinstance(target, dict):
@@ -134,11 +134,7 @@ class ComplexGradsUtils(PosGradsUtils):
                 grad_KL[0] += target_r[i] * rotated_grad[0] / float(len(all_bases))
                 grad_KL[1] += target_r[i] * rotated_grad[1] / float(len(all_bases))
 
-        probs = self.nn_state.probability(space, Z)
-        all_grads = self.nn_state.rbm_am.effective_energy_gradient(space, reduce=False)
-        grad_KL[0] -= torch.mv(
-            all_grads.t(), probs
-        )  # average the gradients, weighted by probs
+        grad_KL[0] -= self.nn_state.negative_phase_gradient(ExactEstimator(), space)
 
         return grad_KL
 
@@ -157,7 +153,6 @@ class DensityGradsUtils(ComplexGradsUtils):
                 device=self.nn_state.device,
             ),
         ]
-        Z = self.nn_state.normalization(space)
 
         for b in range(len(all_bases)):
             if isinstance(target, dict):
@@ -173,10 +168,6 @@ class DensityGradsUtils(ComplexGradsUtils):
                 grad_KL[0] += target_r[i] * rotated_grad[0] / float(len(all_bases))
                 grad_KL[1] += target_r[i] * rotated_grad[1] / float(len(all_bases))
 
-        probs = self.nn_state.probability(space, Z)
-        all_grads = self.nn_state.rbm_am.effective_energy_gradient(space, reduce=False)
-        grad_KL[0] -= torch.mv(
-            all_grads.t(), probs
-        )  # average the gradients, weighted by probs
+        grad_KL[0] -= self.nn_state.negative_phase_gradient(ExactEstimator(), space)
 
         return grad_KL

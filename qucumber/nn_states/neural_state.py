@@ -22,6 +22,7 @@ import torch
 from tqdm import tqdm, tqdm_notebook
 
 from qucumber.callbacks import CallbackList, Timer
+from qucumber.rbm.negative_phase_estimators import ExactEstimator, CDEstimator
 from qucumber.utils import cplx
 from qucumber.utils.data import extract_refbasis_samples
 from qucumber.utils.gradients_utils import vector_to_grads
@@ -356,15 +357,15 @@ class NeuralStateBase(abc.ABC):
                 rot_sites = np.where(basis != "Z")[0]
 
                 if rot_sites.size != 0:
-                    sample_grad = self.rotated_gradient(basis, samples[indices == i, :])
+                    basis_grad = self.rotated_gradient(basis, samples[indices == i, :])
                 else:
-                    sample_grad = [
+                    basis_grad = [
                         self.rbm_am.effective_energy_gradient(samples[indices == i, :]),
                         0.0,
                     ]
 
-                grad[0] += sample_grad[0]  # Accumulate amplitude RBM gradient
-                grad[1] += sample_grad[1]  # Accumulate phase RBM gradient
+                grad[0] += basis_grad[0]  # Accumulate amplitude RBM gradient
+                grad[1] += basis_grad[1]  # Accumulate phase RBM gradient
 
         return grad
 
@@ -382,6 +383,9 @@ class NeuralStateBase(abc.ABC):
         grad = self.gradient(samples_batch, bases=bases_batch)
         grad = [gr / float(samples_batch.shape[0]) for gr in grad]
         return grad
+
+    def negative_phase_gradient(self, estimator, samples):
+        return estimator(self, samples)
 
     def compute_exact_gradients(self, samples_batch, space, bases_batch=None):
         r"""Computes the gradients of the parameters, using exact sampling
@@ -403,15 +407,8 @@ class NeuralStateBase(abc.ABC):
 
         # Negative phase: learning signal driven by the amplitude RBM of
         # the NN state
-        probs = self.probability(space, Z=1.0)  # unnormalized probs
-        Z = probs.sum()
-        probs /= Z
-
-        all_grads = self.rbm_am.effective_energy_gradient(space, reduce=False)
-        grad[0] -= torch.mv(
-            all_grads.t(), probs
-        )  # average the gradients, weighted by probs
-
+        grad[0] -= self.negative_phase_gradient(ExactEstimator(), space)
+        # No negative signal for the phase parameters
         return grad
 
     def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch=None):
@@ -440,9 +437,7 @@ class NeuralStateBase(abc.ABC):
 
         # Negative phase: learning signal driven by the amplitude RBM of
         # the NN state
-        vk = self.rbm_am.gibbs_steps(k, neg_batch)
-        grad_model = self.rbm_am.effective_energy_gradient(vk)
-        grad[0] -= grad_model / float(neg_batch.shape[0])
+        grad[0] -= self.negative_phase_gradient(CDEstimator(k), neg_batch)
         # No negative signal for the phase parameters
         return grad
 
