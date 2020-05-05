@@ -126,12 +126,15 @@ class BinaryRBM(nn.Module):
             return torch.cat(vec, dim=-1)
 
     @auto_unsqueeze_args()
-    def prob_v_given_h(self, h, out=None):
+    def prob_v_given_h(self, h, v=None, out=None):
         """Given a hidden unit configuration, compute the probability
-        vector of the visible units being on.
+        vector of the visible units being on. If given a visible unit configuration
+        as well, computes the probability of that configuration.
 
         :param h: The hidden unit
         :type h: torch.Tensor
+        :param v: The visible unit configuration to compute the probabilities of
+        :type v: torch.Tensor
         :param out: The output tensor to write to.
         :type out: torch.Tensor
 
@@ -139,15 +142,21 @@ class BinaryRBM(nn.Module):
                   hidden state.
         :rtype: torch.Tensor
         """
-        return (
+        p = (
             torch.matmul(h, self.weights.data, out=out)
             .add_(self.visible_bias.data)
             .sigmoid_()
             .clamp_(min=0, max=1)
         )
 
+        if v is None:
+            return p
+        else:
+            temp = (v * p) + (1 - v) * (1 - p)
+            return torch.prod(temp, dim=-1, out=out)
+
     @auto_unsqueeze_args()
-    def prob_h_given_v(self, v, out=None):
+    def prob_h_given_v(self, v, h=None, out=None):
         """Given a visible unit configuration, compute the probability
         vector of the hidden units being on.
 
@@ -160,12 +169,18 @@ class BinaryRBM(nn.Module):
                   visible state.
         :rtype: torch.Tensor
         """
-        return (
+        p = (
             torch.matmul(v, self.weights.data.t(), out=out)
             .add_(self.hidden_bias.data)
             .sigmoid_()
             .clamp_(min=0, max=1)
         )
+
+        if h is None:
+            return p
+        else:
+            temp = (h * p) + (1 - h) * (1 - p)
+            return torch.prod(temp, dim=-1, out=out)
 
     def sample_v_given_h(self, h, out=None):
         """Sample/generate a visible state given a hidden state.
@@ -196,6 +211,21 @@ class BinaryRBM(nn.Module):
         h = self.prob_h_given_v(v, out=out)
         h = torch.bernoulli(h, out=out)  # overwrite h with its sample
         return h
+
+    def sample_full_state_given_v(self, v):
+        return (v, self.sample_h_given_v(v))
+
+    def _propagate_state(self, state):
+        v, h = state
+        return self._propagate_state_((v.clone(), h.clone()))
+
+    def _propagate_state_(self, state):
+        v, h = state
+
+        self.sample_v_given_h(h, out=v)
+        self.sample_h_given_v(v, out=h)
+
+        return (v, h)
 
     def gibbs_steps(self, k, initial_state, overwrite=False):
         r"""Performs k steps of Block Gibbs sampling. One step consists of sampling
