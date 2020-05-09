@@ -32,6 +32,59 @@ class UCDEstimator(NegativePhaseEstimatorBase):
         for s, d in zip(src, dest):
             d[indices, ...] = s[indices, ...]
 
+    @staticmethod
+    def _coupling_step(rbm, zeta_v, zeta_h, eta_v, eta_h):
+        zeta_v = rbm.sample_v_given_h(zeta_h.clone())
+
+        accept = bool(
+            (rbm.prob_v_given_h(eta_h, v=zeta_v) / rbm.prob_v_given_h(zeta_h, v=zeta_v))
+            .clamp_(min=0, max=1)
+            .bernoulli()
+            .item()
+        )
+
+        if accept:
+            zeta_h = rbm.sample_h_given_v(zeta_v)
+            return (zeta_v, zeta_h, zeta_v, zeta_h, True)
+        else:
+            reject_zeta = True
+            reject_eta = True
+            U_h = torch.rand_like(zeta_h)
+
+            while reject_zeta or reject_eta:
+                U_v = torch.rand_like(zeta_v)
+
+                if reject_zeta:
+                    zeta_v = rbm._sample_v_given_h_from_u(zeta_h, U_v)
+
+                    reject_zeta = bool(
+                        (
+                            rbm.prob_v_given_h(eta_h, v=zeta_v)
+                            / rbm.prob_v_given_h(zeta_h, v=zeta_v)
+                        )
+                        .clamp_(min=0, max=1)
+                        .bernoulli()
+                        .item()
+                    )
+
+                if reject_eta:
+                    eta_v = rbm._sample_v_given_h_from_u(eta_h, U_v)
+
+                    reject_eta = bool(
+                        (
+                            rbm.prob_v_given_h(zeta_h, v=eta_v)
+                            / rbm.prob_v_given_h(eta_h, v=eta_v)
+                        )
+                        .clamp_(min=0, max=1)
+                        .bernoulli()
+                        .item()
+                    )
+
+            zeta_h = rbm._sample_h_given_v_from_u(zeta_v, U_h)
+            eta_h = rbm._sample_h_given_v_from_u(eta_v, U_h)
+
+            return (zeta_v, zeta_h, eta_v, eta_h, False)
+
     def __call__(self, nn_state, samples):
         rbm = nn_state.rbm_am
 
@@ -40,37 +93,27 @@ class UCDEstimator(NegativePhaseEstimatorBase):
         )
 
         for i in range(samples.shape[0]):
-            zeta = rbm.sample_full_state_given_v(samples[[i], ...])
-            eta = tuple(x.clone() for x in zeta)
-            zeta = rbm._propagate_state_(zeta)
+            eta_v = samples[[i], ...]
+            eta_h = rbm.sample_h_given_v(eta_v)
 
-            for t in range(2, self.T_max + 1):
-                zeta_proposal = rbm._propagate_state(zeta)
+            zeta_v = rbm.sample_v_given_h(eta_h)
+            zeta_h = rbm.sample_h_given_v(eta_v)
 
-                numer = rbm.prob_v_given_h(*eta[1:], v=zeta_proposal[0])
-                denom = rbm.prob_v_given_h(*zeta[1:], v=zeta_proposal[0])
-                U = torch.rand(1).to(numer)
+            if self.k == 1:
+                acc_grad[i, :] += rbm.effective_energy_gradient(zeta_v)
 
-                if U <= (numer / denom) or t == self.T_max:
-                    zeta = eta = zeta_proposal
+            for t in range(2, self.T_max):
+                zeta_v, zeta_h, eta_v, eta_h, breakout = self._coupling_step(
+                    rbm, zeta_v, zeta_h, eta_v, eta_h
+                )
+
+                if t >= self.k:
+                    acc_grad[i, :] += rbm.effective_energy_gradient(zeta_v)
+
+                if t > self.k:
+                    acc_grad[i, :] -= rbm.effective_energy_gradient(eta_v)
+
+                if breakout and t > self.k:
                     break
-                else:
-                    while True:
-                        eta_proposal = rbm._propagate_state(eta)
-                        numer = rbm.prob_v_given_h(*zeta[1:], v=eta_proposal[0])
-                        denom = rbm.prob_v_given_h(*eta[1:], v=eta_proposal[0])
-                        U = torch.rand(1).to(numer)
 
-                        if U > (numer / denom):
-                            break
-
-                    zeta = zeta_proposal
-                    eta = eta_proposal
-
-                    if t >= self.k:
-                        acc_grad[i, :] += rbm.effective_energy_gradient(zeta[0])
-                        if t > self.k:
-                            acc_grad[i, :] -= rbm.effective_energy_gradient(eta[0])
-
-        grad_model = torch.mean(acc_grad, dim=0)
-        return grad_model
+        return torch.mean(acc_grad, dim=0)

@@ -197,6 +197,18 @@ class BinaryRBM(nn.Module):
         v = torch.bernoulli(v, out=out)  # overwrite v with its sample
         return v
 
+    def _sample_v_given_h_from_u(self, h, u, out=None):
+        v = self.prob_v_given_h(h, out=out)
+        v = v.gt_(u)
+        # v = torch.le(u, v, out=out)
+        return v
+
+    def _sample_h_given_v_from_u(self, v, u, out=None):
+        h = self.prob_h_given_v(v, out=out)
+        h = h.gt_(u)
+        # h = torch.le(u, h, out=out)
+        return h
+
     def sample_h_given_v(self, v, out=None):
         """Sample/generate a hidden state given a visible state.
 
@@ -215,15 +227,14 @@ class BinaryRBM(nn.Module):
     def sample_full_state_given_v(self, v):
         return (v, self.sample_h_given_v(v))
 
+    def sample_full_state_given_v_from_u(self, v, *u):
+        return (v, self._sample_h_given_v_from_u(v, u[0]))
+
     def _propagate_state(self, state):
         v, h = state
-        return self._propagate_state_((v.clone(), h.clone()))
 
-    def _propagate_state_(self, state):
-        v, h = state
-
-        self.sample_v_given_h(h, out=v)
-        self.sample_h_given_v(v, out=h)
+        v = self.sample_v_given_h(h)
+        h = self.sample_h_given_v(v)
 
         return (v, h)
 
