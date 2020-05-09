@@ -34,92 +34,116 @@ class UCDEstimator(NegativePhaseEstimatorBase):
 
     @staticmethod
     def _coupling_step(rbm, zeta_v, zeta_h, eta_v, eta_h):
-        zeta_v = rbm.sample_v_given_h(zeta_h.clone())
+        zeta_v = rbm.sample_v_given_h(zeta_h, out=zeta_v)
 
-        accept = bool(
+        accept = (
             (rbm.prob_v_given_h(eta_h, v=zeta_v) / rbm.prob_v_given_h(zeta_h, v=zeta_v))
             .clamp_(min=0, max=1)
             .bernoulli()
-            .item()
         )
 
-        if accept:
-            zeta_h = rbm.sample_h_given_v(zeta_v)
-            return (zeta_v, zeta_h, zeta_v, zeta_h, True)
-        else:
-            reject_zeta = True
-            reject_eta = True
-            U_h = torch.rand_like(zeta_h)
+        accepted_idx = accept == 1
 
-            while reject_zeta or reject_eta:
-                U_v = torch.rand_like(zeta_v)
+        if torch.all(accepted_idx):
+            zeta_h = rbm.sample_h_given_v(zeta_v, out=zeta_h)
+            return (zeta_v, zeta_h, zeta_v.clone(), zeta_h.clone(), True)
 
-                if reject_zeta:
-                    zeta_v = rbm._sample_v_given_h_from_u(zeta_h, U_v)
+        rejected_idx = accept == 0
 
-                    reject_zeta = bool(
-                        (
-                            rbm.prob_v_given_h(eta_h, v=zeta_v)
-                            / rbm.prob_v_given_h(zeta_h, v=zeta_v)
+        zeta_h[accepted_idx, :] = rbm.sample_h_given_v(zeta_v[accepted_idx, :])
+        eta_v[accepted_idx, :] = zeta_v[accepted_idx, :].clone()
+        eta_h[accepted_idx, :] = zeta_h[accepted_idx, :].clone()
+
+        rejected_zeta = rejected_idx.clone()
+        rejected_eta = rejected_idx.clone()
+        U_h = torch.rand_like(zeta_h[rejected_idx, :])
+
+        bool_type = rejected_zeta.dtype
+        rejected_zeta_any = rejected_zeta.any()
+        rejected_eta_any = rejected_eta.any()
+
+        while rejected_zeta_any or rejected_eta_any:
+            # we're generating too many random numbers here, should optimize this eventually
+            U_v = torch.rand_like(zeta_v)
+
+            if rejected_zeta_any:
+                zeta_v[rejected_zeta, :] = rbm._sample_v_given_h_from_u(
+                    zeta_h[rejected_zeta, :], U_v[rejected_zeta, :]
+                )
+
+                rejected_zeta[rejected_zeta] = (
+                    (
+                        rbm.prob_v_given_h(
+                            eta_h[rejected_zeta, :], v=zeta_v[rejected_zeta, :]
                         )
-                        .clamp_(min=0, max=1)
-                        .bernoulli()
-                        .item()
-                    )
-
-                if reject_eta:
-                    eta_v = rbm._sample_v_given_h_from_u(eta_h, U_v)
-
-                    reject_eta = bool(
-                        (
-                            rbm.prob_v_given_h(zeta_h, v=eta_v)
-                            / rbm.prob_v_given_h(eta_h, v=eta_v)
+                        / rbm.prob_v_given_h(
+                            zeta_h[rejected_zeta, :], v=zeta_v[rejected_zeta, :]
                         )
-                        .clamp_(min=0, max=1)
-                        .bernoulli()
-                        .item()
                     )
+                    .clamp_(min=0, max=1)
+                    .bernoulli()
+                    .to(dtype=bool_type)
+                )
 
-            zeta_h = rbm._sample_h_given_v_from_u(zeta_v, U_h)
-            eta_h = rbm._sample_h_given_v_from_u(eta_v, U_h)
+                rejected_zeta_any = rejected_zeta.any()
 
-            return (zeta_v, zeta_h, eta_v, eta_h, False)
+            if rejected_eta_any:
+                eta_v[rejected_eta, :] = rbm._sample_v_given_h_from_u(
+                    eta_h[rejected_eta, :], U_v[rejected_eta, :]
+                )
+
+                rejected_eta[rejected_eta] = (
+                    (
+                        rbm.prob_v_given_h(
+                            zeta_h[rejected_eta, :], v=eta_v[rejected_eta, :]
+                        )
+                        / rbm.prob_v_given_h(
+                            eta_h[rejected_eta, :], v=eta_v[rejected_eta, :]
+                        )
+                    )
+                    .clamp_(min=0, max=1)
+                    .bernoulli()
+                    .to(dtype=bool_type)
+                )
+
+                rejected_eta_any = rejected_eta.any()
+
+        zeta_h[rejected_idx, :] = rbm._sample_h_given_v_from_u(
+            zeta_v[rejected_idx, :], U_h
+        )
+        eta_h[rejected_idx, :] = rbm._sample_h_given_v_from_u(
+            eta_v[rejected_idx, :], U_h
+        )
+
+        return (zeta_v, zeta_h, eta_v, eta_h, False)
 
     def __call__(self, nn_state, samples):
         rbm = nn_state.rbm_am
 
-        acc_grad = torch.zeros(
-            samples.shape[0], rbm.num_pars, dtype=torch.double, device=rbm.device
-        )
+        acc_grad = torch.zeros(rbm.num_pars, dtype=torch.double, device=rbm.device)
 
-        eta_v = samples
+        eta_v = samples.clone()
         eta_h = rbm.sample_h_given_v(eta_v)
 
         zeta_v = rbm.sample_v_given_h(eta_h)
         zeta_h = rbm.sample_h_given_v(eta_v)
 
         if self.k == 1:
-            acc_grad += rbm.effective_energy_gradient(zeta_v, reduce=False)
+            acc_grad += rbm.effective_energy_gradient(zeta_v)
 
-        for i in range(samples.shape[0]):
-            for t in range(2, self.T_max):
-                (
-                    zeta_v[i, :],
-                    zeta_h[i, :],
-                    eta_v[i, :],
-                    eta_h[i, :],
-                    breakout,
-                ) = self._coupling_step(
-                    rbm, zeta_v[i, :], zeta_h[i, :], eta_v[i, :], eta_h[i, :]
-                )
+        for t in range(2, self.T_max):
+            zeta_v, zeta_h, eta_v, eta_h, breakout = self._coupling_step(
+                rbm, zeta_v, zeta_h, eta_v, eta_h
+            )
 
-                if t >= self.k:
-                    acc_grad[i, :] += rbm.effective_energy_gradient(zeta_v[i, :])
+            if t >= self.k:
+                acc_grad += rbm.effective_energy_gradient(zeta_v)
 
-                if t > self.k:
-                    acc_grad[i, :] -= rbm.effective_energy_gradient(eta_v[i, :])
+            if t > self.k:
+                acc_grad -= rbm.effective_energy_gradient(eta_v)
 
-                if breakout and t > self.k:
-                    break
+            if breakout and t > self.k:
+                break
 
-        return torch.mean(acc_grad, dim=0)
+        grad_model = acc_grad / eta_v.shape[0]
+        return grad_model
