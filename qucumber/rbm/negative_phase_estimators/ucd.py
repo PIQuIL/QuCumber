@@ -92,26 +92,32 @@ class UCDEstimator(NegativePhaseEstimatorBase):
             samples.shape[0], rbm.num_pars, dtype=torch.double, device=rbm.device
         )
 
+        eta_v = samples
+        eta_h = rbm.sample_h_given_v(eta_v)
+
+        zeta_v = rbm.sample_v_given_h(eta_h)
+        zeta_h = rbm.sample_h_given_v(eta_v)
+
+        if self.k == 1:
+            acc_grad += rbm.effective_energy_gradient(zeta_v, reduce=False)
+
         for i in range(samples.shape[0]):
-            eta_v = samples[[i], ...]
-            eta_h = rbm.sample_h_given_v(eta_v)
-
-            zeta_v = rbm.sample_v_given_h(eta_h)
-            zeta_h = rbm.sample_h_given_v(eta_v)
-
-            if self.k == 1:
-                acc_grad[i, :] += rbm.effective_energy_gradient(zeta_v)
-
             for t in range(2, self.T_max):
-                zeta_v, zeta_h, eta_v, eta_h, breakout = self._coupling_step(
-                    rbm, zeta_v, zeta_h, eta_v, eta_h
+                (
+                    zeta_v[i, :],
+                    zeta_h[i, :],
+                    eta_v[i, :],
+                    eta_h[i, :],
+                    breakout,
+                ) = self._coupling_step(
+                    rbm, zeta_v[i, :], zeta_h[i, :], eta_v[i, :], eta_h[i, :]
                 )
 
                 if t >= self.k:
-                    acc_grad[i, :] += rbm.effective_energy_gradient(zeta_v)
+                    acc_grad[i, :] += rbm.effective_energy_gradient(zeta_v[i, :])
 
                 if t > self.k:
-                    acc_grad[i, :] -= rbm.effective_energy_gradient(eta_v)
+                    acc_grad[i, :] -= rbm.effective_energy_gradient(eta_v[i, :])
 
                 if breakout and t > self.k:
                     break
