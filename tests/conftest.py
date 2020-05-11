@@ -17,10 +17,17 @@ import pytest
 import torch
 
 from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction, DensityMatrix
+from qucumber.rbm.negative_phase_estimators import (
+    CDEstimator,
+    PCDEstimator,
+    UCDEstimator,
+    ExactEstimator,
+)
 
 torch.set_printoptions(precision=10)
 
 all_state_types = [PositiveWaveFunction, ComplexWaveFunction, DensityMatrix]
+neg_phase_estimators = [CDEstimator, PCDEstimator, UCDEstimator, ExactEstimator]
 
 gpu_availability = pytest.mark.skipif(
     not torch.cuda.is_available(), reason="GPU required"

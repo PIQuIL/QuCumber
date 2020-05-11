@@ -402,14 +402,9 @@ class NeuralStateBase(abc.ABC):
                   gradients calculated with an exact negative phase update
         :rtype: list[torch.Tensor]
         """
-        # Positive phase: learning signal driven by the data (and bases)
-        grad = self.positive_phase_gradients(samples_batch, bases_batch=bases_batch)
-
-        # Negative phase: learning signal driven by the amplitude RBM of
-        # the NN state
-        grad[0] -= self.negative_phase_gradient(ExactEstimator(), space)
-        # No negative signal for the phase parameters
-        return grad
+        return self.compute_batch_gradients(
+            ExactEstimator(), samples_batch, space, bases_batch=bases_batch
+        )
 
     def compute_batch_gradients(self, k, samples_batch, neg_batch, bases_batch=None):
         """Compute the gradients of a batch of the training data (`samples_batch`).
@@ -418,7 +413,9 @@ class NeuralStateBase(abc.ABC):
         a list of bases (`bases_batch`) must also be provided.
 
         :param k: Number of contrastive divergence steps in training.
-        :type k: int
+                  Alternatively, can pass an instance of NegativePhaseEstimatorBase
+                  to estimate the negative phase of the gradient.
+        :type k: int or NegativePhaseEstimatorBase
         :param samples_batch: Batch of the input samples.
         :type samples_batch: torch.Tensor
         :param neg_batch: Batch of the input samples for computing the
@@ -437,7 +434,8 @@ class NeuralStateBase(abc.ABC):
 
         # Negative phase: learning signal driven by the amplitude RBM of
         # the NN state
-        grad[0] -= self.negative_phase_gradient(CDEstimator(k), neg_batch)
+        neg_phase_estimator = CDEstimator(k) if isinstance(k, int) else k
+        grad[0] -= self.negative_phase_gradient(neg_phase_estimator, neg_batch)
         # No negative signal for the phase parameters
         return grad
 
@@ -526,7 +524,7 @@ class NeuralStateBase(abc.ABC):
                                taken from the data. Defaults to `pos_batch_size`.
         :type neg_batch_size: int
         :param k: The number of contrastive divergence steps.
-        :type k: int
+        :type k: int or NegativePhaseEstimatorBase
         :param lr: Learning rate
         :type lr: float
         :param input_bases: The measurement bases for each sample. Must be provided
@@ -587,6 +585,8 @@ class NeuralStateBase(abc.ABC):
         else:
             z_samples = None
 
+        neg_phase_estimator = CDEstimator(k) if isinstance(k, int) else k
+
         callbacks.on_train_start(self)
 
         num_batches = ceil(train_samples.shape[0] / pos_batch_size)
@@ -606,7 +606,7 @@ class NeuralStateBase(abc.ABC):
             for b, batch in enumerate(data_iterator):
                 callbacks.on_batch_start(self, ep, b)
 
-                all_grads = self.compute_batch_gradients(k, *batch)
+                all_grads = self.compute_batch_gradients(neg_phase_estimator, *batch)
 
                 optimizer.zero_grad()  # clear any cached gradients
 

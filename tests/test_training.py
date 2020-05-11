@@ -26,7 +26,7 @@ import qucumber.utils.training_statistics as ts
 from qucumber.callbacks import LambdaCallback
 from qucumber.nn_states import ComplexWaveFunction, PositiveWaveFunction, DensityMatrix
 
-from conftest import devices, all_state_types
+from conftest import devices, all_state_types, neg_phase_estimators
 
 SEED = 1234
 
@@ -39,7 +39,8 @@ def test_complex_warn_on_gpu():
 
 @pytest.mark.parametrize("gpu", devices)
 @pytest.mark.parametrize("state_type", all_state_types)
-def test_neural_state(gpu, state_type):
+@pytest.mark.parametrize("neg_phase_estimator", neg_phase_estimators)
+def test_neural_state(gpu, state_type, neg_phase_estimator):
     qucumber.set_random_seed(SEED, cpu=True, gpu=gpu, quiet=True)
     np.random.seed(SEED)
 
@@ -57,7 +58,14 @@ def test_neural_state(gpu, state_type):
     # generate sample bases randomly, with probability 0.9 of being 'Z', otherwise 'X'
     bases = np.where(np.random.binomial(1, 0.9, size=(100, 10)), "Z", "X")
 
-    nn_state.fit(data, epochs=1, pos_batch_size=10, input_bases=bases)
+    try:
+        neg_phase_estimator = neg_phase_estimator(k=1)
+    except TypeError:
+        neg_phase_estimator = neg_phase_estimator()
+
+    nn_state.fit(
+        data, epochs=1, k=neg_phase_estimator, pos_batch_size=10, input_bases=bases
+    )
 
     new_params = torch.cat(
         [
@@ -70,14 +78,15 @@ def test_neural_state(gpu, state_type):
     assert not torch.equal(old_params, new_params), msg
 
 
-def test_complex_training_without_bases_fail():
+@pytest.mark.parametrize("state_type", [ComplexWaveFunction, DensityMatrix])
+def test_complex_training_without_bases_fail(state_type):
     qucumber.set_random_seed(SEED, cpu=True, gpu=False, quiet=True)
 
-    nn_state = ComplexWaveFunction(10, gpu=False)
+    nn_state = state_type(10, gpu=False)
 
     data = torch.ones(100, 10)
 
-    msg = "Training ComplexWaveFunction without providing bases should fail!"
+    msg = f"Training {state_type.__name__} without providing bases should fail!"
     with pytest.raises(ValueError):
         nn_state.fit(data, epochs=1, pos_batch_size=10, input_bases=None)
         pytest.fail(msg)

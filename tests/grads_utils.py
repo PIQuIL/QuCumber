@@ -32,16 +32,15 @@ class PosGradsUtils:
         return ts.NLL(self.nn_state, data_samples, space, sample_bases=data_bases)
 
     def algorithmic_gradKL(self, target, space, **kwargs):
-        Z = self.nn_state.normalization(space)
-        grad_KL = torch.zeros(
-            self.nn_state.rbm_am.num_pars,
-            dtype=torch.double,
-            device=self.nn_state.device,
-        )
-        for i in range(len(space)):
-            sample_grad = self.nn_state.gradient(space[i])[0]
-            grad_KL += ((target[0, i]) ** 2) * sample_grad
-            grad_KL -= self.nn_state.probability(space[i], Z) * sample_grad
+        probs = self.nn_state.probability(space, Z=1.0)
+        Z = probs.sum()
+        probs /= Z
+
+        weights = (cplx.real(target) ** 2) - probs
+        all_grads = self.nn_state.rbm_am.effective_energy_gradient(space, reduce=False)
+
+        grad_KL = torch.mv(all_grads.t(), weights)
+
         return [grad_KL]
 
     def algorithmic_gradNLL(self, data_samples, space, data_bases=None, **kwargs):

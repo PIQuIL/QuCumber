@@ -197,16 +197,14 @@ class BinaryRBM(nn.Module):
         v = torch.bernoulli(v, out=out)  # overwrite v with its sample
         return v
 
-    def _sample_v_given_h_from_u(self, h, u, out=None):
-        v = self.prob_v_given_h(h, out=out)
+    def _sample_v_given_h_from_u(self, u, *h, out=None):
+        v = self.prob_v_given_h(*h, out=out)
         v = v.gt_(u)
-        # v = torch.le(u, v, out=out)
         return v
 
-    def _sample_h_given_v_from_u(self, v, u, out=None):
-        h = self.prob_h_given_v(v, out=out)
+    def _sample_h_given_v_from_u(self, u, *v, out=None):
+        h = self.prob_h_given_v(*v, out=out)
         h = h.gt_(u)
-        # h = torch.le(u, h, out=out)
         return h
 
     def sample_h_given_v(self, v, out=None):
@@ -226,6 +224,9 @@ class BinaryRBM(nn.Module):
 
     def sample_full_state_given_v(self, v):
         return (v, self.sample_h_given_v(v))
+
+    def sample_full_state_given_h(self, h):
+        return (self.sample_v_given_h(h), h)
 
     def sample_full_state_given_v_from_u(self, v, *u):
         return (v, self._sample_h_given_v_from_u(v, u[0]))
