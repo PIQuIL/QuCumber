@@ -64,7 +64,11 @@ class UCDEstimator(NegativePhaseEstimatorBase):
                 self.cond_density_ratio(
                     temp, pv_eta[rejected_zeta, :], pv_zeta[rejected_zeta, :]
                 )
-                .gt(torch.rand(rejected_zeta.sum(), dtype=zeta[0].dtype))
+                .gt(
+                    torch.rand(
+                        rejected_zeta.sum(), dtype=zeta[0].dtype, device=zeta[0].device
+                    )
+                )
                 .to(dtype=rejected_zeta.dtype)
             )
 
@@ -83,7 +87,11 @@ class UCDEstimator(NegativePhaseEstimatorBase):
                 self.cond_density_ratio(
                     temp, pv_zeta[rejected_eta, :], pv_eta[rejected_eta, :]
                 )
-                .gt(torch.rand(rejected_eta.sum(), dtype=eta[0].dtype))
+                .gt(
+                    torch.rand(
+                        rejected_eta.sum(), dtype=eta[0].dtype, device=eta[0].device
+                    )
+                )
                 .to(dtype=rejected_eta.dtype)
             )
 
@@ -98,7 +106,7 @@ class UCDEstimator(NegativePhaseEstimatorBase):
         pv_eta = rbm.prob_v_given_h(eta[1])
 
         accept = self.cond_density_ratio(zeta[0], pv_eta, pv_zeta).gt(
-            torch.rand(zeta[0].shape[0], dtype=zeta[0].dtype)
+            torch.rand(zeta[0].shape[0], dtype=zeta[0].dtype, device=zeta[0].device)
         )
 
         accepted_idx = accept == 1
