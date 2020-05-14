@@ -149,11 +149,7 @@ class BinaryRBM(nn.Module):
             .clamp_(min=0, max=1)
         )
 
-        if v is None:
-            return p
-        else:
-            temp = (v * p) + (1 - v) * (1 - p)
-            return torch.prod(temp, dim=-1, out=out)
+        return p
 
     @auto_unsqueeze_args()
     def prob_h_given_v(self, v, h=None, out=None):
@@ -197,15 +193,11 @@ class BinaryRBM(nn.Module):
         v = torch.bernoulli(v, out=out)  # overwrite v with its sample
         return v
 
-    def _sample_v_given_h_from_u(self, u, *h, out=None):
-        v = self.prob_v_given_h(*h, out=out)
-        v = v.gt_(u)
-        return v
+    def _sample_v_given_h_from_u(self, u, *h):
+        return self.prob_v_given_h(*h).gt_(u)
 
-    def _sample_h_given_v_from_u(self, u, *v, out=None):
-        h = self.prob_h_given_v(*v, out=out)
-        h = h.gt_(u)
-        return h
+    def _sample_h_given_v_from_u(self, u, *v):
+        return self.prob_h_given_v(*v).gt_(u)
 
     def sample_h_given_v(self, v, out=None):
         """Sample/generate a hidden state given a visible state.

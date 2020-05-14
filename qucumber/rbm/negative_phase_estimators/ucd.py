@@ -24,6 +24,8 @@ class UCDEstimator(NegativePhaseEstimatorBase):
             raise ValueError("k must be >= 1!")
         self.k = k
         self.T_max = T_max
+        self.all_t = []
+        self.all_rejection_steps = []
 
     def _select_states(self, states, indices):
         return tuple(x[indices, ...] for x in states)
@@ -32,83 +34,107 @@ class UCDEstimator(NegativePhaseEstimatorBase):
         for s, d in zip(src, dest):
             d[indices, ...] = s[indices, ...].clone()
 
+    @staticmethod
+    def cond_density_ratio(v, p, q):
+        temp = (v * (p / q)) + (1 - v) * ((1 - p) / (1 - q))
+        return torch.prod(temp, dim=-1)
+
+    def _rejection_step(
+        self,
+        zeta,
+        eta,
+        pv_zeta,
+        pv_eta,
+        rejected_zeta,
+        rejected_eta,
+        rejected_zeta_any,
+        rejected_eta_any,
+    ):
+        U_v = torch.rand_like(zeta[0])
+        if rejected_zeta_any:
+            temp = (
+                pv_zeta[rejected_zeta, :]
+                .gt(U_v[rejected_zeta, :])
+                .to(dtype=zeta[0].dtype)
+                .contiguous()
+            )
+            zeta[0][rejected_zeta, :] = temp
+
+            rejected_zeta[rejected_zeta] = (
+                self.cond_density_ratio(
+                    temp, pv_eta[rejected_zeta, :], pv_zeta[rejected_zeta, :]
+                )
+                .gt(torch.rand(rejected_zeta.sum(), dtype=zeta[0].dtype))
+                .to(dtype=rejected_zeta.dtype)
+            )
+
+            rejected_zeta_any = rejected_zeta.any()
+
+        if rejected_eta_any:
+            temp = (
+                pv_eta[rejected_eta, :]
+                .gt(U_v[rejected_eta, :])
+                .to(dtype=eta[0].dtype)
+                .contiguous()
+            )
+            eta[0][rejected_eta, :] = temp
+
+            rejected_eta[rejected_eta] = (
+                self.cond_density_ratio(
+                    temp, pv_zeta[rejected_eta, :], pv_eta[rejected_eta, :]
+                )
+                .gt(torch.rand(rejected_eta.sum(), dtype=eta[0].dtype))
+                .to(dtype=rejected_eta.dtype)
+            )
+
+            rejected_eta_any = rejected_eta.any()
+
+        return (rejected_zeta_any, rejected_eta_any)
+
     def _coupling_step(self, rbm, zeta, eta):
         zeta = rbm.sample_full_state_given_h(zeta[1])
 
-        accept = (
-            (
-                rbm.prob_v_given_h(*eta[1:], v=zeta[0])
-                / rbm.prob_v_given_h(*zeta[1:], v=zeta[0])
-            )
-            .clamp_(min=0, max=1)
-            .bernoulli()
+        pv_zeta = rbm.prob_v_given_h(zeta[1])
+        pv_eta = rbm.prob_v_given_h(eta[1])
+
+        accept = self.cond_density_ratio(zeta[0], pv_eta, pv_zeta).gt(
+            torch.rand(zeta[0].shape[0], dtype=zeta[0].dtype)
         )
 
         accepted_idx = accept == 1
 
         if torch.all(accepted_idx):
             zeta = rbm.sample_full_state_given_v(zeta[0])
-            return (zeta, tuple(z.clone() for z in zeta), True)
+            return (zeta, tuple(z.clone() for z in zeta), True, None, None)
 
         rejected_idx = accept == 0
 
         zeta[1][accepted_idx, :] = rbm.sample_h_given_v(zeta[0][accepted_idx, :])
 
-        self._assign_states_(zeta, eta, accepted_idx)
+        eta[0][accepted_idx, :] = zeta[0][accepted_idx, :]
+        eta[1][accepted_idx, :] = zeta[1][accepted_idx, :]
 
         rejected_zeta = rejected_idx.clone()
         rejected_eta = rejected_idx.clone()
         U_h = torch.rand_like(zeta[1][rejected_idx, :])
 
-        bool_type = rejected_zeta.dtype
         rejected_zeta_any = rejected_zeta.any()
         rejected_eta_any = rejected_eta.any()
 
+        rejection_steps = 0
         while rejected_zeta_any or rejected_eta_any:
-            # we're generating too many random numbers here, should optimize this eventually
-            U_v = torch.rand_like(zeta[0])
+            rejection_steps += rejected_eta | rejected_zeta
 
-            if rejected_zeta_any:
-                zeta[0][rejected_zeta, :] = rbm._sample_v_given_h_from_u(
-                    U_v[rejected_zeta, :], zeta[1][rejected_zeta, :],
-                )
-
-                rejected_zeta[rejected_zeta] = (
-                    (
-                        rbm.prob_v_given_h(
-                            eta[1][rejected_zeta, :], v=zeta[0][rejected_zeta, :]
-                        )
-                        / rbm.prob_v_given_h(
-                            zeta[1][rejected_zeta, :], v=zeta[0][rejected_zeta, :]
-                        )
-                    )
-                    .clamp_(min=0, max=1)
-                    .bernoulli()
-                    .to(dtype=bool_type)
-                )
-
-                rejected_zeta_any = rejected_zeta.any()
-
-            if rejected_eta_any:
-                eta[0][rejected_eta, :] = rbm._sample_v_given_h_from_u(
-                    U_v[rejected_eta, :], eta[1][rejected_eta, :]
-                )
-
-                rejected_eta[rejected_eta] = (
-                    (
-                        rbm.prob_v_given_h(
-                            zeta[1][rejected_eta, :], v=eta[0][rejected_eta, :]
-                        )
-                        / rbm.prob_v_given_h(
-                            eta[1][rejected_eta, :], v=eta[0][rejected_eta, :]
-                        )
-                    )
-                    .clamp_(min=0, max=1)
-                    .bernoulli()
-                    .to(dtype=bool_type)
-                )
-
-                rejected_eta_any = rejected_eta.any()
+            rejected_zeta_any, rejected_eta_any = self._rejection_step(
+                zeta,
+                eta,
+                pv_zeta,
+                pv_eta,
+                rejected_zeta,
+                rejected_eta,
+                rejected_zeta_any,
+                rejected_eta_any,
+            )
 
         zeta[1][rejected_idx, :] = rbm._sample_h_given_v_from_u(
             U_h, zeta[0][rejected_idx, :]
@@ -117,30 +143,48 @@ class UCDEstimator(NegativePhaseEstimatorBase):
             U_h, eta[0][rejected_idx, :]
         )
 
-        return (zeta, eta, False)
+        return (zeta, eta, False, rejected_idx, rejection_steps)
 
     def __call__(self, nn_state, samples):
         rbm = nn_state.rbm_am
 
-        acc_grad = torch.zeros(rbm.num_pars, dtype=torch.double, device=rbm.device)
+        with torch.no_grad():
+            eta = rbm.sample_full_state_given_v(samples.clone())
+            zeta = rbm._propagate_state(eta)
 
-        eta = rbm.sample_full_state_given_v(samples.clone())
-        zeta = rbm._propagate_state(eta)
+            for t in range(1, self.k):
+                zeta, eta, _, _, _ = self._coupling_step(rbm, zeta, eta)
 
-        if self.k == 1:
-            acc_grad += rbm.effective_energy_gradient(zeta[0])
+            acc_grad = rbm.effective_energy_gradient(zeta[0])
 
-        for t in range(2, self.T_max):
-            zeta, eta, breakout = self._coupling_step(rbm, zeta, eta)
+            for t in range(self.k, self.T_max):
+                (
+                    zeta,
+                    eta,
+                    breakout,
+                    rejected_idx,
+                    rejection_steps,
+                ) = self._coupling_step(rbm, zeta, eta)
 
-            if t >= self.k:
-                acc_grad += rbm.effective_energy_gradient(zeta[0])
+                if breakout:
+                    break
+                elif rejected_idx is not None:  # drop chains that have converged
+                    zeta = (
+                        zeta[0][rejected_idx, :].contiguous(),
+                        zeta[1][rejected_idx, :].contiguous(),
+                    )
+                    eta = (
+                        eta[0][rejected_idx, :].contiguous(),
+                        eta[1][rejected_idx, :].contiguous(),
+                    )
 
-            if t > self.k:
-                acc_grad -= rbm.effective_energy_gradient(eta[0])
+                acc_grad += rbm.effective_energy_gradient(
+                    zeta[0]
+                ) - rbm.effective_energy_gradient(eta[0])
 
-            if breakout and t > self.k:
-                break
+                self.all_rejection_steps.append(rejection_steps)
 
-        grad_model = acc_grad / samples.shape[0]
-        return grad_model
+            self.all_t.append(t)
+
+            grad_model = acc_grad / samples.shape[0]
+            return grad_model
