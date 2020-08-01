@@ -8,7 +8,7 @@
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true,
       "automergeType": "pr-comment",
-      "automergeComment": "bors: r+",
+      "automergeComment": "bors: r+"
     }
   ]
 }
