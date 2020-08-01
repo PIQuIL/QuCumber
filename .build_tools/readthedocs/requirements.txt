@@ -1,5 +1,5 @@
-sphinx>=2.0.1
-nbsphinx>=0.3.4
-ipython>=6.5.0
-jupyter_client>4.2.0
-sphinxcontrib-spelling>=4.3.0
+sphinx==3.1.2
+nbsphinx==0.7.1
+ipython==7.17.0
+jupyter_client==6.1.6
+sphinxcontrib-spelling==5.2.0
