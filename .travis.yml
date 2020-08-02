@@ -32,7 +32,7 @@ jobs:
     - stage: test
       os: linux
       python: 3.6
-      env: TORCH="1.0"
+      env: TORCH="1.6"
       install: &test-install
         - travis_retry pip install tox-travis codecov
       script: &test-script
@@ -41,32 +41,12 @@ jobs:
         - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
       after_success: codecov
 
-    - python: 3.6
-      env: TORCH="1.6"
-      install: *test-install
-      script: *test-script
-      after_success: codecov
-
     - python: 3.7
-      env: TORCH="1.0"
-      install: *test-install
-      script: *test-script
-      after_success: codecov
-
-    - python: 3.7
-      env: TORCH="1.6"
       install: *test-install
       script: *test-script
       after_success: codecov
 
     - python: 3.8
-      env: TORCH="1.0"
-      install: *test-install
-      script: *test-script
-      after_success: codecov
-
-    - python: 3.8
-      env: TORCH="1.6"
       install: *test-install
       script: *test-script
       after_success: codecov
@@ -88,6 +68,13 @@ jobs:
 
     ####### misc extra configs
     #######  only test on python 3.6, if it works there it should work on 3.7 and 3.8
+    - python: 3.6
+      env: TORCH="1.0"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+      if: branch = master
+
     - python: 3.6
       env: TORCH="1.1"
       install: *test-install
@@ -154,8 +141,8 @@ jobs:
       install: *test-install
       script: &mac-test
         - echo 'Running tests...'
-        - if [[ $TRAVIS_BRANCH != "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
-        - if [[ $TRAVIS_BRANCH == "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
+        - if [[ $TRAVIS_BRANCH != "master" ]]; then travis_wait tox -e $PY_TAG-torch16 -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
+        - if [[ $TRAVIS_BRANCH == "master" ]]; then travis_wait tox -e $PY_TAG-torch16 -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
       after_success: codecov
 
     - os: osx
