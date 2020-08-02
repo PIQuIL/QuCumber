@@ -19,8 +19,7 @@ Anaconda installed first and using the 64-bit graphical installer
 (https://repo.anaconda.com/archive/Anaconda3-2020.02-Windows-x86_64.exe).
 
 **Before** you install Anaconda, make sure to have a LaTeX distribution installed,
-for example MiKTeX
-(https://miktex.org/download/ctan/systems/win32/miktex/setup/windows-x64/basic-miktex-2.9.7417-x64.exe),
+for example MiKTeX (https://miktex.org/download),
 as Matplotlib libraries require LaTeX for nice visualization in Python.
 
 After the Anaconda installation, follow specific instructions on
