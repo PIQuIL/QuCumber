@@ -127,7 +127,7 @@ jobs:
     - os: osx
       name: "Python 3.6"
       language: objective-c
-      env:
+      env: *latest-torch
         - PYENV_VERSION=3.6.9
         - PY_TAG='py36'
       before_install: &mac-install
@@ -144,14 +144,14 @@ jobs:
       install: *test-install
       script: &mac-test
         - echo 'Running tests...'
-        - if [[ $TRAVIS_BRANCH != "master" ]]; then travis_wait tox -e $PY_TAG-torch16 -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
-        - if [[ $TRAVIS_BRANCH == "master" ]]; then travis_wait tox -e $PY_TAG-torch16 -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
+        - if [[ $TRAVIS_BRANCH != "master" ]]; then travis_wait tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
+        - if [[ $TRAVIS_BRANCH == "master" ]]; then travis_wait tox -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
       after_success: codecov
 
     - os: osx
       name: "Python 3.7"
       language: objective-c
-      env:
+      env: *latest-torch
         - PYENV_VERSION=3.7.5
         - PY_TAG='py37'
       before_install: *mac-install
@@ -162,7 +162,7 @@ jobs:
     - os: osx
       name: "Python 3.8"
       language: objective-c
-      env:
+      env: *latest-torch
         - PYENV_VERSION=3.8.0
         - PY_TAG='py38'
       before_install: *mac-install
