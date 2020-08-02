@@ -279,7 +279,7 @@ todo_include_todos = False
 # -- Options for linkcheck extension ----------------------------------------------
 
 linkcheck_retries = 5
-linkcheck_timeout = 30.0
+linkcheck_timeout = 30
 
 
 # -- Options for imgmath -----------------------------------------------------
