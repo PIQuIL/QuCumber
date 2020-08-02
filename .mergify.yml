@@ -1,0 +1,9 @@
+pull_request_rules:
+  - name: automatic merge if author is renovate bot
+    conditions:
+      - author=renovate[bot]
+      - status-success=Travis CI - Pull Request
+      - status-success=continuous-integration/appveyor/pr
+    actions:
+      merge:
+        method: merge
