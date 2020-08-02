@@ -32,7 +32,8 @@ jobs:
     - stage: test
       os: linux
       python: 3.6
-      env: TORCH="1.6"
+      env: &latest-torch
+        - TORCH="1.6"
       install: &test-install
         - travis_retry pip install tox-travis codecov
       script: &test-script
@@ -42,11 +43,13 @@ jobs:
       after_success: codecov
 
     - python: 3.7
+      env: *latest-torch
       install: *test-install
       script: *test-script
       after_success: codecov
 
     - python: 3.8
+      env: *latest-torch
       install: *test-install
       script: *test-script
       after_success: codecov
