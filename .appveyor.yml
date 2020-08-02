@@ -36,12 +36,19 @@ environment:
       PYTHON_ARCH: "64"
       PLAT_NAME: "win-amd64"
 
+    - PYTHON: "C:\\Python38-x64"
+      PYTHON_VERSION: "3.8.x"
+      PY_SHORT_VER: "3.8"
+      PY_TAG: "cp38"
+      PYTHON_ARCH: "64"
+      PLAT_NAME: "win-amd64"
+
 init:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
 install:
   - "python --version"
-  - "python -m pip install http://download.pytorch.org/whl/cpu/torch-1.0.0-%PY_TAG%-%PY_TAG%m-win_amd64.whl"
+  - "python -m pip install torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
   - "python -m pip install -e .[appveyor]"
 
 test_script:

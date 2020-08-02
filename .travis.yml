@@ -32,7 +32,8 @@ jobs:
     - stage: test
       os: linux
       python: 3.6
-      env: TORCH="1.0"
+      env:
+        - &latest-torch TORCH="1.6"
       install: &test-install
         - travis_retry pip install tox-travis codecov
       script: &test-script
@@ -41,24 +42,17 @@ jobs:
         - if [[ $TRAVIS_BRANCH == "master" ]]; then tox -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
       after_success: codecov
 
-    - python: 3.6
-      env: TORCH="1.3"
-      install: *test-install
-      script: *test-script
-      after_success: codecov
-
     - python: 3.7
-      env: TORCH="1.0"
+      env: *latest-torch
       install: *test-install
       script: *test-script
       after_success: codecov
 
-    - python: 3.7
-      env: TORCH="1.3"
+    - python: 3.8
+      env: *latest-torch
       install: *test-install
       script: *test-script
       after_success: codecov
-
 
     - os: linux
       name: "Documentation Format and Style Tests"
@@ -76,7 +70,14 @@ jobs:
         - make -C ./docs -e linkcheck
 
     ####### misc extra configs
-    #######  only test on python 3.6, if it works there it should work on 3.7
+    #######  only test on python 3.6, if it works there it should work on 3.7 and 3.8
+    - python: 3.6
+      env: TORCH="1.0"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+      if: branch = master
+
     - python: 3.6
       env: TORCH="1.1"
       install: *test-install
@@ -86,6 +87,27 @@ jobs:
 
     - python: 3.6
       env: TORCH="1.2"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+      if: branch = master
+
+    - python: 3.6
+      env: TORCH="1.3"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+      if: branch = master
+
+    - python: 3.6
+      env: TORCH="1.4"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+      if: branch = master
+
+    - python: 3.6
+      env: TORCH="1.5"
       install: *test-install
       script: *test-script
       after_success: codecov
@@ -106,6 +128,7 @@ jobs:
       name: "Python 3.6"
       language: objective-c
       env:
+        - *latest-torch
         - PYENV_VERSION=3.6.9
         - PY_TAG='py36'
       before_install: &mac-install
@@ -114,7 +137,6 @@ jobs:
         - brew install libomp
         - brew update && brew upgrade pyenv
         - eval "$(pyenv init -)"
-        - pyenv install --list
         - travis_retry pyenv install -s $PYENV_VERSION
         - pyenv global $PYENV_VERSION
         - pyenv rehash
@@ -122,16 +144,29 @@ jobs:
       install: *test-install
       script: &mac-test
         - echo 'Running tests...'
-        - if [[ $TRAVIS_BRANCH != "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
-        - if [[ $TRAVIS_BRANCH == "master" ]]; then travis_wait tox -e $PY_TAG-torch13 -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
+        - if [[ $TRAVIS_BRANCH != "master" ]]; then travis_wait tox -- -s -m 'not slow and not extra' -n auto; fi # don't run slow/extra tests if not on master branch
+        - if [[ $TRAVIS_BRANCH == "master" ]]; then travis_wait tox -- -s --cov=qucumber --no-cov-on-fail -n auto; fi
       after_success: codecov
 
     - os: osx
       name: "Python 3.7"
       language: objective-c
       env:
+        - *latest-torch
         - PYENV_VERSION=3.7.5
         - PY_TAG='py37'
+      before_install: *mac-install
+      install: *test-install
+      script: *mac-test
+      after_success: codecov
+
+    - os: osx
+      name: "Python 3.8"
+      language: objective-c
+      env:
+        - *latest-torch
+        - PYENV_VERSION=3.8.0
+        - PY_TAG='py38'
       before_install: *mac-install
       install: *test-install
       script: *mac-test
