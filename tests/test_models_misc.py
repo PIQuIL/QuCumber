@@ -230,7 +230,7 @@ def test_density_matrix_diagonal():
     rho = nn_state.rho(v, expand=True)
     diag = nn_state.rho(v, expand=False)
 
-    msg = f"Diagonal of density matrix is wrong!"
+    msg = "Diagonal of density matrix is wrong!"
     assertAlmostEqual(torch.einsum("cii...->ci...", rho), diag, TOL, msg=msg)
 
 

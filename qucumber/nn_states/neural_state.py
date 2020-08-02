@@ -212,7 +212,7 @@ class NeuralStateBase(abc.ABC):
         if hasattr(self, "unitary_dict"):
             if "unitary_dict" in metadata.keys():
                 raise ValueError(
-                    f"Invalid key in metadata; unitary_dict cannot be a key!"
+                    "Invalid key in metadata; unitary_dict cannot be a key!"
                 )
             metadata["unitary_dict"] = self.unitary_dict
 
