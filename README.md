@@ -1,11 +1,12 @@
 # ![QuCumber](https://raw.githubusercontent.com/PIQuIL/QuCumber/master/docs/_static/img/QuCumber_full.png)
-[![PyPI version](https://badge.fury.io/py/qucumber.svg)](https://badge.fury.io/py/qucumber)
+[![PyPI Version](https://img.shields.io/pypi/v/qucumber)](https://pypi.org/project/qucumber)
+[![Python Versions](https://img.shields.io/pypi/pyversions/qucumber)](https://pypi.org/project/qucumber)
 [![Documentation Status](https://readthedocs.org/projects/qucumber/badge/?version=stable)](https://qucumber.readthedocs.io/en/stable/?badge=stable)
 [![Build Status (Travis)](https://travis-ci.com/PIQuIL/QuCumber.svg?branch=master)](https://travis-ci.com/PIQuIL/QuCumber)
 [![Build Status (AppVeyor)](https://ci.appveyor.com/api/projects/status/lqdrc8qp94w4b9kf/branch/master?svg=true)](https://ci.appveyor.com/project/emerali/qucumber/branch/master)
 [![codecov](https://codecov.io/gh/PIQuIL/QuCumber/branch/master/graph/badge.svg)](https://codecov.io/gh/PIQuIL/QuCumber)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![arXiv](https://img.shields.io/badge/arxiv-1812.09329-blue.svg)](https://arxiv.org/abs/1812.09329)
+[![arXiv](https://img.shields.io/badge/paper-arXiv%3A1812.09329-B31B1B.svg)](https://arxiv.org/abs/1812.09329)
 [![scipost](https://img.shields.io/badge/SciPost-7.1.009-blue.svg)](https://scipost.org/SciPostPhys.7.1.009)
 
 ## A Quantum Calculator Used for Many-body Eigenstate Reconstruction
@@ -30,7 +31,7 @@ size of the visible layer corresponds to the input data, i.e. the number of
 qubits. The size of the hidden layer is a hyperparameter, varied to systematically control
 representation error.
 
-Currently, quantum state reconstruction/tomography can be performed on both pure and mixed states. 
+Currently, quantum state reconstruction/tomography can be performed on both pure and mixed states.
 Pure state reconstruction can be further broken down into positive or complex wavefunction reconstruction.
 In the case of a positive wavefunction, data is only required in one basis. For complex wavefunctions as
 well as mixed states, measurement data in additional bases will be required to train the state.

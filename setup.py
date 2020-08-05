@@ -61,7 +61,11 @@ travis_requires = build_requires + coverage_requires + style_requires
 
 appveyor_requires = build_requires + test_requires
 
-dev_requires = travis_requires + doc_requires + ["pre_commit>=1.10.5", "nbval>=0.9.1"]
+dev_requires = (
+    travis_requires
+    + doc_requires
+    + ["pre_commit>=1.10.5", "nbval>=0.9.1", "bump2version>=1.0.0"]
+)
 
 extras_require = {
     "dev": dev_requires,
@@ -85,6 +89,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: Implementation :: CPython",
         "Operating System :: OS Independent",
         "Intended Audience :: Science/Research",
