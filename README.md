@@ -6,7 +6,7 @@
 [![Build Status (AppVeyor)](https://ci.appveyor.com/api/projects/status/lqdrc8qp94w4b9kf/branch/master?svg=true)](https://ci.appveyor.com/project/emerali/qucumber/branch/master)
 [![codecov](https://codecov.io/gh/PIQuIL/QuCumber/branch/master/graph/badge.svg)](https://codecov.io/gh/PIQuIL/QuCumber)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![arXiv](https://img.shields.io/badge/paper-arXiv%3A1812.09329-B31B1B.svg)](https://arxiv.org/abs/1812.09329)
+[![arXiv](https://img.shields.io/badge/arXiv-1812.09329-B31B1B.svg)](https://arxiv.org/abs/1812.09329)
 [![scipost](https://img.shields.io/badge/SciPost-7.1.009-blue.svg)](https://scipost.org/SciPostPhys.7.1.009)
 
 ## A Quantum Calculator Used for Many-body Eigenstate Reconstruction
