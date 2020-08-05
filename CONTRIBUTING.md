@@ -105,9 +105,9 @@ tox
 tox -- -m "not slow"  # can pass pytest options after a double dash: --
 ```
 
-`tox` is currently set up to build and test qucumber against several 
+`tox` is currently set up to build and test qucumber against several
 different versions of `PyTorch` (including the nightly release) on
-both Python 3.6 and 3.7. Also, `tox` is setup to automatically 
+both Python 3.6 and 3.7. Also, `tox` is setup to automatically
 generate coverage reports when run, so you don't have to pass `--cov=qucumber`.
 
 ### Building Documentation
@@ -191,7 +191,7 @@ but the above command will provide you with the changes that it would have made.
 However, there is an easier way, you can use the
 [blackcellmagic](https://github.com/csurfer/blackcellmagic) Jupyter extension
 to format notebook cells. Note that these checks are included in the `pre-commit`
-config and will therefore be done automatically when you try to commit changes 
+config and will therefore be done automatically when you try to commit changes
 to notebooks.
 
 ### License Headers
@@ -207,12 +207,12 @@ contain the license header:
 inv license-check
 ```
 
-Note that this check is included in the `pre-commit` config and will therefore 
+Note that this check is included in the `pre-commit` config and will therefore
 be done automatically when you try to commit changes to notebooks.
 
 ### Running all style checks
 
-If you want to run all style checks together (license checking, and notebook 
+If you want to run all style checks together (license checking, and notebook
 and code linting) you can run the following:
 
 ```bash
