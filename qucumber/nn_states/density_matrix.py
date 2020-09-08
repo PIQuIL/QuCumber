@@ -203,7 +203,7 @@ class DensityMatrix(NeuralStateBase):
 
         if phase:
             temp = (v.unsqueeze(1) - vp.unsqueeze(0)) if expand else (v - vp)
-            sig = cplx.scalar_mult(sig, cplx.I)
+            sig = 1j * sig
 
             ab_grad_real = torch.zeros_like(self.rbm_ph.aux_bias).expand(
                 *batch_sizes, -1
@@ -215,7 +215,7 @@ class DensityMatrix(NeuralStateBase):
             ab_grad_real = cplx.real(sig)
             ab_grad_imag = cplx.imag(sig)
 
-        U_grad = 0.5 * torch.einsum("c...j,...k->c...jk", sig, temp)
+        U_grad = 0.5 * torch.einsum("...j,...k->...jk", sig, temp)
         U_grad_real = cplx.real(U_grad)
         U_grad_imag = cplx.imag(U_grad)
 

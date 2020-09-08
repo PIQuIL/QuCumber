@@ -159,10 +159,13 @@ def test_density_matrix_tr1():
     nn_state = DensityMatrix(5, gpu=False)
 
     space = nn_state.generate_hilbert_space(5)
-    matrix = nn_state.rho(space, space) / nn_state.normalization(space)
+    matrix = nn_state.rho(space, expand=True)
+    trace = torch.diagonal(matrix).sum()
+    # FIXME: should replace this^ with trace once it's implemented
+    Z = nn_state.normalization(space)
 
     msg = f"Trace of density matrix is not within {TOL} of 1!"
-    assertAlmostEqual(torch.trace(matrix[0]), torch.Tensor([1]), TOL, msg=msg)
+    assertAlmostEqual(trace / Z, torch.tensor(1.0).to(Z), TOL, msg=msg)
 
 
 def test_density_matrix_sizes():
@@ -172,7 +175,7 @@ def test_density_matrix_sizes():
 
     rho = nn_state.rho(v, vp)
 
-    assert rho.shape == (2, v.shape[0], vp.shape[0])
+    assert rho.shape == (v.shape[0], vp.shape[0])
 
 
 ndo_matrices = [
@@ -219,7 +222,7 @@ def test_density_matrix_expansion(prop):
 
     msg = f"Diagonal of matrix {prop_name} is wrong!"
 
-    equation = "cii...->ci..." if is_complex else "ii->i"
+    equation = "ii...->i..." if is_complex else "ii->i"
     assertAlmostEqual(torch.einsum(equation, matrix), diag, TOL, msg=msg)
 
 
@@ -231,7 +234,7 @@ def test_density_matrix_diagonal():
     diag = nn_state.rho(v, expand=False)
 
     msg = "Diagonal of density matrix is wrong!"
-    assertAlmostEqual(torch.einsum("cii...->ci...", rho), diag, TOL, msg=msg)
+    assertAlmostEqual(torch.einsum("ii...->i...", rho), diag, TOL, msg=msg)
 
 
 @pytest.mark.parametrize("state_type", all_state_types)

@@ -17,7 +17,7 @@ import torch
 import numpy as np
 
 
-I = torch.Tensor([0, 1])  # noqa: E741
+I = 1j * torch.ones(1)  # noqa: E741
 
 
 def make_complex(x, y=None):
@@ -36,11 +36,14 @@ def make_complex(x, y=None):
     :rtype: torch.Tensor
     """
     if isinstance(x, np.ndarray):
-        return make_complex(torch.tensor(x.real), torch.tensor(x.imag)).contiguous()
+        return torch.tensor(x)
+        # return make_complex(torch.tensor(x.real), torch.tensor(x.imag)).contiguous()
 
     if y is None:
         y = torch.zeros_like(x)
-    return torch.cat((x.unsqueeze(0), y.unsqueeze(0)), dim=0)
+    else:
+        y = torch.tensor(y)
+    return torch.tensor(x) + 1j * y
 
 
 def numpy(x):
@@ -53,7 +56,7 @@ def numpy(x):
     :returns: A complex numpy array containing the data from `x`.
     :rtype: numpy.ndarray
     """
-    return real(x).detach().cpu().numpy() + 1j * imag(x).detach().cpu().numpy()
+    return x.detach().cpu().numpy()
 
 
 def real(x):
@@ -65,7 +68,7 @@ def real(x):
     :returns: The real part of `x`; will have one less dimension than `x`.
     :rtype: torch.Tensor
     """
-    return x[0, ...]
+    return x.real
 
 
 def imag(x):
@@ -77,7 +80,7 @@ def imag(x):
     :returns: The imaginary part of `x`; will have one less dimension than `x`.
     :rtype: torch.Tensor
     """
-    return x[1, ...]
+    return x.imag
 
 
 def scalar_mult(x, y, out=None):
@@ -94,16 +97,16 @@ def scalar_mult(x, y, out=None):
     :rtype: torch.Tensor
     """
     y = y.to(x)
-    if out is None:
-        out = torch.zeros(2, *((real(x) * real(y)).shape)).to(x)
-    else:
-        if out is x or out is y:
-            raise RuntimeError("Can't overwrite an argument!")
+    # if out is None:
+    #     out = torch.zeros(2, *((real(x) * real(y)).shape)).to(x)
+    # else:
+    if out is x or out is y:
+        raise RuntimeError("Can't overwrite an argument!")
 
-    torch.mul(real(x), real(y), out=real(out)).sub_(torch.mul(imag(x), imag(y)))
-    torch.mul(real(x), imag(y), out=imag(out)).add_(torch.mul(imag(x), real(y)))
+    # torch.mul(real(x), real(y), out=real(out)).sub_(torch.mul(imag(x), imag(y)))
+    # torch.mul(real(x), imag(y), out=imag(out)).add_(torch.mul(imag(x), real(y)))
 
-    return out
+    return torch.mul(x, y, out=out)
 
 
 def matmul(x, y):
@@ -121,10 +124,11 @@ def matmul(x, y):
     :rtype: torch.Tensor
     """
     y = y.to(x)
-    re = torch.matmul(real(x), real(y)).sub_(torch.matmul(imag(x), imag(y)))
-    im = torch.matmul(real(x), imag(y)).add_(torch.matmul(imag(x), real(y)))
+    # re = torch.matmul(real(x), real(y)).sub_(torch.matmul(imag(x), imag(y)))
+    # im = torch.matmul(real(x), imag(y)).add_(torch.matmul(imag(x), real(y)))
 
-    return make_complex(re, im)
+    # return make_complex(re, im)
+    return torch.matmul(x, y)
 
 
 def inner_prod(x, y):
@@ -144,16 +148,10 @@ def inner_prod(x, y):
     """
     y = y.to(x)
 
-    if x.dim() == 2 and y.dim() == 2:
-        return make_complex(
-            torch.dot(real(x), real(y)) + torch.dot(imag(x), imag(y)),
-            torch.dot(real(x), imag(y)) - torch.dot(imag(x), real(y)),
-        )
-    elif x.dim() == 1 and y.dim() == 1:
-        return make_complex(
-            (real(x) * real(y)) + (imag(x) * imag(y)),
-            (real(x) * imag(y)) - (imag(x) * real(y)),
-        )
+    if x.dim() == 1 and y.dim() == 1:
+        return torch.dot(torch.conj(x), y)
+    elif x.dim() == 0 and y.dim() == 0:
+        return torch.conj(x) * y
     else:
         raise ValueError("Unsupported input shapes!")
 
@@ -174,14 +172,14 @@ def outer_prod(x, y):
         :math:`\\vert x \\rangle\\langle y\\vert`.
     :rtype: torch.Tensor
     """
-    if x.dim() != 2 or y.dim() != 2:
+    if x.dim() != 1 or y.dim() != 1:
         raise ValueError("An input is not of the right dimension.")
 
-    z = torch.zeros(2, x.size()[1], y.size()[1], dtype=x.dtype, device=x.device)
-    z[0] = torch.ger(real(x), real(y)) - torch.ger(imag(x), -imag(y))
-    z[1] = torch.ger(real(x), -imag(y)) + torch.ger(imag(x), real(y))
+    # z = torch.zeros(2, x.size()[1], y.size()[1], dtype=x.dtype, device=x.device)
+    # z[0] = torch.ger(real(x), real(y)) - torch.ger(imag(x), -imag(y))
+    # z[1] = torch.ger(real(x), -imag(y)) + torch.ger(imag(x), real(y))
 
-    return z
+    return torch.einsum("i,j->ij", x, torch.conj(y))
 
 
 def einsum(equation, a, b, real_part=True, imag_part=True):
@@ -236,12 +234,10 @@ def conjugate(x):
     :returns: The conjugate of x.
     :rtype: torch.Tensor
     """
-    if x.dim() < 3:
+    if x.dim() < 2:
         return conj(x)
     else:
-        return make_complex(
-            torch.transpose(real(x), 0, 1), -torch.transpose(imag(x), 0, 1)
-        )
+        return torch.transpose(torch.conj(x), 0, 1)
 
 
 def conj(x):
@@ -253,7 +249,7 @@ def conj(x):
     :returns: The complex conjugate of x.
     :rtype: torch.Tensor
     """
-    return make_complex(real(x), -imag(x))
+    return torch.conj(x)
 
 
 def elementwise_mult(x, y):
@@ -308,11 +304,11 @@ def kronecker_prod(x, y):
     :returns: The Kronecker product of x and y, :math:`x \\otimes y`.
     :rtype: torch.Tensor
     """
-    if not (x.dim() == y.dim() == 3):
+    if not (x.dim() == y.dim() == 2):
         raise ValueError("Inputs must be complex matrices!")
 
     return einsum("ab,cd->acbd", x, y).reshape(
-        2, x.shape[1] * y.shape[1], x.shape[2] * y.shape[2]
+        x.shape[0] * y.shape[0], x.shape[1] * y.shape[1]
     )
 
 
@@ -326,12 +322,12 @@ def sigmoid(x, y):
     :returns: The complex sigmoid of :math:`x + iy`
     :rtype: torch.Tensor
     """
-    z = (x.cpu().numpy()) + 1j * (y.cpu().numpy())
+    z = make_complex(x, y)
+    # exp = torch.exp(z)
+    # out = np.exp(z) / (1 + np.exp(z))
+    # out = torch.tensor([np.real(out), np.imag(out)]).to(x)
 
-    out = np.exp(z) / (1 + np.exp(z))
-    out = torch.tensor([np.real(out), np.imag(out)]).to(x)
-
-    return out
+    return 1.0 / (1.0 + torch.exp(-z))
 
 
 def scalar_divide(x, y):
@@ -347,7 +343,7 @@ def scalar_divide(x, y):
     :returns: x / y
     :rtype: torch.Tensor
     """
-    return scalar_mult(x, inverse(y))
+    return x / y
 
 
 def inverse(z):

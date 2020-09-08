@@ -22,6 +22,7 @@ import pytest
 
 import qucumber
 from qucumber.nn_states import PositiveWaveFunction, ComplexWaveFunction, DensityMatrix
+from qucumber.utils import cplx
 
 from grads_utils import ComplexGradsUtils, PosGradsUtils, DensityGradsUtils
 from conftest import all_state_types, assertAlmostEqual, TOL
@@ -41,6 +42,8 @@ def positive_wavefunction_data(request, gpu, num_hidden):
 
     data = torch.tensor(test_data["tfim1d"]["train_samples"], dtype=torch.double)
     target = torch.tensor(test_data["tfim1d"]["target_psi"], dtype=torch.double).t()
+
+    target = cplx.make_complex(target[0])
 
     num_visible = data.shape[-1]
 
@@ -78,6 +81,8 @@ def complex_wavefunction_data(request, gpu, num_hidden):
     target_psi_tmp = torch.tensor(
         test_data["2qubits"]["target_psi"], dtype=torch.double
     ).t()
+
+    target_psi_tmp = cplx.make_complex(target_psi_tmp[0], target_psi_tmp[1])
 
     num_visible = data_samples.shape[-1]
 
@@ -137,6 +142,8 @@ def density_matrix_data(request, gpu, num_hidden):
     target = torch.tensor(
         test_data["density_matrix"]["density_matrix"], dtype=torch.double
     )
+
+    target = cplx.make_complex(target[0], target[1])
 
     num_visible = data_samples.shape[-1]
     num_aux = num_visible + 1

@@ -35,15 +35,15 @@ def create_dict(**kwargs):
     """
     dictionary = {
         "X": torch.tensor(
-            [[[1.0, 1.0], [1.0, -1.0]], [[0.0, 0.0], [0.0, 0.0]]], dtype=torch.double
+            [[1.0 + 0.0j, 1.0 + 0.0j], [1.0 + 0.0j, -1.0 + 0.0j]], dtype=torch.cdouble
         )
         / np.sqrt(2),
         "Y": torch.tensor(
-            [[[1.0, 0.0], [1.0, 0.0]], [[0.0, -1.0], [0.0, 1.0]]], dtype=torch.double
+            [[1.0 + 0.0j, 0.0 - 1.0j], [1.0 + 0.0j, 0.0 - 1.0j]], dtype=torch.cdouble
         )
         / np.sqrt(2),
         "Z": torch.tensor(
-            [[[1.0, 0.0], [0.0, 1.0]], [[0.0, 0.0], [0.0, 0.0]]], dtype=torch.double
+            [[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 1.0 + 0.0j]], dtype=torch.cdouble
         ),
     }
 
@@ -53,7 +53,7 @@ def create_dict(**kwargs):
                 matrix.clone().detach()
                 if isinstance(matrix, torch.Tensor)
                 else torch.tensor(matrix)
-            ).to(dtype=torch.double)
+            ).to(dtype=torch.cdouble)
             for name, matrix in kwargs.items()
         }
     )
@@ -65,7 +65,7 @@ def _kron_mult(matrices, x):
     n = [m.size()[0] for m in matrices]
     l, r = np.prod(n), 1  # noqa: E741
 
-    if l != x.shape[1]:  # noqa: E741
+    if l != x.shape[0]:  # noqa: E741
         raise ValueError("Incompatible sizes!")
 
     y = x.clone()
@@ -76,8 +76,8 @@ def _kron_mult(matrices, x):
         for k in range(l):
             for i in range(r):
                 slc = slice(k * n[s] * r + i, (k + 1) * n[s] * r + i, r)
-                temp = y[:, slc, ...]
-                y[:, slc, ...] = cplx.matmul(m, temp)
+                temp = y[slc, ...]
+                y[slc, ...] = cplx.matmul(m, temp)
         r *= n[s]
 
     return y
@@ -106,7 +106,7 @@ def rotate_psi(nn_state, basis, space, unitaries=None, psi=None):
     psi = (
         nn_state.psi(space)
         if psi is None
-        else psi.to(dtype=torch.double, device=nn_state.device)
+        else psi.to(dtype=torch.cdouble, device=nn_state.device)
     )
 
     unitaries = unitaries if unitaries else nn_state.unitary_dict
@@ -137,7 +137,7 @@ def rotate_rho(nn_state, basis, space, unitaries=None, rho=None):
     rho = (
         nn_state.rho(space, space)
         if rho is None
-        else rho.to(dtype=torch.double, device=nn_state.device)
+        else rho.to(dtype=torch.cdouble, device=nn_state.device)
     )
 
     unitaries = unitaries if unitaries else nn_state.unitary_dict
@@ -153,30 +153,32 @@ def rotate_rho(nn_state, basis, space, unitaries=None, rho=None):
 # TODO: make this a generator function
 def _rotate_basis_state(nn_state, basis, states, unitaries=None):
     unitaries = unitaries if unitaries else nn_state.unitary_dict
-    unitaries = {k: v.to(device="cpu") for k, v in unitaries.items()}
+    unitaries = {k: v.to(device=nn_state.device) for k, v in unitaries.items()}
 
     basis = np.array(list(basis))
     sites = np.where(basis != "Z")[0]
 
     if sites.size != 0:
-        Us = torch.stack([unitaries[b] for b in basis[sites]]).cpu().numpy()
+        Us = torch.stack([unitaries[b] for b in basis[sites]])
 
         reps = [1 for _ in states.shape]
         v = states.unsqueeze(0).repeat(2 ** sites.size, *reps)
         v[..., sites] = nn_state.generate_hilbert_space(size=sites.size).unsqueeze(1)
         v = v.contiguous()
 
-        int_sample = states[..., sites].round().int().cpu().numpy()
-        ints_size = np.arange(sites.size)
+        int_sample = states[..., sites].round().long()
+        ints_size = torch.arange(sites.size, dtype=torch.long, device=nn_state.device)
 
         # overwrite rotated elements
-        int_vp = v[..., sites].long().cpu().numpy()
-        all_Us = Us[ints_size, :, int_sample, int_vp]
+        int_vp = v[..., sites].long()
+        all_Us = Us[ints_size, int_sample, int_vp]
 
-        Ut = np.prod(all_Us[..., 0] + (1j * all_Us[..., 1]), axis=-1)
+        Ut = torch.prod(all_Us.cpu(), dim=-1).to(
+            all_Us
+        )  # FIXME: prod is currently unsupported on GPU
     else:
         v = states.unsqueeze(0)
-        Ut = np.ones(v.shape[:-1], dtype=complex)
+        Ut = torch.ones(v.shape[:-1], dtype=torch.cdouble, device=nn_state.device)
 
     return Ut, v
 
@@ -219,13 +221,12 @@ def rotate_psi_inner_prod(
     else:
         # pick out the entries of psi that we actually need
         idx = _convert_basis_element_to_index(v).long()
-        psi = psi[:, idx]
+        psi = psi[idx]
 
-    psi = cplx.numpy(psi.cpu())
-    Ut *= psi
+    Upsi_v = Ut * psi
 
-    Upsi_v = cplx.make_complex(Ut).to(dtype=torch.double, device=nn_state.device)
-    Upsi = torch.sum(Upsi_v, dim=1)
+    # Upsi_v = cplx.make_complex(Ut).to(dtype=torch.cdouble, device=nn_state.device)
+    Upsi = torch.sum(Upsi_v, dim=0)
 
     if include_extras:
         return Upsi, Upsi_v, v
@@ -260,19 +261,18 @@ def rotate_rho_probs(
     :rtype: torch.Tensor or tuple(torch.Tensor)
     """
     Ut, v = _rotate_basis_state(nn_state, basis, states, unitaries=unitaries)
-    Ut = np.einsum("ib,jb->ijb", Ut, np.conj(Ut))
+    Ut = torch.einsum("ib,jb->ijb", Ut, torch.conj(Ut))
 
     if rho is None:
         rho = nn_state.rho(v).detach()
     else:
         # pick out the entries of rho that we actually need
         idx = _convert_basis_element_to_index(v).long()
-        rho = rho[:, idx.unsqueeze(0), idx.unsqueeze(1)]
+        rho = rho[idx.unsqueeze(0), idx.unsqueeze(1)]
 
-    rho = cplx.numpy(rho.cpu())
-    Ut *= rho
+    UrhoU_v = Ut * rho
 
-    UrhoU_v = cplx.make_complex(Ut).to(dtype=torch.double, device=nn_state.device)
+    # UrhoU_v = cplx.make_complex(Ut).to(dtype=torch.cdouble, device=nn_state.device)
     UrhoU = torch.sum(
         cplx.real(UrhoU_v), dim=(0, 1)
     )  # imaginary parts will cancel out anyway
