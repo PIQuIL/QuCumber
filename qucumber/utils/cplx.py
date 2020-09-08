@@ -36,14 +36,13 @@ def make_complex(x, y=None):
     :rtype: torch.Tensor
     """
     if isinstance(x, np.ndarray):
-        return torch.tensor(x)
-        # return make_complex(torch.tensor(x.real), torch.tensor(x.imag)).contiguous()
+        x = torch.tensor(x)
 
     if y is None:
         y = torch.zeros_like(x)
-    else:
+    elif isinstance(y, np.ndarray):
         y = torch.tensor(y)
-    return torch.tensor(x) + 1j * y
+    return x + 1j * y
 
 
 def numpy(x):

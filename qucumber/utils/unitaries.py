@@ -175,7 +175,7 @@ def _rotate_basis_state(nn_state, basis, states, unitaries=None):
 
         Ut = torch.prod(all_Us.cpu(), dim=-1).to(
             all_Us
-        )  # FIXME: prod is currently unsupported on GPU
+        )  # FIXME: prod for torch.complex is currently unsupported on GPU
     else:
         v = states.unsqueeze(0)
         Ut = torch.ones(v.shape[:-1], dtype=torch.cdouble, device=nn_state.device)
