@@ -39,7 +39,7 @@ class PosGradsUtils:
         )
         for i in range(len(space)):
             sample_grad = self.nn_state.gradient(space[i])[0]
-            grad_KL += ((target[0, i]) ** 2) * sample_grad
+            grad_KL += (cplx.absolute_value(target[i]) ** 2) * sample_grad
             grad_KL -= self.nn_state.probability(space[i], Z) * sample_grad
         return [grad_KL]
 
@@ -86,17 +86,16 @@ class PosGradsUtils:
 class ComplexGradsUtils(PosGradsUtils):
     def load_target_psi(self, bases, psi_data):
         if isinstance(psi_data, torch.Tensor):
-            psi_data = psi_data.clone().detach().to(dtype=torch.double)
+            psi_data = psi_data.clone().detach().to(dtype=torch.cdouble)
         else:
-            psi_data = torch.tensor(psi_data, dtype=torch.double)
+            psi_data = torch.tensor(psi_data, dtype=torch.cdouble)
 
         psi_dict = {}
-        D = int(psi_data.shape[1] / float(len(bases)))
+        D = int(psi_data.shape[0] / float(len(bases)))
 
         for b in range(len(bases)):
-            psi = torch.zeros(2, D, dtype=torch.double)
-            psi[0, ...] = psi_data[0, b * D : (b + 1) * D]
-            psi[1, ...] = psi_data[1, b * D : (b + 1) * D]
+            psi = torch.zeros(D, dtype=torch.cdouble)
+            psi = psi_data[b * D : (b + 1) * D]
             psi_dict[bases[b]] = psi
 
         return psi_dict
@@ -166,7 +165,7 @@ class DensityGradsUtils(ComplexGradsUtils):
             else:
                 target_r = rotate_rho_probs(
                     self.nn_state, all_bases[b], space, rho=target
-                )
+                ).to(dtype=torch.double)
 
             for i in range(len(space)):
                 rotated_grad = self.nn_state.gradient(space[i], all_bases[b])

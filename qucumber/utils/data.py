@@ -42,9 +42,10 @@ def load_data(tr_samples_path, tr_psi_path=None, tr_bases_path=None, bases_path=
 
     if tr_psi_path is not None:
         target_psi_data = np.loadtxt(tr_psi_path, dtype="float32")
-        target_psi = torch.zeros(2, len(target_psi_data), dtype=torch.double)
-        target_psi[0] = torch.tensor(target_psi_data[:, 0], dtype=torch.double)
-        target_psi[1] = torch.tensor(target_psi_data[:, 1], dtype=torch.double)
+        target_psi = cplx.make_complex(
+            torch.tensor(target_psi_data[:, 0], dtype=torch.double),
+            torch.tensor(target_psi_data[:, 1], dtype=torch.double),
+        )
         data.append(target_psi)
 
     if tr_bases_path is not None:

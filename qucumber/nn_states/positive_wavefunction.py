@@ -120,7 +120,6 @@ class PositiveWaveFunction(WaveFunctionBase):
                   each visible state
         :rtype: torch.Tensor
         """
-        # vector/tensor of shape (2, len(v))
         return cplx.make_complex(self.amplitude(v))
 
     def gradient(self, v, *args, **kwargs):

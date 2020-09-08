@@ -52,13 +52,13 @@ def fidelity(nn_state, target, space=None, **kwargs):
     target = target.to(nn_state.device)
 
     if isinstance(nn_state, WaveFunctionBase):
-        assert target.dim() == 2, "target must be a complex vector!"
+        assert target.dim() == 1, "target must be a complex vector!"
 
         psi = nn_state.psi(space) / Z.sqrt()
         F = cplx.inner_prod(target, psi)
         return cplx.absolute_value(F).pow_(2).item()
     else:
-        assert target.dim() == 3, "target must be a complex matrix!"
+        assert target.dim() == 2, "target must be a complex matrix!"
 
         rho = nn_state.rho(space, space) / Z
         rho_rbm_ = cplx.numpy(rho)
@@ -168,9 +168,9 @@ def KL(nn_state, target, space=None, bases=None, **kwargs):
         if bases is None:
             bases = list(target.keys())
         else:
-            assert set(bases) == set(
+            assert set(bases) <= set(
                 target.keys()
-            ), "Given bases must match the keys of the target_psi dictionary."
+            ), "Given bases must be a subset of the keys of the target_psi dictionary."
     else:
         target = target.to(nn_state.device)
 
@@ -179,16 +179,15 @@ def KL(nn_state, target, space=None, bases=None, **kwargs):
     if bases is None:
         target_probs = cplx.absolute_value(target) ** 2
         nn_probs = nn_state.probability(space, Z)
-
-        KL += _single_basis_KL(target_probs, nn_probs)
+        return _single_basis_KL(target_probs, nn_probs)
 
     elif isinstance(nn_state, WaveFunctionBase):
         for basis in bases:
             if isinstance(target, dict):
                 target_psi_r = target[basis]
-                assert target_psi_r.dim() == 2, "target must be a complex vector!"
+                assert target_psi_r.dim() == 1, "target must be a complex vector!"
             else:
-                assert target.dim() == 2, "target must be a complex vector!"
+                assert target.dim() == 1, "target must be a complex vector!"
                 target_psi_r = rotate_psi(nn_state, basis, space, psi=target)
 
             psi_r = rotate_psi(nn_state, basis, space)
@@ -202,10 +201,10 @@ def KL(nn_state, target, space=None, bases=None, **kwargs):
         for basis in bases:
             if isinstance(target, dict):
                 target_rho_r = target[basis]
-                assert target_rho_r.dim() == 3, "target must be a complex matrix!"
+                assert target_rho_r.dim() == 2, "target must be a complex matrix!"
                 target_probs_r = torch.diagonal(cplx.real(target_rho_r))
             else:
-                assert target.dim() == 3, "target must be a complex matrix!"
+                assert target.dim() == 2, "target must be a complex matrix!"
                 target_probs_r = rotate_rho_probs(nn_state, basis, space, rho=target)
 
             rho_r = rotate_rho_probs(nn_state, basis, space)
