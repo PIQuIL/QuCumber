@@ -165,7 +165,7 @@ class DensityGradsUtils(ComplexGradsUtils):
             else:
                 target_r = rotate_rho_probs(
                     self.nn_state, all_bases[b], space, rho=target
-                )
+                ).to(dtype=torch.double)
 
             for i in range(len(space)):
                 rotated_grad = self.nn_state.gradient(space[i], all_bases[b])

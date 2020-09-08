@@ -179,8 +179,7 @@ def KL(nn_state, target, space=None, bases=None, **kwargs):
     if bases is None:
         target_probs = cplx.absolute_value(target) ** 2
         nn_probs = nn_state.probability(space, Z)
-
-        KL += _single_basis_KL(target_probs, nn_probs)
+        return _single_basis_KL(target_probs, nn_probs)
 
     elif isinstance(nn_state, WaveFunctionBase):
         for basis in bases:
