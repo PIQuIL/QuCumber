@@ -234,9 +234,10 @@ class ObservableBase(abc.ABC):
         :rtype: dict(str, float)
         """
         obs_samples = self.apply(nn_state, samples).data
-
-        mean = obs_samples.mean().item()
-        variance = obs_samples.var().item()
+        
+        variance, mean = torch.var_mean(obs_samples)
+        variance, mean = variance.item(), mean.item()
+        
         std_error = np.sqrt(variance / len(obs_samples))
 
         return {
