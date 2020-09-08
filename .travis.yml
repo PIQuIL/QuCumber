@@ -72,20 +72,6 @@ jobs:
     ####### misc extra configs
     #######  only test on python 3.6, if it works there it should work on 3.7 and 3.8
     - python: 3.6
-      env: TORCH="1.0"
-      install: *test-install
-      script: *test-script
-      after_success: codecov
-      if: branch = master
-
-    - python: 3.6
-      env: TORCH="1.1"
-      install: *test-install
-      script: *test-script
-      after_success: codecov
-      if: branch = master
-
-    - python: 3.6
       env: TORCH="1.2"
       install: *test-install
       script: *test-script

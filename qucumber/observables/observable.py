@@ -15,6 +15,7 @@
 
 import abc
 import numpy as np
+import torch
 
 from .utils import _update_statistics
 
@@ -235,8 +236,9 @@ class ObservableBase(abc.ABC):
         """
         obs_samples = self.apply(nn_state, samples).data
 
-        mean = obs_samples.mean().item()
-        variance = obs_samples.var().item()
+        variance, mean = torch.var_mean(obs_samples)
+        variance, mean = variance.item(), mean.item()
+
         std_error = np.sqrt(variance / len(obs_samples))
 
         return {
