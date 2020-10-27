@@ -23,7 +23,7 @@ with open(os.path.join("qucumber", "__version__.py"), "r") as f:
     exec(f.read(), version_file)
 
 install_requires = [
-    "torch>=1.2,<1.7; sys_platform != 'win32'",
+    "torch>=1.2,<1.8; sys_platform != 'win32'",
     "tqdm>=4.23",
     "numpy>=1.13",
     "scipy>=1.3.3",
@@ -48,13 +48,13 @@ test_requires = ["pytest>=3.7.1", "tox>=3.2.1"]
 coverage_requires = test_requires + ["pytest-cov>=2.5.1"]
 
 style_requires = [
-    "radon>=3.0.1",
+    "radon[flake8]>=4.3.2",
     "black==19.3b0; python_version>='3.6'",
     "flake8>=3.7.9",
     "flake8-bugbear>=19.3.0",
     "flake8-fixme>=1.1.1",
     "invoke>=1.1.1",
-    "nbconvert>=5.3.1",
+    "nbconvert>=5.3.1,<6.0",
 ]
 
 travis_requires = build_requires + coverage_requires + style_requires
