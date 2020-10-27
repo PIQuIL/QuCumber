@@ -54,7 +54,7 @@ style_requires = [
     "flake8-bugbear>=19.3.0",
     "flake8-fixme>=1.1.1",
     "invoke>=1.1.1",
-    "nbconvert>=5.3.1,<6.0",
+    "nbconvert>=5.3.1,<6.1",
 ]
 
 travis_requires = build_requires + coverage_requires + style_requires
