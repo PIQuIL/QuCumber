@@ -110,8 +110,8 @@ def lint_example_notebooks(c, linter="flake8"):
     """Lint notebooks in the `./examples` directory."""
     to_script_command = (
         "jupyter nbconvert {} --stdout --to python "
-        "--RegexRemovePreprocessor.patterns=\"[r'\\s*\\Z']\" "  # remove empty code cells
-        "--Exporter.preprocessors=\"['strip_magics.StripMagicsProcessor']\" "  # remove ipython magics
+        "--RegexRemovePreprocessor.patterns r'\\s*\\Z' "  # remove empty code cells
+        "--Exporter.preprocessors strip_magics.StripMagicsProcessor "  # remove ipython magics
         "--template=code_cells_only.tpl "  # only lint code cells
         "| head -c -1"  # remove extra new-line at end
     )
@@ -132,7 +132,10 @@ def lint_example_notebooks(c, linter="flake8"):
     for path in nb_paths:
         with c.cd("./.build_tools/invoke/"):
             run = c.run(
-                to_script_command.format("../../" + str(path)) + " | " + linter_command,
+                "! "
+                + to_script_command.format("../../" + str(path))
+                + " | "
+                + linter_command,
                 warn=True,  # don't exit task on first fail
                 echo=True,  # print generated bash command to stdout
             )
