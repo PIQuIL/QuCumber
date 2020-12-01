@@ -4,6 +4,7 @@ pull_request_rules:
       - author=renovate[bot]
       - status-success=Travis CI - Pull Request
       - status-success=continuous-integration/appveyor/pr
+      - label=merge-on-success
     actions:
       merge:
         strict: smart+fasttrack
