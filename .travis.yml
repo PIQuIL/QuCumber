@@ -1,7 +1,5 @@
 dist: xenial
-sudo: false
 language: python
-
 
 git:
   depth: false
@@ -111,6 +109,7 @@ jobs:
     #  if all versions of torch work on linux, they should work on macOS
     #  otherwise it's PyTorch's issue, not ours
     - os: osx
+      osx_image: xcode12.2
       name: "Python 3.6"
       language: objective-c
       env:
@@ -135,6 +134,7 @@ jobs:
       after_success: codecov
 
     - os: osx
+      osx_image: xcode12.2
       name: "Python 3.7"
       language: objective-c
       env:
@@ -147,6 +147,7 @@ jobs:
       after_success: codecov
 
     - os: osx
+      osx_image: xcode12.2
       name: "Python 3.8"
       language: objective-c
       env:
@@ -180,8 +181,8 @@ jobs:
         - zip -r examples.zip examples
       deploy: &gh-releases
         provider: releases
-        skip-cleanup: true
-        api-key: "$GITHUB_TOKEN"
+        cleanup: false
+        token: "$GITHUB_TOKEN"
         file:
           - examples.tar.gz
           - examples.zip
@@ -207,7 +208,7 @@ jobs:
         provider: pypi
         skip_existing: true
         distributions: "sdist bdist_wheel"
-        user: PIQuIL
+        username: PIQuIL
         password:
           secure: ANzomjrVPkzLO7MG9Zekl1Tz/GiO6rJyqZSWlWxF5a8M0+ZBJsFb7Do6kxPNulkEFwEnvjnJpzpY2ryWlhrXnzGZitzWIa5IDLRRHmSQ3GRNPHMIRqf1xle+8/0IwDBuC/eTsOkit7WU1j9lgurCj8snXuTLUVEqf/SecAcLpmLrelRFvz//ZcOopIbwD66RJWT8pYGBH/L3MMIDFj1bIf0UIpXdBXgeTJhxW054+BhdFPGI66IvWU/kOlOcE606wqRqI9bdvop34OewJFnOQ9Elii7LKUPNXoWmq1PrvXCIc1c50BGcLoWFM2CDiOiirzhvvUymtT/Na2BUqPpmnkbi+iRMyaIa6FOa8UIP4TCGuFd4JJlYxaq84bAmikI+1LOOGhfJ0+LACaJaqEM3WRL8VfP/xjWF9GzOuE5W8/fQQUntZaHkqQi4VV2wzULSkc5CpbrR2iX71dROWO4ETzz1wGXmO0dTVfCWMbqk7dT8OPft+tHsWWJqqeCEL3wj1uYEIYpCwLo9oSyVXwrhzRW0dysZfTCx/XfDaws3eFA6iMg6dUoBt12kwGZ5vCbgjBwPOmQrRMUEmYoyZz8n20HKojoxzUpwueFN/nbLv76arJbN8bLeb/GyE6r1Rw0DEzs8f0fBtv5agUnIpMh6EPOFYN4rwHMxt52HU7BB/Kg=
         on:
