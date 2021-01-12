@@ -46,11 +46,11 @@ sys.path.insert(0, os.path.abspath("../"))
 
 project = "QuCumber"
 author = "PIQuIL"
-copyright = "2018-{}, {}".format(date.today().year, author)
+copyright = f"2018-{date.today().year}, {author}"
 
 
 init_file = {}
-with open("../qucumber/__version__.py", "r") as f:
+with open("../qucumber/__version__.py") as f:
     # The short X.Y.Z version
     exec(f.read(), init_file)
     version = init_file["__version__"]
@@ -340,6 +340,10 @@ def linkcode_resolve(domain, info):
     class_name = info["fullname"].split(".")[0]
     module = __import__(info["module"], fromlist=[class_name])
     obj = attrgetter(info["fullname"])(module)
+
+    # unwrap decorated functions
+    if hasattr(obj, "__wrapped__"):
+        obj = obj.__wrapped__
 
     try:
         file_name = inspect.getsourcefile(obj)

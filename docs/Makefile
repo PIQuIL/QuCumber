@@ -3,13 +3,13 @@
 # You can set these variables from the command line.
 SPHINXOPTS    = -j 1 -aT
 SPHINXAUTO    = \
-	-z ../qucumber \
-	-z ../examples \
-	-i *.swp \
-	-i **/.~*.ipynb \
-	-i **/*-checkpoint.ipynb \
-	-r '_examples/*' \
-	-i Makefile
+	--watch '../qucumber' \
+	--watch '../examples' \
+	--ignore '*.swp' \
+	--ignore '**/.~*.ipynb' \
+	--ignore '**/*-checkpoint.ipynb' \
+	--re-ignore '_examples/*' \
+	--ignore Makefile
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = QuCumber
 SOURCEDIR     = .
