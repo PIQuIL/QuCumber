@@ -17,7 +17,7 @@ import torch
 
 from qucumber.utils import cplx
 from qucumber.utils import training_statistics as ts
-from qucumber.utils.unitaries import rotate_psi_inner_prod, rotate_rho_probs
+from qucumber.utils.unitaries import rotate_psi_inner_prod, rotate_rho_probs, rotate_rho
 
 
 class PosGradsUtils:
@@ -26,6 +26,9 @@ class PosGradsUtils:
 
     def compute_numerical_KL(self, target, space, all_bases=None):
         return ts.KL(self.nn_state, target, space, bases=all_bases)
+
+    def compute_numerical_KL_norot(self, target, space):
+        return ts.KL(self.nn_state, target, space)
 
     def compute_numerical_NLL(self, data_samples, space, data_bases=None):
         return ts.NLL(self.nn_state, data_samples, space, sample_bases=data_bases)
@@ -43,6 +46,9 @@ class PosGradsUtils:
             grad_KL -= self.nn_state.probability(space[i], Z) * sample_grad
         return [grad_KL]
 
+    def algorithmic_gradKL_norot(self, target, space, **kwargs):
+        return self.algorithmic_gradKL(target, space, **kwargs)
+
     def algorithmic_gradNLL(self, data_samples, space, data_bases=None, **kwargs):
         return self.nn_state.compute_exact_gradients(
             data_samples, space, bases_batch=data_bases
@@ -56,6 +62,20 @@ class PosGradsUtils:
 
             param[i] -= 2 * eps
             KL_m = self.compute_numerical_KL(target, space, all_bases=all_bases)
+
+            param[i] += eps
+            num_gradKL.append((KL_p - KL_m) / (2 * eps))
+
+        return torch.tensor(num_gradKL, dtype=torch.double).to(param)
+
+    def numeric_gradKL_norot(self, target, param, space, eps, **kwargs):
+        num_gradKL = []
+        for i in range(len(param)):
+            param[i] += eps
+            KL_p = self.compute_numerical_KL_norot(target, space)
+
+            param[i] -= 2 * eps
+            KL_m = self.compute_numerical_KL_norot(target, space)
 
             param[i] += eps
             num_gradKL.append((KL_p - KL_m) / (2 * eps))
@@ -119,6 +139,24 @@ class ComplexGradsUtils(PosGradsUtils):
         ]
         Z = self.nn_state.normalization(space)
 
+        if all_bases is None:
+            if isinstance(target, dict):
+                unrotated_basis = [k for k in target.keys() if all(c == "Z" for c in k)]
+                target_r = cplx.absolute_value(target[unrotated_basis[0]]) ** 2
+            else:
+                target_r = cplx.absolute_value(target) ** 2
+
+            probs = self.nn_state.probability(space, Z)
+            all_grads = self.nn_state.rbm_am.effective_energy_gradient(
+                space, reduce=False
+            )
+
+            grad_KL[0] += torch.mv(
+                all_grads.t(), target_r - probs
+            )  # average the gradients, weighted by probs
+
+            return grad_KL
+
         for b in range(len(all_bases)):
             if isinstance(target, dict):
                 target_r = target[all_bases[b]]
@@ -158,14 +196,30 @@ class DensityGradsUtils(ComplexGradsUtils):
         ]
         Z = self.nn_state.normalization(space)
 
+        if all_bases is None:
+            if isinstance(target, dict):
+                unrotated_basis = [k for k in target.keys() if all(c == "Z" for c in k)]
+                target_r = torch.diagonal(cplx.real(target[unrotated_basis[0]]))
+            else:
+                target_r = torch.diagonal(cplx.real(target))
+
+            probs = self.nn_state.probability(space, Z)
+            all_grads = self.nn_state.rbm_am.effective_energy_gradient(
+                space, reduce=False
+            )
+
+            grad_KL[0] += torch.mv(
+                all_grads.t(), target_r - probs
+            )  # average the gradients, weighted by probs
+
+            return grad_KL
+
         for b in range(len(all_bases)):
             if isinstance(target, dict):
                 target_r = target[all_bases[b]]
-                target_r = torch.diagonal(cplx.real(target_r))
             else:
-                target_r = rotate_rho_probs(
-                    self.nn_state, all_bases[b], space, rho=target
-                ).to(dtype=torch.double)
+                target_r = rotate_rho(self.nn_state, all_bases[b], space, rho=target)
+            target_r = torch.diagonal(cplx.real(target_r))
 
             for i in range(len(space)):
                 rotated_grad = self.nn_state.gradient(space[i], all_bases[b])

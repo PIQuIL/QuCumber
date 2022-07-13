@@ -20,7 +20,12 @@ from scipy.linalg import sqrtm
 
 from qucumber.nn_states import WaveFunctionBase
 from qucumber.utils import cplx, deprecated_kwarg
-from qucumber.utils.unitaries import rotate_psi, rotate_psi_inner_prod, rotate_rho_probs
+from qucumber.utils.unitaries import (
+    rotate_psi,
+    rotate_rho,
+    rotate_psi_inner_prod,
+    rotate_rho_probs,
+)
 
 
 @deprecated_kwarg(target_psi="target", target_rho="target")
@@ -106,24 +111,33 @@ def NLL(nn_state, samples, space=None, sample_bases=None, **kwargs):
         unique_bases, indices = np.unique(sample_bases, axis=0, return_inverse=True)
         indices = torch.Tensor(indices).to(samples)
 
-        for i in range(unique_bases.shape[0]):
-            basis = unique_bases[i, :]
-            rot_sites = np.where(basis != "Z")[0]
+        if isinstance(nn_state, WaveFunctionBase):
+            for i in range(unique_bases.shape[0]):
+                basis = unique_bases[i, :]
+                rot_sites = np.where(basis != "Z")[0]
 
-            if rot_sites.size != 0:
-                if isinstance(nn_state, WaveFunctionBase):
+                if rot_sites.size != 0:
                     Upsi = rotate_psi_inner_prod(
                         nn_state, basis, samples[indices == i, :]
                     )
                     nn_probs = (cplx.absolute_value(Upsi) ** 2) / Z
                 else:
+                    nn_probs = nn_state.probability(samples[indices == i, :], Z)
+
+                NLL_ -= torch.sum(probs_to_logits(nn_probs))
+        else:
+            for i in range(unique_bases.shape[0]):
+                basis = unique_bases[i, :]
+                rot_sites = np.where(basis != "Z")[0]
+
+                if rot_sites.size != 0:
                     nn_probs = (
                         rotate_rho_probs(nn_state, basis, samples[indices == i, :]) / Z
                     )
-            else:
-                nn_probs = nn_state.probability(samples[indices == i, :], Z)
+                else:
+                    nn_probs = nn_state.probability(samples[indices == i, :], Z)
 
-            NLL_ -= torch.sum(probs_to_logits(nn_probs))
+                NLL_ -= torch.sum(probs_to_logits(nn_probs))
 
         return NLL_ / float(len(samples))
 
@@ -202,12 +216,13 @@ def KL(nn_state, target, space=None, bases=None, **kwargs):
             if isinstance(target, dict):
                 target_rho_r = target[basis]
                 assert target_rho_r.dim() == 2, "target must be a complex matrix!"
-                target_probs_r = torch.diagonal(cplx.real(target_rho_r))
+
             else:
                 assert target.dim() == 2, "target must be a complex matrix!"
-                target_probs_r = rotate_rho_probs(nn_state, basis, space, rho=target)
+                target_rho_r = rotate_rho(nn_state, basis, space, rho=target)
 
-            rho_r = rotate_rho_probs(nn_state, basis, space)
+            target_probs_r = torch.diagonal(cplx.real(target_rho_r))
+            rho_r = torch.diagonal(cplx.real(rotate_rho(nn_state, basis, space)))
             nn_probs_r = rho_r / Z
 
             KL += _single_basis_KL(target_probs_r, nn_probs_r)

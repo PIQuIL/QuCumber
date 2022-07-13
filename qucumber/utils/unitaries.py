@@ -73,6 +73,8 @@ def _kron_mult(matrices, x):
         l //= n[s]  # noqa: E741
         m = matrices[s]
 
+        # TODO: skip multiplication if m is an identity matrix
+
         for k in range(l):
             for i in range(r):
                 slc = slice(k * n[s] * r + i, (k + 1) * n[s] * r + i, r)
@@ -173,9 +175,7 @@ def _rotate_basis_state(nn_state, basis, states, unitaries=None):
         int_vp = v[..., sites].long()
         all_Us = Us[ints_size, int_sample, int_vp]
 
-        Ut = torch.prod(all_Us.cpu(), dim=-1).to(
-            all_Us
-        )  # FIXME: prod for torch.complex is currently unsupported on GPU
+        Ut = torch.exp(torch.sum(torch.log(all_Us), dim=-1))
     else:
         v = states.unsqueeze(0)
         Ut = torch.ones(v.shape[:-1], dtype=torch.cdouble, device=nn_state.device)

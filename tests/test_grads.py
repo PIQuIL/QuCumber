@@ -186,7 +186,7 @@ def density_matrix_data(request, gpu, num_hidden):
 
 
 hidden_layer_sizes = [pytest.param(9, id="9", marks=[pytest.mark.extra]), 10]
-grad_types = ["KL", "NLL"]
+grad_types = ["KL", "NLL", "KL-norot", "NLL-norot"]
 
 
 @pytest.fixture(scope="module", params=all_state_types)
@@ -214,14 +214,19 @@ def quantum_state_graddata(request, quantum_state_data):
     grad_type = request.param
     nn_state, grad_utils = quantum_state_data.nn_state, quantum_state_data.grad_utils
 
-    if grad_type == "KL":
+    if "KL" in grad_type:
         alg_grad_fn = grad_utils.algorithmic_gradKL
         num_grad_fn = grad_utils.numeric_gradKL
     else:
         alg_grad_fn = grad_utils.algorithmic_gradNLL
         num_grad_fn = grad_utils.numeric_gradNLL
 
-    alg_grads = alg_grad_fn(**quantum_state_data._asdict())
+    param_dict = quantum_state_data._asdict()
+    if "norot" in grad_type:
+        param_dict["data_bases"] = None
+        param_dict["all_bases"] = None
+
+    alg_grads = alg_grad_fn(**param_dict)
     num_grads = [None for _ in nn_state.networks]
 
     for n, net in enumerate(nn_state.networks):
@@ -231,9 +236,9 @@ def quantum_state_graddata(request, quantum_state_data):
             num_grad = torch.cat(
                 (
                     num_grad,
-                    num_grad_fn(
-                        param=param.view(-1), eps=EPS, **quantum_state_data._asdict()
-                    ).to(num_grad),
+                    num_grad_fn(param=param.view(-1), eps=EPS, **param_dict).to(
+                        num_grad
+                    ),
                 )
             )
         num_grads[n] = num_grad
@@ -251,16 +256,20 @@ def get_param_status(i, param_ranges):
             return p, i == rng[0]
 
 
-def test_grads(quantum_state_graddata):
+@pytest.mark.parametrize("network", ["rbm_am", "rbm_ph"])
+def test_grads(network, quantum_state_graddata):
     nn_state, alg_grads, num_grads, grad_type, test_tol = quantum_state_graddata
 
     print(
-        "\nTesting {} gradients for {} on {}.".format(
-            grad_type, nn_state.__class__.__name__, nn_state.device
+        "\nTesting {} gradients of {} for {} on {}.".format(
+            grad_type, network, nn_state.__class__.__name__, nn_state.device
         )
     )
 
     for n, net in enumerate(nn_state.networks):
+        if net != network:
+            continue
+
         print("\nRBM: %s" % net)
         rbm = getattr(nn_state, net)
 
