@@ -137,7 +137,7 @@ class ComplexGradsUtils(PosGradsUtils):
                 device=self.nn_state.device,
             ),
         ]
-        Z = self.nn_state.normalization(space)
+        # Z = self.nn_state.normalization(space)
 
         if all_bases is None:
             if isinstance(target, dict):
@@ -146,7 +146,8 @@ class ComplexGradsUtils(PosGradsUtils):
             else:
                 target_r = cplx.absolute_value(target) ** 2
 
-            probs = self.nn_state.probability(space, Z)
+            probs = self.nn_state.probability(space)
+            probs /= probs.sum()
             all_grads = self.nn_state.rbm_am.effective_energy_gradient(
                 space, reduce=False
             )
