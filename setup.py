@@ -23,7 +23,7 @@ with open(os.path.join("qucumber", "__version__.py"), "r") as f:
     exec(f.read(), version_file)
 
 install_requires = [
-    "torch>=1.2,<1.9; sys_platform != 'win32'",
+    "torch>=1.2,<2.1; sys_platform != 'win32'",
     "tqdm>=4.23",
     "numpy>=1.13",
     "scipy>=1.3.3",
@@ -90,6 +90,9 @@ setuptools.setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Operating System :: OS Independent",
         "Intended Audience :: Science/Research",

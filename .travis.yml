@@ -31,7 +31,7 @@ jobs:
       os: linux
       python: 3.6
       env:
-        - &latest-torch TORCH="1.6"
+        - TORCH="1.9"
       install: &test-install
         - travis_retry pip install tox-travis codecov
       script: &test-script
@@ -41,13 +41,31 @@ jobs:
       after_success: codecov
 
     - python: 3.7
-      env: *latest-torch
+      env: TORCH="1.9"
       install: *test-install
       script: *test-script
       after_success: codecov
 
     - python: 3.8
-      env: *latest-torch
+      env: TORCH="2.0"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+
+    - python: 3.9
+      env: TORCH="2.0"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+
+    - python: 3.10
+      env: TORCH="2.0"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+
+    - python: 3.11
+      env: TORCH="2.0"
       install: *test-install
       script: *test-script
       after_success: codecov
@@ -98,6 +116,34 @@ jobs:
       if: branch = master
 
     - python: 3.6
+      env: TORCH="1.6"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+      if: branch = master
+
+    - python: 3.6
+      env: TORCH="1.7"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+      if: branch = master
+
+    - python: 3.6
+      env: TORCH="1.8"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+      if: branch = master
+
+    - python: 3.6
+      env: TORCH="1.9"
+      install: *test-install
+      script: *test-script
+      after_success: codecov
+      if: branch = master
+
+    - python: 3.10
       env: TORCH="nightly"
       install: *test-install
       script: *test-script
@@ -113,7 +159,7 @@ jobs:
       name: "Python 3.6"
       language: objective-c
       env:
-        - *latest-torch
+        - TORCH="1.9"
         - PYENV_VERSION=3.6.9
         - PY_TAG='py36'
       before_install: &mac-install
@@ -138,7 +184,7 @@ jobs:
       name: "Python 3.7"
       language: objective-c
       env:
-        - *latest-torch
+        - TORCH="1.9"
         - PYENV_VERSION=3.7.5
         - PY_TAG='py37'
       before_install: *mac-install
@@ -151,7 +197,7 @@ jobs:
       name: "Python 3.8"
       language: objective-c
       env:
-        - *latest-torch
+        - TORCH="2.0"
         - PYENV_VERSION=3.8.0
         - PY_TAG='py38'
       before_install: *mac-install
