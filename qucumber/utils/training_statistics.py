@@ -64,13 +64,13 @@ def fidelity(nn_state, target, space=None, **kwargs):
         rho_rbm_ = cplx.numpy(rho)
         target_ = cplx.numpy(target)
 
-        sqrt_rho_rbm = sqrtm(rho_rbm_)
-        prod = np.matmul(sqrt_rho_rbm, np.matmul(target_, sqrt_rho_rbm))
+        # sqrt_rho_rbm = sqrtm(rho_rbm_)
+        prod = np.matmul(target_, rho_rbm_)
 
         # Instead of sqrt'ing then taking the trace, we compute the eigenvals,
         #  sqrt those, and then sum them up. This is a bit more efficient.
         eigvals = np.linalg.eigvals(prod).real  # imaginary parts should be zero
-        eigvals = np.abs(eigvals)
+        eigvals = np.abs(eigvals) # 0 eigenvals sometimes end up slightly negative
         trace = np.sum(np.sqrt(eigvals))
 
         return trace ** 2
